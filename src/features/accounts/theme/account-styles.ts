@@ -71,17 +71,14 @@ const accountTokens = {
 
     // Total Balance Link
     totalBalanceLink: {
-      container:
-        'flex items-center justify-between gap-3 rounded-xl px-1 py-1 cursor-pointer transition-colors duration-300 group',
+      container: `${stitchHome.balanceLink} cursor-pointer`,
       leftSection: 'flex min-w-0 items-center gap-3',
-      icon: `flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-muted ring-1 ring-border/35`,
-      label: `${typographyStyles.xs} mb-1 font-semibold uppercase tracking-[0.12em] text-primary`,
-      valuePositive: `text-3xl sm:text-[3.25rem] font-semibold tabular-nums tracking-tight text-foreground transition-colors duration-300`,
-      valueNegative: `text-2xl sm:text-[1.65rem] font-bold tabular-nums tracking-tight text-destructive transition-colors duration-300`,
+      icon: stitchHome.balanceLinkIcon,
+      label: stitchHome.balanceLinkLabel,
+      valuePositive: stitchHome.balanceHero,
+      valueNegative: stitchHome.balanceHeroNegative,
       rightSection: 'flex shrink-0 items-center gap-3',
-      badge: `flex min-h-12 items-center rounded-full border border-border/55 bg-muted px-5 py-2.5`,
-      badgeText: `${typographyStyles.lg} font-bold text-foreground`,
-      arrow: `h-10 w-10 shrink-0 text-primary-foreground group-hover:translate-x-0.5 transition-transform duration-300`,
+      arrow: stitchHome.balanceLinkArrow,
       /** Dentro il riquadro saldi home: niente secondo bordo arrotondato, flush col contenitore. */
       embeddedContainer: `group -mx-3 -mb-3 flex w-[calc(100%+1.5rem)] items-center justify-between gap-2.5 rounded-b-2xl border-t border-border bg-muted/30 px-2.5 py-3.5 transition-colors hover:bg-muted/50 sm:-mx-3.5 sm:-mb-3.5 sm:w-[calc(100%+1.75rem)] sm:gap-4 sm:px-4 sm:py-4`,
       embeddedIcon: `flex size-12 shrink-0 items-center justify-center ${radiusStyles.lg} bg-primary/10 ring-1 ring-primary/15 sm:size-14`,
@@ -211,8 +208,6 @@ export const accountStyles = {
     valuePositive: accountTokens.components.totalBalanceLink.valuePositive,
     valueNegative: accountTokens.components.totalBalanceLink.valueNegative,
     rightSection: accountTokens.components.totalBalanceLink.rightSection,
-    badge: accountTokens.components.totalBalanceLink.badge,
-    badgeText: accountTokens.components.totalBalanceLink.badgeText,
     arrow: accountTokens.components.totalBalanceLink.arrow,
     embeddedContainer: accountTokens.components.totalBalanceLink.embeddedContainer,
     embeddedIcon: accountTokens.components.totalBalanceLink.embeddedIcon,

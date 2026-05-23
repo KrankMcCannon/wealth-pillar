@@ -430,7 +430,7 @@
     "loadError": "Impossibile caricare il portafoglio"
   },
   "HomePage": {
-    "loadError": "Impossibile caricare i dati della dashboard"
+    "loadError": "Qualcosa ha interrotto il caricamento della dashboard. Di solito è temporaneo: i tuoi dati restano al sicuro."
   },
   "InvestmentsContent": {
     "headerTitle": "Investimenti",

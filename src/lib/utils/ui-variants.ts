@@ -320,7 +320,7 @@ export const transactionCardVariants = cva('py-0 backdrop-blur-sm transition-all
 export const amountVariants = cva('font-bold tabular-nums', {
   variants: {
     type: {
-      income: 'text-success',
+      income: 'text-income',
       expense: 'text-destructive',
       transfer: 'text-secondary',
       balance: 'text-primary',

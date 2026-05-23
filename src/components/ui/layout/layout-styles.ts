@@ -3,7 +3,7 @@ export const layoutStyles = {
     container: 'space-y-4',
     headerRow: 'flex items-center justify-between gap-3',
     title: 'text-lg font-semibold text-primary',
-    subtitle: 'text-sm text-primary',
+    subtitle: 'text-sm text-muted-foreground',
     /** Sotto-sezioni (es. grafici sotto una panoramica) — peso inferiore al titolo sezione */
     subsectionTitle: 'text-base font-semibold text-foreground',
     subsectionSubtitle: 'text-xs text-muted-foreground leading-relaxed',

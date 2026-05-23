@@ -17,13 +17,14 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button, CategoryBadge, Text } from '@/components/ui';
 import { HomeSectionCard } from '@/components/home';
 import { SectionHeader } from '@/components/layout';
-import { stitchHome } from '@/styles/home-design-foundation';
+import { stitchHome, stitchSurface } from '@/styles/home-design-foundation';
 import {
   calculateDaysUntilDue,
   calculateMonthlyTotalAbs,
   calculateRecurringTotals,
 } from '@/lib/recurring/recurring-calculations';
 import { formatCurrency, cn } from '@/lib/utils';
+import { Amount } from '@/components/ui/primitives/amount';
 import { User } from '@/lib/types';
 const recurringStyles = {
   section: {
@@ -146,6 +147,7 @@ export function RecurringSeriesSection({
   homeDashboardListLayout = false,
 }: RecurringSeriesSectionProps) {
   const t = useTranslations('Recurring.Section');
+  const tHome = useTranslations('HomeContent');
   const tSeriesCard = useTranslations('Recurring.SeriesCard');
   const [executeErrorMessage, setExecuteErrorMessage] = useState<string | null>(null);
 
@@ -245,6 +247,7 @@ export function RecurringSeriesSection({
     if (homeDashboardListLayout) {
       return (
         <HomeSectionCard className={className}>
+          <p className={stitchHome.sectionEyebrow}>{tHome('recurringAsideLabel')}</p>
           <SectionHeader
             title={t('title')}
             subtitle={t('subtitle.seriesCount', { count: visibleSeriesCount })}
@@ -258,10 +261,14 @@ export function RecurringSeriesSection({
             description={selectedUserId ? t('empty.forUser') : t('empty.defaultDescription')}
             action={
               onCreateRecurringSeries && (
-                <Button onClick={onCreateRecurringSeries} variant="default" size="sm">
+                <button
+                  type="button"
+                  onClick={onCreateRecurringSeries}
+                  className={stitchSurface.primaryCta}
+                >
                   <Plus className={recurringStyles.section.emptyActionIcon} />
                   {t('empty.addButton')}
-                </Button>
+                </button>
               )
             }
           />
@@ -290,6 +297,7 @@ export function RecurringSeriesSection({
   if (homeDashboardListLayout) {
     return (
       <HomeSectionCard className={className}>
+        <p className={stitchHome.sectionEyebrow}>{tHome('recurringAsideLabel')}</p>
         <SectionHeader
           title={t('title')}
           subtitle={
@@ -311,7 +319,7 @@ export function RecurringSeriesSection({
               key={item.id}
               type="button"
               onClick={() => (onCardClick ? onCardClick(item) : onEditRecurringSeries?.(item))}
-              className={stitchHome.listRow}
+              className={stitchHome.listRowMinTouch}
             >
               <div className="flex min-w-0 items-center gap-3">
                 <CategoryBadge categoryKey={item.category} size="md" />
@@ -320,15 +328,16 @@ export function RecurringSeriesSection({
                   <p className={stitchHome.rowMeta}>{getDueLabel(item)}</p>
                 </div>
               </div>
-              <p
-                className={cn(
-                  'shrink-0 text-sm font-semibold tabular-nums',
-                  item.type === 'income' ? stitchHome.amountIncome : stitchHome.amountExpense
-                )}
-              >
-                {item.type === 'income' ? '+' : '-'}
-                {formatCurrency(Math.abs(item.amount))}
-              </p>
+              <span className="inline-flex shrink-0 items-baseline tabular-nums">
+                <span aria-hidden>{item.type === 'income' ? '+' : '-'}</span>
+                <Amount
+                  type={item.type === 'income' ? 'income' : 'expense'}
+                  size="sm"
+                  emphasis="subtle"
+                >
+                  {Math.abs(item.amount)}
+                </Amount>
+              </span>
             </button>
           ))}
         </div>

@@ -32,12 +32,14 @@ export function RecentActivitySection({ transactions, categories }: RecentActivi
     <HomeSectionCard aria-label={t('recentActivityTitle')}>
       <SectionHeader
         title={t('recentActivityTitle')}
+        subtitle={
+          transactions.length > 0
+            ? t('recentActivitySubtitle', { count: transactions.length })
+            : undefined
+        }
         actions={
           transactions.length > 0 ? (
-            <Link
-              href="/transactions"
-              className="text-xs font-semibold text-primary hover:underline"
-            >
+            <Link href="/transactions" className={stitchHome.viewAllLink}>
               {t('recentActivityViewAll')}
             </Link>
           ) : undefined
@@ -62,7 +64,11 @@ export function RecentActivitySection({ transactions, categories }: RecentActivi
               .filter(Boolean)
               .join(' • ');
             return (
-              <Link key={tx.id} href="/transactions" className={stitchHome.listRowInteractive}>
+              <Link
+                key={tx.id}
+                href="/transactions"
+                className={stitchHome.listRowInteractiveMinTouch}
+              >
                 <div className="flex min-w-0 items-center gap-3">
                   <CategoryBadge categoryKey={tx.category} color={cat?.color ?? ''} size="md" />
                   <div className="min-w-0">

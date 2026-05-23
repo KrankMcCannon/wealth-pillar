@@ -1,17 +1,17 @@
 /**
  * TotalBalanceLink Component
- * Displays total balance with account count
- * Clickable to navigate to /accounts page
+ * Displays total balance with link to /accounts page
  * Used in dashboard balance section
  */
 
 'use client';
 
 import { CreditCard, ArrowRight } from 'lucide-react';
-import Link from 'next/link';
+import { Link } from '@/i18n/routing';
 import { useTranslations } from 'next-intl';
+import { Amount } from '@/components/ui/primitives/amount';
 import { accountStyles } from '../theme/account-styles';
-import { cn, formatCurrency } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 
 interface TotalBalanceLinkProps {
   totalBalance: number;
@@ -38,7 +38,6 @@ export const TotalBalanceLink = ({
           : accountStyles.totalBalanceLink.container
       )}
     >
-      {/* Left Section - Balance Info */}
       <div className={accountStyles.totalBalanceLink.leftSection}>
         <div
           className={
@@ -53,6 +52,7 @@ export const TotalBalanceLink = ({
                 ? accountStyles.totalBalanceLink.embeddedIconSvg
                 : accountStyles.totalBalanceLink.iconSvg
             }
+            aria-hidden
           />
         </div>
         <div className="min-w-0">
@@ -65,23 +65,25 @@ export const TotalBalanceLink = ({
           >
             {t('totalBalanceLabel')}
           </p>
-          <p
+          <Amount
+            type={isPositive ? 'balance' : 'expense'}
+            size="2xl"
+            emphasis="strong"
             className={
-              isPositive
-                ? embedded
+              embedded
+                ? isPositive
                   ? accountStyles.totalBalanceLink.embeddedValuePositive
-                  : accountStyles.totalBalanceLink.valuePositive
-                : embedded
-                  ? accountStyles.totalBalanceLink.embeddedValueNegative
+                  : accountStyles.totalBalanceLink.embeddedValueNegative
+                : isPositive
+                  ? accountStyles.totalBalanceLink.valuePositive
                   : accountStyles.totalBalanceLink.valueNegative
             }
           >
-            {formatCurrency(totalBalance)}
-          </p>
+            {totalBalance}
+          </Amount>
         </div>
       </div>
 
-      {/* Right Section - Account Count Badge */}
       <div className={accountStyles.totalBalanceLink.rightSection}>
         <ArrowRight
           className={
@@ -89,6 +91,7 @@ export const TotalBalanceLink = ({
               ? accountStyles.totalBalanceLink.embeddedArrow
               : accountStyles.totalBalanceLink.arrow
           }
+          aria-hidden
         />
       </div>
     </Link>

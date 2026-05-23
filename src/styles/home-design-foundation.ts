@@ -24,6 +24,27 @@ export const stitchHome = {
     'space-y-4 rounded-2xl border border-border/20 bg-card/90 p-4 shadow-[0_16px_36px_rgba(0,7,30,0.28)] sm:p-5',
   sectionHeaderTitle: 'text-primary',
   sectionHeaderSubtitle: 'text-muted-foreground',
+  sectionEyebrow: 'text-[11px] font-semibold uppercase tracking-wide text-muted-foreground',
+  balanceHero:
+    'text-[30px] font-semibold tabular-nums leading-none tracking-[-0.02em] text-primary',
+  balanceHeroNegative:
+    'text-[30px] font-semibold tabular-nums leading-none tracking-[-0.02em] text-expense',
+  balanceLink:
+    'group flex items-center justify-between gap-3 rounded-xl px-1 py-1 transition-colors duration-300 motion-reduce:transition-none',
+  balanceLinkIcon:
+    'flex size-11 shrink-0 items-center justify-center rounded-2xl bg-muted ring-1 ring-border/35',
+  balanceLinkLabel: 'mb-1 text-xs font-semibold uppercase tracking-[0.12em] text-primary',
+  balanceLinkArrow:
+    'h-8 w-8 shrink-0 text-primary transition-transform duration-300 group-hover:translate-x-0.5 motion-reduce:transition-none motion-reduce:group-hover:translate-x-0',
+  listRowMinTouch:
+    'flex min-h-11 items-center justify-between gap-3 rounded-xl bg-muted/90 px-3 py-2.5 text-left shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)] transition-colors hover:bg-accent motion-reduce:transition-none',
+  listRowInteractiveMinTouch:
+    'flex min-h-11 items-center justify-between gap-3 rounded-xl bg-muted/90 px-3 py-2.5 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)] transition-colors hover:bg-accent motion-reduce:transition-none',
+  viewAllLink:
+    'inline-flex min-h-11 min-w-11 items-center justify-center px-2 text-xs font-semibold text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35 focus-visible:rounded-md',
+  budgetRowAvatar:
+    'flex size-9 shrink-0 items-center justify-center rounded-full border border-border/30 bg-muted text-sm font-bold text-primary',
+  fab: 'fixed bottom-24 right-5 z-30 flex h-14 w-14 min-h-11 min-w-11 items-center justify-center rounded-2xl bg-accent text-white shadow-[0_8px_32px_rgba(0,20,86,0.45)] transition-transform hover:scale-105 active:scale-95 motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45',
   balanceSection:
     'flex flex-col gap-3 overflow-hidden rounded-[30px] border border-border/20 bg-card/90 p-4 shadow-[0_16px_36px_rgba(0,7,30,0.28)] sm:gap-3.5 sm:p-5',
   listRow:

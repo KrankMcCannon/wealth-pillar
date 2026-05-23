@@ -2,102 +2,102 @@
 name: Wealth Pillar
 description: Italian household finance — confident dark craft, precise numbers, calm trust
 colors:
-  background: "oklch(0.141 0.036 271)"
-  foreground: "oklch(0.944 0.026 272)"
-  card: "oklch(0.257 0.092 264)"
-  primary: "oklch(0.764 0.12 266)"
-  primary-foreground: "oklch(0.141 0.036 271)"
-  secondary: "oklch(0.298 0.101 264)"
-  accent: "oklch(0.326 0.098 263)"
-  muted: "oklch(0.298 0.101 264)"
-  muted-foreground: "oklch(0.758 0.059 267)"
-  border: "oklch(0.5 0.174 266)"
-  ring: "oklch(0.764 0.12 266)"
-  income: "oklch(0.86 0.13 155)"
-  expense: "oklch(0.8 0.09 22)"
-  destructive: "oklch(0.8 0.09 22)"
-  success: "oklch(0.75 0.1 150)"
-  teal-accent: "oklch(0.87 0.11 175)"
+  background: 'oklch(0.141 0.036 271)'
+  foreground: 'oklch(0.944 0.026 272)'
+  card: 'oklch(0.257 0.092 264)'
+  primary: 'oklch(0.764 0.12 266)'
+  primary-foreground: 'oklch(0.141 0.036 271)'
+  secondary: 'oklch(0.298 0.101 264)'
+  accent: 'oklch(0.326 0.098 263)'
+  muted: 'oklch(0.298 0.101 264)'
+  muted-foreground: 'oklch(0.758 0.059 267)'
+  border: 'oklch(0.5 0.174 266)'
+  ring: 'oklch(0.764 0.12 266)'
+  income: 'oklch(0.86 0.13 155)'
+  expense: 'oklch(0.8 0.09 22)'
+  destructive: 'oklch(0.8 0.09 22)'
+  success: 'oklch(0.75 0.1 150)'
+  teal-accent: 'oklch(0.87 0.11 175)'
 typography:
   display:
-    fontFamily: "var(--font-spline-sans), system-ui, sans-serif"
-    fontSize: "2rem"
+    fontFamily: 'var(--font-spline-sans), system-ui, sans-serif'
+    fontSize: '2rem'
     fontWeight: 700
     lineHeight: 1.1
-    letterSpacing: "-0.025em"
+    letterSpacing: '-0.025em'
   headline:
-    fontFamily: "var(--font-spline-sans), system-ui, sans-serif"
-    fontSize: "1.5rem"
+    fontFamily: 'var(--font-spline-sans), system-ui, sans-serif'
+    fontSize: '1.5rem'
     fontWeight: 700
     lineHeight: 1.2
-    letterSpacing: "-0.025em"
+    letterSpacing: '-0.025em'
   title:
-    fontFamily: "var(--font-spline-sans), system-ui, sans-serif"
-    fontSize: "1.125rem"
+    fontFamily: 'var(--font-spline-sans), system-ui, sans-serif'
+    fontSize: '1.125rem'
     fontWeight: 600
     lineHeight: 1.3
-    letterSpacing: "normal"
+    letterSpacing: 'normal'
   body:
-    fontFamily: "var(--font-spline-sans), system-ui, sans-serif"
-    fontSize: "0.875rem"
+    fontFamily: 'var(--font-spline-sans), system-ui, sans-serif'
+    fontSize: '0.875rem'
     fontWeight: 400
     lineHeight: 1.6
-    letterSpacing: "normal"
+    letterSpacing: 'normal'
   label:
-    fontFamily: "var(--font-spline-sans), system-ui, sans-serif"
-    fontSize: "0.6875rem"
+    fontFamily: 'var(--font-spline-sans), system-ui, sans-serif'
+    fontSize: '0.6875rem'
     fontWeight: 600
     lineHeight: 1.2
-    letterSpacing: "0.05em"
+    letterSpacing: '0.05em'
 rounded:
-  sm: "0.5rem"
-  md: "0.75rem"
-  lg: "1rem"
-  xl: "1.5rem"
-  full: "9999px"
+  sm: '0.5rem'
+  md: '0.75rem'
+  lg: '1rem'
+  xl: '1.5rem'
+  full: '9999px'
 spacing:
-  xs: "0.25rem"
-  sm: "0.5rem"
-  md: "1rem"
-  lg: "1.5rem"
-  xl: "2rem"
+  xs: '0.25rem'
+  sm: '0.5rem'
+  md: '1rem'
+  lg: '1.5rem'
+  xl: '2rem'
 components:
   button-primary:
-    backgroundColor: "{colors.primary}"
-    textColor: "{colors.primary-foreground}"
-    rounded: "{rounded.md}"
-    padding: "0.5rem 1rem"
+    backgroundColor: '{colors.primary}'
+    textColor: '{colors.primary-foreground}'
+    rounded: '{rounded.md}'
+    padding: '0.5rem 1rem'
   button-primary-hover:
-    backgroundColor: "{colors.primary}"
-    textColor: "{colors.primary-foreground}"
-    rounded: "{rounded.md}"
-    padding: "0.5rem 1rem"
+    backgroundColor: '{colors.primary}'
+    textColor: '{colors.primary-foreground}'
+    rounded: '{rounded.md}'
+    padding: '0.5rem 1rem'
   button-destructive:
-    backgroundColor: "{colors.expense}"
-    textColor: "{colors.foreground}"
-    rounded: "{rounded.md}"
-    padding: "0.5rem 1rem"
+    backgroundColor: '{colors.expense}'
+    textColor: '{colors.foreground}'
+    rounded: '{rounded.md}'
+    padding: '0.5rem 1rem'
   card-default:
-    backgroundColor: "{colors.card}"
-    textColor: "{colors.foreground}"
-    rounded: "{rounded.xl}"
-    padding: "1rem"
+    backgroundColor: '{colors.card}'
+    textColor: '{colors.foreground}'
+    rounded: '{rounded.xl}'
+    padding: '1rem'
   input-default:
-    backgroundColor: "{colors.secondary}"
-    textColor: "{colors.foreground}"
-    rounded: "{rounded.md}"
-    padding: "0.25rem 0.75rem"
-    height: "2.25rem"
+    backgroundColor: '{colors.secondary}'
+    textColor: '{colors.foreground}'
+    rounded: '{rounded.md}'
+    padding: '0.25rem 0.75rem'
+    height: '2.25rem'
   nav-item-active:
-    backgroundColor: "{colors.primary}"
-    textColor: "{colors.primary}"
-    rounded: "{rounded.xl}"
-    padding: "0.125rem 0.25rem"
+    backgroundColor: '{colors.primary}'
+    textColor: '{colors.primary}'
+    rounded: '{rounded.xl}'
+    padding: '0.125rem 0.25rem'
   filter-chip-active:
-    backgroundColor: "{colors.accent}"
-    textColor: "{colors.foreground}"
-    rounded: "{rounded.full}"
-    padding: "0.5rem 1rem"
+    backgroundColor: '{colors.accent}'
+    textColor: '{colors.foreground}'
+    rounded: '{rounded.full}'
+    padding: '0.5rem 1rem'
 ---
 
 # Design System: Wealth Pillar

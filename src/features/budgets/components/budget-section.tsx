@@ -7,17 +7,15 @@ import { BudgetSectionSkeleton } from '@/features/dashboard';
 import { HomeSectionCard } from '@/components/home';
 import { EmptyState } from '@/components/shared';
 import { SectionHeader } from '@/components/layout';
-import { PageSection } from '@/components/ui/layout';
-import { formatCurrency } from '@/lib/utils/currency-formatter';
+import { Amount } from '@/components/ui/primitives/amount';
 import {
   budgetStyles,
   getBudgetSectionProgressStyles,
-  getBudgetGroupCardStyle,
   getBudgetSectionProgressBarStyle,
 } from '@/features/budgets/theme/budget-styles';
 import { useRouter } from '@/i18n/routing';
 import { cn } from '@/lib/utils';
-import { stitchHome } from '@/styles/home-design-foundation';
+import { stitchHome, stitchSurface } from '@/styles/home-design-foundation';
 
 interface BudgetSectionProps {
   budgetsByUser: Record<string, UserBudgetSummary>;
@@ -27,7 +25,7 @@ interface BudgetSectionProps {
 }
 
 /**
- * Budget section — visualizzazione Home con token `stitchHome` condivisi.
+ * Budget section — home dashboard with stitchHome list rows.
  */
 export const BudgetSection = ({
   budgetsByUser,
@@ -73,27 +71,25 @@ export const BudgetSection = ({
 
   if (budgetEntries.length === 0 || totalBudgetRows === 0) {
     return (
-      <PageSection className={budgetStyles.section.container}>
+      <HomeSectionCard>
         <SectionHeader
           title={t('title')}
           subtitle={t('subtitle')}
-          className="mb-4 border-b border-border/40 pb-4"
+          className="pb-1"
+          titleClassName={stitchHome.sectionHeaderTitle}
+          subtitleClassName={stitchHome.sectionHeaderSubtitle}
         />
         <EmptyState
           variant="surface"
           title={t('empty.title')}
           description={t('empty.description')}
           action={
-            <button
-              type="button"
-              onClick={goToBudgets}
-              className={budgetStyles.section.emptyButton}
-            >
+            <button type="button" onClick={goToBudgets} className={stitchSurface.primaryCta}>
               {t('empty.createButton')}
             </button>
           }
         />
-      </PageSection>
+      </HomeSectionCard>
     );
   }
 
@@ -108,85 +104,83 @@ export const BudgetSection = ({
         subtitleClassName={stitchHome.sectionHeaderSubtitle}
       />
 
-      <div className={budgetStyles.transactions.container}>
-        <div className="space-y-3">
-          {sortedBudgetEntries.map((entry, index) => {
-            const progressClasses = getBudgetSectionProgressStyles(entry.overallPercentage);
-            const periodLabel =
-              entry.activePeriod && entry.periodStart
-                ? `${new Date(entry.periodStart).toLocaleDateString(locale, {
-                    day: 'numeric',
-                    month: 'short',
-                  })} - ${
-                    entry.periodEnd
-                      ? new Date(entry.periodEnd).toLocaleDateString(locale, {
-                          day: 'numeric',
-                          month: 'short',
-                        })
-                      : t('periodOngoing')
-                  }`
-                : t('periodOngoing');
+      <div className="flex flex-col gap-2">
+        {sortedBudgetEntries.map((entry) => {
+          const progressClasses = getBudgetSectionProgressStyles(entry.overallPercentage);
+          const periodLabel =
+            entry.activePeriod && entry.periodStart
+              ? `${new Date(entry.periodStart).toLocaleDateString(locale, {
+                  day: 'numeric',
+                  month: 'short',
+                })} - ${
+                  entry.periodEnd
+                    ? new Date(entry.periodEnd).toLocaleDateString(locale, {
+                        day: 'numeric',
+                        month: 'short',
+                      })
+                    : t('periodOngoing')
+                }`
+              : t('periodOngoing');
 
-            return (
-              <button
-                key={entry.user.id}
-                type="button"
-                className={stitchHome.budgetUserCard}
-                style={getBudgetGroupCardStyle(index)}
-                onClick={() => goToMemberBudgets(entry.user.id)}
-              >
-                <p className={stitchHome.budgetEyebrow}>{t('monthlyBudgetEyebrow')}</p>
-
-                <div className="flex items-center gap-3">
-                  <div className={stitchHome.budgetUserAvatar}>
-                    {(entry.user.name ?? '?').charAt(0).toUpperCase()}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className={stitchHome.budgetUserName}>{entry.user.name ?? ''}</p>
-                    <p className={stitchHome.budgetPeriod}>{periodLabel}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className={stitchHome.budgetTotal}>{formatCurrency(entry.totalBudget)}</p>
-                  </div>
+          return (
+            <button
+              key={entry.user.id}
+              type="button"
+              className={cn(stitchHome.listRowInteractiveMinTouch, 'flex-col items-stretch gap-2')}
+              onClick={() => goToMemberBudgets(entry.user.id)}
+            >
+              <div className="flex w-full items-center gap-3">
+                <div className={stitchHome.budgetRowAvatar}>
+                  {(entry.user.name ?? '?').charAt(0).toUpperCase()}
                 </div>
-
-                <div className="mt-2.5 grid grid-cols-2 gap-2 text-xs">
-                  <p className={stitchHome.budgetMetricLabel}>
-                    {t('spentPrefix')}{' '}
-                    <span className={`font-semibold ${stitchHome.amountExpense}`}>
-                      {formatCurrency(entry.totalSpent)}
-                    </span>
-                  </p>
-                  <p className={`text-right ${stitchHome.budgetMetricLabel}`}>
-                    {t('availablePrefix')}{' '}
-                    <span className={`font-semibold ${stitchHome.amountIncome}`}>
-                      {formatCurrency(entry.totalRemaining)}
-                    </span>
-                  </p>
+                <div className="min-w-0 flex-1 text-left">
+                  <p className={stitchHome.rowTitle}>{entry.user.name ?? ''}</p>
+                  <p className={stitchHome.rowMeta}>{periodLabel}</p>
                 </div>
+                <Amount
+                  type="neutral"
+                  size="lg"
+                  emphasis="strong"
+                  className="shrink-0 text-foreground"
+                >
+                  {entry.totalBudget}
+                </Amount>
+              </div>
 
-                <div className="mt-2.5 flex items-center gap-2">
-                  <div className="flex-1">
-                    <div className={stitchHome.progressTrack}>
-                      <div
-                        className={`${budgetStyles.progress.barFillBase} ${progressClasses.bar}`}
-                        style={getBudgetSectionProgressBarStyle(entry.overallPercentage)}
-                      />
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1.5">
+              <p className="w-full text-left text-xs text-muted-foreground">
+                {t('spentPrefix')}{' '}
+                <Amount type="expense" size="sm" emphasis="subtle" className="inline">
+                  {entry.totalSpent}
+                </Amount>
+                <span className="mx-1.5 text-border">·</span>
+                {t('availablePrefix')}{' '}
+                <Amount type="income" size="sm" emphasis="subtle" className="inline">
+                  {entry.totalRemaining}
+                </Amount>
+              </p>
+
+              <div className="flex w-full items-center gap-2">
+                <div className="flex-1">
+                  <div className={stitchHome.progressTrack}>
                     <div
-                      className={`${budgetStyles.section.progressBadgeDot} ${progressClasses.dot}`}
+                      className={`${budgetStyles.progress.barFillBase} ${progressClasses.bar}`}
+                      style={getBudgetSectionProgressBarStyle(entry.overallPercentage)}
                     />
-                    <span className={`text-base font-semibold ${progressClasses.text}`}>
-                      {Math.round(entry.overallPercentage)}%
-                    </span>
                   </div>
                 </div>
-              </button>
-            );
-          })}
-        </div>
+                <div className="flex shrink-0 items-center gap-1.5">
+                  <div
+                    className={`${budgetStyles.section.progressBadgeDot} ${progressClasses.dot}`}
+                    aria-hidden
+                  />
+                  <span className={`text-sm font-semibold tabular-nums ${progressClasses.text}`}>
+                    {Math.round(entry.overallPercentage)}%
+                  </span>
+                </div>
+              </div>
+            </button>
+          );
+        })}
       </div>
     </HomeSectionCard>
   );

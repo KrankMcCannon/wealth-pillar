@@ -1,5 +1,6 @@
 import { Skeleton } from '@/components/ui/skeleton';
 import { SkeletonList } from '@/components/ui/primitives';
+import { stitchHome } from '@/styles/home-design-foundation';
 
 export function UserSelectorSkeleton() {
   return (
@@ -9,7 +10,7 @@ export function UserSelectorSkeleton() {
         count={3}
         spacing="flex gap-2 overflow-x-auto"
         renderItem={() => (
-          <div className="flex shrink-0 items-center gap-2 rounded-full border border-border bg-card px-3 py-2">
+          <div className="flex shrink-0 items-center gap-2 rounded-full border border-border/35 bg-muted/80 px-3 py-2">
             <Skeleton className="size-8 rounded-full" />
             <Skeleton className="h-3 w-16" />
           </div>
@@ -21,20 +22,16 @@ export function UserSelectorSkeleton() {
 
 export function BalanceSectionSkeleton() {
   return (
-    <section className="px-4 py-2">
-      <div className="flex gap-3 overflow-hidden pb-2">
-        <Skeleton className="h-28 w-56 shrink-0 rounded-2xl" />
-        <Skeleton className="h-28 w-56 shrink-0 rounded-2xl" />
-      </div>
-      <div className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-card p-4">
-        <div className="flex min-w-0 flex-1 items-center gap-3">
-          <Skeleton className="size-12 shrink-0 rounded-xl sm:size-14" />
-          <div className="flex min-w-0 flex-1 flex-col gap-2">
-            <Skeleton className="h-2.5 w-24" />
-            <Skeleton className="h-8 w-40 max-w-full sm:h-9 sm:w-44" />
+    <section className={stitchHome.balanceSection} aria-hidden>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <Skeleton className="size-11 shrink-0 rounded-2xl" />
+          <div className="flex min-w-0 flex-col gap-2">
+            <Skeleton className="h-3 w-24" />
+            <Skeleton className="h-8 w-36 max-w-full" />
           </div>
         </div>
-        <Skeleton className="h-10 w-28 shrink-0 rounded-full sm:h-11" />
+        <Skeleton className="size-8 shrink-0 rounded-full" />
       </div>
     </section>
   );
@@ -42,50 +39,49 @@ export function BalanceSectionSkeleton() {
 
 export function BudgetSectionSkeleton() {
   return (
-    <div className="px-4">
-      <div className="mb-4 border-b border-border/40 pb-4">
+    <section className={stitchHome.sectionCard} aria-hidden>
+      <Skeleton className="h-3 w-28" />
+      <div className="mb-3 flex flex-col gap-1">
         <Skeleton className="h-5 w-36" />
-        <Skeleton className="mt-2 h-3 w-48" />
+        <Skeleton className="h-3 w-48" />
       </div>
       <SkeletonList
         count={2}
-        spacing="flex flex-col gap-4 sm:gap-5"
+        spacing="flex flex-col gap-2"
         renderItem={() => (
-          <div className="rounded-2xl border border-border bg-card p-4">
-            <div className="flex items-center gap-3">
-              <Skeleton className="size-10 rounded-xl" />
-              <div className="flex flex-1 flex-col gap-2">
-                <Skeleton className="h-4 w-28" />
-                <Skeleton className="h-3 w-20" />
-              </div>
+          <div className={stitchHome.listRow}>
+            <Skeleton className="size-9 shrink-0 rounded-full" />
+            <div className="min-w-0 flex-1 flex flex-col gap-1.5">
+              <Skeleton className="h-4 w-28" />
+              <Skeleton className="h-3 w-20" />
             </div>
-            <Skeleton className="mt-4 h-2 w-full rounded-full" />
-            <div className="mt-3 flex gap-4">
-              <Skeleton className="h-3 w-16" />
-              <Skeleton className="h-3 w-16" />
-            </div>
+            <Skeleton className="h-4 w-16 shrink-0" />
           </div>
         )}
       />
-    </div>
+    </section>
   );
 }
 
 export function RecurringSeriesSkeleton() {
   return (
-    <div className="px-4">
-      <Skeleton className="mb-3 h-4 w-32" />
+    <section className={stitchHome.sectionCard} aria-hidden>
+      <Skeleton className="h-3 w-32" />
+      <Skeleton className="mb-3 h-5 w-40" />
       <SkeletonList
         count={3}
-        spacing="flex flex-col gap-3"
+        spacing="flex flex-col gap-2"
         renderItem={() => (
-          <div className="rounded-xl border border-border bg-card p-3">
-            <Skeleton className="h-4 w-40" />
-            <Skeleton className="mt-2 h-3 w-28" />
-            <Skeleton className="mt-2 h-3 w-20" />
+          <div className={stitchHome.listRow}>
+            <Skeleton className="size-8 shrink-0 rounded-xl" />
+            <div className="min-w-0 flex-1 flex flex-col gap-1.5">
+              <Skeleton className="h-4 w-[60%]" />
+              <Skeleton className="h-3 w-20" />
+            </div>
+            <Skeleton className="h-4 w-16 shrink-0" />
           </div>
         )}
       />
-    </div>
+    </section>
   );
 }

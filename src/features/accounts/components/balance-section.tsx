@@ -13,18 +13,8 @@ interface BalanceSectionProps {
 }
 
 /**
- * Balance Section Component
- * Displays default accounts slider and total balance link on dashboard
- *
- * Orchestrates multiple sub-components:
- * - AccountSlider: Horizontal scrollable account cards with skeleton while loading
- * - TotalBalanceLink: Clickable total balance card with skeleton while loading
- *
- * Uses view model for business logic:
- * - Filtering default accounts
- * - Sorting by balance
- *
- * Shows internal skeleton while loading - resilient pattern
+ * Balance section on the home dashboard.
+ * Renders total balance hero linking to the accounts page.
  */
 export const BalanceSection = ({
   accounts,

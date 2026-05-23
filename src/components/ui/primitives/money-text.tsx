@@ -1,10 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { useLocale } from 'next-intl';
 import { cn } from '@/lib/utils';
-import { formatCurrencyLocale } from '@/lib/utils/currency-formatter';
-import { stitchHome } from '@/styles/home-design-foundation';
 import { Amount, type AmountProps } from './amount';
 
 export type MoneyTextVariant = 'default' | 'home-income' | 'home-expense';
@@ -14,7 +11,6 @@ interface MoneyTextProps {
   variant?: MoneyTextVariant;
   signed?: boolean;
   className?: string;
-  /** Use Amount primitive styling (default/list pages) */
   amountProps?: Partial<AmountProps>;
   children?: ReactNode;
 }
@@ -27,24 +23,29 @@ export function MoneyText({
   amountProps,
   children,
 }: MoneyTextProps) {
-  const locale = useLocale();
-  const formatted = formatCurrencyLocale(Math.abs(value), locale);
-  const display =
-    children ?? (signed ? `${value >= 0 ? '+' : '-'}${formatted.replace(/^-/, '')}` : formatted);
-
   if (variant === 'home-income' || variant === 'home-expense') {
+    const signPrefix = children != null ? null : signed ? (value >= 0 ? '+' : '-') : null;
+
     return (
-      <p
-        className={cn(
-          'shrink-0 text-sm font-semibold tabular-nums',
-          variant === 'home-income' ? stitchHome.amountIncome : stitchHome.amountExpense,
-          className
-        )}
-      >
-        {display}
-      </p>
+      <span className={cn('inline-flex shrink-0 items-baseline gap-0 tabular-nums', className)}>
+        {signPrefix ? <span aria-hidden>{signPrefix}</span> : null}
+        <Amount
+          type={variant === 'home-income' ? 'income' : 'expense'}
+          size="sm"
+          emphasis="subtle"
+          {...amountProps}
+        >
+          {children != null
+            ? typeof children === 'number' || typeof children === 'string'
+              ? children
+              : String(children)
+            : Math.abs(value)}
+        </Amount>
+      </span>
     );
   }
+
+  const display = children ?? value;
 
   return (
     <Amount

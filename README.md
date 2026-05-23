@@ -186,15 +186,15 @@ NEXT_PUBLIC_APP_URL=https://your-app.example.com
 
 ### Key Patterns
 
-| Pattern               | Description                                         |
-| --------------------- | --------------------------------------------------- |
-| **Server Components** | Data fetching in `app/[locale]/` pages              |
-| **Server Actions**    | Mutations in `src/features/{domain}/actions`        |
-| **Use cases**         | Application logic in `src/server/use-cases`         |
-| **Repositories**      | Database access in `src/server/repositories`        |
-| **Zustand stores**    | Client-side cache and UI state                      |
-| **Feature modules**   | Self-contained domain UI in `src/features`          |
-| **i18n**              | Locale routing and messages via `next-intl`           |
+| Pattern               | Description                                  |
+| --------------------- | -------------------------------------------- |
+| **Server Components** | Data fetching in `app/[locale]/` pages       |
+| **Server Actions**    | Mutations in `src/features/{domain}/actions` |
+| **Use cases**         | Application logic in `src/server/use-cases`  |
+| **Repositories**      | Database access in `src/server/repositories` |
+| **Zustand stores**    | Client-side cache and UI state               |
+| **Feature modules**   | Self-contained domain UI in `src/features`   |
+| **i18n**              | Locale routing and messages via `next-intl`  |
 
 ---
 
@@ -265,22 +265,22 @@ wealth-pillar/
 
 ### Available Scripts
 
-| Script                    | Description                        |
-| ------------------------- | ---------------------------------- |
-| `pnpm dev`                | Start development server           |
-| `pnpm build`              | Production build                   |
-| `pnpm start`              | Start production server            |
-| `pnpm lint`               | Run ESLint                         |
-| `pnpm lint:fix`           | Run ESLint with auto-fix           |
-| `pnpm format`             | Format code with Prettier          |
-| `pnpm format:check`       | Check Prettier formatting          |
-| `pnpm typecheck`          | Run TypeScript checks              |
-| `pnpm test`               | Run unit tests (Vitest)            |
-| `pnpm test:coverage`      | Unit tests with coverage           |
-| `pnpm test:e2e`           | Run E2E tests (Playwright)         |
-| `pnpm test:e2e:ui`        | E2E tests with Playwright UI       |
-| `pnpm test:e2e:headed`    | E2E tests in headed browser        |
-| `pnpm test:e2e:coverage`  | E2E tests with coverage reporting  |
+| Script                   | Description                       |
+| ------------------------ | --------------------------------- |
+| `pnpm dev`               | Start development server          |
+| `pnpm build`             | Production build                  |
+| `pnpm start`             | Start production server           |
+| `pnpm lint`              | Run ESLint                        |
+| `pnpm lint:fix`          | Run ESLint with auto-fix          |
+| `pnpm format`            | Format code with Prettier         |
+| `pnpm format:check`      | Check Prettier formatting         |
+| `pnpm typecheck`         | Run TypeScript checks             |
+| `pnpm test`              | Run unit tests (Vitest)           |
+| `pnpm test:coverage`     | Unit tests with coverage          |
+| `pnpm test:e2e`          | Run E2E tests (Playwright)        |
+| `pnpm test:e2e:ui`       | E2E tests with Playwright UI      |
+| `pnpm test:e2e:headed`   | E2E tests in headed browser       |
+| `pnpm test:e2e:coverage` | E2E tests with coverage reporting |
 
 ### Market Data Cache
 

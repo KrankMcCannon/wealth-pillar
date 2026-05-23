@@ -430,7 +430,7 @@
     "loadError": "Could not load portfolio"
   },
   "HomePage": {
-    "loadError": "Could not load dashboard data"
+    "loadError": "Something interrupted loading your dashboard. It is usually temporary: your data stays safe on our side."
   },
   "InvestmentsContent": {
     "headerTitle": "Investments",

@@ -13,31 +13,30 @@ import { TransactionListSkeleton } from '@/components/ui/primitives/skeletons';
 import { cn } from '@/lib/utils';
 import { STICKY_HEADER_BASE } from '@/lib/utils/ui-constants';
 import { stitchHome } from '@/styles/home-design-foundation';
+
 const pageLoaderStyles = {
   page: 'relative flex w-full min-h-[100svh] flex-col bg-card md:pl-64',
   container: 'flex-1 flex items-center justify-center',
   content: 'text-center',
   iconWrap:
-    'flex size-16 items-center justify-center rounded-2xl bg-primary/10 mx-auto mb-4 animate-pulse',
-  icon: 'w-8 h-8 text-primary animate-spin',
+    'flex size-16 items-center justify-center rounded-2xl bg-primary/10 mx-auto mb-4 animate-pulse motion-reduce:animate-none',
+  icon: 'w-8 h-8 text-primary animate-spin motion-reduce:animate-none',
   message: 'text-sm font-semibold text-primary',
   submessage: 'text-xs text-primary/70 mt-1',
 } as const;
-
-const SKIP_LINK_LABEL = 'Skip to balances, budgets, and recurring items';
 
 function HeaderSkeleton() {
   return (
     <header className={cn(STICKY_HEADER_BASE, headerStyles.container)}>
       <div className={headerStyles.inner}>
         <div className={headerStyles.slotLeft}>
-          <Skeleton className="size-9 rounded-full" />
+          <Skeleton className="size-11 rounded-full" />
         </div>
         <div className={headerStyles.slotCenter}>
           <Skeleton className="h-5 w-36" />
         </div>
         <div className={headerStyles.slotRight}>
-          <Skeleton className="size-9 rounded-full" />
+          <Skeleton className="size-11 rounded-full" />
         </div>
       </div>
     </header>
@@ -67,15 +66,35 @@ function HomeListBlockSkeleton() {
   );
 }
 
-function HomePageSkeleton() {
+function BalanceBlockSkeleton() {
+  return (
+    <section className={stitchHome.balanceSection} aria-hidden>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <Skeleton className="size-11 shrink-0 rounded-2xl" />
+          <div className="flex min-w-0 flex-col gap-2">
+            <Skeleton className="h-3 w-24" />
+            <Skeleton className="h-8 w-36 max-w-full" />
+          </div>
+        </div>
+        <Skeleton className="size-8 shrink-0 rounded-full" />
+      </div>
+    </section>
+  );
+}
+
+interface HomePageSkeletonProps {
+  skipLabel: string;
+}
+
+function HomePageSkeleton({ skipLabel }: HomePageSkeletonProps) {
   return (
     <PageContainer>
-      <SkipToMainLink href="#main-dashboard">{SKIP_LINK_LABEL}</SkipToMainLink>
+      <SkipToMainLink href="#main-dashboard">{skipLabel}</SkipToMainLink>
       <HeaderSkeleton />
       <HomeDashboardMain ariaBusy>
-        <section className={stitchHome.balanceSection} aria-hidden>
-          <Skeleton className="h-24 w-full rounded-2xl" />
-        </section>
+        <BalanceBlockSkeleton />
+        <HomeListBlockSkeleton />
         <HomeListBlockSkeleton />
         <HomeListBlockSkeleton />
       </HomeDashboardMain>
@@ -102,6 +121,7 @@ interface PageLoaderProps {
   variant?: PageLoaderVariant;
   message?: string;
   submessage?: string;
+  skipLabel?: string;
 }
 
 function FormPageLoader({
@@ -122,6 +142,7 @@ function FormPageLoader({
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
+              aria-hidden
             >
               <path
                 strokeLinecap="round"
@@ -139,8 +160,16 @@ function FormPageLoader({
   );
 }
 
-export function PageLoader({ variant = 'form', message, submessage }: Readonly<PageLoaderProps>) {
-  if (variant === 'home') return <HomePageSkeleton />;
+export function PageLoader({
+  variant = 'form',
+  message,
+  submessage,
+  skipLabel,
+}: Readonly<PageLoaderProps>) {
+  const tHome = useTranslations('HomeContent');
+  const resolvedSkipLabel = skipLabel ?? tHome('skipToContent');
+
+  if (variant === 'home') return <HomePageSkeleton skipLabel={resolvedSkipLabel} />;
   if (variant === 'list') return <ListPageSkeleton />;
   return (
     <FormPageLoader
