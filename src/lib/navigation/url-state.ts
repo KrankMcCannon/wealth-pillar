@@ -60,7 +60,11 @@ export function useModalState() {
     isOpen: (type: ModalType) => modal === type,
     openModal: (type: ModalType, id?: string) => {
       setModal(type);
-      if (id) setEditId(id);
+      if (id) {
+        setEditId(id);
+      } else {
+        setEditId(null);
+      }
     },
     closeModal: () => {
       setModal(null);

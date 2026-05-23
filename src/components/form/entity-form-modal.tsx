@@ -91,11 +91,13 @@ export function EntityFormModal<T extends FieldValues>({
     defaultValues,
   });
 
+  const { reset } = form;
+
   useEffect(() => {
     if (isOpen) {
-      form.reset(resetValues ?? defaultValues);
+      reset(resetValues ?? defaultValues);
     }
-  }, [isOpen, resetValues, defaultValues, form]);
+  }, [isOpen, resetValues, defaultValues, reset]);
 
   const openDeleteDialog = useCallback(() => {
     if (deletion?.enabled) {

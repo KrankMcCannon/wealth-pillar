@@ -6,6 +6,7 @@ import type { TransactionFiltersState } from '@/server/use-cases/transactions/tr
 import type { Transaction, Budget, Account } from '@/lib/types';
 import { useModalState, useTabState, type ModalType } from '@/lib/navigation/url-state';
 import { useRouter } from '@/i18n/routing';
+import { useTransactionEditStore } from '../stores/transaction-edit-store';
 
 export type PageSizeOption = 10 | 20 | 30 | 50 | 100;
 
@@ -246,12 +247,14 @@ export function useTransactionsContent({
   }, [pageSize, pushQuery, selectedUserId]);
 
   const accountNames = useIdNameMap(accounts);
+  const setTransactionEditSeed = useTransactionEditStore((state) => state.setSeed);
 
   const handleEditTransaction = useCallback(
     (transaction: Transaction) => {
+      setTransactionEditSeed(transaction);
       openModal('transaction', transaction.id);
     },
-    [openModal]
+    [openModal, setTransactionEditSeed]
   );
 
   return {

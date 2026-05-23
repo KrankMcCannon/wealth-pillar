@@ -21,7 +21,9 @@ import {
 } from '@/features/transactions/actions/transaction-actions';
 import { useRouter } from '@/i18n/routing';
 import { formModalStyles } from '@/components/form';
-import type { Account, Category, User } from '@/lib/types';
+import type { Account, Category, Transaction, User } from '@/lib/types';
+import { useTransactionEditStore } from '../stores/transaction-edit-store';
+import { mapTransactionToFormData } from '../utils/transaction-form-data';
 import { TransactionFormFields, type TransactionFormData } from './transaction-form-fields';
 
 const createTransactionSchema = (t: ReturnType<typeof useTranslations>) =>
@@ -176,8 +178,20 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
   const router = useRouter();
   const { toast } = useToast();
   const [isLoadingRow, setIsLoadingRow] = useState(false);
-  const [resetValues, setResetValues] = useState<TransactionFormData | undefined>(undefined);
+  const [loadedTransaction, setLoadedTransaction] = useState<{
+    editId: string;
+    data: Transaction | null;
+  } | null>(null);
+  const seedTransaction = useTransactionEditStore((state) => state.seed);
+  const clearSeed = useTransactionEditStore((state) => state.clearSeed);
   const previousUserIdRef = useRef<string | null>(null);
+
+  const handleClose = useCallback(() => {
+    clearSeed();
+    onClose();
+  }, [clearSeed, onClose]);
+
+  useEffect(() => () => clearSeed(), [clearSeed]);
 
   const isEditMode = !!editId;
   const title = isEditMode ? t('title.edit') : t('title.create');
@@ -222,55 +236,68 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
     [accounts, groupUsers]
   );
 
+  const editingTransaction =
+    isOpen && editId && loadedTransaction?.editId === editId && loadedTransaction.data
+      ? loadedTransaction.data
+      : isOpen && editId && seedTransaction?.id === editId
+        ? seedTransaction
+        : null;
+
+  const resetValues = useMemo((): TransactionFormData => {
+    if (isEditMode && editingTransaction) {
+      return mapTransactionToFormData(editingTransaction);
+    }
+
+    if (!isEditMode) {
+      return {
+        ...createDefaults,
+        account_id: getDefaultAccountId(defaultFormUserId),
+      };
+    }
+
+    return createDefaults;
+  }, [isEditMode, editingTransaction, createDefaults, getDefaultAccountId, defaultFormUserId]);
+
   useEffect(() => {
-    if (!isOpen) return;
+    if (!editId) return;
 
     let cancelled = false;
 
     const run = async () => {
-      if (!editId) {
-        setIsLoadingRow(false);
-        const accountId = getDefaultAccountId(defaultFormUserId);
-        setResetValues({
-          ...createDefaults,
-          account_id: accountId,
-        });
-        previousUserIdRef.current = defaultFormUserId;
-        return;
-      }
-
       setIsLoadingRow(true);
       const result = await getTransactionByIdAction(editId);
       if (cancelled) return;
       setIsLoadingRow(false);
 
-      const transaction = result.data;
-      if (!transaction) return;
+      if (result.error || !result.data) {
+        setLoadedTransaction({ editId, data: null });
+        toast({
+          title: tPage('errors.title'),
+          description: result.error ?? t('errors.notFound'),
+          variant: 'destructive',
+        });
+        return;
+      }
 
-      const dateStr =
-        typeof transaction.date === 'string'
-          ? transaction.date.split('T')[0]
-          : transaction.date.toISOString().split('T')[0];
-
-      setResetValues({
-        description: transaction.description,
-        amount: transaction.amount.toString(),
-        type: transaction.type,
-        category: transaction.category,
-        date: dateStr as string,
-        user_id: transaction.user_id || '',
-        account_id: transaction.account_id,
-        to_account_id: transaction.to_account_id || '',
-      });
-      previousUserIdRef.current = transaction.user_id || '';
+      setLoadedTransaction({ editId, data: result.data });
+      previousUserIdRef.current = result.data.user_id ?? '';
     };
 
-    run().catch(() => undefined);
+    run().catch(() => {
+      if (!cancelled) {
+        setIsLoadingRow(false);
+        toast({
+          title: tPage('errors.title'),
+          description: t('errors.unknown'),
+          variant: 'destructive',
+        });
+      }
+    });
 
     return () => {
       cancelled = true;
     };
-  }, [isOpen, editId, createDefaults, defaultFormUserId, getDefaultAccountId]);
+  }, [editId, t, tPage, toast]);
 
   const setErrorRef = useRef<UseFormSetError<TransactionFormData> | null>(null);
 
@@ -278,7 +305,7 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
     isEditMode,
     editId,
     groupId,
-    onClose,
+    onClose: handleClose,
     setError: (name, error) => {
       setErrorRef.current?.(name, error);
     },
@@ -289,7 +316,7 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
   });
 
   const deleteDialogDescription =
-    resetValues?.description?.trim() || tPage('dialogs.deleteTransaction.fallbackDescription');
+    resetValues.description.trim() || tPage('dialogs.deleteTransaction.fallbackDescription');
 
   const handleDelete = useCallback(async () => {
     if (!editId) return;
@@ -302,18 +329,19 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
       });
       throw new Error(result.error);
     }
-    onClose();
+    handleClose();
     router.refresh();
-  }, [editId, onClose, router, tPage, toast]);
+  }, [editId, handleClose, router, tPage, toast]);
 
   return (
     <EntityFormModal<TransactionFormData>
+      key={editId ?? 'create'}
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={handleClose}
       title={title}
       schema={transactionSchema}
       defaultValues={createDefaults}
-      resetValues={resetValues ?? createDefaults}
+      resetValues={resetValues}
       repositionInputs={false}
       isLoading={Boolean(editId) && isLoadingRow}
       formClassName={s.formColumn}

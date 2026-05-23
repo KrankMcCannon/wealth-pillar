@@ -10,6 +10,7 @@ import { AppPage } from '@/components/layout';
 import { EmptyState } from '@/components/shared';
 import { BudgetChart, BudgetsSummaryHero, BudgetCategoryCard } from '@/features/budgets/components';
 import { TransactionDayList } from '@/features/transactions';
+import { useTransactionEditStore } from '@/features/transactions/stores/transaction-edit-store';
 import { useBudgetsContent, type UseBudgetsContentProps } from '@/features/budgets';
 import type { User, UserBudgetSummary } from '@/lib/types';
 import type { BudgetsPageData } from '@/server/use-cases/pages/budgets-page.use-case';
@@ -67,6 +68,7 @@ export default function BudgetsContent({ currentUser, groupUsers, pageData }: Bu
     handleEditBudgetById,
     openModal,
   } = useBudgetsContent(props);
+  const setTransactionEditSeed = useTransactionEditStore((state) => state.setSeed);
 
   const closePeriodHref = `/budgets/summary?user=${encodeURIComponent(budgetContextUserId)}`;
 
@@ -191,6 +193,7 @@ export default function BudgetsContent({ currentUser, groupUsers, pageData }: Bu
                     router.push(`/transactions?${params.toString()}`);
                   }}
                   onEditTransaction={(transaction) => {
+                    setTransactionEditSeed(transaction);
                     openModal('transaction', transaction.id);
                   }}
                 />
