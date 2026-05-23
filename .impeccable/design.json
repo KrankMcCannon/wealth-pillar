@@ -1,0 +1,278 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-05-23T11:30:00.000Z",
+  "title": "Design System: Wealth Pillar",
+  "extensions": {
+    "colorMeta": {
+      "background": {
+        "role": "neutral",
+        "displayName": "Deep Vault",
+        "canonical": "oklch(0.141 0.036 271)",
+        "tonalRamp": [
+          "oklch(0.141 0.036 271)",
+          "oklch(0.18 0.04 271)",
+          "oklch(0.22 0.05 270)",
+          "oklch(0.257 0.092 264)",
+          "oklch(0.298 0.101 264)",
+          "oklch(0.4 0.11 267)",
+          "oklch(0.55 0.12 266)",
+          "oklch(0.764 0.12 266)"
+        ]
+      },
+      "primary": {
+        "role": "primary",
+        "displayName": "Stitch Periwinkle",
+        "canonical": "oklch(0.764 0.12 266)",
+        "tonalRamp": [
+          "oklch(0.25 0.08 266)",
+          "oklch(0.35 0.09 266)",
+          "oklch(0.45 0.1 266)",
+          "oklch(0.55 0.11 266)",
+          "oklch(0.65 0.115 266)",
+          "oklch(0.7 0.12 266)",
+          "oklch(0.764 0.12 266)",
+          "oklch(0.88 0.08 266)"
+        ]
+      },
+      "card": {
+        "role": "neutral",
+        "displayName": "Vault Card",
+        "canonical": "oklch(0.257 0.092 264)",
+        "tonalRamp": [
+          "oklch(0.141 0.036 271)",
+          "oklch(0.18 0.05 264)",
+          "oklch(0.22 0.07 264)",
+          "oklch(0.257 0.092 264)",
+          "oklch(0.298 0.101 264)",
+          "oklch(0.35 0.1 264)",
+          "oklch(0.45 0.1 263)",
+          "oklch(0.55 0.1 263)"
+        ]
+      },
+      "income": {
+        "role": "semantic",
+        "displayName": "Income Green",
+        "canonical": "oklch(0.86 0.13 155)",
+        "tonalRamp": [
+          "oklch(0.25 0.06 155)",
+          "oklch(0.35 0.08 155)",
+          "oklch(0.45 0.1 155)",
+          "oklch(0.55 0.11 155)",
+          "oklch(0.65 0.12 155)",
+          "oklch(0.75 0.12 155)",
+          "oklch(0.86 0.13 155)",
+          "oklch(0.92 0.1 155)"
+        ]
+      },
+      "expense": {
+        "role": "semantic",
+        "displayName": "Expense Rose",
+        "canonical": "oklch(0.8 0.09 22)",
+        "tonalRamp": [
+          "oklch(0.22 0.05 22)",
+          "oklch(0.35 0.06 22)",
+          "oklch(0.45 0.07 22)",
+          "oklch(0.55 0.08 22)",
+          "oklch(0.65 0.085 22)",
+          "oklch(0.72 0.09 22)",
+          "oklch(0.8 0.09 22)",
+          "oklch(0.9 0.06 22)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Hero amounts and large balance figures. Always tabular-nums."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Page titles and section headers via text-heading utility."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Card titles, row primary labels, user names."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Descriptions, metadata, form labels. Max 65–75ch in prose."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Uppercase eyebrows and metric labels at 11px."
+      }
+    },
+    "shadows": [
+      {
+        "name": "shadow-xs",
+        "value": "0 1px 2px 0 oklch(0% 0 0 / 0.05)",
+        "purpose": "Subtle resting elevation on inputs and outline buttons."
+      },
+      {
+        "name": "shadow-sm",
+        "value": "0 1px 3px 0 oklch(0% 0 0 / 0.08), 0 1px 2px 0 oklch(0% 0 0 / 0.05)",
+        "purpose": "Default shadcn card shadow, icon containers."
+      },
+      {
+        "name": "shadow-md",
+        "value": "0 4px 6px -1px oklch(0% 0 0 / 0.08), 0 2px 4px -1px oklch(0% 0 0 / 0.05)",
+        "purpose": "FAB, drawer chrome, active tab lift."
+      },
+      {
+        "name": "shadow-stitch-section",
+        "value": "0 16px 36px rgba(0, 7, 30, 0.28)",
+        "purpose": "Large section cards and balance hero on dark Stitch surfaces."
+      },
+      {
+        "name": "shadow-stitch-cta",
+        "value": "0 10px 32px rgba(0, 16, 70, 0.45)",
+        "purpose": "Full-width primary CTA on onboarding and modal footers."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-standard",
+        "value": "cubic-bezier(0.4, 0, 0.2, 1)",
+        "purpose": "Default transition-all on buttons and color state changes."
+      },
+      {
+        "name": "ease-out-press",
+        "value": "cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+        "purpose": "FAB and CTA active:scale-[0.97–0.98] press feedback, 150ms."
+      },
+      {
+        "name": "spring-auth",
+        "value": "spring stiffness 300 damping 30",
+        "purpose": "Auth card entrance via framer-motion (y 12→0, opacity 0→1)."
+      }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Default shadcn action — navigation CTAs, form submits, modal confirmations.",
+      "html": "<button class=\"ds-btn-primary\" type=\"button\">Salva</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; height: 2.25rem; padding: 0.5rem 1rem; font-family: var(--font-spline-sans, system-ui, sans-serif); font-size: 0.875rem; font-weight: 500; line-height: 1; color: oklch(0.141 0.036 271); background: oklch(0.764 0.12 266); border: none; border-radius: 0.375rem; cursor: pointer; transition: background 0.2s cubic-bezier(0.4, 0, 0.2, 1); outline: none; } .ds-btn-primary:hover { background: color-mix(in oklch, oklch(0.764 0.12 266) 90%, transparent); } .ds-btn-primary:focus-visible { box-shadow: 0 0 0 3px color-mix(in oklch, oklch(0.764 0.12 266) 50%, transparent); } .ds-btn-primary:active { transform: scale(0.98); }"
+    },
+    {
+      "name": "Destructive Button",
+      "kind": "button",
+      "refersTo": "button-destructive",
+      "description": "Expense-tinted destructive action — delete confirmations, not full red fill.",
+      "html": "<button class=\"ds-btn-destructive\" type=\"button\">Elimina</button>",
+      "css": ".ds-btn-destructive { display: inline-flex; align-items: center; justify-content: center; height: 2.25rem; padding: 0.5rem 1rem; font-family: var(--font-spline-sans, system-ui, sans-serif); font-size: 0.875rem; font-weight: 500; color: oklch(0.8 0.09 22); background: color-mix(in oklch, oklch(0.8 0.09 22) 15%, transparent); border: 1px solid color-mix(in oklch, oklch(0.8 0.09 22) 35%, transparent); border-radius: 0.375rem; cursor: pointer; transition: background 0.2s, border-color 0.2s; outline: none; } .ds-btn-destructive:hover { background: color-mix(in oklch, oklch(0.8 0.09 22) 25%, transparent); border-color: color-mix(in oklch, oklch(0.8 0.09 22) 50%, transparent); } .ds-btn-destructive:focus-visible { box-shadow: 0 0 0 3px color-mix(in oklch, oklch(0.8 0.09 22) 35%, transparent); }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input-default",
+      "description": "Standard form field on dark vault surfaces.",
+      "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"Importo\" aria-label=\"Importo\" />",
+      "css": ".ds-input { width: 100%; height: 2.25rem; padding: 0.25rem 0.75rem; font-family: var(--font-spline-sans, system-ui, sans-serif); font-size: 0.875rem; color: oklch(0.944 0.026 272); background: color-mix(in oklch, oklch(0.298 0.101 264) 30%, transparent); border: 1px solid oklch(0.298 0.101 264); border-radius: 0.375rem; box-shadow: 0 1px 2px 0 oklch(0% 0 0 / 0.05); outline: none; transition: border-color 0.2s, box-shadow 0.2s; } .ds-input::placeholder { color: oklch(0.758 0.059 267); } .ds-input:focus-visible { border-color: oklch(0.764 0.12 266); box-shadow: 0 0 0 3px color-mix(in oklch, oklch(0.764 0.12 266) 50%, transparent); }"
+    },
+    {
+      "name": "Stitch Section Card",
+      "kind": "card",
+      "refersTo": "card-default",
+      "description": "Dashboard section container — home, budgets, transactions list grouping.",
+      "html": "<div class=\"ds-card-stitch\"><p class=\"ds-card-stitch-eyebrow\">BUDGET</p><p class=\"ds-card-stitch-value\">€ 2.450,00</p></div>",
+      "css": ".ds-card-stitch { padding: 1rem; border-radius: 1rem; border: 1px solid color-mix(in oklch, oklch(0.5 0.174 266) 20%, transparent); background: color-mix(in oklch, oklch(0.257 0.092 264) 90%, transparent); box-shadow: 0 16px 36px rgba(0, 7, 30, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.06); color: oklch(0.944 0.026 272); font-family: var(--font-spline-sans, system-ui, sans-serif); } .ds-card-stitch-eyebrow { margin: 0 0 0.5rem; font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: oklch(0.764 0.12 266); } .ds-card-stitch-value { margin: 0; font-size: 2rem; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; color: oklch(0.764 0.12 266); }"
+    },
+    {
+      "name": "Filter Chip",
+      "kind": "chip",
+      "refersTo": "filter-chip-active",
+      "description": "Transaction and list filter pill — active and inactive states.",
+      "html": "<button class=\"ds-chip ds-chip-active\" type=\"button\">Questo mese</button>",
+      "css": ".ds-chip { display: inline-flex; align-items: center; justify-content: center; padding: 0.5rem 1rem; font-family: var(--font-spline-sans, system-ui, sans-serif); font-size: 0.75rem; font-weight: 500; letter-spacing: 0.025em; border-radius: 9999px; cursor: pointer; transition: background 0.2s, color 0.2s, border-color 0.2s; outline: none; white-space: nowrap; } .ds-chip-active { color: oklch(0.944 0.026 272); background: oklch(0.326 0.098 263); border: none; box-shadow: inset 0 0 0 1px rgba(143, 176, 255, 0.28); } .ds-chip:focus-visible { box-shadow: 0 0 0 2px oklch(0.764 0.12 266); }"
+    },
+    {
+      "name": "Bottom Nav Active Item",
+      "kind": "nav",
+      "refersTo": "nav-item-active",
+      "description": "Active tab in the five-item mobile bottom navigation.",
+      "html": "<a class=\"ds-nav-item ds-nav-item-active\" href=\"#\" aria-current=\"page\"><svg class=\"ds-nav-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><path d=\"M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1V9.5z\"/></svg><span class=\"ds-nav-label\">Home</span></a>",
+      "css": ".ds-nav-item { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 0; min-height: 2.75rem; min-width: 0; padding: 0.125rem 0.25rem; border-radius: 0.75rem; text-decoration: none; transition: background 0.2s, color 0.2s; outline: none; } .ds-nav-item-active { color: oklch(0.764 0.12 266); background: color-mix(in oklch, oklch(0.764 0.12 266) 20%, transparent); box-shadow: 0 1px 3px 0 oklch(0% 0 0 / 0.08), inset 0 0 0 1px color-mix(in oklch, oklch(0.764 0.12 266) 20%, transparent); } .ds-nav-icon { width: 1.25rem; height: 1.25rem; flex-shrink: 0; } .ds-nav-label { max-width: 5.25rem; text-align: center; font-size: 0.6875rem; font-weight: 500; line-height: 1; overflow-wrap: anywhere; } .ds-nav-item:focus-visible { box-shadow: 0 0 0 2px oklch(0.764 0.12 266), 0 0 0 4px oklch(0.141 0.036 271); }"
+    },
+    {
+      "name": "Stitch Primary CTA",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Full-width uppercase CTA on onboarding and modal footers.",
+      "html": "<button class=\"ds-cta-stitch\" type=\"button\">CONTINUA</button>",
+      "css": ".ds-cta-stitch { display: flex; align-items: center; justify-content: center; gap: 0.625rem; width: 100%; min-height: 3.25rem; padding: 1rem 1.25rem; font-family: var(--font-spline-sans, system-ui, sans-serif); font-size: 0.875rem; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase; color: oklch(0.141 0.036 271); background: oklch(0.764 0.12 266); border: 1px solid color-mix(in oklch, oklch(0.764 0.12 266) 40%, transparent); border-radius: 1rem; box-shadow: 0 10px 32px rgba(0, 16, 70, 0.45); cursor: pointer; transition: background 0.2s, border-color 0.2s, transform 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94); outline: none; } .ds-cta-stitch:hover { background: color-mix(in oklch, oklch(0.764 0.12 266) 90%, transparent); border-color: color-mix(in oklch, oklch(0.764 0.12 266) 55%, transparent); } .ds-cta-stitch:active { transform: scale(0.98); } .ds-cta-stitch:focus-visible { box-shadow: 0 10px 32px rgba(0, 16, 70, 0.45), 0 0 0 3px color-mix(in oklch, oklch(0.764 0.12 266) 50%, transparent); }"
+    },
+    {
+      "name": "Income Amount",
+      "kind": "custom",
+      "refersTo": "card-default",
+      "description": "Canonical positive financial figure via Amount primitive styling.",
+      "html": "<span class=\"ds-amount ds-amount-income\">+ € 1.240,50</span>",
+      "css": ".ds-amount { font-family: var(--font-spline-sans, system-ui, sans-serif); font-size: 1.125rem; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; } .ds-amount-income { color: oklch(0.86 0.13 155); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Calm Vault",
+    "overview": "Wealth Pillar is a product-only surface: the app UI is the brand. The visual system serves Italian households managing shared finances on a phone after dinner or a laptop on Sunday morning. The aesthetic is confident dark craft in the Revolut and Apple Wallet lane: a deep navy vault where numbers read as definitive, motion means something, and chroma is earned rather than sprayed.\n\nDensity is mobile-first but never cramped. Surfaces are solid Stitch navy layers with subtle inset highlights, not glass cards floating in purple void. Typography is a single humanist sans (Spline Sans) with weight and tracking doing the hierarchy work. The emotional register from PRODUCT.md is Affidabile, Calmo, Preciso: shoulders drop when the app opens; nothing shouts for attention except what the user came to verify.",
+    "keyCharacteristics": [
+      "Committed color strategy: primary violet-blue carries navigation, CTAs, and active states across 30–50% of any screen",
+      "OKLCH-only token pipeline in Tailwind v4 @theme; no raw #000 or #fff",
+      "Stitch solid surfaces: border-border/20–35, inset white hairlines, no decorative gradients",
+      "Tabular-nums financial figures with semantic income/expense color used sparingly",
+      "shadcn new-york primitives extended by home-design-foundation.ts class-string layer",
+      "Motion: framer-motion for swipe/auth; CSS transitions elsewhere; always prefers-reduced-motion safe",
+      "Touch targets ≥ 44×44pt on mobile shell; focus rings at 3px ring-ring/50"
+    ],
+    "rules": [
+      {
+        "name": "The Committed Surface Rule",
+        "body": "Primary appears on navigation chrome, CTAs, active tabs, and hero figures. It is not rationed to ≤10%; its presence defines the product. Restraint lives in semantic colors (income/expense/destructive), not in hiding the brand hue.",
+        "section": "colors"
+      },
+      {
+        "name": "The Semantic Sparingly Rule",
+        "body": "--color-income and --color-expense appear only on amounts, progress indicators, and destructive confirmations — never on backgrounds, never as decorative gradients. Color is never the sole signal; pair with weight, sign, or icon.",
+        "section": "colors"
+      },
+      {
+        "name": "The Numbers Rule",
+        "body": "All financial amounts use tabular-nums. Hero figures get tracking-[-0.02em]. Amount component is the canonical renderer — do not hand-style currency strings.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat-By-Default Rule",
+        "body": "Cards at rest use border + inset highlight, not drop shadow. Shadows respond to elevation (drawer, modal, FAB) or interaction — not to filling space.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do use OKLCH semantic tokens from app/globals.css — never hardcode hex in components.",
+      "Do apply tabular-nums on every currency, balance, and percentage display.",
+      "Do pair income/expense/destructive color with iconography, sign prefix, or weight — never color alone.",
+      "Do use Stitch solid surfaces (stitchSurface.card, stitchHome.sectionCard) for dashboard sections.",
+      "Do ship prefers-reduced-motion and motion-reduce:* on every new animation or transition.",
+      "Do keep touch targets at ≥ 44×44pt on the mobile shell (bottom nav, FAB, header actions).",
+      "Do use uppercase 11px eyebrows for section labels — one per section, not on every element.",
+      "Do hedge investment and forecast UI with explicit disclaimer copy alongside muted visual treatment."
+    ],
+    "donts": [
+      "Don't use purple/violet glow, glassmorphism as default, gradient text, or vibrant gradient on dark — the generic AI-startup aesthetic is forbidden.",
+      "Don't deploy rainbow categories, cartoon icons, gamification badges, streak counters, or confetti — household finance is not a phone game.",
+      "Don't use aggressive neon greens/reds, Robinhood-style hype, or decorative candlesticks — crypto-bro neon is forbidden.",
+      "Don't use navy-and-gold gradients, heavy chrome, regulatory-formal density, or PSD2-bank aesthetic — boomer Italian banking is forbidden.",
+      "Don't use border-left or border-right greater than 1px as a colored accent stripe on cards, list items, or alerts.",
+      "Don't wrap numbers in decorative containers — no hero-metric template (big number + gradient accent + supporting stat grid cliché).",
+      "Don't default to nested cards — prefer flat list rows with inset hairlines inside section cards.",
+      "Don't reach for modals when inline expansion, drawers, or bottom sheets solve the flow.",
+      "Don't enable .liquid-glass or .liquid-shimmer on financial data surfaces — shimmer is for loading states only, glass is non-default."
+    ]
+  }
+}
