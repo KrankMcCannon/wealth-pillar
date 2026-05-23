@@ -32,7 +32,7 @@ const recurringStyles = {
     emptyWrap: 'p-6',
     emptyActionIcon: 'h-4 w-4 mr-2',
     header:
-      'rounded-2xl border border-border/25 bg-card/85 p-3.5 shadow-[0_12px_28px_rgba(0,7,30,0.22)]',
+      'rounded-2xl border border-border/20 bg-card/90 p-4 shadow-[0_16px_36px_rgba(0,7,30,0.28)] sm:p-5',
     headerRow: 'flex items-center justify-between',
     headerLeft: 'flex items-center gap-2',
     headerIconWrap:
@@ -66,7 +66,7 @@ const recurringStyles = {
     cardCellHome:
       'min-w-0 md:overflow-hidden md:rounded-xl md:border md:border-border/55 md:bg-card/60 md:shadow-sm',
     cardCellPage: 'min-w-0',
-    listDivider: 'border-t border-primary/20 mx-2',
+    listDivider: 'mx-2 border-t border-border/25',
     footer: 'px-4 py-1.5',
     footerText: 'text-xs text-primary text-center',
     executeErrorBanner:
@@ -283,10 +283,14 @@ export function RecurringSeriesSection({
           description={selectedUserId ? t('empty.forUser') : t('empty.defaultDescription')}
           action={
             onCreateRecurringSeries && (
-              <Button onClick={onCreateRecurringSeries} variant="default" size="sm">
+              <button
+                type="button"
+                onClick={onCreateRecurringSeries}
+                className={stitchSurface.primaryCta}
+              >
                 <Plus className={recurringStyles.section.emptyActionIcon} />
                 {t('empty.addButton')}
-              </Button>
+              </button>
             )
           }
         />
@@ -439,6 +443,7 @@ export function RecurringSeriesSection({
                   <div key={item.id} className={recurringStyles.section.cardCellPage}>
                     <SeriesCard
                       series={item}
+                      embedded
                       showActions={showActions}
                       showDelete={showDelete}
                       onEdit={onEditRecurringSeries}
@@ -469,6 +474,7 @@ export function RecurringSeriesSection({
                   <div key={item.id} className={recurringStyles.section.cardCellPage}>
                     <SeriesCard
                       series={item}
+                      embedded
                       showActions={showActions}
                       showDelete={showDelete}
                       onEdit={onEditRecurringSeries}

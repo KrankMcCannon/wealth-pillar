@@ -27,7 +27,7 @@ export const UserSelectorSkeleton = () => (
 );
 
 export const TransactionCardSkeleton = () => (
-  <div className="rounded-xl border border-border bg-card p-3">
+  <div className="rounded-xl border border-border/25 bg-card/90 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
     <div className="flex items-center gap-3">
       <Skeleton className="size-10 shrink-0 rounded-xl" />
       <div className="min-w-0 flex-1 flex flex-col gap-2">
@@ -71,25 +71,37 @@ export const TabNavigationSkeleton = () => (
   <div className="px-4 py-2">
     <SkeletonList
       count={2}
-      spacing="flex gap-2"
-      renderItem={() => <Skeleton className="h-10 w-28 rounded-xl" />}
+      spacing="grid h-12 grid-cols-2 gap-1 rounded-full border border-border/35 bg-card/95 p-1"
+      renderItem={() => <Skeleton className="h-9 w-full rounded-full" />}
     />
   </div>
 );
 
+export const TransactionsToolbarSkeleton = () => (
+  <div className="flex flex-col gap-2 px-4">
+    <Skeleton className="h-11 w-full rounded-2xl" />
+    <div className="flex gap-2">
+      <Skeleton className="h-9 w-16 rounded-full" />
+      <Skeleton className="h-9 w-20 rounded-full" />
+      <Skeleton className="h-9 w-24 rounded-full" />
+    </div>
+  </div>
+);
+
 export const RecurringSeriesSkeleton = () => (
-  <div className="px-4">
+  <div className="flex flex-col gap-3">
+    <Skeleton className="h-28 w-full rounded-2xl" />
     <SkeletonList
       count={3}
-      spacing="flex flex-col gap-3"
+      spacing="flex flex-col gap-2.5"
       renderItem={() => (
-        <div className="flex items-center gap-3 rounded-xl border border-border bg-card p-3">
-          <Skeleton className="size-10 rounded-xl" />
+        <div className="flex min-h-11 items-center gap-3 rounded-xl bg-muted/90 px-3 py-2.5 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]">
+          <Skeleton className="size-10 shrink-0 rounded-xl" />
           <div className="flex flex-1 flex-col gap-2">
             <Skeleton className="h-4 w-32" />
             <Skeleton className="h-3 w-24" />
           </div>
-          <Skeleton className="size-8 rounded-lg" />
+          <Skeleton className="h-4 w-16 shrink-0" />
         </div>
       )}
     />
@@ -99,8 +111,8 @@ export const RecurringSeriesSkeleton = () => (
 export const FullTransactionsPageSkeleton = () => (
   <div className="flex min-h-screen flex-col bg-background">
     <TransactionHeaderSkeleton />
-    <UserSelectorSkeleton />
     <TabNavigationSkeleton />
+    <TransactionsToolbarSkeleton />
     <main className="flex-1 px-4 pb-24">
       <TransactionListSkeleton />
     </main>

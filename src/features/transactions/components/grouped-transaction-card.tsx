@@ -1,7 +1,6 @@
 'use client';
 
 import { memo, useCallback } from 'react';
-import { Card } from '@/components/ui';
 import { useTranslations } from 'next-intl';
 import { Transaction, Category } from '@/lib';
 import {
@@ -13,7 +12,6 @@ import { stitchTransactions } from '@/styles/home-design-foundation';
 import { TransactionRow } from './transaction-row';
 import {
   transactionStyles,
-  getCardVariantStyles,
   getHeaderVariantStyles,
   getTotalAmountColor,
 } from '@/features/transactions/theme/transaction-styles';
@@ -94,10 +92,10 @@ function GroupedTransactionCardInner({
   }
 
   return (
-    <Card className={cn(getCardVariantStyles(variant))}>
+    <div className={cn(stitchTransactions.dayCard, 'flex flex-col gap-2 p-1')}>
       {header}
-      <div className={transactionStyles.groupedCard.rowContainer}>{rows}</div>
-    </Card>
+      <div className="flex flex-col gap-2">{rows}</div>
+    </div>
   );
 }
 

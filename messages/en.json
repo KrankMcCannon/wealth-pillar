@@ -772,6 +772,7 @@
         "next": "Next page",
         "last": "Last page",
         "loading": "Loading...",
+        "emptyCount": "0 transactions",
         "perPageLabel": "Per page",
         "perPageAriaLabel": "Rows per page",
         "goToPage": "Go to page {page}"

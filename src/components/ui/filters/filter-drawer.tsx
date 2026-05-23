@@ -22,13 +22,13 @@ export function FilterDrawer({
   onOpenChange,
   title,
   children,
-  contentClassName = 'max-h-[85vh] border-modal-border/30 bg-modal-surface/95 text-modal-fg',
+  contentClassName = 'max-h-[85vh] rounded-t-3xl border-t border-border bg-card text-foreground shadow-xl',
 }: FilterDrawerProps) {
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
       <DrawerContent className={contentClassName}>
         <DrawerHeader>
-          <DrawerTitle className="text-modal-fg">{title}</DrawerTitle>
+          <DrawerTitle className="text-foreground">{title}</DrawerTitle>
           <DrawerDescription className="sr-only">{title}</DrawerDescription>
         </DrawerHeader>
         {children}

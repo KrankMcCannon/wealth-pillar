@@ -97,16 +97,16 @@ export const transactionTokens = {
       color: 'bg-expense',
     },
     income: {
-      icon: 'bg-green-100 text-green-600',
-      badge: 'bg-green-50 text-green-700',
-      text: 'text-success',
-      color: 'bg-success',
+      icon: 'bg-income/15 text-income',
+      badge: 'bg-income/12 text-income',
+      text: 'text-income',
+      color: 'bg-income',
     },
     transfer: {
-      icon: 'bg-amber-100 text-amber-600',
-      badge: 'bg-amber-50 text-amber-700',
-      text: 'text-warning',
-      color: 'bg-warning',
+      icon: 'bg-muted text-muted-foreground',
+      badge: 'bg-muted/80 text-muted-foreground',
+      text: 'text-muted-foreground',
+      color: 'bg-muted',
     },
   },
   interaction: {
@@ -249,15 +249,15 @@ export const transactionStyles = {
     wrapper: 'w-full',
   },
   dayGroup: {
-    header: transactionTokens.components.dayGroup.header,
-    title: transactionTokens.components.dayGroup.title,
-    stats: transactionTokens.components.dayGroup.stats,
-    statsTotal: 'flex items-center gap-2 justify-end',
-    statsTotalLabel: transactionTokens.components.dayGroup.statsLabel,
-    statsTotalValue: transactionTokens.components.dayGroup.statsValue,
-    statsTotalValuePositive: transactionTokens.components.dayGroup.statsValuePositive,
-    statsTotalValueNegative: transactionTokens.components.dayGroup.statsValueNegative,
-    statsCount: transactionTokens.components.dayGroup.count,
+    header: 'mb-2 flex items-center justify-between px-1',
+    title: 'text-[11px] font-semibold uppercase tracking-wide text-muted-foreground',
+    stats: 'text-right',
+    statsTotal: 'flex items-center justify-end gap-2',
+    statsTotalLabel: 'text-xs text-muted-foreground',
+    statsTotalValue: 'text-xs font-bold tabular-nums',
+    statsTotalValuePositive: 'text-income',
+    statsTotalValueNegative: 'text-expense',
+    statsCount: 'mt-0.5 text-xs text-muted-foreground',
   },
   modal: {
     content: transactionTokens.components.modal.content,
@@ -330,13 +330,15 @@ export const transactionStyles = {
     },
   },
   groupedCard: {
-    variantRegular: transactionTokens.cardVariants.regular.card,
-    variantRecurrent: transactionTokens.cardVariants.recurrent.card,
-    headerRegular: transactionTokens.cardVariants.regular.header,
-    headerRecurrent: transactionTokens.cardVariants.recurrent.header,
+    variantRegular:
+      'overflow-hidden rounded-xl border border-border/25 bg-card/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]',
+    variantRecurrent:
+      'overflow-hidden rounded-xl border border-border/25 bg-muted/60 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]',
+    headerRegular: 'border-b border-border/25 px-3 py-2.5',
+    headerRecurrent: 'border-b border-border/25 bg-muted/40 px-3 py-2.5',
     headerContent: 'flex items-center justify-between',
-    headerLabel: 'text-xs font-semibold text-primary/60 uppercase tracking-wider',
-    headerAmount: 'text-base font-bold',
+    headerLabel: 'text-[11px] font-semibold uppercase tracking-wide text-muted-foreground',
+    headerAmount: 'text-base font-bold tabular-nums',
     rowContainer: transactionTokens.groupedCard.borders.rowDivider,
     backdrop: 'fixed inset-0 z-10',
     openState: 'relative z-20',
@@ -344,100 +346,102 @@ export const transactionStyles = {
   filters: {
     container: 'flex flex-col gap-4',
     searchStack: 'min-w-0 shrink-0',
-    toolsCluster: 'flex min-w-0 flex-col gap-2.5 border-t border-border/50 pt-3',
-    chipsCluster: 'border-t border-border/40 pt-2.5',
+    toolsCluster: 'flex min-w-0 flex-col gap-2.5 border-t border-border/25 pt-3',
+    chipsCluster: 'border-t border-border/25 pt-2.5',
     budgetBanner:
-      'flex items-center justify-between gap-3 px-4 py-3 rounded-2xl bg-primary/10 border border-primary/20',
+      'flex items-center justify-between gap-3 rounded-2xl border border-border/30 bg-muted/60 px-4 py-3',
     budgetBannerLeft: 'flex min-w-0 items-center gap-2',
     budgetBannerDot:
-      'w-2 h-2 shrink-0 rounded-full bg-primary animate-pulse motion-reduce:animate-none',
-    budgetBannerText: 'text-sm font-medium text-primary truncate',
-    budgetBannerCount: 'text-xs text-primary/70',
+      'h-2 w-2 shrink-0 rounded-full bg-primary animate-pulse motion-reduce:animate-none',
+    budgetBannerText: 'truncate text-sm font-medium text-foreground',
+    budgetBannerCount: 'text-xs text-muted-foreground',
     budgetBannerExit:
-      'inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-primary/20 text-primary hover:bg-primary/30 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35',
+      'inline-flex items-center gap-1 rounded-lg border border-border/35 bg-muted/80 px-2.5 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35',
     budgetBannerExitIcon: 'h-3 w-3',
     searchWrap: 'relative',
-    searchIcon: 'absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 transition-colors duration-200',
+    searchIcon: 'absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 transition-colors duration-200',
     searchIconActive: 'text-primary',
-    searchIconInactive: 'text-primary/50',
+    searchIconInactive: 'text-muted-foreground',
     searchInput:
-      'min-h-12 w-full rounded-2xl border-primary/25 bg-card py-3 pl-12 pr-10 text-base font-medium text-primary shadow-sm placeholder:font-normal placeholder:text-primary/40 transition-all duration-200 focus-visible:border-primary/30 focus-visible:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 motion-reduce:transition-none',
+      'min-h-11 w-full rounded-2xl border border-border/35 bg-muted/85 py-3 pl-12 pr-10 text-sm font-medium text-foreground shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)] placeholder:text-muted-foreground/55 transition-colors focus-visible:border-border/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/25 motion-reduce:transition-none',
     quickPeriodRow: 'flex flex-wrap gap-1.5 sm:gap-2',
     quickPeriodPill:
-      'inline-flex min-h-10 shrink-0 items-center rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 sm:min-h-11 sm:text-sm',
-    quickPeriodPillIdle: 'border-primary/20 bg-card text-primary hover:bg-primary/5',
-    quickPeriodPillActive: 'border-primary bg-primary text-primary-foreground shadow-sm',
+      'inline-flex min-h-10 shrink-0 items-center rounded-full border px-3 py-1.5 text-xs font-semibold tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35 sm:min-h-11 sm:text-sm',
+    quickPeriodPillIdle: 'border-border/35 bg-muted/80 text-muted-foreground hover:bg-accent',
+    quickPeriodPillActive:
+      'border-transparent bg-accent text-foreground shadow-[inset_0_0_0_1px_rgba(143,176,255,0.28)]',
     searchClear:
-      'absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35',
-    searchClearIcon: 'h-4 w-4 text-primary',
+      'absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-white/10 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35',
+    searchClearIcon: 'h-4 w-4 text-foreground',
     chipsRow: 'flex items-center gap-2 overflow-x-auto pb-0.5 pl-0.5 pr-1 scrollbar-hide sm:pl-0',
     advancedControlsRow:
       'flex flex-wrap items-start justify-between gap-2.5 sm:items-center sm:gap-3',
     advancedToggle:
-      'inline-flex min-h-11 items-center gap-2 rounded-full border border-primary/20 bg-card px-3 py-2 text-sm font-medium text-primary transition-all duration-150 hover:bg-primary/5 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 motion-reduce:transition-none motion-reduce:active:scale-100',
+      'inline-flex min-h-11 items-center gap-2 rounded-full border border-border/35 bg-muted/80 px-3 py-2 text-sm font-medium text-foreground transition-all duration-150 hover:bg-accent active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35 motion-reduce:transition-none motion-reduce:active:scale-100',
     advancedToggleChevron:
       'h-3.5 w-3.5 transition-transform duration-200 motion-reduce:transition-none',
     advancedToggleChevronOpen: 'rotate-180',
-    advancedCountBadge: 'rounded-full bg-primary/15 px-2 py-0.5 text-xs font-medium text-primary',
+    advancedCountBadge: 'rounded-full bg-accent px-2 py-0.5 text-xs font-medium text-foreground',
     advancedClearWrap: 'ml-auto flex items-center gap-2',
     clearAll:
-      'inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium whitespace-nowrap bg-destructive/10 text-destructive transition-all duration-200 hover:bg-destructive/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/30 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100',
+      'inline-flex items-center gap-1.5 rounded-full border border-expense/35 bg-expense/12 px-3 py-2 text-sm font-medium whitespace-nowrap text-expense transition-all duration-200 hover:bg-expense/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-expense/35 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100',
     clearAllIcon: 'h-3.5 w-3.5',
     chip: {
       wrapper: 'relative inline-flex',
       buttonActive:
-        'inline-flex min-h-11 items-center gap-2 pl-3 pr-8 py-2 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap select-none bg-primary text-primary-foreground shadow-md hover:bg-primary/90 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100',
+        'inline-flex min-h-11 items-center gap-2 rounded-full bg-accent py-2 pl-3 pr-8 text-sm font-medium whitespace-nowrap text-foreground shadow-[inset_0_0_0_1px_rgba(143,176,255,0.28)] transition-all duration-200 select-none hover:bg-accent/95 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100',
       clearButton:
-        'absolute right-1 top-1/2 -translate-y-1/2 flex h-6 w-6 items-center justify-center rounded-full bg-primary/20 transition-colors hover:bg-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground/40',
-      clearIcon: 'h-3 w-3 text-primary-foreground',
+        'absolute right-1 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 transition-colors hover:bg-white/18 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40',
+      clearIcon: 'h-3 w-3 text-foreground',
       buttonBase:
-        'inline-flex min-h-10 sm:min-h-11 items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap select-none active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100',
-      buttonOpen: 'bg-primary text-primary-foreground shadow-md',
-      buttonIdle:
-        'bg-card text-primary border border-primary/20 hover:border-primary/40 hover:bg-primary/5',
+        'inline-flex min-h-10 items-center gap-1.5 rounded-full border border-border/35 bg-muted/80 px-3 py-2 text-sm font-medium whitespace-nowrap transition-all duration-200 select-none hover:bg-accent active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 sm:min-h-11',
+      buttonOpen: 'bg-accent text-foreground shadow-[inset_0_0_0_1px_rgba(143,176,255,0.28)]',
+      buttonIdle: 'text-muted-foreground',
       chevron: 'h-3.5 w-3.5 transition-transform duration-200',
       chevronOpen: 'rotate-180',
     },
     drawer: {
-      content: 'rounded-t-3xl bg-card border-t border-primary/20',
-      contentTall: 'rounded-t-3xl bg-card border-t border-primary/20 max-h-[70vh]',
-      inner: 'p-4 space-y-4',
+      content: 'rounded-t-3xl border-t border-border bg-card shadow-xl',
+      contentTall: 'max-h-[70vh] rounded-t-3xl border-t border-border bg-card shadow-xl',
+      inner: 'space-y-4 p-4',
       header: 'flex items-center justify-between',
-      title: 'text-lg font-bold text-primary',
-      closeButton: 'text-primary hover:bg-primary/10 rounded-xl',
+      title: 'text-lg font-semibold tracking-tight text-foreground',
+      closeButton:
+        'rounded-xl text-muted-foreground transition-colors hover:bg-muted/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35',
     },
     typeGrid: 'grid grid-cols-3 gap-2',
     typeButton:
-      'flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 border active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100',
-    typeButtonActive: 'bg-primary text-primary-foreground border-primary/20 shadow-md',
-    typeButtonIdle:
-      'bg-card text-primary border-primary/20 hover:bg-primary/10 hover:border-primary/40',
+      'flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold transition-all duration-200 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100',
+    typeButtonActive:
+      'border-transparent bg-accent text-foreground shadow-[inset_0_0_0_1px_rgba(143,176,255,0.28)]',
+    typeButtonIdle: 'border-border/35 bg-muted/80 text-muted-foreground hover:bg-accent',
     typeCheck: 'h-4 w-4',
     dateSection: 'space-y-4',
     dateGrid: 'grid grid-cols-2 gap-2',
     dateButton:
-      'flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 border active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100',
-    dateButtonActive: 'bg-primary text-primary-foreground border-primary/20 shadow-md',
-    dateButtonIdle:
-      'bg-card text-primary border-primary/20 hover:bg-primary/10 hover:border-primary/40',
-    dateCustom: 'space-y-3 pt-2 border-t border-primary/10',
-    dateTitle: 'text-sm font-medium text-primary',
+      'flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold transition-all duration-200 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100',
+    dateButtonActive:
+      'border-transparent bg-accent text-foreground shadow-[inset_0_0_0_1px_rgba(143,176,255,0.28)]',
+    dateButtonIdle: 'border-border/35 bg-muted/80 text-muted-foreground hover:bg-accent',
+    dateCustom: 'space-y-3 border-t border-border/25 pt-2',
+    dateTitle: 'text-sm font-medium text-foreground',
     dateInputs: 'grid grid-cols-2 gap-3',
     dateField: 'space-y-1.5',
-    dateLabel: 'text-xs text-primary/70',
-    dateInput: 'bg-card border-primary/20 rounded-xl text-sm',
+    dateLabel: 'text-xs text-muted-foreground',
+    dateInput: 'rounded-xl border border-border/35 bg-muted/85 text-sm',
     dateApply: 'w-full rounded-xl',
     categorySection: 'space-y-3',
     categorySearchWrap: 'relative',
-    categorySearchIcon: 'absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary/50',
-    categorySearchInput: 'pl-10 bg-card border-primary/20 rounded-xl',
-    categoryGrid: 'grid grid-cols-2 gap-2 max-h-64 overflow-y-auto pr-1',
+    categorySearchIcon: 'absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground',
+    categorySearchInput: 'rounded-xl border border-border/35 bg-muted/85 pl-10',
+    categoryGrid: 'grid max-h-64 grid-cols-2 gap-2 overflow-y-auto pr-1',
     categoryButton:
-      'flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100',
-    categoryButtonActive: 'bg-primary text-primary-foreground border-primary/20 shadow-md',
-    categoryButtonIdle: 'bg-card text-primary border-primary/20 hover:bg-primary/10',
+      'flex items-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-medium transition-all duration-200 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100',
+    categoryButtonActive:
+      'border-transparent bg-accent text-foreground shadow-[inset_0_0_0_1px_rgba(143,176,255,0.28)]',
+    categoryButtonIdle: 'border-border/35 bg-muted/80 text-muted-foreground hover:bg-accent',
     categoryLabel: 'truncate',
-    categoryLabelLeft: 'truncate flex-1 text-left',
+    categoryLabelLeft: 'flex-1 truncate text-left',
     categoryCheck: 'h-4 w-4 shrink-0',
   },
   transactionRow: {
@@ -471,25 +475,26 @@ export const transactionStyles = {
     viewAllWrap: 'flex justify-center mt-6',
     viewAllButton: 'group',
     viewAllLabel: 'mr-2 text-primary',
-    viewAllArrow: 'group-hover:translate-x-0.5 transition-transform duration-200 text-primary',
+    viewAllArrow:
+      'text-primary transition-transform duration-200 group-hover:translate-x-0.5 motion-reduce:transition-none motion-reduce:group-hover:translate-x-0',
     skeleton: {
       container: 'space-y-6',
       header: 'mb-4',
-      headerTitle: 'h-5 w-40 bg-primary/15 rounded animate-pulse',
-      headerSubtitle: 'h-4 w-32 bg-primary/10 rounded animate-pulse mt-1',
+      headerTitle: 'h-5 w-40 rounded animate-pulse bg-muted/60',
+      headerSubtitle: 'mt-1 h-4 w-32 rounded animate-pulse bg-muted/50',
       group: 'space-y-3',
-      groupHeader: 'flex justify-between items-center',
-      groupTitle: 'h-4 w-24 bg-primary/15 rounded animate-pulse',
+      groupHeader: 'flex items-center justify-between',
+      groupTitle: 'h-4 w-24 rounded animate-pulse bg-muted/60',
       groupTotal: 'text-right',
-      groupTotalLine: 'h-4 w-16 bg-primary/15 rounded animate-pulse',
-      groupTotalSub: 'h-3 w-20 bg-primary/10 rounded animate-pulse mt-1',
-      card: 'bg-card rounded-xl border border-primary/20 p-3 space-y-3',
+      groupTotalLine: 'h-4 w-16 rounded animate-pulse bg-muted/60',
+      groupTotalSub: 'mt-1 h-3 w-20 rounded animate-pulse bg-muted/50',
+      card: 'space-y-3 rounded-xl border border-border/25 bg-card/90 p-3',
       row: 'flex items-center gap-3',
-      rowIcon: 'w-10 h-10 rounded-lg bg-primary/12 animate-pulse',
+      rowIcon: 'h-10 w-10 shrink-0 rounded-xl animate-pulse bg-muted/60',
       rowBody: 'flex-1 space-y-2',
-      rowTitle: 'h-4 w-32 bg-primary/15 rounded animate-pulse',
-      rowSubtitle: 'h-3 w-20 bg-primary/10 rounded animate-pulse',
-      rowAmount: 'h-5 w-16 bg-primary/15 rounded animate-pulse',
+      rowTitle: 'h-4 w-32 rounded animate-pulse bg-muted/60',
+      rowSubtitle: 'h-3 w-20 rounded animate-pulse bg-muted/50',
+      rowAmount: 'h-5 w-16 rounded animate-pulse bg-muted/60',
     },
   },
   transactionTable: {
@@ -572,25 +577,25 @@ export const transactionStyles = {
       pagination: 'mt-3 rounded-2xl border border-border/50 bg-card shadow-sm shadow-muted/15',
     },
     pagination: {
-      wrapper: 'px-4 py-3.5 flex items-center justify-between gap-3 bg-primary/[0.03]',
-      info: 'text-[11px] text-primary/60 tabular-nums font-medium',
-      infoHighlight: 'text-primary font-semibold',
+      wrapper: 'flex items-center justify-between gap-3 border-t border-border/25 px-0 py-3.5',
+      info: 'text-[11px] font-medium tabular-nums text-muted-foreground',
+      infoHighlight: 'font-semibold text-foreground',
       controls: 'flex items-center gap-1',
       button:
-        'inline-flex items-center justify-center h-8 min-w-[2rem] px-2.5 rounded-full text-[13px] font-medium transition-all duration-150 border border-primary/20 bg-primary/10 text-primary/70 hover:bg-primary/20 hover:text-primary hover:border-primary/40 disabled:opacity-30 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30',
+        'inline-flex h-8 min-w-[2rem] items-center justify-center rounded-full border border-border/35 bg-muted/80 px-2.5 text-[13px] font-medium text-muted-foreground transition-all duration-150 hover:border-border/45 hover:bg-accent hover:text-foreground disabled:pointer-events-none disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35',
       buttonActive:
-        'bg-primary text-primary-foreground border-primary/40 shadow-sm hover:bg-primary/90 hover:text-primary-foreground',
+        'border-transparent bg-accent text-foreground shadow-[inset_0_0_0_1px_rgba(143,176,255,0.28)] hover:bg-accent hover:text-foreground',
       buttonIcon: 'h-3.5 w-3.5',
       ellipsis:
-        'inline-flex items-center justify-center h-8 min-w-[2rem] text-xs text-primary/40 select-none',
+        'inline-flex h-8 min-w-[2rem] select-none items-center justify-center text-xs text-muted-foreground/70',
       loadingSpinner:
-        'h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary border-t-transparent',
-      perPageWrapper: 'flex items-center gap-1.5 shrink-0',
-      perPageLabel: 'text-[11px] text-primary/50 font-medium hidden sm:block',
+        'h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary border-t-transparent motion-reduce:animate-none',
+      perPageWrapper: 'flex shrink-0 items-center gap-1.5',
+      perPageLabel: 'hidden text-[11px] font-medium text-muted-foreground sm:block',
       perPageSelect:
-        'h-8 rounded-full border border-primary/20 bg-primary/10 text-[13px] font-medium text-primary/80 px-2.5 pr-6 appearance-none cursor-pointer hover:border-primary/40 hover:bg-primary/20 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all duration-150',
-      perPageChevron: 'text-primary/50',
-      mobileIndicator: 'sm:hidden px-3 text-[13px] font-semibold text-primary tabular-nums',
+        'h-8 cursor-pointer appearance-none rounded-full border border-border/35 bg-muted/80 px-2.5 pr-6 text-[13px] font-medium text-foreground transition-all duration-150 hover:border-border/45 hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring/35',
+      perPageChevron: 'text-muted-foreground',
+      mobileIndicator: 'px-3 text-[13px] font-semibold tabular-nums text-foreground sm:hidden',
     },
   },
 } as const;
@@ -643,7 +648,7 @@ export function getHeaderVariantStyles(variant: 'regular' | 'recurrent') {
 
 export function getTotalAmountColor(variant: 'regular' | 'recurrent', amount: number) {
   if (variant === 'recurrent') return 'text-primary';
-  return amount >= 0 ? 'text-success' : 'text-destructive';
+  return amount >= 0 ? 'text-income' : 'text-expense';
 }
 
 export function getTransactionAmountColor(
@@ -651,8 +656,8 @@ export function getTransactionAmountColor(
   variant: 'regular' | 'recurrent'
 ) {
   if (variant === 'recurrent') return 'text-primary';
-  if (transaction.type === 'transfer') return 'text-primary';
-  return transaction.type === 'income' ? 'text-success' : 'text-destructive';
+  if (transaction.type === 'transfer') return 'text-muted-foreground';
+  return transaction.type === 'income' ? 'text-income' : 'text-expense';
 }
 
 export function getTransactionIconColor(

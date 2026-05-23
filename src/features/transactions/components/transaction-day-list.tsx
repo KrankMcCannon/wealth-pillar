@@ -33,10 +33,10 @@ import { useRef } from 'react';
 import { useVirtualizer } from '@/lib/react-virtual';
 import { SectionHeader } from '@/components/layout';
 import { EmptyState } from '@/components/shared';
-import { Button } from '@/components/ui';
 import { Transaction, Category } from '@/lib';
 import { GroupedTransactionCard } from './grouped-transaction-card';
 import { transactionStyles } from '@/features/transactions/theme/transaction-styles';
+import { stitchHome } from '@/styles/home-design-foundation';
 import { Skeleton } from '@/components/ui/skeleton';
 import { TransactionDayGroupSkeleton } from '@/components/ui/primitives/skeletons';
 import { formatCurrency, cn } from '@/lib/utils';
@@ -275,15 +275,12 @@ export function TransactionDayList({
       {/* View All Button */}
       {showViewAll && hasTransactions && onViewAll && (
         <div className={transactionStyles.dayList.viewAllWrap}>
-          <Button
-            variant="ghost"
-            size="sm"
-            className={transactionStyles.dayList.viewAllButton}
-            onClick={onViewAll}
-          >
-            <span className={transactionStyles.dayList.viewAllLabel}>{resolvedViewAllLabel}</span>
-            <span className={transactionStyles.dayList.viewAllArrow}>→</span>
-          </Button>
+          <button type="button" onClick={onViewAll} className={stitchHome.viewAllLink}>
+            {resolvedViewAllLabel}
+            <span className="ml-1" aria-hidden>
+              →
+            </span>
+          </button>
         </div>
       )}
     </section>

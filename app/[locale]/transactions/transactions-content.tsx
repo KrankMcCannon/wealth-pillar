@@ -113,7 +113,7 @@ export default function TransactionsContent({
       skipToMainLabel={t('skipToMain')}
       betweenHeaderAndMain={
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex min-h-0 flex-col">
-          <div className="sticky z-30 bg-background/85 pb-2 pt-1 backdrop-blur-sm">
+          <div className={stitchTransactions.tabsStickyBar}>
             <TabsList className={stitchTransactions.tabsList}>
               <TabsTrigger className={stitchTransactions.tabsTrigger} value="Transactions">
                 {t('tabs.transactions')}
@@ -146,15 +146,12 @@ export default function TransactionsContent({
                 />
 
                 {pageError && (
-                  <div
-                    role="alert"
-                    className="rounded-xl border border-amber-500/40 bg-amber-950/30 px-3 py-2 text-sm text-amber-100"
-                  >
+                  <div role="alert" className={stitchTransactions.pageErrorBanner}>
                     <span>{t('paginationError')}</span>
                     <button
                       type="button"
                       onClick={() => goToPage(currentPage)}
-                      className="ml-2 font-semibold underline"
+                      className={stitchTransactions.pageErrorRetry}
                     >
                       {t('paginationRetry')}
                     </button>
@@ -189,7 +186,7 @@ export default function TransactionsContent({
 
             <TabsContent value="Recurrent" className="mt-0">
               <Suspense fallback={<RecurringSeriesSkeleton />}>
-                <div className="pt-1">
+                <div className={stitchTransactions.mainStack}>
                   <RecurringSeriesSection
                     series={recurringSeries}
                     selectedUserId={selectedUserId ?? undefined}

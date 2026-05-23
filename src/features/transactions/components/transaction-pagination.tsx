@@ -137,7 +137,7 @@ function TransactionPaginationInner({
                 {t('loading')}
               </span>
             ) : totalItems === 0 ? (
-              '0 transazioni'
+              t('emptyCount')
             ) : (
               t.rich('info', {
                 f: (chunks) => <span className={s.infoHighlight}>{chunks}</span>,

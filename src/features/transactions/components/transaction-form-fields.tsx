@@ -141,7 +141,7 @@ export function TransactionFormFields({
           options={typeOptions}
           placeholder={t('fields.type.placeholder')}
           disabled={isSubmitting}
-          leadingIcon={<ArrowLeftRight className="h-5 w-5 text-primary" aria-hidden />}
+          leadingIcon={<ArrowLeftRight className="h-5 w-5 text-modal-ring" aria-hidden />}
         />
 
         {watchedType === 'transfer' ? (

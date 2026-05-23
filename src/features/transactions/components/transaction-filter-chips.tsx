@@ -9,9 +9,8 @@ import type {
   TransactionFiltersState,
   TransactionTypeFilter,
 } from '@/server/use-cases/transactions/transaction.logic';
-import { Input } from '@/components/ui';
+import { Input, Skeleton } from '@/components/ui';
 import { FilterChip, FilterDrawer } from '@/components/ui/filters';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { cn } from '@/lib/utils';
 import { stitchTransactionPageSearch, stitchTransactions } from '@/styles/home-design-foundation';
 
@@ -19,7 +18,7 @@ const TransactionFiltersLazy = dynamic(
   () => import('./transaction-filters').then((mod) => mod.TransactionFilters),
   {
     ssr: false,
-    loading: () => <div className="p-6 text-center text-sm text-muted-foreground">…</div>,
+    loading: () => <Skeleton className="h-10 w-full rounded-2xl bg-muted/60" aria-hidden />,
   }
 );
 
@@ -149,23 +148,21 @@ export function TransactionFilterChips({
         </div>
       ) : null}
 
-      <ToggleGroup
-        type="single"
-        value={filters.type}
-        onValueChange={(value) => {
-          if (value) setType(value as TransactionTypeFilter);
-        }}
-        variant="outline"
-        size="sm"
-        className="flex-wrap"
+      <div
+        className={cn(stitchTransactions.chipRow, 'flex-wrap')}
+        role="toolbar"
         aria-label={tChips('toolbarAria')}
       >
         {types.map(({ key, labelKey }) => (
-          <ToggleGroupItem key={key} value={key} aria-label={t(`typeOptions.${labelKey}`)}>
-            {t(`typeOptions.${labelKey}`)}
-          </ToggleGroupItem>
+          <FilterChip
+            key={key}
+            label={t(`typeOptions.${labelKey}`)}
+            active={filters.type === key}
+            onClick={() => setType(key)}
+            className={stitchTransactions.chipSnapItem}
+          />
         ))}
-      </ToggleGroup>
+      </div>
 
       <div className="flex items-center gap-2">
         <button

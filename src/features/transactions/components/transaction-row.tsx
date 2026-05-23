@@ -46,9 +46,7 @@ export const TransactionRow = memo(
     // Build metadata section (category + account/frequency)
     const metadata = (
       <>
-        <span className={transactionStyles.transactionRow.metadataText}>
-          {getCategoryLabel(transaction.category)}
-        </span>
+        <span className={stitchHome.rowMeta}>{getCategoryLabel(transaction.category)}</span>
 
         {/* Account name for regular transactions */}
         {variant === 'regular' &&
@@ -56,9 +54,7 @@ export const TransactionRow = memo(
           accountNames[transaction.account_id] && (
             <>
               <span className={transactionStyles.transactionRow.separator}>•</span>
-              <span className={transactionStyles.transactionRow.metadataSecondary}>
-                {accountNames[transaction.account_id]}
-              </span>
+              <span className={stitchHome.rowMeta}>{accountNames[transaction.account_id]}</span>
             </>
           )}
 

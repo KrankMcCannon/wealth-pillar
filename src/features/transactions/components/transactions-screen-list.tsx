@@ -5,7 +5,8 @@ import { Plus } from 'lucide-react';
 import { useTranslations, useLocale } from 'next-intl';
 import { cn } from '@/lib/utils';
 import type { Transaction, Category } from '@/lib/types';
-import { stitchTransactions } from '@/styles/home-design-foundation';
+import { stitchFab, stitchTransactions } from '@/styles/home-design-foundation';
+import { Button } from '@/components/ui';
 import { TransactionDayGroupSkeleton } from '@/components/ui/primitives/skeletons';
 import { groupByDay } from '../utils/group-by-day';
 import { TransactionPagination } from './transaction-pagination';
@@ -80,19 +81,17 @@ function TransactionsScreenListInner({
         {isChangingPage ? (
           <ListSkeleton />
         ) : isEmpty ? (
-          <div className={cn(stitchTransactions.dayCard, 'p-6')} role="status" aria-live="polite">
-            <p className="text-center text-base font-medium text-foreground">
-              {emptyTitle ?? t('empty.title')}
-            </p>
-            <p className="mt-2 text-center text-sm text-muted-foreground">
+          <div className={stitchTransactions.emptyState} role="status" aria-live="polite">
+            <p className={stitchTransactions.emptyTitle}>{emptyTitle ?? t('empty.title')}</p>
+            <p className={stitchTransactions.emptyDescription}>
               {emptyDescription ?? t('empty.description')}
             </p>
-            <div className="mt-6 flex flex-col gap-2">
+            <div className={stitchTransactions.emptyActions}>
               {onClearFilters && (
                 <button
                   type="button"
                   onClick={onClearFilters}
-                  className="rounded-xl border border-border/40 bg-muted/80 px-4 py-3 text-sm font-medium text-foreground"
+                  className={stitchTransactions.emptyCtaSecondary}
                 >
                   {t('empty.clearFilters')}
                 </button>
@@ -101,7 +100,7 @@ function TransactionsScreenListInner({
                 <button
                   type="button"
                   onClick={onAddTransaction}
-                  className="rounded-xl bg-accent px-4 py-3 text-sm font-semibold text-white"
+                  className={stitchTransactions.emptyCtaPrimary}
                 >
                   {t('empty.addCta')}
                 </button>
@@ -139,15 +138,17 @@ function TransactionsScreenListInner({
       </div>
 
       {onAddTransaction && (
-        <button
+        <Button
           type="button"
+          variant="default"
+          size="icon"
           data-testid="transactions-fab-add"
           onClick={onAddTransaction}
-          className={stitchTransactions.fab}
+          className={stitchFab.pageAdd}
           aria-label={t('empty.addCta')}
         >
-          <Plus className="h-7 w-7" aria-hidden />
-        </button>
+          <Plus className="h-6 w-6" aria-hidden />
+        </Button>
       )}
     </div>
   );

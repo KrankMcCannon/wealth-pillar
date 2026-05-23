@@ -12,7 +12,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { TransactionListSkeleton } from '@/components/ui/primitives/skeletons';
 import { cn } from '@/lib/utils';
 import { STICKY_HEADER_BASE } from '@/lib/utils/ui-constants';
-import { stitchHome } from '@/styles/home-design-foundation';
+import {
+  stitchHome,
+  stitchTransactions,
+  stitchTransactionPageSearch,
+} from '@/styles/home-design-foundation';
 
 const pageLoaderStyles = {
   page: 'relative flex w-full min-h-[100svh] flex-col bg-card md:pl-64',
@@ -115,7 +119,30 @@ function ListPageSkeleton() {
   );
 }
 
-export type PageLoaderVariant = 'home' | 'list' | 'form';
+function TransactionsPageSkeleton() {
+  return (
+    <PageContainer>
+      <HeaderSkeleton />
+      <div className="px-4 pt-1 pb-24" aria-busy="true">
+        <div className={stitchTransactions.tabsStickyBar}>
+          <Skeleton className={cn(stitchTransactions.tabsList, 'h-12')} />
+        </div>
+        <div className={cn(stitchTransactions.mainStack, 'mt-3')}>
+          <Skeleton className={cn(stitchTransactionPageSearch.input, 'h-11')} />
+          <div className={stitchTransactions.chipRow}>
+            <Skeleton className="h-9 w-16 shrink-0 rounded-full" />
+            <Skeleton className="h-9 w-20 shrink-0 rounded-full" />
+            <Skeleton className="h-9 w-24 shrink-0 rounded-full" />
+          </div>
+          <TransactionListSkeleton />
+        </div>
+      </div>
+      <BottomNavigation />
+    </PageContainer>
+  );
+}
+
+export type PageLoaderVariant = 'home' | 'list' | 'transactions' | 'form';
 
 interface PageLoaderProps {
   variant?: PageLoaderVariant;
@@ -170,6 +197,7 @@ export function PageLoader({
   const resolvedSkipLabel = skipLabel ?? tHome('skipToContent');
 
   if (variant === 'home') return <HomePageSkeleton skipLabel={resolvedSkipLabel} />;
+  if (variant === 'transactions') return <TransactionsPageSkeleton />;
   if (variant === 'list') return <ListPageSkeleton />;
   return (
     <FormPageLoader

@@ -15,6 +15,12 @@ export const stitchSurface = {
     'border border-expense/35 bg-expense/12 text-expense transition-colors hover:border-expense/50 hover:bg-expense/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-expense/35',
 } as const;
 
+/** Fixed page FAB — single source for home ActionMenu trigger and page-local add buttons. */
+export const stitchFab = {
+  pageAdd:
+    'fixed bottom-24 right-5 z-30 flex h-14 w-14 min-h-11 min-w-11 items-center justify-center rounded-2xl bg-accent text-white shadow-[0_8px_32px_rgba(0,20,86,0.45)] transition-transform hover:scale-105 active:scale-95 motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45',
+} as const;
+
 /**
  * Dark “Stitch” home sections — use via `HomeSectionCard` / `stitchHome.*` class strings.
  * Semantic tokens from app/globals.css (Stitch dark palette).
@@ -44,7 +50,7 @@ export const stitchHome = {
     'inline-flex min-h-11 min-w-11 items-center justify-center px-2 text-xs font-semibold text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35 focus-visible:rounded-md',
   budgetRowAvatar:
     'flex size-9 shrink-0 items-center justify-center rounded-full border border-border/30 bg-muted text-sm font-bold text-primary',
-  fab: 'fixed bottom-24 right-5 z-30 flex h-14 w-14 min-h-11 min-w-11 items-center justify-center rounded-2xl bg-accent text-white shadow-[0_8px_32px_rgba(0,20,86,0.45)] transition-transform hover:scale-105 active:scale-95 motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45',
+  fab: stitchFab.pageAdd,
   balanceSection:
     'flex flex-col gap-3 overflow-hidden rounded-[30px] border border-border/20 bg-card/90 p-4 shadow-[0_16px_36px_rgba(0,7,30,0.28)] sm:gap-3.5 sm:p-5',
   listRow:
@@ -176,8 +182,30 @@ export const stitchTransactions = {
   chipInactive: 'border border-border/35 bg-muted/80 text-muted-foreground hover:bg-accent',
   filtersChipIcon: 'mr-1 inline h-4 w-4 shrink-0',
   dayCard:
-    'rounded-xl border border-border/25 bg-card/85 p-1 shadow-[0_4px_24px_rgba(0,7,30,0.35)]',
-  fab: 'fixed bottom-24 right-5 z-30 flex h-14 w-14 items-center justify-center rounded-2xl bg-accent text-white shadow-[0_8px_32px_rgba(0,20,86,0.45)] transition-transform hover:scale-105 active:scale-95',
+    'rounded-xl border border-border/25 bg-card/90 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]',
+  fab: stitchFab.pageAdd,
+  emptyState:
+    'rounded-xl border border-border/25 bg-card/90 p-6 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]',
+  emptyTitle: 'text-base font-medium text-foreground',
+  emptyDescription: 'mt-2 text-sm text-muted-foreground',
+  emptyActions: 'mt-6 flex flex-col gap-2',
+  emptyCtaPrimary: stitchSurface.primaryCta,
+  emptyCtaSecondary:
+    'flex min-h-11 w-full items-center justify-center rounded-xl border border-border/40 bg-muted/80 px-4 py-3 text-sm font-medium text-foreground transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35',
+  pageErrorBanner:
+    'rounded-xl border border-warning/35 bg-warning/10 px-3 py-2 text-sm text-foreground',
+  pageErrorRetry:
+    'ml-2 font-semibold underline text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35 rounded-sm',
+  paginationBar: 'flex items-center justify-between gap-3 border-t border-border/25 px-0 py-3.5',
+  dayHeaderRow: 'mb-2 flex items-center justify-between px-1',
+  dayHeaderTitle: 'text-[11px] font-semibold uppercase tracking-wide text-muted-foreground',
+  dayHeaderStats: 'text-right',
+  dayHeaderTotalRow: 'flex items-center gap-2 justify-end',
+  dayHeaderTotalLabel: 'text-xs text-muted-foreground',
+  dayHeaderTotalValue: 'text-xs font-bold tabular-nums',
+  dayHeaderCount: 'mt-0.5 text-xs text-muted-foreground',
+  tabsStickyBar:
+    'sticky z-30 border-b border-border/22 bg-background/88 pb-2 pt-1 backdrop-blur-xl',
   /** Padding orizzontale da `HomeDashboardMain` (px-4); qui solo gap verticale. */
   /** `pb` è solo su `HomeDashboardMain` (dashboardContentBottomPadding). */
   mainStack: 'flex flex-col gap-3 pb-0 pt-1',
