@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useFilteredAccounts, usePermissions, useUserFilter } from '@/hooks';
 import { useModalState } from '@/lib/navigation/url-state';
 import type { Account, User } from '@/lib/types';
@@ -82,12 +82,22 @@ export function useAccountsContent({
     openModal('account', account.id);
   };
 
+  const handleUserFilterChange = useCallback(
+    (userId: string) => {
+      setSelectedGroupFilter(userId);
+    },
+    [setSelectedGroupFilter]
+  );
+
   return {
     currentUser,
     isMember,
+    selectedUserId: isMember ? currentUser.id : selectedUserId,
     accountStats,
     sortedAccounts,
     filteredBalances,
     handleEditAccount,
+    handleUserFilterChange,
+    openModal,
   };
 }

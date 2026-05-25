@@ -274,43 +274,12 @@ export const stitchRecurring = {
 } as const;
 
 /**
- * Pagina Accounts (dark Stitch) — struttura come stitch/html/03-account-list, palette coerente con stitchHome.
+ * Pagina Accounts — row tokens only; page layout uses stitchHome / stitchRecurring / stitchFab.
  */
 export const stitchAccounts = {
-  /** Stack sotto header fissato; padding bottom allineato a home dashboard / bottom nav. */
-  mainStack:
-    'flex flex-col gap-7 px-4 py-4 pb-[max(7rem,calc(5.5rem+env(safe-area-inset-bottom)))]',
-  /** Contesto / selettore utente. */
-  surfaceQuiet:
-    'rounded-2xl border border-border/20 bg-card/60 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]',
-  /** Lista conti (enfasi). */
-  surfaceEmphasis:
-    'rounded-2xl border border-border/30 bg-card/95 p-3 shadow-[0_16px_36px_rgba(0,7,30,0.32)]',
-  /** Hero “Total net worth” — liquid glass dark (come stitchBudgets.heroSection). */
-  heroNetWorthCard: 'relative overflow-hidden rounded-xl border border-border/25 bg-card/90 p-4',
-  heroNetWorthDecor: 'hidden',
-  sectionEyebrow: 'text-[11px] font-semibold uppercase tracking-wider text-muted-foreground',
-  sectionTitle: 'text-base font-semibold tracking-tight text-foreground',
-  sectionSubtitle: 'text-sm text-muted-foreground',
   /** Banner vista membro (contesto). */
   memberBanner:
     'rounded-lg border border-border/30 bg-muted/60 px-3 py-2 text-sm leading-snug text-muted-foreground',
-  /** Importo saldo totale (hero unico, senza card annidata). */
-  balanceAmount:
-    'text-[30px] font-semibold tabular-nums leading-none tracking-[-0.02em] text-primary',
-  balanceAmountNegative:
-    'text-[30px] font-semibold tabular-nums leading-none tracking-[-0.02em] text-expense',
-  /** Griglia statistiche sotto il saldo. */
-  statsGrid: 'mt-4 grid gap-2 border-t border-border/25 pt-4 grid-cols-3',
-  statItem:
-    'flex flex-col items-center justify-center gap-1 rounded-lg border px-2 py-2 text-center',
-  statItemPrimary: 'border-border/35 bg-muted/70',
-  statItemSuccess: 'border-teal-accent/28 bg-teal-accent/15',
-  statItemDestructive: 'border-expense/35 bg-expense/15',
-  statLabel: 'text-[10px] font-semibold uppercase tracking-wide text-muted-foreground',
-  statValue: 'text-sm font-bold tabular-nums text-foreground',
-  statValueSuccess: 'text-sm font-bold tabular-nums text-income',
-  statValueDestructive: 'text-sm font-bold tabular-nums text-expense',
   accountListIconWrap: 'border border-border/35 bg-muted/85 !text-primary',
   accountListTitle: 'font-semibold text-[15px] leading-snug text-foreground',
   accountListSubtitle: 'mt-0.5 text-[11px] font-medium text-muted-foreground',
@@ -318,9 +287,6 @@ export const stitchAccounts = {
   accountListAmountPrimary: 'text-sm font-bold tabular-nums tracking-tight text-primary',
   accountListAmountNegative: 'text-sm font-bold tabular-nums tracking-tight text-expense',
   accountListAmountSecondary: 'mt-0.5 text-[10px] font-semibold tabular-nums text-expense',
-  /** CTA secondaria in testa lista (es. “Aggiungi conto”). */
-  outlineAction:
-    'border-border/40 bg-muted/50 text-foreground hover:bg-accent hover:text-foreground',
 } as const;
 
 /**

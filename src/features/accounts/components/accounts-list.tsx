@@ -1,17 +1,20 @@
 /**
- * AccountsList — lista conti (UI Stitch: righe flush dentro la card padre).
+ * AccountsList — lista conti (UI Stitch: righe in grouped list come home / transactions).
  */
 
 'use client';
 
-import { CreditCard } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import type { Account } from '@/lib';
 import { AccountCard } from './account-card';
-import { EmptyState } from '@/components/shared';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
-import { stitchAccounts, stitchHome } from '@/styles/home-design-foundation';
+import {
+  stitchDashboardGroupedList,
+  stitchHome,
+  stitchRecurring,
+  stitchSurface,
+} from '@/styles/home-design-foundation';
 
 function AccountCardSkeletonRow() {
   return (
@@ -37,26 +40,24 @@ interface AccountsListProps {
   accounts: Account[];
   accountBalances: Record<string, number>;
   onAccountClick?: (account: Account) => void;
+  onAddAccount?: () => void;
   isLoading?: boolean;
-  hideListHeading?: boolean;
 }
 
 export const AccountsList = ({
   accounts,
   accountBalances,
   onAccountClick,
+  onAddAccount,
   isLoading = false,
-  hideListHeading = false,
 }: Readonly<AccountsListProps>) => {
   const t = useTranslations('Accounts.List');
+  const tContent = useTranslations('Accounts.Content');
   const isInitialLoading = isLoading && (!accounts || accounts.length === 0);
 
   if (isInitialLoading) {
     return (
-      <div className="divide-y divide-border/25">
-        {!hideListHeading ? (
-          <h2 className={cn(stitchAccounts.sectionTitle, 'pb-3')}>{t('header')}</h2>
-        ) : null}
+      <div className={stitchDashboardGroupedList}>
         {['skeleton-1', 'skeleton-2', 'skeleton-3'].map((id) => (
           <AccountCardSkeletonRow key={id} />
         ))}
@@ -66,21 +67,22 @@ export const AccountsList = ({
 
   if (accounts.length === 0) {
     return (
-      <div className={stitchHome.emptyWell}>
-        <EmptyState
-          icon={CreditCard}
-          title={t('empty.title')}
-          description={t('empty.description')}
-        />
+      <div className={stitchRecurring.emptyState} role="status" aria-live="polite">
+        <p className={stitchRecurring.emptyTitle}>{t('empty.title')}</p>
+        <p className={stitchRecurring.emptyDescription}>{t('empty.description')}</p>
+        {onAddAccount ? (
+          <div className={stitchRecurring.emptyActions}>
+            <button type="button" onClick={onAddAccount} className={stitchSurface.primaryCta}>
+              {tContent('addAccountCta')}
+            </button>
+          </div>
+        ) : null}
       </div>
     );
   }
 
   return (
-    <div className="divide-y divide-border/25">
-      {!hideListHeading ? (
-        <h2 className={cn(stitchAccounts.sectionTitle, 'pb-3')}>{t('header')}</h2>
-      ) : null}
+    <div className={stitchDashboardGroupedList}>
       {accounts.map((account) => {
         const accountBalance = accountBalances[account.id] || 0;
         return (
