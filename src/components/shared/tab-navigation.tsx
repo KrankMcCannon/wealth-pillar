@@ -30,7 +30,7 @@ const tabNavigationStyles = {
       inactive: 'text-primary/70 hover:text-primary hover:bg-primary/5 rounded-full',
     },
     stitch: {
-      base: `flex-1 min-h-11 rounded-full px-3 py-2.5 text-[13px] font-medium tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35`,
+      base: `flex-1 min-h-11 rounded-full px-3 py-2 text-[13px] font-medium tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35`,
       active: stitchTransactions.chipActive,
       inactive: stitchTransactions.chipInactive,
     },

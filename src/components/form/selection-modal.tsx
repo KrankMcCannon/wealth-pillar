@@ -1,10 +1,10 @@
 'use client';
 
 import { useId, useState, type ReactNode } from 'react';
-import { Check, Loader2 } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { Button } from '@/components/ui/button';
 import { ModalBody, ModalFooter, ModalWrapper } from '@/components/ui/modal-wrapper';
+import { ModalFooterActions } from '@/components/ui/modal-footer-actions';
 import { cn } from '@/lib/utils';
 import { formModalStyles as modalS } from './form-modal-styles';
 
@@ -132,28 +132,15 @@ function SelectionModalContent<V extends string>({
         </div>
       </ModalBody>
       <ModalFooter>
-        <Button
-          variant="outline"
-          onClick={onClose}
-          disabled={isSaving}
-          className="w-full sm:w-auto"
-        >
-          {t('cancelButton')}
-        </Button>
-        <Button
-          onClick={handleSave}
-          disabled={isSaving || selectedValue === value}
-          className="w-full sm:w-auto"
-        >
-          {isSaving ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              {t('savingButton')}
-            </>
-          ) : (
-            t('saveButton')
-          )}
-        </Button>
+        <ModalFooterActions
+          variant="dual"
+          cancelLabel={t('cancelButton')}
+          submitLabel={t('saveButton')}
+          onCancel={onClose}
+          onSubmit={handleSave}
+          isSubmitting={isSaving}
+          submitDisabled={selectedValue === value}
+        />
       </ModalFooter>
     </>
   );

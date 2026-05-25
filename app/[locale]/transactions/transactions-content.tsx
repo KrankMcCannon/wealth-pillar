@@ -9,6 +9,7 @@ import { AppPage, HomeDashboardMain } from '@/components/layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui';
 import { RecurringSeriesSection } from '@/features/recurring';
 import { TransactionFilterChips, TransactionsScreenList } from '@/features/transactions';
+import { UserFilterChipRow } from '@/features/transactions/components/user-filter-chip-row';
 import { RecurringSeriesSkeleton } from '@/features/transactions/components/transaction-skeletons';
 import { stitchTransactions } from '@/styles/home-design-foundation';
 interface TransactionsContentProps {
@@ -187,13 +188,18 @@ export default function TransactionsContent({
             <TabsContent value="Recurrent" className="mt-0">
               <Suspense fallback={<RecurringSeriesSkeleton />}>
                 <div className={stitchTransactions.mainStack}>
+                  {showUserPicker ? (
+                    <UserFilterChipRow
+                      groupUsers={groupUsers}
+                      selectedUserId={selectedUserId}
+                      onUserFilterChange={handleUserFilterChange}
+                    />
+                  ) : null}
                   <RecurringSeriesSection
                     series={recurringSeries}
                     selectedUserId={selectedUserId ?? undefined}
-                    className="space-y-4"
                     showStats
-                    maxItems={10}
-                    showActions={false}
+                    showActions
                     showDelete={false}
                     onCreateRecurringSeries={() => openModal('recurring')}
                     onEditRecurringSeries={(series) => openModal('recurring', series.id)}

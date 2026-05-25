@@ -3,25 +3,8 @@
 import type { ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
 import { ModalWrapper, ModalBody, ModalFooter } from '@/components/ui/modal-wrapper';
-import { Button } from '@/components/ui/button';
-import { AlertTriangleIcon, Loader2Icon } from 'lucide-react';
-import { radiusStyles, typographyStyles } from '@/features/budgets/theme/budget-styles';
-
-const confirmationDialogStyles = {
-  headerLayout: 'flex items-start gap-3',
-  iconWrapper: `flex size-12 shrink-0 items-center justify-center ${radiusStyles.md} bg-destructive/10 border border-destructive/20 text-destructive`,
-  icon: 'size-6',
-  text: {
-    message: `${typographyStyles.sm} text-modal-fg leading-relaxed`,
-  },
-  body: 'flex-1 space-y-2',
-  buttons: {
-    cancel:
-      'w-full font-semibold border border-modal-border/30 text-modal-fg bg-modal-surface hover:bg-primary hover:text-primary-foreground',
-    confirm: 'w-full font-semibold gap-2',
-  },
-  loadingIcon: 'size-4 animate-spin',
-} as const;
+import { ModalFooterActions } from '@/components/ui/modal-footer-actions';
+import { formModalStyles as s } from '@/components/form/form-modal-styles';
 
 interface ConfirmationDialogProps {
   isOpen: boolean;
@@ -68,36 +51,19 @@ export function ConfirmationDialog({
       disableOutsideClose={isLoading}
     >
       <ModalBody>
-        <div className={confirmationDialogStyles.headerLayout}>
-          {variant === 'destructive' && (
-            <div className={confirmationDialogStyles.iconWrapper}>
-              <AlertTriangleIcon className={confirmationDialogStyles.icon} />
-            </div>
-          )}
-          <div className={confirmationDialogStyles.body}>
-            {children}
-            {message ? <p className={confirmationDialogStyles.text.message}>{message}</p> : null}
-          </div>
-        </div>
+        {children}
+        {message ? <p className={s.footer.confirmMessage}>{message}</p> : null}
       </ModalBody>
       <ModalFooter>
-        <Button
-          variant="outline"
-          onClick={onCancel}
-          disabled={isLoading}
-          className={confirmationDialogStyles.buttons.cancel}
-        >
-          {resolvedCancel}
-        </Button>
-        <Button
-          variant={variant}
-          onClick={handleConfirm}
-          disabled={isLoading}
-          className={confirmationDialogStyles.buttons.confirm}
-        >
-          {isLoading && <Loader2Icon className={confirmationDialogStyles.loadingIcon} />}
-          {resolvedConfirm}
-        </Button>
+        <ModalFooterActions
+          variant="dual"
+          cancelLabel={resolvedCancel}
+          submitLabel={resolvedConfirm}
+          onCancel={onCancel}
+          onSubmit={handleConfirm}
+          isSubmitting={isLoading}
+          submitVariant={variant === 'destructive' ? 'destructive' : 'default'}
+        />
       </ModalFooter>
     </ModalWrapper>
   );

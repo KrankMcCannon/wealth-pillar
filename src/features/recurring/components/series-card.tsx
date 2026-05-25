@@ -12,11 +12,12 @@ import { getCategoryColor } from '@/server/use-cases/categories/category.logic';
 import { calculateDaysUntilDue } from '@/lib/recurring/recurring-calculations';
 import { getAssociatedUsers } from '@/server/use-cases/recurring/recurring.logic';
 import type { User } from '@/lib/types';
-import { executeRecurringSeriesAction } from '@/features/recurring';
+import { executeRecurringSeriesAction } from '@/features/recurring/actions/recurring-actions';
 import { Pause, Play, Trash2 } from 'lucide-react';
 import { Amount, Button, Card, CategoryBadge, StatusBadge, Text } from '@/components/ui';
-import { MoneyText } from '@/components/home';
+import { RowCard } from '@/components/ui/layout/row-card';
 import { stitchHome } from '@/styles/home-design-foundation';
+import { transactionStyles } from '@/features/transactions/theme/transaction-styles';
 import { formatCurrency } from '@/lib/utils';
 import {
   cardStyles,
@@ -96,7 +97,8 @@ function SeriesCardInner({
     return getCategoryColor(categories, series.category);
   }, [categories, series.category]);
   const canSwipeDelete = Boolean(onDelete) && showDelete;
-  const canSwipePause = showActions;
+  const canSwipePause = Boolean(onPause);
+  const canExecute = showActions;
 
   // Calculate due date info using decentralised logic
   const daysUntilDue = calculateDaysUntilDue(series);
@@ -188,50 +190,180 @@ function SeriesCardInner({
     return series.type === 'income' ? 'income' : 'expense';
   };
 
-  const embeddedShellClass = cn(
-    stitchHome.listRowInteractive,
-    'w-full flex-wrap gap-y-2',
-    !series.is_active && 'opacity-60',
+  const amountType = getAmountType();
+  const valueClassName =
+    amountType === 'income'
+      ? stitchHome.amountIncome
+      : amountType === 'expense'
+        ? stitchHome.amountExpense
+        : 'text-muted-foreground';
+
+  const urgencyRingClass = cn(
     isOverdue && 'ring-1 ring-inset ring-expense/35',
     isDueToday && 'ring-1 ring-inset ring-amber-400/40',
     isDueSoon && !isDueToday && !isOverdue && 'ring-1 ring-inset ring-border/30'
   );
 
+  if (embedded) {
+    const metadata = (
+      <>
+        <span className={stitchHome.rowMeta}>{getFrequencyLabel(series.frequency, t)}</span>
+        <span className={transactionStyles.transactionRow.separator}>•</span>
+        <span className={stitchHome.rowMeta}>{getDueDateLabel(daysUntilDue, t)}</span>
+        {!series.is_active ? (
+          <>
+            <span className={transactionStyles.transactionRow.separator}>•</span>
+            <StatusBadge status="info" size="sm">
+              {t('status.stopped')}
+            </StatusBadge>
+          </>
+        ) : null}
+      </>
+    );
+
+    const executeAction =
+      canExecute && series.is_active && (isDueToday || isOverdue) ? (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 w-8 min-h-8 min-w-8 shrink-0 rounded-md p-0 hover:bg-primary/12"
+          onClick={handleExecute}
+          disabled={isLoading}
+        >
+          <Play className="h-4 w-4 text-primary" aria-hidden />
+        </Button>
+      ) : null;
+
+    const pauseDeleteActions =
+      canSwipePause || canSwipeDelete ? (
+        <div className="flex shrink-0 items-center gap-0.5" onClick={(e) => e.stopPropagation()}>
+          {canSwipePause ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 min-h-8 min-w-8 rounded-md p-0 hover:bg-primary/10"
+              onClick={handleDesktopPause}
+              aria-label={series.is_active ? t('actions.pauseAria') : t('actions.resumeAria')}
+              title={series.is_active ? t('actions.pause') : t('actions.resume')}
+            >
+              {series.is_active ? (
+                <Pause className="h-4 w-4" aria-hidden />
+              ) : (
+                <Play className="h-4 w-4" aria-hidden />
+              )}
+            </Button>
+          ) : null}
+          {canSwipeDelete ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 min-h-8 min-w-8 rounded-md p-0 hover:bg-expense/12"
+              onClick={handleDesktopDelete}
+              aria-label={t('actions.deleteAria')}
+              title={t('actions.delete')}
+            >
+              <Trash2 className="h-4 w-4 text-expense" aria-hidden />
+            </Button>
+          ) : null}
+        </div>
+      ) : null;
+
+    const rowActions =
+      executeAction || pauseDeleteActions ? (
+        <div className="flex items-center gap-0.5">
+          {executeAction}
+          {pauseDeleteActions}
+        </div>
+      ) : null;
+
+    const embeddedRow = (
+      <RowCard
+        icon={<CategoryBadge categoryKey={series.category} color={categoryColor} size="md" />}
+        iconSize="sm"
+        iconColor="none"
+        iconClassName="!rounded-full !bg-transparent !p-0 !shadow-none ring-0"
+        title={series.description}
+        titleClassName={stitchHome.rowTitle}
+        metadata={metadata}
+        primaryValue={formatCurrency(Math.abs(Number(series.amount)))}
+        amountVariant={
+          amountType === 'income' ? 'success' : amountType === 'expense' ? 'destructive' : 'primary'
+        }
+        valueClassName={valueClassName}
+        actions={rowActions}
+        rightLayout={rowActions ? 'row' : 'stack'}
+        variant="regular"
+        onClick={canSwipeDelete || canSwipePause ? undefined : handleCardClick}
+        className={cn(
+          stitchHome.listRowInteractive,
+          'w-full',
+          !series.is_active && 'opacity-60',
+          urgencyRingClass,
+          className
+        )}
+        testId={`recurring-series-row-${series.id}`}
+      />
+    );
+
+    if (canSwipeDelete || canSwipePause) {
+      return (
+        <SwipeableCard
+          id={`series-${series.id}`}
+          leftAction={
+            canSwipePause
+              ? {
+                  label: series.is_active ? t('actions.pause') : t('actions.resume'),
+                  variant: series.is_active ? 'pause' : 'resume',
+                  onAction: handleSwipePause,
+                }
+              : undefined
+          }
+          rightAction={
+            canSwipeDelete
+              ? {
+                  label: t('actions.delete'),
+                  variant: 'delete',
+                  onAction: handleSwipeDelete,
+                }
+              : undefined
+          }
+          onCardClick={handleCardClick}
+        >
+          {embeddedRow}
+        </SwipeableCard>
+      );
+    }
+
+    return embeddedRow;
+  }
+
   const cardContent = (
     <Card
       className={cn(
-        embedded
-          ? cn('border-0 bg-transparent shadow-none ring-0', className)
-          : cn(
-              getSeriesCardClassName({
-                isActive: series.is_active,
-                isOverdue,
-                isDueToday,
-                isDueSoon,
-              }),
-              className
-            )
+        getSeriesCardClassName({
+          isActive: series.is_active,
+          isOverdue,
+          isDueToday,
+          isDueSoon,
+        }),
+        className
       )}
       onClick={canSwipeDelete || canSwipePause ? undefined : handleCardClick}
     >
-      <div className={embedded ? embeddedShellClass : cardStyles.series.layout}>
-        {/* Left Section: Icon + Content */}
+      <div className={cardStyles.series.layout}>
         <div className={cardStyles.series.left}>
           <CategoryBadge
             categoryKey={series.category}
             color={categoryColor}
             size="md"
-            className={embedded ? 'shrink-0' : cardStyles.series.icon}
+            className={cardStyles.series.icon}
           />
 
           <div className={cardStyles.series.content}>
             <div className={cardStyles.series.titleRow}>
-              <Text
-                variant="primary"
-                size="sm"
-                as="h3"
-                className={embedded ? stitchHome.rowTitle : cardStyles.series.title}
-              >
+              <Text variant="primary" size="sm" as="h3" className={cardStyles.series.title}>
                 {series.description}
               </Text>
               {!series.is_active && (
@@ -241,24 +373,16 @@ function SeriesCardInner({
               )}
             </div>
             <div className={cardStyles.series.details}>
-              <Text
-                variant="body"
-                size="xs"
-                className={embedded ? stitchHome.rowMeta : cardStyles.series.frequency}
-              >
+              <Text variant="body" size="xs" className={cardStyles.series.frequency}>
                 {getFrequencyLabel(series.frequency, t)}
               </Text>
 
-              {/* User badges - show if multiple users */}
               {associatedUsers.length > 1 && (
                 <div className={cardStyles.series.userBadges} aria-hidden="true">
                   {associatedUsers.slice(0, 3).map((user) => (
                     <div
                       key={user.id}
-                      className={cn(
-                        cardStyles.series.userBadge,
-                        embedded && 'border-border/35 text-foreground'
-                      )}
+                      className={cardStyles.series.userBadge}
                       style={getSeriesUserBadgeStyle(user.theme_color)}
                       title={user.name}
                     >
@@ -266,12 +390,7 @@ function SeriesCardInner({
                     </div>
                   ))}
                   {associatedUsers.length > 3 && (
-                    <span
-                      className={cn(
-                        cardStyles.series.userBadgeOverflow,
-                        embedded && 'text-muted-foreground'
-                      )}
-                    >
+                    <span className={cardStyles.series.userBadgeOverflow}>
                       +{associatedUsers.length - 3}
                     </span>
                   )}
@@ -281,40 +400,17 @@ function SeriesCardInner({
           </div>
         </div>
 
-        {/* Right Section: Amount + Actions */}
         <div className={cardStyles.series.right}>
-          {embedded ? (
-            getAmountType() === 'neutral' ? (
-              <p className="shrink-0 text-sm font-semibold tabular-nums text-muted-foreground">
-                {formatCurrency(Math.abs(Number(series.amount)))}
-              </p>
-            ) : (
-              <MoneyText
-                value={
-                  series.type === 'income'
-                    ? Math.abs(Number(series.amount))
-                    : -Math.abs(Number(series.amount))
-                }
-                variant={series.type === 'income' ? 'home-income' : 'home-expense'}
-                signed
-              />
-            )
-          ) : (
-            <Amount type={getAmountType()} size="md" emphasis="strong">
-              {series.type === 'income' ? series.amount : -series.amount}
-            </Amount>
-          )}
-          <Text
-            variant="body"
-            size="xs"
-            className={embedded ? stitchHome.rowMeta : cardStyles.series.dueDate}
-          >
+          <Amount type={amountType} size="md" emphasis="strong">
+            {series.type === 'income' ? series.amount : -series.amount}
+          </Amount>
+          <Text variant="body" size="xs" className={cardStyles.series.dueDate}>
             {t('nextLabel')}: {getDueDateLabel(daysUntilDue, t)}
           </Text>
 
-          {(showActions || canSwipePause || canSwipeDelete) && (
+          {(canExecute || canSwipePause || canSwipeDelete) && (
             <div className={cn(cardStyles.series.actions, 'flex-wrap justify-end')}>
-              {showActions && series.is_active ? (
+              {canExecute && series.is_active ? (
                 <>
                   {(isDueToday || isOverdue) && (
                     <Button

@@ -14,7 +14,7 @@ export const cardStyles = {
 export const tabStyles = {
   list: 'inline-flex h-12 items-center justify-center rounded-2xl bg-muted p-1',
   trigger:
-    'inline-flex items-center justify-center whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-semibold transition-all data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-md hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50',
+    'inline-flex items-center justify-center whitespace-nowrap rounded-xl px-4 py-2 text-sm font-semibold transition-all data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-md hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50',
   content: 'mt-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
 } as const;
 

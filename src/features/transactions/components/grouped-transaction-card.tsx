@@ -7,8 +7,8 @@ import {
   getCategoryLabel as getCategoryLabelLogic,
   getCategoryColor as getCategoryColorLogic,
 } from '@/server/use-cases/categories/category.logic';
-import { formatCurrency, cn } from '@/lib/utils';
-import { stitchTransactions } from '@/styles/home-design-foundation';
+import { formatCurrency } from '@/lib/utils';
+import { stitchDashboardGroupedList } from '@/styles/home-design-foundation';
 import { TransactionRow } from './transaction-row';
 import {
   transactionStyles,
@@ -84,7 +84,7 @@ function GroupedTransactionCardInner({
 
   if (variant === 'regular') {
     return (
-      <div className={cn(stitchTransactions.dayCard, 'flex flex-col gap-2 p-1')}>
+      <div className={stitchDashboardGroupedList}>
         {header}
         <div className="flex flex-col gap-2">{rows}</div>
       </div>
@@ -92,7 +92,7 @@ function GroupedTransactionCardInner({
   }
 
   return (
-    <div className={cn(stitchTransactions.dayCard, 'flex flex-col gap-2 p-1')}>
+    <div className={stitchDashboardGroupedList}>
       {header}
       <div className="flex flex-col gap-2">{rows}</div>
     </div>

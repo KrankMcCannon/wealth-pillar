@@ -2,7 +2,8 @@
 
 import { useController, type Control, type FieldPath, type FieldValues } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
-import { ModalFormField } from './modal-form-field';
+import { formModalStyles as s } from '@/components/form/form-modal-styles';
+import { ModalFieldError } from './modal-field-error';
 
 export interface ModalTextFieldProps<T extends FieldValues> {
   control: Control<T>;
@@ -32,22 +33,27 @@ export function ModalTextField<T extends FieldValues>({
   const fieldId = String(name);
 
   return (
-    <ModalFormField
-      {...(label !== undefined ? { label } : {})}
-      htmlFor={fieldId}
-      {...(error?.message !== undefined ? { error: error.message } : {})}
-      {...(hint !== undefined ? { hint } : {})}
-    >
-      <Input
-        id={fieldId}
-        type={type}
-        placeholder={placeholder}
-        disabled={disabled}
-        autoComplete={autoComplete}
-        aria-invalid={error ? true : undefined}
-        {...field}
-        value={field.value ?? ''}
-      />
-    </ModalFormField>
+    <div className="space-y-1">
+      {hint ? <p className="px-1 text-xs text-modal-fg-muted">{hint}</p> : null}
+      <div className={s.field.textShell}>
+        {label ? (
+          <label htmlFor={fieldId} className={s.field.textLabel}>
+            {label}
+          </label>
+        ) : null}
+        <Input
+          id={fieldId}
+          type={type}
+          placeholder={placeholder}
+          disabled={disabled}
+          autoComplete={autoComplete}
+          aria-invalid={error ? true : undefined}
+          className={s.field.textInput}
+          {...field}
+          value={field.value ?? ''}
+        />
+      </div>
+      {error?.message ? <ModalFieldError message={error.message} /> : null}
+    </div>
   );
 }

@@ -165,11 +165,11 @@ export const transactionTokens = {
   cardVariants: {
     regular: {
       card: `py-0 bg-card ${shadowStyles.sm} ${radiusStyles.lg} overflow-hidden`,
-      header: 'bg-primary/5 px-4 py-2.5',
+      header: 'bg-primary/5 px-4 py-2',
     },
     recurrent: {
       card: `py-0 bg-primary/5 ${shadowStyles.md} ${radiusStyles.lg} overflow-hidden`,
-      header: 'bg-primary/10 px-4 py-2.5',
+      header: 'bg-primary/10 px-4 py-2',
     },
   },
   contextColors: {
@@ -334,8 +334,8 @@ export const transactionStyles = {
       'overflow-hidden rounded-xl border border-border/25 bg-card/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]',
     variantRecurrent:
       'overflow-hidden rounded-xl border border-border/25 bg-muted/60 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]',
-    headerRegular: 'border-b border-border/25 px-3 py-2.5',
-    headerRecurrent: 'border-b border-border/25 bg-muted/40 px-3 py-2.5',
+    headerRegular: 'border-b border-border/25 px-3 py-2',
+    headerRecurrent: 'border-b border-border/25 bg-muted/40 px-3 py-2',
     headerContent: 'flex items-center justify-between',
     headerLabel: 'text-[11px] font-semibold uppercase tracking-wide text-muted-foreground',
     headerAmount: 'text-base font-bold tabular-nums',
@@ -436,7 +436,7 @@ export const transactionStyles = {
     categorySearchInput: 'rounded-xl border border-border/35 bg-muted/85 pl-10',
     categoryGrid: 'grid max-h-64 grid-cols-2 gap-2 overflow-y-auto pr-1',
     categoryButton:
-      'flex items-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-medium transition-all duration-200 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100',
+      'flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition-all duration-200 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100',
     categoryButtonActive:
       'border-transparent bg-accent text-foreground shadow-[inset_0_0_0_1px_rgba(143,176,255,0.28)]',
     categoryButtonIdle: 'border-border/35 bg-muted/80 text-muted-foreground hover:bg-accent',
@@ -507,7 +507,7 @@ export const transactionStyles = {
     headerCellRight: 'text-right',
     headerCellCenter: 'text-center',
     dayRow: 'bg-primary/[0.04] border-b border-primary/10',
-    dayCell: 'px-4 py-2.5',
+    dayCell: 'px-4 py-2',
     dayDate: 'text-xs font-semibold text-primary/80 tracking-wide uppercase',
     dayCount: 'text-[10px] text-primary/40 font-medium',
     dayTotalPositive: 'text-success text-xs font-bold tabular-nums',
@@ -536,9 +536,9 @@ export const transactionStyles = {
     emptyTitle: 'text-base font-semibold text-primary mb-1.5',
     emptyDescription: 'text-sm text-primary/55 max-w-xs mx-auto mb-5',
     emptyAddButton:
-      'inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-all duration-150 hover:bg-primary/90 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 active:scale-[0.98]',
+      'inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition-all duration-150 hover:bg-primary/90 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 active:scale-[0.98]',
     emptyClearButton:
-      'inline-flex items-center gap-2 rounded-xl border border-primary/25 bg-transparent px-4 py-2.5 text-sm font-medium text-primary/70 transition-all duration-150 hover:bg-primary/5 hover:text-primary hover:border-primary/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 active:scale-[0.98]',
+      'inline-flex items-center gap-2 rounded-xl border border-primary/25 bg-transparent px-4 py-2 text-sm font-medium text-primary/70 transition-all duration-150 hover:bg-primary/5 hover:text-primary hover:border-primary/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 active:scale-[0.98]',
     skeleton: {
       row: 'border-b border-primary/[0.06]',
       cell: 'px-4 py-3 align-middle',
@@ -547,7 +547,7 @@ export const transactionStyles = {
       lineShort: 'h-2.5 rounded-md bg-primary/8 animate-pulse mt-1',
       amountLine: 'h-3.5 w-14 rounded-md bg-primary/10 animate-pulse ml-auto',
       dayRow: 'border-b border-primary/10 bg-primary/[0.04]',
-      dayCell: 'px-4 py-2.5',
+      dayCell: 'px-4 py-2',
       dayLine: 'h-3 w-20 rounded bg-primary/12 animate-pulse',
     },
     mobile: {

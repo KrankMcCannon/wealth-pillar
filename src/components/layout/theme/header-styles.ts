@@ -1,6 +1,6 @@
 export const headerStyles = {
   /** z-index: da `STICKY_HEADER_BASE` (`stitchDashboardShell.stickyHeader`), non duplicare qui. */
-  container: 'px-4 py-2.5',
+  container: 'px-4 py-2',
   inner: 'flex h-11 items-center',
   slotLeft: 'flex flex-1 items-center justify-start',
   slotCenter: 'flex shrink-0 items-center justify-center px-2',

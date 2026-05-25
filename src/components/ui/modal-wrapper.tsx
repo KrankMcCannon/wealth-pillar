@@ -1,5 +1,6 @@
 'use client';
 
+import { formModalStyles as modalS } from '@/components/form/form-modal-styles';
 import { cn } from '@/lib/utils';
 import { stitchSurface } from '@/styles/home-design-foundation';
 import * as React from 'react';
@@ -67,10 +68,7 @@ export function ModalWrapper({
       <SheetContent
         side="bottom"
         showCloseButton={false}
-        className={cn(
-          'max-h-[85vh] gap-0 rounded-t-3xl border-border bg-background px-0 pb-0',
-          className
-        )}
+        className={cn(modalS.shell.content, className)}
         {...(disableOutsideClose
           ? {
               onInteractOutside: (event) => event.preventDefault(),
@@ -78,39 +76,19 @@ export function ModalWrapper({
             }
           : {})}
       >
-        <div
-          className={cn(
-            'mx-auto mt-3 mb-2 h-1.5 w-12 shrink-0 rounded-full bg-muted-foreground/30',
-            handleClassName
-          )}
-          aria-hidden
-        />
-        <SheetHeader
-          className={cn(
-            'flex flex-col gap-2 border-b border-border px-4 py-3 text-left',
-            drawerHeaderClassName
-          )}
-        >
+        <div className={cn(modalS.shell.handle, handleClassName)} aria-hidden />
+        <SheetHeader className={cn(modalS.shell.header, drawerHeaderClassName)}>
           <div className="flex w-full min-w-0 items-center justify-between gap-3">
-            <SheetTitle className={cn('text-lg font-semibold text-foreground', titleClassName)}>
-              {title}
-            </SheetTitle>
+            <SheetTitle className={cn(modalS.shell.title, titleClassName)}>{title}</SheetTitle>
             {showCloseButton ? (
-              <SheetClose
-                className={cn(
-                  'inline-flex size-9 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-accent hover:text-foreground',
-                  drawerCloseClassName
-                )}
-              >
+              <SheetClose className={cn(modalS.shell.closeButton, drawerCloseClassName)}>
                 <X aria-hidden />
                 <span className="sr-only">{tCommon('closeDialog')}</span>
               </SheetClose>
             ) : null}
           </div>
           {description ? (
-            <SheetDescription
-              className={cn('text-left text-muted-foreground', descriptionClassName)}
-            >
+            <SheetDescription className={cn(modalS.shell.description, descriptionClassName)}>
               {description}
             </SheetDescription>
           ) : (
@@ -119,11 +97,11 @@ export function ModalWrapper({
         </SheetHeader>
 
         {isLoading ? (
-          <div className="flex min-h-40 items-center justify-center py-8">
-            <Spinner className="size-10 text-muted-foreground" />
+          <div className={modalS.shell.loadingWrap}>
+            <Spinner className="size-10 text-modal-fg-muted" />
           </div>
         ) : (
-          <div className="min-h-0 flex-1 overflow-y-auto bg-background px-4 py-2">{children}</div>
+          <div className={modalS.shell.body}>{children}</div>
         )}
       </SheetContent>
     </Sheet>
@@ -169,11 +147,7 @@ export function ModalSection({
 }>) {
   return (
     <div className={cn('flex flex-col gap-3', className)}>
-      {title ? (
-        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          {title}
-        </h3>
-      ) : null}
+      {title ? <h3 className={modalS.shell.sectionEyebrow}>{title}</h3> : null}
       {children}
     </div>
   );

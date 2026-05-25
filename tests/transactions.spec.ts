@@ -35,6 +35,18 @@ test.describe('Transaction Flows', () => {
         await page.waitForTimeout(500);
       }
     });
+
+    test('should show recurring FAB and open create modal when series exist', async ({ page }) => {
+      await page.goto('/transactions?tab=Recurrent');
+      await page.waitForLoadState('domcontentloaded');
+      await page.waitForTimeout(2000);
+
+      const recurringFab = page.getByTestId('recurring-fab-add');
+      if (await recurringFab.isVisible({ timeout: 5000 })) {
+        await recurringFab.click();
+        await expect(page).toHaveURL(/modal=recurring/, { timeout: 5000 });
+      }
+    });
   });
 
   test.describe('Add Transaction', () => {

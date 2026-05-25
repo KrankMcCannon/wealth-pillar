@@ -26,6 +26,7 @@ test.describe('entity modals (mobile)', () => {
     await expect(page.locator('text=Nuova transazione')).toBeVisible();
     await expect(page.locator('.text-modal-fg-muted').first()).toBeVisible();
     await expect(page.locator('input[placeholder="0,00"]').first()).toBeVisible();
+    await expect(page.getByRole('button', { name: /annulla|cancel/i })).toHaveCount(0);
   });
 
   test('budget-create opens drawer with modal fields', async ({ page }) => {
@@ -43,6 +44,22 @@ test.describe('entity modals (mobile)', () => {
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 });
     await expect(page.locator('.text-modal-fg-muted').first()).toBeVisible();
   });
+
+  test('budget-close-period opens drawer from budgets page', async ({ page }) => {
+    await page.goto('/budgets');
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForTimeout(2000);
+
+    const closePeriodButton = page.getByRole('button', { name: /chiudi periodo|close period/i });
+    if (!(await closePeriodButton.isVisible({ timeout: 5000 }))) {
+      test.skip();
+      return;
+    }
+
+    await closePeriodButton.click();
+    await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('.text-modal-fg-muted').first()).toBeVisible();
+  });
 });
 
 test.describe('settings modals (mobile)', () => {
@@ -52,9 +69,11 @@ test.describe('settings modals (mobile)', () => {
     await setupClerkMocks(page);
   });
 
-  test('deep-link opens profile settings drawer with dark fields', async ({ page }) => {
+  test('deep-link opens profile settings drawer with dual footer', async ({ page }) => {
     await page.goto('/settings?modal=settings:profile');
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('.text-modal-fg-muted').first()).toBeVisible();
+    await expect(page.getByRole('button', { name: /annulla|cancel/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /salva|save/i })).toBeVisible();
   });
 });

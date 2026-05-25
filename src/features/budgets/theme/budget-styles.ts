@@ -107,7 +107,7 @@ export const budgetTokens = {
   },
   components: {
     header: {
-      container: 'px-3 sm:px-4 py-2.5',
+      container: 'px-3 sm:px-4 py-2',
       title: typographyStyles.heading,
       button: `text-primary hover:bg-primary hover:text-primary-foreground ${radiusStyles.md} ${animationStyles.classes.transition} p-2 min-w-10 min-h-10 flex items-center justify-center`,
     },
@@ -127,11 +127,11 @@ export const budgetTokens = {
       fill: `h-3 ${radiusStyles.full} transition-all duration-700 ease-out`,
     },
     button: {
-      primary: `${typographyStyles.sm} font-semibold hover:bg-primary/10 ${radiusStyles.md} ${animationStyles.classes.transition} px-5 py-2.5 min-h-10 border border-primary/20 hover:border-primary/40 hover:${shadowStyles.sm}`,
+      primary: `${typographyStyles.sm} font-semibold hover:bg-primary/10 ${radiusStyles.md} ${animationStyles.classes.transition} px-5 py-2 min-h-10 border border-primary/20 hover:border-primary/40 hover:${shadowStyles.sm}`,
     },
     dropdown: {
       content: `w-56 backdrop-blur-xl border border-border/50 ${shadowStyles.xl} ${radiusStyles.md} p-2 animate-in slide-in-from-top-2 duration-200`,
-      item: `${typographyStyles.sm} font-medium text-primary hover:bg-primary hover:text-primary-foreground ${radiusStyles.sm} px-3 py-2.5 cursor-pointer transition-colors`,
+      item: `${typographyStyles.sm} font-medium text-primary hover:bg-primary hover:text-primary-foreground ${radiusStyles.sm} px-3 py-2 cursor-pointer transition-colors`,
     },
     select: {
       trigger: `w-full h-12 sm:h-14 bg-card border border-primary/20 ${shadowStyles.sm} ${radiusStyles.md} px-3 sm:px-4 hover:border-primary/40 focus:border-primary/20 focus:ring-2 focus:ring-primary/20 transition-all ${typographyStyles.sm} font-medium`,
@@ -327,7 +327,7 @@ export const budgetStyles = {
     item: budgetTokens.components.dropdown.item,
     contentWide:
       'w-48 bg-card/95 backdrop-blur-xl border border-border/50 shadow-xl rounded-xl p-2',
-    itemBase: 'text-sm font-medium rounded-lg px-3 py-2.5 cursor-pointer transition-colors',
+    itemBase: 'text-sm font-medium rounded-lg px-3 py-2 cursor-pointer transition-colors',
     itemEdit: 'hover:bg-primary/8 hover:text-primary',
     itemDelete: 'text-destructive hover:bg-destructive/10 hover:text-destructive',
     itemWithIcon: 'flex items-center',

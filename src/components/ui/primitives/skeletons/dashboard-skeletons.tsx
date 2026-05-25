@@ -1,6 +1,6 @@
 import { Skeleton } from '@/components/ui/skeleton';
 import { SkeletonList } from '@/components/ui/primitives';
-import { stitchHome } from '@/styles/home-design-foundation';
+import { stitchHome, stitchDashboardGroupedList } from '@/styles/home-design-foundation';
 
 export function UserSelectorSkeleton() {
   return (
@@ -68,20 +68,22 @@ export function RecurringSeriesSkeleton() {
     <section className={stitchHome.sectionCard} aria-hidden>
       <Skeleton className="h-3 w-32" />
       <Skeleton className="mb-3 h-5 w-40" />
-      <SkeletonList
-        count={3}
-        spacing="flex flex-col gap-2"
-        renderItem={() => (
-          <div className={stitchHome.listRow}>
-            <Skeleton className="size-8 shrink-0 rounded-xl" />
-            <div className="min-w-0 flex-1 flex flex-col gap-1.5">
-              <Skeleton className="h-4 w-[60%]" />
-              <Skeleton className="h-3 w-20" />
+      <div className={stitchDashboardGroupedList}>
+        <SkeletonList
+          count={3}
+          spacing="flex flex-col gap-2"
+          renderItem={() => (
+            <div className={stitchHome.listRow}>
+              <Skeleton className="size-8 shrink-0 rounded-xl" />
+              <div className="min-w-0 flex-1 flex flex-col gap-1.5">
+                <Skeleton className="h-4 w-[60%]" />
+                <Skeleton className="h-3 w-20" />
+              </div>
+              <Skeleton className="h-4 w-16 shrink-0" />
             </div>
-            <Skeleton className="h-4 w-16 shrink-0" />
-          </div>
-        )}
-      />
+          )}
+        />
+      </div>
     </section>
   );
 }

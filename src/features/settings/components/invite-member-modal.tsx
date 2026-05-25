@@ -3,10 +3,10 @@
 import { useMemo } from 'react';
 import { z } from 'zod';
 import { useTranslations } from 'next-intl';
-import { Loader2, Mail } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Mail } from 'lucide-react';
 import { EntityFormModal } from '@/components/form';
 import { ModalTextField } from '@/components/form/modal-fields';
+import { ModalFooterActions } from '@/components/ui/modal-footer-actions';
 import { toast } from '@/hooks/use-toast';
 import { sendGroupInvitationAction } from '@/features/settings';
 import { formModalStyles as s } from '@/components/form/form-modal-styles';
@@ -58,30 +58,15 @@ export function InviteMemberModal({
       resetValues={defaultValues}
       repositionInputs={false}
       footer={(form) => (
-        <>
-          <Button
-            variant="outline"
-            onClick={onClose}
-            disabled={form.formState.isSubmitting}
-            className="w-full sm:w-auto"
-            type="button"
-          >
-            {t('cancelButton')}
-          </Button>
-          <Button type="submit" disabled={form.formState.isSubmitting} className="w-full sm:w-auto">
-            {form.formState.isSubmitting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {t('sendingButton')}
-              </>
-            ) : (
-              <>
-                <Mail className="h-4 w-4 shrink-0" aria-hidden />
-                {t('sendButton')}
-              </>
-            )}
-          </Button>
-        </>
+        <ModalFooterActions
+          variant="dual"
+          cancelLabel={t('cancelButton')}
+          submitLabel={t('sendButton')}
+          onCancel={onClose}
+          submitType="submit"
+          isSubmitting={form.formState.isSubmitting}
+          submitIcon={<Mail className="h-4 w-4 shrink-0" aria-hidden />}
+        />
       )}
       onSubmit={async (data) => {
         const { error } = await sendGroupInvitationAction(groupId, currentUserId, data.email);

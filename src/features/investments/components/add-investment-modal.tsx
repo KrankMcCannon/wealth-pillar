@@ -10,7 +10,7 @@ import {
   updateInvestmentAction,
 } from '@/features/investments/actions/investment-actions';
 import { EntityFormModal } from '@/components/form/entity-form-modal';
-import { FormActions } from '@/components/form';
+import { ModalFooterActions } from '@/components/ui/modal-footer-actions';
 import { toast } from '@/hooks/use-toast';
 import { transactionStyles } from '@/features/transactions/theme/transaction-styles';
 import { InvestmentFormFields, type InvestmentFormData } from './investment-form-fields';
@@ -226,14 +226,14 @@ export default function AddInvestmentModal({
         }
       }}
       footer={(_, isSubmitting) => (
-        <FormActions
-          submitType="submit"
-          submitLabel={t('saveButton')}
+        <ModalFooterActions
+          variant="dual"
           cancelLabel={t('cancelButton')}
+          submitLabel={t('saveButton')}
           onCancel={onClose}
+          submitType="submit"
           isSubmitting={isSubmitting}
           disabled={Boolean(loadError) || (Boolean(editId) && isLoadingRow)}
-          className="w-full sm:w-auto"
         />
       )}
     >

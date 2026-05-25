@@ -3,9 +3,16 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useWatch, type UseFormReturn } from 'react-hook-form';
 import { useTranslations } from 'next-intl';
-import { Pause, Play, Trash2 } from 'lucide-react';
+import { Pause, Play } from 'lucide-react';
 
-import { EntityFormModal, ModalRootError } from '@/components/form';
+import {
+  EntityFormModal,
+  EntityFormFooter,
+  formModalStyles,
+  useEntityFormPermissions,
+  useEntityFormRowReset,
+  useEntityFormSubmit,
+} from '@/components/form';
 import { RecurringTransactionSeries, TransactionFrequencyType } from '@/lib/types';
 import {
   createRecurringSeriesAction,
@@ -15,12 +22,9 @@ import {
   updateRecurringSeriesAction,
 } from '@/features/recurring';
 import { todayDateString } from '@/lib/utils/date-utils';
-import { useRequiredCurrentUser, useRequiredGroupUsers, useRequiredGroupId } from '@/hooks';
 import { useAccounts, useCategories } from '@/stores/reference-data-store';
-import { useUserFilter } from '@/hooks/state/use-user-filter';
 import { useRouter } from '@/i18n/routing';
 import { toast } from '@/hooks/use-toast';
-import { formModalStyles } from '@/components/form';
 
 import { RecurrencePicker } from './recurrence-picker';
 import { calculateDefaultAccountId, formatDateForInput } from './recurring-form-helpers';
@@ -40,6 +44,40 @@ interface RecurringFormModalProps {
 
 const s = formModalStyles;
 
+function mapSeriesToFormData(series: RecurringTransactionSeries): RecurringFormData {
+  return {
+    description: series.description,
+    amount: series.amount.toString(),
+    type: series.type === 'transfer' ? 'expense' : series.type,
+    category: series.category,
+    frequency: series.frequency,
+    user_ids: series.user_ids,
+    account_id: series.account_id,
+    start_date: formatDateForInput(series.start_date),
+    end_date: formatDateForInput(series.end_date),
+    due_day: series.due_day.toString(),
+  };
+}
+
+function buildRecurringPayload(
+  data: RecurringFormData,
+  groupId: string
+): RecurringTransactionSeriesData {
+  return {
+    description: data.description.trim(),
+    amount: Number.parseFloat(data.amount),
+    type: data.type,
+    category: data.category,
+    frequency: data.frequency as TransactionFrequencyType,
+    account_id: data.account_id,
+    start_date: data.start_date,
+    end_date: data.end_date || null,
+    due_day: Number.parseInt(data.due_day, 10),
+    user_ids: data.user_ids,
+    group_id: groupId,
+  };
+}
+
 function RecurringFormModalBody({
   form,
   isEditMode,
@@ -53,8 +91,8 @@ function RecurringFormModalBody({
   isEditMode: boolean;
   isOpen: boolean;
   categories: ReturnType<typeof useCategories>;
-  groupUsers: ReturnType<typeof useRequiredGroupUsers>;
-  currentUser: ReturnType<typeof useRequiredCurrentUser>;
+  groupUsers: ReturnType<typeof useEntityFormPermissions>['groupUsers'];
+  currentUser: ReturnType<typeof useEntityFormPermissions>['currentUser'];
   t: ReturnType<typeof useTranslations>;
 }>) {
   const accounts = useAccounts();
@@ -99,10 +137,6 @@ function RecurringFormModalBody({
 
   return (
     <>
-      {formState.errors.root?.message ? (
-        <ModalRootError message={formState.errors.root.message} />
-      ) : null}
-
       <RecurringPreview form={form} t={t} isSubmitting={isSubmitting} />
 
       <div className={s.fieldStack}>
@@ -127,37 +161,17 @@ function RecurringFormModalBody({
 function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormModalProps>) {
   const t = useTranslations('Recurring.FormModal');
   const tSeriesCard = useTranslations('Recurring.SeriesCard');
-  const currentUser = useRequiredCurrentUser();
-  const groupUsers = useRequiredGroupUsers();
-  const categories = useCategories();
-  const groupId = useRequiredGroupId();
-  const { selectedUserId } = useUserFilter();
-  const router = useRouter();
-  const [loadedSeries, setLoadedSeries] = useState<{
-    editId: string;
-    data: RecurringTransactionSeries | null;
-  } | null>(null);
+  const tDialogs = useTranslations('TransactionsContent.dialogs');
 
-  const isEditMode = !!editId;
-  const editingSeries =
-    isOpen && editId && loadedSeries?.editId === editId ? loadedSeries.data : null;
+  const { currentUser, groupUsers, groupId, selectedUserId } = useEntityFormPermissions();
+  const categories = useCategories();
+  const router = useRouter();
+  const [seriesIsActive, setSeriesIsActive] = useState<boolean | undefined>(undefined);
+
+  const isEditMode = Boolean(editId);
   const title = isEditMode ? t('title.edit') : t('title.create');
   const recurringSchema = useMemo(() => createRecurringSchema(t), [t]);
   const today = todayDateString();
-
-  useEffect(() => {
-    if (!isOpen || !editId) return;
-    let cancelled = false;
-    (async () => {
-      const result = await getRecurringSeriesByIdAction(editId);
-      if (!cancelled) {
-        setLoadedSeries({ editId, data: result.data ?? null });
-      }
-    })().catch(() => undefined);
-    return () => {
-      cancelled = true;
-    };
-  }, [isOpen, editId]);
 
   const createDefaults = useMemo(
     (): RecurringFormData => ({
@@ -175,85 +189,76 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
     [selectedUserId, currentUser.id, today]
   );
 
-  const resetValues = useMemo((): RecurringFormData => {
-    if (isEditMode && editingSeries) {
-      return {
-        description: editingSeries.description,
-        amount: editingSeries.amount.toString(),
-        type: editingSeries.type === 'transfer' ? 'expense' : editingSeries.type,
-        category: editingSeries.category,
-        frequency: editingSeries.frequency,
-        user_ids: editingSeries.user_ids,
-        account_id: editingSeries.account_id,
-        start_date: formatDateForInput(editingSeries.start_date),
-        end_date: formatDateForInput(editingSeries.end_date),
-        due_day: editingSeries.due_day.toString(),
-      };
+  const loadEditValues = useCallback(async (id: string, signal: AbortSignal) => {
+    const result = await getRecurringSeriesByIdAction(id);
+    if (signal.aborted) return null;
+    if (!result.data) {
+      setSeriesIsActive(undefined);
+      return null;
     }
-    return createDefaults;
-  }, [isEditMode, editingSeries, createDefaults]);
+    setSeriesIsActive(result.data.is_active);
+    return mapSeriesToFormData(result.data);
+  }, []);
 
-  const handleUpdate = async (seriesData: RecurringTransactionSeriesData) => {
-    if (!editId) return;
+  const { resetValues, isReady, isLoading } = useEntityFormRowReset({
+    editId,
+    createValues: createDefaults,
+    loadEditValues,
+  });
 
-    const result = await updateRecurringSeriesAction({
-      id: editId,
-      ...seriesData,
-    });
+  const buildPayload = useCallback(
+    (data: RecurringFormData) => buildRecurringPayload(data, groupId),
+    [groupId]
+  );
 
-    if (result.error) {
-      throw new Error(result.error);
-    }
+  const getSuccessToast = useCallback(
+    (edit: boolean) =>
+      edit
+        ? { title: t('toast.updatedTitle'), description: t('toast.updatedDescription') }
+        : { title: t('toast.createdTitle'), description: t('toast.createdDescription') },
+    [t]
+  );
 
-    toast({
-      title: t('toast.updatedTitle'),
-      description: t('toast.updatedDescription'),
-      variant: 'success',
-    });
-    router.refresh();
-  };
-
-  const handleCreate = async (seriesData: RecurringTransactionSeriesData) => {
-    onClose();
-
-    const result = await createRecurringSeriesAction(seriesData);
-
-    if (result.error) {
-      toast({ title: t('toast.errorTitle'), description: result.error, variant: 'destructive' });
-      return;
-    }
-
-    toast({
-      title: t('toast.createdTitle'),
-      description: t('toast.createdDescription'),
-      variant: 'success',
-    });
-    router.refresh();
-  };
+  const handleSubmit = useEntityFormSubmit<
+    RecurringFormData,
+    RecurringTransactionSeriesData,
+    RecurringTransactionSeries
+  >({
+    isEditMode,
+    editId,
+    onClose,
+    buildPayload,
+    createAction: (payload) => createRecurringSeriesAction(payload),
+    updateAction: (id, payload) => updateRecurringSeriesAction({ id, ...payload }),
+    getSuccessToast,
+    errorToast: { title: t('toast.errorTitle') },
+    refreshAfterSuccess: () => router.refresh(),
+    unknownErrorMessage: t('errors.unknown'),
+  });
 
   const handleToggleSeriesActive = useCallback(async () => {
-    if (!editId || !editingSeries) return;
-    const nextActive = !editingSeries.is_active;
+    if (!editId || seriesIsActive === undefined) return;
+    const nextActive = !seriesIsActive;
     const result = await toggleRecurringSeriesActiveAction(editId, nextActive);
     if (result.error) {
       toast({ title: t('toast.errorTitle'), description: result.error, variant: 'destructive' });
       return;
     }
+    setSeriesIsActive(nextActive);
     toast({
       title: nextActive ? tSeriesCard('actions.resume') : tSeriesCard('actions.pause'),
       description: t('toast.updatedDescription'),
       variant: 'success',
     });
     router.refresh();
-  }, [editId, editingSeries, router, t, tSeriesCard]);
+  }, [editId, seriesIsActive, router, t, tSeriesCard]);
 
   const handleDeleteSeries = useCallback(async () => {
     if (!editId) return;
-    onClose();
     const result = await deleteRecurringSeriesAction(editId);
     if (result.error) {
       toast({ title: t('toast.errorTitle'), description: result.error, variant: 'destructive' });
-      return;
+      throw new Error(result.error);
     }
     toast({
       title: tSeriesCard('actions.delete'),
@@ -261,12 +266,13 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
       variant: 'success',
     });
     router.refresh();
-  }, [editId, onClose, router, t, tSeriesCard]);
+  }, [editId, router, t, tSeriesCard]);
+
+  const deleteDialogDescription =
+    resetValues?.description.trim() || tDialogs('deleteRecurring.fallbackDescription');
 
   const pauseResumeLabel =
-    editingSeries?.is_active === false
-      ? tSeriesCard('actions.resume')
-      : tSeriesCard('actions.pause');
+    seriesIsActive === false ? tSeriesCard('actions.resume') : tSeriesCard('actions.pause');
 
   return (
     <EntityFormModal<RecurringFormData>
@@ -275,74 +281,53 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
       title={title}
       schema={recurringSchema}
       defaultValues={createDefaults}
-      resetValues={resetValues}
-      repositionInputs={false}
-      formClassName={s.formColumn}
-      bodyClassName={s.scrollBody}
-      footerClassName={s.stickyFooter}
-      onSubmit={async (data, form) => {
-        try {
-          const amount = Number.parseFloat(data.amount);
-          const dueDay = Number.parseInt(data.due_day, 10);
-
-          const seriesData = {
-            description: data.description.trim(),
-            amount,
-            type: data.type,
-            category: data.category,
-            frequency: data.frequency as TransactionFrequencyType,
-            account_id: data.account_id,
-            start_date: data.start_date,
-            end_date: data.end_date || null,
-            due_day: dueDay,
-            user_ids: data.user_ids,
-            group_id: groupId,
-          };
-
-          if (isEditMode && editId) {
-            await handleUpdate(seriesData);
-            onClose();
-          } else {
-            await handleCreate(seriesData);
+      resetValues={resetValues ?? createDefaults}
+      isLoading={Boolean(editId) && (isLoading || !isReady)}
+      {...(isEditMode && editId
+        ? {
+            deletion: {
+              enabled: true,
+              title: tDialogs('deleteRecurring.title'),
+              message: tDialogs('deleteRecurring.message', {
+                description: deleteDialogDescription,
+              }),
+              confirmText: tDialogs('deleteRecurring.confirm'),
+              cancelText: tDialogs('cancel'),
+              onDelete: handleDeleteSeries,
+            },
           }
-        } catch (error) {
-          const message = error instanceof Error ? error.message : t('errors.unknown');
-          form.setError('root', { message });
-          toast({ title: t('toast.errorTitle'), description: message, variant: 'destructive' });
-        }
-      }}
-      footer={(_, isSubmitting) => (
-        <div className={s.footerActionsStack}>
-          <button type="submit" disabled={isSubmitting} className={s.primaryCta}>
-            {isEditMode ? t('buttons.saveChanges') : t('buttons.createSeries')}
-          </button>
-          {isEditMode && editId ? (
-            <button
-              type="button"
-              onClick={handleToggleSeriesActive}
-              disabled={isSubmitting}
-              className="flex min-h-[52px] w-full items-center justify-center gap-2.5 rounded-2xl border border-ring/35 bg-muted/85 px-5 py-4 text-sm font-semibold uppercase tracking-[0.18em] text-foreground shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)] transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-45 motion-reduce:active:scale-100"
-            >
-              {editingSeries?.is_active === false ? (
-                <Play className="h-5 w-5 shrink-0" aria-hidden />
-              ) : (
-                <Pause className="h-5 w-5 shrink-0" aria-hidden />
-              )}
-              {pauseResumeLabel}
-            </button>
-          ) : null}
-          {isEditMode && editId ? (
-            <button
-              type="button"
-              onClick={handleDeleteSeries}
-              disabled={isSubmitting}
-              className={s.deleteButton}
-            >
-              <Trash2 className="h-5 w-5 shrink-0" aria-hidden />
-              {tSeriesCard('actions.delete')}
-            </button>
-          ) : null}
-        </div>
+        : {})}
+      onSubmit={handleSubmit}
+      footer={(_, isSubmitting, { openDeleteDialog }) => (
+        <EntityFormFooter
+          isEditMode={Boolean(isEditMode && editId)}
+          isSubmitting={isSubmitting}
+          submitLabel={isEditMode ? t('buttons.saveChanges') : t('buttons.createSeries')}
+          showSubmitIcon={false}
+          secondaryAction={
+            isEditMode && editId ? (
+              <button
+                type="button"
+                onClick={handleToggleSeriesActive}
+                disabled={isSubmitting}
+                className={s.footer.secondaryAction}
+              >
+                {seriesIsActive === false ? (
+                  <Play className="h-5 w-5 shrink-0" aria-hidden />
+                ) : (
+                  <Pause className="h-5 w-5 shrink-0" aria-hidden />
+                )}
+                {pauseResumeLabel}
+              </button>
+            ) : undefined
+          }
+          {...(isEditMode && editId && openDeleteDialog
+            ? {
+                deleteLabel: tSeriesCard('actions.delete'),
+                onDelete: openDeleteDialog,
+              }
+            : {})}
+        />
       )}
     >
       {(form) => (

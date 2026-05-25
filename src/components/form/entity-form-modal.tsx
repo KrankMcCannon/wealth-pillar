@@ -19,6 +19,8 @@ import {
 } from '@/components/ui/modal-wrapper';
 import { FieldGroup } from '@/components/ui/field';
 import { ConfirmationDialog } from '@/components/shared/confirmation-dialog';
+import { ModalRootError } from './modal-fields/modal-root-error';
+import { formModalStyles } from './form-modal-styles';
 
 export type EntityFormModalWrapperProps = Omit<
   ModalWrapperProps,
@@ -61,6 +63,7 @@ export interface EntityFormModalProps<T extends FieldValues> {
   footerClassName?: string;
   wrapperProps?: EntityFormModalWrapperProps;
   isLoading?: boolean;
+  autoRootError?: boolean;
 }
 
 export function EntityFormModal<T extends FieldValues>({
@@ -77,11 +80,12 @@ export function EntityFormModal<T extends FieldValues>({
   deletion,
   disableOutsideClose = false,
   repositionInputs = false,
-  formClassName,
-  bodyClassName,
-  footerClassName,
+  formClassName = formModalStyles.formColumn,
+  bodyClassName = formModalStyles.scrollBody,
+  footerClassName = formModalStyles.stickyFooter,
   wrapperProps,
   isLoading = false,
+  autoRootError = true,
 }: EntityFormModalProps<T>) {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -94,10 +98,10 @@ export function EntityFormModal<T extends FieldValues>({
   const { reset } = form;
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !isLoading) {
       reset(resetValues ?? defaultValues);
     }
-  }, [isOpen, resetValues, defaultValues, reset]);
+  }, [isOpen, isLoading, resetValues, defaultValues, reset]);
 
   const openDeleteDialog = useCallback(() => {
     if (deletion?.enabled) {
@@ -136,11 +140,16 @@ export function EntityFormModal<T extends FieldValues>({
         {...wrapperProps}
       >
         <form onSubmit={handleSubmit} className={cn('flex min-h-0 flex-1 flex-col', formClassName)}>
-          <ModalBody {...(bodyClassName !== undefined ? { className: bodyClassName } : {})}>
-            <FieldGroup>{children(form)}</FieldGroup>
+          <ModalBody className={bodyClassName}>
+            <FieldGroup>
+              {autoRootError && form.formState.errors.root?.message ? (
+                <ModalRootError message={form.formState.errors.root.message} />
+              ) : null}
+              {children(form)}
+            </FieldGroup>
           </ModalBody>
           {footer ? (
-            <ModalFooter {...(footerClassName !== undefined ? { className: footerClassName } : {})}>
+            <ModalFooter className={footerClassName}>
               {footer(form, form.formState.isSubmitting, footerActions)}
             </ModalFooter>
           ) : null}

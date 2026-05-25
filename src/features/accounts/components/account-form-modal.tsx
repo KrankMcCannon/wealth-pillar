@@ -1,23 +1,21 @@
 'use client';
 
-import { useMemo, useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { z } from 'zod';
 import { useLocale, useTranslations } from 'next-intl';
-import { Account } from '@/lib/types';
+import type { Account } from '@/lib/types';
 import { getTempId } from '@/lib/utils/temp-id';
 import { createAccountAction, updateAccountAction, deleteAccountAction } from '@/features/accounts';
-import { EntityFormModal, EntityFormFooter, ModalRootError } from '@/components/form';
 import {
-  usePermissions,
-  useRequiredCurrentUser,
-  useRequiredGroupUsers,
-  useRequiredGroupId,
-} from '@/hooks';
+  EntityFormModal,
+  EntityFormFooter,
+  useEntityFormPermissions,
+  useEntityFormRowReset,
+  useEntityFormSubmit,
+} from '@/components/form';
 import { useAccounts, useReferenceDataStore } from '@/stores/reference-data-store';
-import { useUserFilter } from '@/hooks/state/use-user-filter';
-import { toast } from '@/hooks/use-toast';
 import { useRouter } from '@/i18n/routing';
-import { formModalStyles } from '@/components/form';
+import { toast } from '@/hooks/use-toast';
 import { AccountFormFields, type AccountFormData } from './account-form-fields';
 
 interface AccountFormModalProps {
@@ -26,30 +24,30 @@ interface AccountFormModalProps {
   editId?: string | null;
 }
 
+type AccountPayload = {
+  name: string;
+  type: Account['type'];
+  user_ids: string[];
+  isDefault: boolean;
+};
+
 function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModalProps>) {
   const t = useTranslations('Accounts.FormModal');
   const tContent = useTranslations('Accounts.Content');
   const locale = useLocale();
   const router = useRouter();
-  const currentUser = useRequiredCurrentUser();
-  const groupUsers = useRequiredGroupUsers();
-  const groupId = useRequiredGroupId();
-  const { selectedUserId } = useUserFilter();
+
+  const { currentUser, groupUsers, groupId, shouldDisableUserField, defaultFormUserId } =
+    useEntityFormPermissions();
 
   const storeAccounts = useAccounts();
   const addAccount = useReferenceDataStore((state) => state.addAccount);
   const updateAccount = useReferenceDataStore((state) => state.updateAccount);
   const removeAccount = useReferenceDataStore((state) => state.removeAccount);
 
-  const s = formModalStyles;
-
-  const isEditMode = !!editId;
+  const isEditMode = Boolean(editId);
   const title = isEditMode ? t('title.edit') : t('title.create');
 
-  const { shouldDisableUserField, defaultFormUserId } = usePermissions({
-    currentUser,
-    selectedUserId,
-  });
   const accountSchema = useMemo(
     () =>
       z.object({
@@ -71,20 +69,25 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
     [defaultFormUserId, currentUser.id]
   );
 
-  const resetValues = useMemo((): AccountFormData => {
-    if (isEditMode && editId) {
-      const account = storeAccounts.find((acc) => acc.id === editId);
-      if (account) {
-        return {
-          name: account.name,
-          type: account.type,
-          user_id: account.user_ids[0] || currentUser.id,
-          isDefault: currentUser.default_account_id === account.id,
-        };
-      }
-    }
-    return createDefaults;
-  }, [isEditMode, editId, storeAccounts, currentUser, createDefaults]);
+  const getEditValuesSync = useCallback(
+    (id: string): AccountFormData | undefined => {
+      const account = storeAccounts.find((acc) => acc.id === id);
+      if (!account) return undefined;
+      return {
+        name: account.name,
+        type: account.type,
+        user_id: account.user_ids[0] || currentUser.id,
+        isDefault: currentUser.default_account_id === account.id,
+      };
+    },
+    [storeAccounts, currentUser]
+  );
+
+  const { resetValues } = useEntityFormRowReset({
+    editId,
+    createValues: createDefaults,
+    getEditValuesSync,
+  });
 
   const deleteMessage = useMemo(() => {
     if (!editId) return tContent('dialogs.delete.messageFallback');
@@ -94,95 +97,141 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
       : tContent('dialogs.delete.messageFallback');
   }, [editId, storeAccounts, tContent]);
 
-  const handleUpdate = async (data: AccountFormData, id: string) => {
-    const accountData = {
+  const buildPayload = useCallback(
+    (data: AccountFormData): AccountPayload => ({
       name: data.name.trim(),
       type: data.type,
       user_ids: [data.user_id],
-    };
+      isDefault: data.isDefault || false,
+    }),
+    []
+  );
 
-    const originalAccount = storeAccounts.find((acc) => acc.id === id);
-    if (!originalAccount) {
-      throw new Error(t('errors.notFound'));
-    }
-
-    updateAccount(id, accountData);
-
-    const result = await updateAccountAction(id, accountData, data.isDefault || false, locale);
-
-    if (result.error) {
-      updateAccount(id, originalAccount);
-      toast({
-        title: t('toast.errorTitle'),
-        description: `${result.error}\n\n${t('toast.revertedHint')}`,
-        variant: 'destructive',
-      });
-      throw new Error(result.error);
-    }
-
-    if (result.data) {
-      updateAccount(id, result.data);
-      toast({
-        title: t('toast.updatedTitle'),
-        description: t('toast.updatedDescription'),
-        variant: 'success',
-      });
-      router.refresh();
-    }
-  };
-
-  const handleCreate = async (data: AccountFormData) => {
-    const accountData = {
-      name: data.name.trim(),
-      type: data.type,
-      user_ids: [data.user_id],
-    };
-
-    const tempId = getTempId('temp-account');
-    const now = new Date().toISOString();
-    const optimisticAccount: Account = {
-      id: tempId,
-      created_at: now,
-      updated_at: now,
-      ...accountData,
-      group_id: groupId,
-    };
-
-    addAccount(optimisticAccount);
-
-    onClose();
-
-    const result = await createAccountAction(
-      {
-        id: crypto.randomUUID(),
-        ...accountData,
+  const applyCreateOptimistic = useCallback(
+    (payload: AccountPayload) => {
+      const tempId = getTempId('temp-account');
+      const now = new Date().toISOString();
+      const optimisticAccount: Account = {
+        id: tempId,
+        created_at: now,
+        updated_at: now,
+        name: payload.name,
+        type: payload.type,
+        user_ids: payload.user_ids,
         group_id: groupId,
-      },
-      data.isDefault || false,
-      locale
-    );
+      };
+      addAccount(optimisticAccount);
+      return tempId;
+    },
+    [addAccount, groupId]
+  );
 
-    if (result.error) {
-      removeAccount(tempId);
-      toast({
-        title: t('toast.errorTitle'),
-        description: `${result.error}\n\n${t('toast.optimisticCreateFailedHint')}`,
-        variant: 'destructive',
-      });
-      return;
-    }
+  const commitCreate = useCallback(
+    (handle: string | { originalAccount: Account; id: string }, result: Account) => {
+      if (typeof handle !== 'string') return;
+      removeAccount(handle);
+      addAccount(result);
+    },
+    [addAccount, removeAccount]
+  );
 
-    removeAccount(tempId);
-    if (result.data) {
-      addAccount(result.data);
-      toast({
-        title: t('toast.createdTitle'),
-        description: t('toast.createdDescription'),
-        variant: 'success',
+  const rollbackCreate = useCallback(
+    (handle: string | { originalAccount: Account; id: string }) => {
+      if (typeof handle !== 'string') return;
+      removeAccount(handle);
+    },
+    [removeAccount]
+  );
+
+  const applyUpdateOptimistic = useCallback(
+    (id: string, payload: AccountPayload) => {
+      const originalAccount = storeAccounts.find((acc) => acc.id === id);
+      if (!originalAccount) {
+        throw new Error(t('errors.notFound'));
+      }
+      updateAccount(id, {
+        name: payload.name,
+        type: payload.type,
+        user_ids: payload.user_ids,
       });
-      router.refresh();
-    }
-  };
+      return { originalAccount, id };
+    },
+    [storeAccounts, t, updateAccount]
+  );
+
+  const commitUpdate = useCallback(
+    (handle: string | { originalAccount: Account; id: string }, result: Account) => {
+      if (typeof handle === 'string') return;
+      updateAccount(result.id, result);
+    },
+    [updateAccount]
+  );
+
+  const rollbackUpdate = useCallback(
+    (handle: string | { originalAccount: Account; id: string }) => {
+      if (typeof handle === 'string') return;
+      updateAccount(handle.id, handle.originalAccount);
+    },
+    [updateAccount]
+  );
+
+  const getSuccessToast = useCallback(
+    (edit: boolean) =>
+      edit
+        ? { title: t('toast.updatedTitle'), description: t('toast.updatedDescription') }
+        : { title: t('toast.createdTitle'), description: t('toast.createdDescription') },
+    [t]
+  );
+
+  const formatErrorDescription = useCallback(
+    (error: string, edit: boolean) =>
+      edit
+        ? `${error}\n\n${t('toast.revertedHint')}`
+        : `${error}\n\n${t('toast.optimisticCreateFailedHint')}`,
+    [t]
+  );
+
+  const handleSubmit = useEntityFormSubmit<
+    AccountFormData,
+    AccountPayload,
+    Account,
+    string | { originalAccount: Account; id: string }
+  >({
+    isEditMode,
+    editId,
+    onClose,
+    buildPayload,
+    createAction: (payload) =>
+      createAccountAction(
+        {
+          id: crypto.randomUUID(),
+          name: payload.name,
+          type: payload.type,
+          user_ids: payload.user_ids,
+          group_id: groupId,
+        },
+        payload.isDefault,
+        locale
+      ),
+    updateAction: (id, payload) =>
+      updateAccountAction(
+        id,
+        { name: payload.name, type: payload.type, user_ids: payload.user_ids },
+        payload.isDefault,
+        locale
+      ),
+    applyCreateOptimistic,
+    commitCreate,
+    rollbackCreate,
+    applyUpdateOptimistic,
+    commitUpdate,
+    rollbackUpdate,
+    getSuccessToast,
+    errorToast: { title: t('toast.errorTitle') },
+    formatErrorDescription,
+    refreshAfterSuccess: () => router.refresh(),
+    unknownErrorMessage: t('errors.unknown'),
+  });
 
   const handleDelete = useCallback(async () => {
     if (!editId) return;
@@ -208,7 +257,6 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
         description: t('toast.deletedDescription'),
         variant: 'success',
       });
-      onClose();
       router.refresh();
     } catch {
       if (!restored) {
@@ -221,7 +269,7 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
       }
       throw new Error('delete failed');
     }
-  }, [addAccount, editId, locale, onClose, removeAccount, router, storeAccounts, t]);
+  }, [addAccount, editId, locale, removeAccount, router, storeAccounts, t]);
 
   return (
     <EntityFormModal<AccountFormData>
@@ -230,11 +278,7 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
       title={title}
       schema={accountSchema}
       defaultValues={createDefaults}
-      resetValues={resetValues}
-      repositionInputs={false}
-      formClassName={s.formColumn}
-      bodyClassName={s.scrollBody}
-      footerClassName={s.stickyFooter}
+      resetValues={resetValues ?? createDefaults}
       {...(isEditMode && editId
         ? {
             deletion: {
@@ -247,19 +291,7 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
             },
           }
         : {})}
-      onSubmit={async (data, form) => {
-        try {
-          if (isEditMode && editId) {
-            await handleUpdate(data, editId);
-            onClose();
-          } else {
-            await handleCreate(data);
-          }
-        } catch (error) {
-          const message = error instanceof Error ? error.message : t('errors.unknown');
-          form.setError('root', { message });
-        }
-      }}
+      onSubmit={handleSubmit}
       footer={(_, isSubmitting, { openDeleteDialog }) => (
         <EntityFormFooter
           isEditMode={isEditMode}
@@ -272,17 +304,12 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
       )}
     >
       {(form) => (
-        <>
-          {form.formState.errors.root?.message ? (
-            <ModalRootError message={form.formState.errors.root.message} />
-          ) : null}
-          <AccountFormFields
-            form={form}
-            groupUsers={groupUsers}
-            shouldDisableUserField={shouldDisableUserField}
-            isSubmitting={form.formState.isSubmitting}
-          />
-        </>
+        <AccountFormFields
+          form={form}
+          groupUsers={groupUsers}
+          shouldDisableUserField={shouldDisableUserField}
+          isSubmitting={form.formState.isSubmitting}
+        />
       )}
     </EntityFormModal>
   );

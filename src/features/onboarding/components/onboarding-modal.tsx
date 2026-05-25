@@ -122,9 +122,9 @@ export default function OnboardingModal({
   return (
     <div className={onboardingStyles.overlay}>
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ type: 'spring', stiffness: 260, damping: 24 }}
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
         className={`${onboardingStyles.modal} relative`}
       >
         <header className={onboardingStyles.header.container}>
@@ -182,8 +182,9 @@ export default function OnboardingModal({
 
       {showDraftRestore && (
         <motion.div
-          initial={{ opacity: 0, y: -12 }}
+          initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
           className={onboardingStyles.draftRestore.container}
         >
           <div className={onboardingStyles.draftRestore.body}>

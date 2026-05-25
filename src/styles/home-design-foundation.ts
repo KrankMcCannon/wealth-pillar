@@ -42,10 +42,8 @@ export const stitchHome = {
   balanceLinkLabel: 'mb-1 text-xs font-semibold uppercase tracking-[0.12em] text-primary',
   balanceLinkArrow:
     'h-8 w-8 shrink-0 text-primary transition-transform duration-300 group-hover:translate-x-0.5 motion-reduce:transition-none motion-reduce:group-hover:translate-x-0',
-  listRowMinTouch:
-    'flex min-h-11 items-center justify-between gap-3 rounded-xl bg-muted/90 px-3 py-2.5 text-left shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)] transition-colors hover:bg-accent motion-reduce:transition-none',
   listRowInteractiveMinTouch:
-    'flex min-h-11 items-center justify-between gap-3 rounded-xl bg-muted/90 px-3 py-2.5 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)] transition-colors hover:bg-accent motion-reduce:transition-none',
+    'flex min-h-11 items-center justify-between gap-3 rounded-xl bg-muted/90 px-3 py-2 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)] transition-colors hover:bg-accent motion-reduce:transition-none',
   viewAllLink:
     'inline-flex min-h-11 min-w-11 items-center justify-center px-2 text-xs font-semibold text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35 focus-visible:rounded-md',
   budgetRowAvatar:
@@ -54,9 +52,9 @@ export const stitchHome = {
   balanceSection:
     'flex flex-col gap-3 overflow-hidden rounded-[30px] border border-border/20 bg-card/90 p-4 shadow-[0_16px_36px_rgba(0,7,30,0.28)] sm:gap-3.5 sm:p-5',
   listRow:
-    'flex items-center justify-between gap-3 rounded-xl bg-muted/90 px-3 py-2.5 text-left shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)] transition-colors hover:bg-accent',
+    'flex items-center justify-between gap-3 rounded-xl bg-muted/90 px-3 py-2 text-left shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)] transition-colors hover:bg-accent',
   listRowInteractive:
-    'flex items-center justify-between gap-3 rounded-xl bg-muted/90 px-3 py-2.5 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)] transition-colors hover:bg-accent',
+    'flex items-center justify-between gap-3 rounded-xl bg-muted/90 px-3 py-2 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)] transition-colors hover:bg-accent',
   emptyWell:
     'rounded-xl bg-muted/60 px-4 py-6 text-center text-sm text-muted-foreground shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]',
   rowTitle: 'truncate text-sm font-semibold text-foreground',
@@ -225,6 +223,56 @@ export const stitchTransactions = {
   listSkeleton: 'space-y-3',
 } as const;
 
+/** Grouped list inside dashboard section cards (home activity, recurring preview, transaction day groups). */
+export const stitchDashboardGroupedList = `${stitchTransactions.dayCard} flex flex-col gap-2 p-1`;
+
+/**
+ * Tab Ricorrenti (Transazioni) — summary, gruppi, empty state, FAB wrapper.
+ */
+export const stitchRecurring = {
+  relativeWrap: 'relative flex flex-col gap-4',
+  summaryCard:
+    'rounded-2xl border border-border/20 bg-card/90 p-4 shadow-[0_16px_36px_rgba(0,7,30,0.28)] sm:p-5',
+  summaryHeaderRow: 'flex items-center gap-2',
+  summaryIconWrap:
+    'flex size-10 shrink-0 items-center justify-center rounded-full border border-border/35 bg-muted/85',
+  summaryIcon: 'h-4 w-4 text-primary',
+  summaryTitle: 'text-base font-semibold tracking-tight text-foreground',
+  summarySubtitle: 'mt-0.5 text-sm text-muted-foreground',
+  statsGrid: 'mt-3 grid grid-cols-3 gap-2 border-t border-border/25 pt-3',
+  statItem:
+    'flex flex-col items-center justify-center gap-1 rounded-lg border px-2 py-2 text-center',
+  statItemPrimary: 'border-border/35 bg-muted/70',
+  statItemSuccess: 'border-teal-accent/28 bg-teal-accent/15',
+  statItemDestructive: 'border-expense/35 bg-expense/15',
+  statIconWrap:
+    'flex size-7 shrink-0 items-center justify-center rounded-full border border-border/35 bg-accent',
+  statIconWrapSuccess:
+    'flex size-7 shrink-0 items-center justify-center rounded-full border border-teal-accent/35 bg-teal-accent/15',
+  statIconWrapDestructive:
+    'flex size-7 shrink-0 items-center justify-center rounded-full border border-expense/35 bg-expense/15',
+  statIcon: 'h-3.5 w-3.5 text-primary',
+  statIconSuccess: 'h-3.5 w-3.5 text-income',
+  statIconDestructive: 'h-3.5 w-3.5 text-expense',
+  statLabel: 'text-[10px] font-semibold uppercase tracking-wide text-muted-foreground',
+  statValue: 'text-[17px] font-semibold tabular-nums leading-tight text-foreground',
+  statValueSuccess: 'text-[17px] font-semibold tabular-nums leading-tight text-income',
+  statValueDestructive: 'text-[17px] font-semibold tabular-nums leading-tight text-expense',
+  groupSection: 'space-y-2',
+  groupLabel: stitchTransactions.dayHeaderTitle,
+  groupCard: stitchTransactions.dayCard,
+  listStack: 'flex flex-col gap-2 p-1',
+  emptyState: stitchTransactions.emptyState,
+  emptyTitle: stitchTransactions.emptyTitle,
+  emptyDescription: stitchTransactions.emptyDescription,
+  emptyActions: stitchTransactions.emptyActions,
+  emptyCtaPrimary: stitchTransactions.emptyCtaPrimary,
+  executeErrorBanner: stitchTransactions.pageErrorBanner,
+  footerDivider: 'mx-2 border-t border-border/25',
+  footer: 'px-4 py-1.5',
+  footerText: 'text-xs text-primary text-center',
+} as const;
+
 /**
  * Pagina Accounts (dark Stitch) — struttura come stitch/html/03-account-list, palette coerente con stitchHome.
  */
@@ -246,7 +294,7 @@ export const stitchAccounts = {
   sectionSubtitle: 'text-sm text-muted-foreground',
   /** Banner vista membro (contesto). */
   memberBanner:
-    'rounded-lg border border-border/30 bg-muted/60 px-3 py-2.5 text-sm leading-snug text-muted-foreground',
+    'rounded-lg border border-border/30 bg-muted/60 px-3 py-2 text-sm leading-snug text-muted-foreground',
   /** Importo saldo totale (hero unico, senza card annidata). */
   balanceAmount:
     'text-[30px] font-semibold tabular-nums leading-none tracking-[-0.02em] text-primary',
@@ -255,7 +303,7 @@ export const stitchAccounts = {
   /** Griglia statistiche sotto il saldo. */
   statsGrid: 'mt-4 grid gap-2 border-t border-border/25 pt-4 grid-cols-3',
   statItem:
-    'flex flex-col items-center justify-center gap-1 rounded-lg border px-2 py-2.5 text-center',
+    'flex flex-col items-center justify-center gap-1 rounded-lg border px-2 py-2 text-center',
   statItemPrimary: 'border-border/35 bg-muted/70',
   statItemSuccess: 'border-teal-accent/28 bg-teal-accent/15',
   statItemDestructive: 'border-expense/35 bg-expense/15',
@@ -337,7 +385,7 @@ export const stitchTransactionPageSearch = {
   icon: 'pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground transition-colors',
   iconActive: 'text-primary',
   input:
-    'min-h-11 w-full rounded-2xl border border-border/35 bg-muted/85 py-2.5 pl-10 pr-10 text-sm font-medium text-foreground shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)] placeholder:text-muted-foreground/55 transition-colors focus-visible:border-border/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/25',
+    'min-h-11 w-full rounded-2xl border border-border/35 bg-muted/85 py-2 pl-10 pr-10 text-sm font-medium text-foreground shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)] placeholder:text-muted-foreground/55 transition-colors focus-visible:border-border/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/25',
   clear:
     'absolute right-2.5 top-1/2 -translate-y-1/2 rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-white/10 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35',
   clearIcon: 'h-4 w-4',

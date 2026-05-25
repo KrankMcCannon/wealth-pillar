@@ -13,6 +13,7 @@ import { Input, Skeleton } from '@/components/ui';
 import { FilterChip, FilterDrawer } from '@/components/ui/filters';
 import { cn } from '@/lib/utils';
 import { stitchTransactionPageSearch, stitchTransactions } from '@/styles/home-design-foundation';
+import { UserFilterChipRow } from './user-filter-chip-row';
 
 const TransactionFiltersLazy = dynamic(
   () => import('./transaction-filters').then((mod) => mod.TransactionFilters),
@@ -51,7 +52,6 @@ export function TransactionFilterChips({
 }: TransactionFilterChipsProps) {
   const t = useTranslations('Transactions.Filters');
   const tChips = useTranslations('Transactions.Filters.FilterChips');
-  const tUsers = useTranslations('UserSelector');
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
 
@@ -122,30 +122,11 @@ export function TransactionFilterChips({
       </div>
 
       {showUserChips ? (
-        <div className={cn(stitchTransactions.chipRowUserWrap, '-mx-4 px-4')}>
-          <div
-            className={stitchTransactions.chipRowUserScroll}
-            role="toolbar"
-            aria-label={tChips('userToolbarAria')}
-          >
-            <FilterChip
-              label={tUsers('all')}
-              active={(selectedUserId ?? 'all') === 'all'}
-              onClick={() => onUserFilterChange?.('all')}
-              className={stitchTransactions.chipSnapItem}
-            />
-            {groupUsers?.map((user) => (
-              <FilterChip
-                key={user.id}
-                label={user.name ?? 'User'}
-                active={selectedUserId === user.id}
-                onClick={() => onUserFilterChange?.(user.id)}
-                className={stitchTransactions.chipSnapItem}
-              />
-            ))}
-          </div>
-          <p className={stitchTransactions.chipScrollHint}>{tChips('userChipsScrollHint')}</p>
-        </div>
+        <UserFilterChipRow
+          groupUsers={groupUsers ?? []}
+          selectedUserId={selectedUserId}
+          onUserFilterChange={onUserFilterChange}
+        />
       ) : null}
 
       <div

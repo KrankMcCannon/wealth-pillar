@@ -37,7 +37,7 @@ export const cardStyles = {
     progress: 'relative',
   },
   series: {
-    base: 'group cursor-pointer rounded-[24px] border p-2.5 transition-colors duration-200',
+    base: 'group cursor-pointer rounded-xl border p-2.5 transition-colors duration-200',
     /** Dentro lista raggruppata / griglia: niente bordo proprio (gestito dal contenitore). */
     embedded: 'rounded-none border-0 shadow-none bg-transparent ring-0',
     inactive: 'border-border/25 bg-card/82 opacity-70',
@@ -50,7 +50,7 @@ export const cardStyles = {
     icon: 'shrink-0 rounded-full',
     content: 'flex-1 min-w-0',
     titleRow: 'mb-0.5 flex items-center gap-1.5',
-    title: 'truncate text-foreground transition-colors group-hover:text-white',
+    title: 'truncate text-foreground transition-colors group-hover:text-foreground',
     details: 'space-y-0.5',
     frequency: 'font-base text-muted-foreground',
     dueDate: 'text-muted-foreground',

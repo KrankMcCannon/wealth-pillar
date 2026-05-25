@@ -1,5 +1,6 @@
 import { Skeleton } from '@/components/ui/skeleton';
 import { SkeletonList } from '@/components/ui/primitives';
+import { stitchRecurring, stitchTransactions } from '@/styles/home-design-foundation';
 
 export const TransactionHeaderSkeleton = () => (
   <header className="border-b border-border px-4 py-3">
@@ -89,19 +90,30 @@ export const TransactionsToolbarSkeleton = () => (
 );
 
 export const RecurringSeriesSkeleton = () => (
-  <div className="flex flex-col gap-3">
-    <Skeleton className="h-28 w-full rounded-2xl" />
+  <div className="flex flex-col gap-4">
+    <Skeleton className="h-36 w-full rounded-2xl" />
     <SkeletonList
-      count={3}
-      spacing="flex flex-col gap-2.5"
+      count={2}
+      spacing="flex flex-col gap-4"
       renderItem={() => (
-        <div className="flex min-h-11 items-center gap-3 rounded-xl bg-muted/90 px-3 py-2.5 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]">
-          <Skeleton className="size-10 shrink-0 rounded-xl" />
-          <div className="flex flex-1 flex-col gap-2">
-            <Skeleton className="h-4 w-32" />
-            <Skeleton className="h-3 w-24" />
+        <div className="flex flex-col gap-2">
+          <Skeleton className="h-3 w-20" />
+          <div className={stitchTransactions.dayCard}>
+            <SkeletonList
+              count={2}
+              spacing={stitchRecurring.listStack}
+              renderItem={() => (
+                <div className="flex items-center gap-3 rounded-xl bg-muted/90 px-3 py-2 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]">
+                  <Skeleton className="size-8 shrink-0 rounded-xl" />
+                  <div className="flex flex-1 flex-col gap-1.5">
+                    <Skeleton className="h-3.5 w-32" />
+                    <Skeleton className="h-3 w-24" />
+                  </div>
+                  <Skeleton className="h-4 w-14 shrink-0" />
+                </div>
+              )}
+            />
           </div>
-          <Skeleton className="h-4 w-16 shrink-0" />
         </div>
       )}
     />

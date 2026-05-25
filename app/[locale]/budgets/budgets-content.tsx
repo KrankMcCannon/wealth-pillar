@@ -4,11 +4,17 @@
  * Budgets Content — Stitch dark layout; member context via `?userId=` from home.
  */
 
+import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Plus, CheckCircle2, ShoppingCart } from 'lucide-react';
 import { AppPage } from '@/components/layout';
 import { EmptyState } from '@/components/shared';
-import { BudgetChart, BudgetsSummaryHero, BudgetCategoryCard } from '@/features/budgets/components';
+import {
+  BudgetChart,
+  BudgetsSummaryHero,
+  BudgetCategoryCard,
+  CloseBudgetPeriodModal,
+} from '@/features/budgets/components';
 import { TransactionDayList } from '@/features/transactions';
 import { useTransactionEditStore } from '@/features/transactions/stores/transaction-edit-store';
 import { useBudgetsContent, type UseBudgetsContentProps } from '@/features/budgets';
@@ -69,8 +75,7 @@ export default function BudgetsContent({ currentUser, groupUsers, pageData }: Bu
     openModal,
   } = useBudgetsContent(props);
   const setTransactionEditSeed = useTransactionEditStore((state) => state.setSeed);
-
-  const closePeriodHref = `/budgets/summary?user=${encodeURIComponent(budgetContextUserId)}`;
+  const [isClosePeriodModalOpen, setIsClosePeriodModalOpen] = useState(false);
 
   return (
     <AppPage
@@ -116,12 +121,19 @@ export default function BudgetsContent({ currentUser, groupUsers, pageData }: Bu
               <button
                 type="button"
                 className={stitchBudgets.closePeriodButton}
-                onClick={() => router.push(closePeriodHref)}
+                onClick={() => setIsClosePeriodModalOpen(true)}
               >
                 <CheckCircle2 className="h-5 w-5 shrink-0" aria-hidden />
                 {t('closePeriod')}
               </button>
             </div>
+
+            <CloseBudgetPeriodModal
+              key={isClosePeriodModalOpen ? budgetContextUserId : 'closed'}
+              isOpen={isClosePeriodModalOpen}
+              onClose={() => setIsClosePeriodModalOpen(false)}
+              userId={budgetContextUserId}
+            />
 
             <div className={stitchBudgets.listStack}>
               {userBudgetSummary.budgets.map((bp) => (

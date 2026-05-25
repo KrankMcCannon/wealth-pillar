@@ -141,7 +141,6 @@ export default function HomeContent({
         showActions={false}
         onCreateRecurringSeries={handleCreateRecurringSeries}
         onCardClick={handleOpenRecurringTab}
-        onPauseRecurringSeries={handleOpenRecurringTab}
         homeDashboardListLayout
         maxItems={RECURRING_MAX_ITEMS}
       />

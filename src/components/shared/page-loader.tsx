@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils';
 import { STICKY_HEADER_BASE } from '@/lib/utils/ui-constants';
 import {
   stitchHome,
+  stitchDashboardGroupedList,
   stitchTransactions,
   stitchTransactionPageSearch,
 } from '@/styles/home-design-foundation';
@@ -54,7 +55,7 @@ function HomeListBlockSkeleton() {
         <Skeleton className="h-5 w-36" />
         <Skeleton className="h-4 w-14" />
       </div>
-      <div className="flex flex-col gap-2">
+      <div className={stitchDashboardGroupedList}>
         {[1, 2, 3].map((i) => (
           <div key={i} className={stitchHome.listRow}>
             <Skeleton className="size-8 shrink-0 rounded-xl" />

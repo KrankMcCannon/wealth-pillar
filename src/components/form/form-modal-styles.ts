@@ -4,6 +4,37 @@ import { stitchSurface } from '@/styles/home-design-foundation';
  * Shared form-modal layout tokens.
  */
 export const formModalStyles = {
+  shell: {
+    content:
+      'max-h-[85vh] gap-0 rounded-t-3xl border-t border-border/22 bg-card px-0 pb-0 shadow-xl',
+    handle: 'mx-auto mt-3 mb-2 h-1.5 w-12 shrink-0 rounded-full bg-modal-handle/40',
+    header: 'flex flex-col gap-2 border-b border-border/22 px-4 py-3 text-left',
+    title: 'min-w-0 flex-1 text-left text-lg font-semibold leading-snug text-modal-fg',
+    description: 'text-left text-sm leading-relaxed text-modal-fg-muted',
+    body: 'min-h-0 flex-1 overflow-y-auto bg-card px-4 py-2',
+    closeButton:
+      'inline-flex size-11 shrink-0 items-center justify-center rounded-full text-modal-fg-muted transition-colors hover:bg-modal-elevated-hover hover:text-modal-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-modal-ring/35',
+    loadingWrap: 'flex min-h-40 items-center justify-center bg-card py-8',
+    sectionEyebrow: 'text-xs font-semibold uppercase tracking-wider text-modal-fg-muted',
+  },
+  field: {
+    textShell:
+      'rounded-xl border border-transparent bg-modal-elevated/85 p-4 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)] transition-all focus-within:border-modal-ring/50 focus-within:ring-1 focus-within:ring-modal-ring/35',
+    textLabel:
+      'mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-modal-fg-muted',
+    textInput:
+      'h-auto w-full border-0 bg-transparent p-0 text-base font-medium text-modal-fg shadow-none placeholder:text-modal-fg-muted/45 focus-visible:ring-0',
+  },
+  footer: {
+    actionsStack: 'flex w-full flex-col gap-3',
+    dualRow: 'flex w-full flex-col-reverse gap-3',
+    dualCancel:
+      'min-h-11 w-full border border-modal-border/30 bg-modal-elevated/85 font-semibold text-modal-fg shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)] hover:bg-modal-elevated-hover hover:text-modal-fg',
+    dualSubmit: 'min-h-11 w-full font-semibold',
+    secondaryAction:
+      'flex min-h-[52px] w-full items-center justify-center gap-2.5 rounded-2xl border border-modal-ring/35 bg-modal-elevated/85 px-5 py-4 text-sm font-semibold uppercase tracking-[0.18em] text-modal-fg shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)] transition-colors hover:bg-modal-elevated-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-modal-ring/35 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-45 motion-reduce:active:scale-100',
+    confirmMessage: 'text-sm leading-relaxed text-modal-fg',
+  },
   headerTitle:
     'min-w-0 flex-1 text-left text-xl font-semibold leading-snug tracking-tight text-modal-fg',
   formColumn: 'flex min-h-0 flex-1 flex-col',
@@ -38,7 +69,7 @@ export const formModalStyles = {
     'rounded-xl border border-modal-error-border/35 bg-modal-error-bg/35 px-3 py-2 text-sm text-modal-error-fg',
   fieldError: 'px-1 text-xs text-modal-error-fg',
   deleteButton: `flex min-h-[52px] w-full items-center justify-center gap-2.5 rounded-2xl px-5 py-4 text-sm font-semibold uppercase tracking-[0.18em] ${stitchSurface.dangerButton} active:scale-[0.98] motion-reduce:active:scale-100`,
-  footerActionsStack: 'flex w-full flex-col gap-3',
+  footerActionsStack: 'flex w-full flex-col gap-3', // alias — prefer footer.actionsStack
   stickyFooter: `${stitchSurface.modalFooter} px-4 py-4 -mx-4`,
   primaryCta: stitchSurface.primaryCta,
   categoryShell:

@@ -216,7 +216,7 @@ Product-shaped, mobile-first. shadcn new-york base in `src/components/ui/`; Stit
 - **Background:** `bg-card/90` with `border-border/20–25`.
 - **Shadow Strategy:** Custom rgba shadow on large sections; inset highlight on rows.
 - **Border:** 1px at 20–35% border opacity — structural, not accent stripes.
-- **Internal Padding:** p-4 sm:p-5 for sections; px-3 py-2.5 for list rows.
+- **Internal Padding:** p-4 sm:p-5 for sections; px-3 py-2 for list rows.
 
 ### Inputs / Fields
 

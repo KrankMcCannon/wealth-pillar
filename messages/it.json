@@ -846,6 +846,13 @@
       "errors": {
         "notFound": "Transazione non trovata. Ricarica la pagina e riprova.",
         "unknown": "Qualcosa è andato storto. Riprova."
+      },
+      "toast": {
+        "errorTitle": "Errore",
+        "createdTitle": "Transazione creata",
+        "createdDescription": "Transazione aggiunta correttamente.",
+        "updatedTitle": "Transazione aggiornata",
+        "updatedDescription": "Modifiche salvate correttamente."
       }
     }
   },

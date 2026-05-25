@@ -3,10 +3,9 @@
 import { useMemo } from 'react';
 import { z } from 'zod';
 import { useTranslations } from 'next-intl';
-import { Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { EntityFormModal } from '@/components/form';
 import { ModalTextField } from '@/components/form/modal-fields';
+import { ModalFooterActions } from '@/components/ui/modal-footer-actions';
 import { toast } from '@/hooks/use-toast';
 import { updateUserProfileAction } from '@/features/settings';
 import { useRouter } from '@/i18n/routing';
@@ -61,27 +60,14 @@ export function EditProfileModal({
       resetValues={defaultValues}
       repositionInputs={false}
       footer={(form) => (
-        <>
-          <Button
-            variant="outline"
-            onClick={onClose}
-            disabled={form.formState.isSubmitting}
-            className="w-full sm:w-auto"
-            type="button"
-          >
-            {t('cancelButton')}
-          </Button>
-          <Button type="submit" disabled={form.formState.isSubmitting} className="w-full sm:w-auto">
-            {form.formState.isSubmitting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {t('savingButton')}
-              </>
-            ) : (
-              t('saveChangesButton')
-            )}
-          </Button>
-        </>
+        <ModalFooterActions
+          variant="dual"
+          cancelLabel={t('cancelButton')}
+          submitLabel={t('saveChangesButton')}
+          onCancel={onClose}
+          submitType="submit"
+          isSubmitting={form.formState.isSubmitting}
+        />
       )}
       onSubmit={async (data) => {
         if (data.name === currentName && data.email === currentEmail) {

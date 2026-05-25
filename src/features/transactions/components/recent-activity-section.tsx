@@ -3,13 +3,13 @@
 import { useMemo } from 'react';
 import { Link } from '@/i18n/routing';
 import { useLocale, useTranslations } from 'next-intl';
-import { CategoryBadge } from '@/components/ui';
 import { SectionHeader } from '@/components/layout';
-import { HomeSectionCard, MoneyText } from '@/components/home';
+import { HomeSectionCard } from '@/components/home';
 import { EmptyState } from '@/components/shared';
 import { formatDateSmart, toDateTime } from '@/lib/utils/date-utils';
 import type { Transaction, Category } from '@/lib/types';
-import { stitchHome } from '@/styles/home-design-foundation';
+import { stitchDashboardGroupedList, stitchHome } from '@/styles/home-design-foundation';
+import { RecentActivityRow } from './recent-activity-row';
 
 interface RecentActivitySectionProps {
   transactions: Transaction[];
@@ -52,36 +52,22 @@ export function RecentActivitySection({ transactions, categories }: RecentActivi
       {transactions.length === 0 ? (
         <EmptyState variant="dashboard" title={t('recentActivityEmpty')} />
       ) : (
-        <div className="flex flex-col gap-2">
+        <div className={stitchDashboardGroupedList}>
           {transactions.map((tx) => {
             const cat = categoryByKey.get(tx.category);
             const txDate = toDateTime(tx.date);
             const dateLabel = txDate?.isValid
               ? formatDateSmart(txDate.toISODate() || '', locale)
               : null;
-            const timeLabel = txDate?.isValid ? txDate.setLocale(locale).toFormat('HH:mm') : null;
-            const meta = [cat?.label ?? tx.category, dateLabel, timeLabel]
-              .filter(Boolean)
-              .join(' • ');
+
             return (
-              <Link
+              <RecentActivityRow
                 key={tx.id}
-                href="/transactions"
-                className={stitchHome.listRowInteractiveMinTouch}
-              >
-                <div className="flex min-w-0 items-center gap-3">
-                  <CategoryBadge categoryKey={tx.category} color={cat?.color ?? ''} size="md" />
-                  <div className="min-w-0">
-                    <p className={stitchHome.rowTitle}>{tx.description}</p>
-                    <p className={stitchHome.rowMeta}>{meta}</p>
-                  </div>
-                </div>
-                <MoneyText
-                  value={tx.type === 'income' ? Math.abs(tx.amount) : -Math.abs(tx.amount)}
-                  variant={tx.type === 'income' ? 'home-income' : 'home-expense'}
-                  signed
-                />
-              </Link>
+                transaction={tx}
+                categoryLabel={cat?.label ?? tx.category}
+                categoryColor={cat?.color ?? ''}
+                dateLabel={dateLabel}
+              />
             );
           })}
         </div>

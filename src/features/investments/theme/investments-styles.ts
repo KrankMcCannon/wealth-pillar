@@ -58,7 +58,7 @@ export const investmentsStyles = {
     viewport: 'max-h-[320px] overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-border/30',
     groupHeader: 'px-2 py-2 mb-1',
     groupTitle: 'text-[10px] font-bold uppercase tracking-widest text-muted-foreground',
-    item: 'relative flex w-full cursor-pointer select-none items-center rounded-lg px-3 py-2.5 text-sm font-medium outline-none transition-colors hover:bg-accent focus:bg-accent data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[state=checked]:bg-border/30 data-[state=checked]:text-primary',
+    item: 'relative flex w-full cursor-pointer select-none items-center rounded-lg px-3 py-2 text-sm font-medium outline-none transition-colors hover:bg-accent focus:bg-accent data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[state=checked]:bg-border/30 data-[state=checked]:text-primary',
     itemLabel: 'block truncate',
     itemSublabel: 'text-[11px] text-muted-foreground/70 mt-0.5',
     empty: 'py-8 text-center text-sm text-muted-foreground/50',
