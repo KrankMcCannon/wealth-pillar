@@ -1,3 +1,4 @@
+import { cacheLife, cacheTag } from 'next/cache';
 import { getAccountsByGroupDeduped } from '@/server/request-cache/services';
 import type { Account, Transaction } from '@/lib/types';
 
@@ -8,6 +9,11 @@ export interface AccountsPageData {
 }
 
 export async function getAccountsPageData(groupId: string): Promise<AccountsPageData> {
+  'use cache';
+  cacheLife('minutes');
+  cacheTag(`group:${groupId}:accounts`);
+  cacheTag('accounts');
+
   const accounts = await getAccountsByGroupDeduped(groupId).catch(() => [] as Account[]);
 
   const accountBalances: Record<string, number> = {};

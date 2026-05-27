@@ -1,3 +1,4 @@
+import { cacheLife, cacheTag } from 'next/cache';
 import {
   getReportsDataUseCase,
   calculateAccountTypeSummaryUseCase,
@@ -20,6 +21,12 @@ export async function getReportsPageDataUseCase(
   groupId: string,
   groupUserIds: string[]
 ): Promise<ReportsPageData> {
+  'use cache';
+  cacheLife('minutes');
+  cacheTag(`group:${groupId}:transactions`);
+  cacheTag(`group:${groupId}:accounts`);
+  cacheTag('categories');
+
   const reportsData = await getReportsDataUseCase(groupId, groupUserIds);
   const { transactions, accounts, periods, categories } = reportsData;
 

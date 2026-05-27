@@ -21,8 +21,13 @@ import {
 import { getDefaultAccountIdForUser } from '@/features/accounts/utils/default-account-id';
 import { useRouter } from '@/i18n/routing';
 import { useToast } from '@/hooks';
+import { getTempId } from '@/lib/utils/temp-id';
 import type { Account, Category, Transaction, User } from '@/lib/types';
 import { useTransactionEditStore } from '../stores/transaction-edit-store';
+import {
+  buildOptimisticTransaction,
+  optimisticTransactionBus,
+} from '../stores/optimistic-transactions';
 import { mapTransactionToFormData } from '../utils/transaction-form-data';
 import { buildTransactionPayload } from '../utils/build-transaction-payload';
 import { TransactionFormFields, type TransactionFormData } from './transaction-form-fields';
@@ -253,7 +258,8 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
   const handleSubmit = useEntityFormSubmit<
     TransactionFormData,
     ReturnType<typeof buildPayload>,
-    Transaction
+    Transaction,
+    string
   >({
     isEditMode,
     editId,
@@ -261,9 +267,20 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
     buildPayload,
     createAction: (payload) => createTransactionAction(payload),
     updateAction: (id, payload) => updateTransactionAction(id, payload),
+    applyCreateOptimistic: (payload) => {
+      const tempId = getTempId('temp-tx');
+      optimisticTransactionBus.emitAdd(buildOptimisticTransaction(payload, tempId));
+      return tempId;
+    },
+    commitCreate: (tempId, result) => {
+      optimisticTransactionBus.emitReplace(tempId, result);
+    },
+    rollbackCreate: (tempId) => {
+      optimisticTransactionBus.emitRemove(tempId);
+    },
     getSuccessToast,
     errorToast: { title: t('toast.errorTitle') },
-    refreshAfterSuccess: () => router.refresh(),
+    ...(isEditMode ? { refreshAfterSuccess: () => router.refresh() } : {}),
     unknownErrorMessage: t('errors.unknown'),
   });
 

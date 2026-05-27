@@ -1,6 +1,7 @@
 import { cached } from '@/lib/cache';
 import { CACHE_TAGS, cacheOptions } from '@/lib/cache/config';
 import { transactionCacheKeys } from '@/lib/cache/keys';
+import { cacheLife, cacheTag } from 'next/cache';
 import { serialize } from '@/lib/utils/serializer';
 import { TransactionsRepository } from '@/server/repositories/transactions.repository';
 import type { TransactionFilterOptions } from '@/server/repositories/transactions.repository';
@@ -13,6 +14,11 @@ export async function getTransactionsByGroupUseCase(
   groupId: string,
   options?: TransactionFilterOptions
 ): Promise<{ data: Transaction[]; total: number; hasMore: boolean }> {
+  'use cache';
+  cacheLife('minutes');
+  cacheTag(CACHE_TAGS.TRANSACTIONS);
+  cacheTag(`group:${groupId}:transactions`);
+
   if (!groupId?.trim()) throw new Error('Group ID is required');
 
   const result = await TransactionsRepository.getByGroup(groupId, options);

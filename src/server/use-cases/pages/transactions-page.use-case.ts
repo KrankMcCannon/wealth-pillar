@@ -1,3 +1,4 @@
+import { cacheLife, cacheTag } from 'next/cache';
 import { getTransactionsByGroupUseCase } from '../transactions/get-transactions.use-case';
 import {
   getAccountsByGroupDeduped,
@@ -192,6 +193,24 @@ export async function getTransactionsPageData(
   query: TransactionsPageQuery,
   currentUser: User
 ): Promise<TransactionsPageData> {
+  return getCachedTransactionsPageData(groupId, query, currentUser.id, currentUser.role);
+}
+
+async function getCachedTransactionsPageData(
+  groupId: string,
+  query: TransactionsPageQuery,
+  userId: string,
+  userRole: User['role']
+): Promise<TransactionsPageData> {
+  'use cache';
+  cacheLife('minutes');
+  cacheTag(`group:${groupId}:transactions`);
+  cacheTag(`group:${groupId}:budgets`);
+  cacheTag(`group:${groupId}:accounts`);
+  cacheTag('categories');
+
+  const currentUser = { id: userId, role: userRole } as User;
+
   const resolvedQuery = resolveTransactionsQuery(query, currentUser);
   const pageSize = resolvedQuery.pageSize;
   const page = resolvedQuery.page;

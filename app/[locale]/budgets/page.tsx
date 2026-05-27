@@ -1,14 +1,15 @@
 /**
  * Budgets Page - Server Component
  *
- * Data is awaited here (not passed as a Promise to the client) so client-side
- * navigation from the desktop sidebar reliably receives a serializable payload.
+ * Auth resolves immediately; page data streams inside Suspense (same pattern as transactions).
  */
 
+import { Suspense } from 'react';
 import { getTranslations } from 'next-intl/server';
 import { requireGroupId, requirePageAuth } from '@/lib/auth/page-auth';
 import { getBudgetsPageData } from '@/server/use-cases';
 import BudgetsContent from './budgets-content';
+import BudgetsLoading from './loading';
 
 export default async function BudgetsPage({
   params,
@@ -16,13 +17,18 @@ export default async function BudgetsPage({
   const { currentUser, groupUsers } = await requirePageAuth(params);
   const groupId = await requireGroupId(currentUser);
 
-  let pageData;
-  try {
-    pageData = await getBudgetsPageData(groupId);
-  } catch (err) {
+  const pageDataPromise = getBudgetsPageData(groupId).catch(async (err) => {
     const t = await getTranslations('Errors');
     throw new Error(t('loadFailedBudgets'), { cause: err });
-  }
+  });
 
-  return <BudgetsContent currentUser={currentUser} groupUsers={groupUsers} pageData={pageData} />;
+  return (
+    <Suspense fallback={<BudgetsLoading />}>
+      <BudgetsContent
+        currentUser={currentUser}
+        groupUsers={groupUsers}
+        pageDataPromise={pageDataPromise}
+      />
+    </Suspense>
+  );
 }

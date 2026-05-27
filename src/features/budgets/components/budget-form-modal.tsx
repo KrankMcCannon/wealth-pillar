@@ -20,9 +20,11 @@ import {
   useEntityFormSubmit,
 } from '@/components/form';
 import { useCategories } from '@/stores/reference-data-store';
+import { useReferenceDataStore } from '@/stores/reference-data-store';
+import { getTempId } from '@/lib/utils/temp-id';
+import type { Budget } from '@/lib/types';
 import { BudgetFormFields, type BudgetFormData } from './budget-form-fields';
 import { buildBudgetPayload, mapBudgetToFormData } from '@/features/budgets/utils/budget-form-data';
-import type { Budget } from '@/lib/types';
 
 interface BudgetFormModalProps {
   isOpen: boolean;
@@ -65,6 +67,10 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
   const { groupUsers, groupId, shouldDisableUserField, defaultFormUserId, userFieldHelperText } =
     useEntityFormPermissions();
   const categories = useCategories();
+  const addBudget = useReferenceDataStore((state) => state.addBudget);
+  const updateBudget = useReferenceDataStore((state) => state.updateBudget);
+  const removeBudget = useReferenceDataStore((state) => state.removeBudget);
+  const storeBudgets = useReferenceDataStore((state) => state.budgets);
 
   const isEditMode = Boolean(editId);
   const title = isEditMode ? t('title.edit') : t('title.create');
@@ -136,20 +142,71 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
     [t]
   );
 
-  const handleSubmit = useEntityFormSubmit<BudgetFormData, ReturnType<typeof buildPayload>, Budget>(
-    {
-      isEditMode,
-      editId,
-      onClose,
-      buildPayload,
-      createAction: (payload) => createBudgetAction(payload, locale),
-      updateAction: (id, payload) => updateBudgetAction(id, payload, locale),
-      getSuccessToast,
-      errorToast: { title: t('toast.errorTitle') },
-      refreshAfterSuccess: () => router.refresh(),
-      unknownErrorMessage: t('errors.unknown'),
-    }
-  );
+  const handleSubmit = useEntityFormSubmit<
+    BudgetFormData,
+    ReturnType<typeof buildPayload>,
+    Budget,
+    string | { originalBudget: Budget; id: string }
+  >({
+    isEditMode,
+    editId,
+    onClose,
+    buildPayload,
+    createAction: (payload) => createBudgetAction(payload, locale),
+    updateAction: (id, payload) => updateBudgetAction(id, payload, locale),
+    applyCreateOptimistic: (payload) => {
+      const tempId = getTempId('temp-budget');
+      const now = new Date().toISOString();
+      const optimistic: Budget = {
+        id: tempId,
+        description: payload.description,
+        amount: payload.amount,
+        type: payload.type,
+        icon: payload.icon ?? null,
+        categories: payload.categories,
+        user_id: payload.user_id,
+        group_id: payload.group_id,
+        created_at: now,
+        updated_at: now,
+      };
+      addBudget(optimistic);
+      return tempId;
+    },
+    commitCreate: (handle, result) => {
+      if (typeof handle !== 'string') return;
+      removeBudget(handle);
+      addBudget(result);
+    },
+    rollbackCreate: (handle) => {
+      if (typeof handle !== 'string') return;
+      removeBudget(handle);
+    },
+    applyUpdateOptimistic: (id, payload) => {
+      const originalBudget = storeBudgets.find((budget) => budget.id === id);
+      if (!originalBudget) {
+        throw new Error(t('errors.notFound'));
+      }
+      updateBudget(id, {
+        description: payload.description,
+        amount: payload.amount,
+        type: payload.type,
+        icon: payload.icon ?? null,
+        categories: payload.categories,
+        user_id: payload.user_id,
+      });
+      return { originalBudget, id };
+    },
+    commitUpdate: (_handle, result) => {
+      updateBudget(result.id, result);
+    },
+    rollbackUpdate: (handle) => {
+      if (typeof handle === 'string') return;
+      updateBudget(handle.id, handle.originalBudget);
+    },
+    getSuccessToast,
+    errorToast: { title: t('toast.errorTitle') },
+    unknownErrorMessage: t('errors.unknown'),
+  });
 
   const handleDelete = useCallback(async () => {
     if (!editId) return;

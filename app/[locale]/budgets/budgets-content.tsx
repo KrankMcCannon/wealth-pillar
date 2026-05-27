@@ -4,7 +4,7 @@
  * Budgets Content — Stitch dark layout; member context via `?userId=` from home.
  */
 
-import { useState } from 'react';
+import { use, useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Plus, CheckCircle2, ShoppingCart } from 'lucide-react';
 import { AppPage } from '@/components/layout';
@@ -22,6 +22,7 @@ import type { User, UserBudgetSummary } from '@/lib/types';
 import type { BudgetsPageData } from '@/server/use-cases/pages/budgets-page.use-case';
 import { stitchBudgets } from '@/styles/home-design-foundation';
 import { Button } from '@/components/ui';
+import { useBudgets, useReferenceDataStore } from '@/stores/reference-data-store';
 
 type BudgetsPagePayload = BudgetsPageData & {
   budgetsByUser: Record<string, UserBudgetSummary>;
@@ -30,18 +31,31 @@ type BudgetsPagePayload = BudgetsPageData & {
 interface BudgetsContentProps {
   currentUser: User;
   groupUsers: User[];
-  pageData: BudgetsPagePayload;
+  pageDataPromise: Promise<BudgetsPagePayload>;
 }
 
-export default function BudgetsContent({ currentUser, groupUsers, pageData }: BudgetsContentProps) {
+export default function BudgetsContent({
+  currentUser,
+  groupUsers,
+  pageDataPromise,
+}: BudgetsContentProps) {
+  const pageData = use(pageDataPromise);
   const {
-    budgets = [],
     transactions = [],
     accounts = [],
     categories = [],
     budgetPeriods = {},
     budgetsByUser = {},
   } = pageData;
+
+  const storeBudgets = useBudgets();
+  const refreshBudgets = useReferenceDataStore((state) => state.refreshBudgets);
+
+  useEffect(() => {
+    refreshBudgets(pageData.budgets ?? []);
+  }, [pageData.budgets, refreshBudgets]);
+
+  const budgets = storeBudgets.length > 0 ? storeBudgets : (pageData.budgets ?? []);
 
   const props: UseBudgetsContentProps = {
     categories: categories || [],

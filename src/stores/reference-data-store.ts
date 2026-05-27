@@ -6,7 +6,7 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { useShallow } from 'zustand/react/shallow';
-import type { Account, Category } from '@/lib/types';
+import type { Account, Budget, Category, Transaction } from '@/lib/types';
 
 // ============================================================================
 // Types
@@ -16,6 +16,8 @@ interface ReferenceDataState {
   // Data
   accounts: Account[];
   categories: Category[];
+  transactions: Transaction[];
+  budgets: Budget[];
   isInitialized: boolean;
 
   // Initialization
@@ -33,6 +35,18 @@ interface ReferenceDataState {
   updateCategory: (id: string, updates: Partial<Category>) => void;
   removeCategory: (id: string) => void;
   refreshCategories: (categories: Category[]) => void;
+
+  // Transaction optimistic update actions
+  addTransaction: (transaction: Transaction) => void;
+  updateTransaction: (id: string, updates: Partial<Transaction>) => void;
+  removeTransaction: (id: string) => void;
+  refreshTransactions: (transactions: Transaction[]) => void;
+
+  // Budget optimistic update actions
+  addBudget: (budget: Budget) => void;
+  updateBudget: (id: string, updates: Partial<Budget>) => void;
+  removeBudget: (id: string) => void;
+  refreshBudgets: (budgets: Budget[]) => void;
 }
 
 // ============================================================================
@@ -42,6 +56,8 @@ interface ReferenceDataState {
 const initialState = {
   accounts: [],
   categories: [],
+  transactions: [],
+  budgets: [],
   isInitialized: false,
 };
 
@@ -145,6 +161,80 @@ export const useReferenceDataStore = create<ReferenceDataState>()(
       refreshCategories: (categories) => {
         set({ categories }, false, 'reference-data/refreshCategories');
       },
+
+      // Transaction actions
+      addTransaction: (transaction) => {
+        set(
+          (state) => ({
+            transactions: [transaction, ...state.transactions],
+          }),
+          false,
+          'reference-data/addTransaction'
+        );
+      },
+
+      updateTransaction: (id, updates) => {
+        set(
+          (state) => ({
+            transactions: state.transactions.map((transaction) =>
+              transaction.id === id ? { ...transaction, ...updates } : transaction
+            ),
+          }),
+          false,
+          'reference-data/updateTransaction'
+        );
+      },
+
+      removeTransaction: (id) => {
+        set(
+          (state) => ({
+            transactions: state.transactions.filter((transaction) => transaction.id !== id),
+          }),
+          false,
+          'reference-data/removeTransaction'
+        );
+      },
+
+      refreshTransactions: (transactions) => {
+        set({ transactions }, false, 'reference-data/refreshTransactions');
+      },
+
+      // Budget actions
+      addBudget: (budget) => {
+        set(
+          (state) => ({
+            budgets: [...state.budgets, budget],
+          }),
+          false,
+          'reference-data/addBudget'
+        );
+      },
+
+      updateBudget: (id, updates) => {
+        set(
+          (state) => ({
+            budgets: state.budgets.map((budget) =>
+              budget.id === id ? { ...budget, ...updates } : budget
+            ),
+          }),
+          false,
+          'reference-data/updateBudget'
+        );
+      },
+
+      removeBudget: (id) => {
+        set(
+          (state) => ({
+            budgets: state.budgets.filter((budget) => budget.id !== id),
+          }),
+          false,
+          'reference-data/removeBudget'
+        );
+      },
+
+      refreshBudgets: (budgets) => {
+        set({ budgets }, false, 'reference-data/refreshBudgets');
+      },
     }),
     { name: 'ReferenceData' }
   )
@@ -165,6 +255,18 @@ export const useAccounts = () => useReferenceDataStore((state) => state.accounts
  * Subscribes only to categories changes
  */
 export const useCategories = () => useReferenceDataStore((state) => state.categories);
+
+/**
+ * Get transactions
+ * Subscribes only to transactions changes
+ */
+export const useTransactions = () => useReferenceDataStore((state) => state.transactions);
+
+/**
+ * Get budgets
+ * Subscribes only to budgets changes
+ */
+export const useBudgets = () => useReferenceDataStore((state) => state.budgets);
 
 /**
  * Get initialization status

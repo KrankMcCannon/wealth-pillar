@@ -11,6 +11,7 @@ import { RecurringSeriesSection } from '@/features/recurring';
 import { TransactionFilterChips, TransactionsScreenList } from '@/features/transactions';
 import { UserFilterChipRow } from '@/features/transactions/components/user-filter-chip-row';
 import { RecurringSeriesSkeleton } from '@/features/transactions/components/transaction-skeletons';
+import { useOptimisticTransactions } from '@/features/transactions/hooks/use-optimistic-transactions';
 import { stitchTransactions } from '@/styles/home-design-foundation';
 interface TransactionsContentProps {
   currentUser: User;
@@ -38,8 +39,10 @@ export default function TransactionsContent({
     categories = [],
   } = pageData;
 
+  const optimisticTransactions = useOptimisticTransactions(transactions);
+
   const props: UseTransactionsContentProps = {
-    transactions,
+    transactions: optimisticTransactions,
     totalTransactions: total,
     budgets,
     accounts,

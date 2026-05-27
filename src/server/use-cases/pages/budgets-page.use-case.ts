@@ -1,3 +1,4 @@
+import { cacheLife, cacheTag } from 'next/cache';
 import { getBudgetsByGroupUseCase } from '../budgets/get-budgets.use-case';
 import {
   getAccountsByGroupDeduped,
@@ -37,6 +38,13 @@ async function safeFetch<T>(promise: Promise<T>, fallback: T): Promise<T> {
 }
 
 export async function getBudgetsPageData(groupId: string): Promise<BudgetsPageData> {
+  'use cache';
+  cacheLife('minutes');
+  cacheTag(`group:${groupId}:budgets`);
+  cacheTag(`group:${groupId}:transactions`);
+  cacheTag(`group:${groupId}:accounts`);
+  cacheTag('categories');
+
   // 1. Get group users
   let groupUsers: User[] = [];
   try {

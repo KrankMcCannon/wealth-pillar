@@ -1,3 +1,4 @@
+import { cacheLife, cacheTag } from 'next/cache';
 import { getActiveBudgetPeriodsForUsersUseCase } from '../budget-periods/get-active-budget-periods-for-users.use-case';
 import { getSeriesByGroupUseCase } from '../recurring/recurring.use-cases';
 import {
@@ -70,7 +71,19 @@ export async function getDashboardPageData(
   groupId: string,
   options?: GetDashboardPageDataOptions
 ): Promise<DashboardPageData> {
-  const includeInvestments = options?.includeInvestments ?? true;
+  return getCachedDashboardPageData(groupId, options?.includeInvestments ?? true);
+}
+
+async function getCachedDashboardPageData(
+  groupId: string,
+  includeInvestments: boolean
+): Promise<DashboardPageData> {
+  'use cache';
+  cacheLife('minutes');
+  cacheTag(`group:${groupId}:transactions`);
+  cacheTag(`group:${groupId}:budgets`);
+  cacheTag(`group:${groupId}:accounts`);
+  cacheTag('categories');
 
   // 1. Get group users first
   let groupUsers: User[] = [];

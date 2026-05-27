@@ -4,7 +4,7 @@
  * Accounts Content — Stitch dark, aligned with home / transactions / recurring.
  */
 
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { CreditCard, Landmark, Plus, TrendingDown, TrendingUp } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { AppPage, SectionHeader } from '@/components/layout';
@@ -16,6 +16,7 @@ import { UserFilterChipRow } from '@/features/transactions/components/user-filte
 import { cn } from '@/lib/utils';
 import type { User } from '@/lib/types';
 import type { AccountsPageData } from '@/server/use-cases/pages/accounts-page.use-case';
+import { useAccounts, useReferenceDataStore } from '@/stores/reference-data-store';
 import {
   stitchAccounts,
   stitchFab,
@@ -35,7 +36,15 @@ export default function AccountsContent({
   groupUsers,
   pageData,
 }: AccountsContentProps) {
-  const { accounts, accountBalances } = pageData;
+  const { accountBalances } = pageData;
+  const storeAccounts = useAccounts();
+  const refreshAccounts = useReferenceDataStore((state) => state.refreshAccounts);
+
+  useEffect(() => {
+    refreshAccounts(pageData.accounts);
+  }, [pageData.accounts, refreshAccounts]);
+
+  const accounts = storeAccounts.length > 0 ? storeAccounts : pageData.accounts;
   const t = useTranslations('Accounts.Content');
   const {
     isMember,
