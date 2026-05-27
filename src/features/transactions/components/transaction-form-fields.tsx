@@ -1,7 +1,7 @@
 'use client';
 
-import type { UseFormReturn } from 'react-hook-form';
 import { useMemo } from 'react';
+import { useWatch, type UseFormReturn } from 'react-hook-form';
 import { useTranslations } from 'next-intl';
 import { ArrowLeftRight } from 'lucide-react';
 import type { Account, Category, TransactionType, User } from '@/lib/types';
@@ -48,8 +48,8 @@ export function TransactionFormFields({
   isSubmitting,
 }: TransactionFormFieldsProps) {
   const t = useTranslations('Transactions.FormModal');
-  const { control, watch } = form;
-  const watchedType = watch('type');
+  const { control } = form;
+  const watchedType = useWatch({ control, name: 'type' });
 
   const typeOptions = useMemo(
     () => [
@@ -111,12 +111,33 @@ export function TransactionFormFields({
 
         <ModalSelectField
           control={control}
+          name="type"
+          label={t('fields.type.label')}
+          options={typeOptions}
+          placeholder={t('fields.type.placeholder')}
+          disabled={isSubmitting}
+          leadingIcon={<ArrowLeftRight className="h-5 w-5 text-modal-ring" aria-hidden />}
+        />
+
+        <ModalSelectField
+          control={control}
           name="account_id"
           label={t('fields.sourceAccount.label')}
           options={accountOptions}
           placeholder={t('fields.sourceAccount.placeholder')}
           disabled={isSubmitting}
         />
+
+        {watchedType === 'transfer' ? (
+          <ModalSelectField
+            control={control}
+            name="to_account_id"
+            label={t('fields.destinationAccount.label')}
+            options={destinationOptions}
+            placeholder={t('fields.destinationAccount.placeholder')}
+            disabled={isSubmitting}
+          />
+        ) : null}
 
         <ModalDateField control={control} name="date" label={t('fields.date.label')} required />
 
@@ -133,27 +154,6 @@ export function TransactionFormFields({
               ? { hint: userFieldHelperText }
               : {})}
         />
-
-        <ModalSelectField
-          control={control}
-          name="type"
-          label={t('fields.type.label')}
-          options={typeOptions}
-          placeholder={t('fields.type.placeholder')}
-          disabled={isSubmitting}
-          leadingIcon={<ArrowLeftRight className="h-5 w-5 text-modal-ring" aria-hidden />}
-        />
-
-        {watchedType === 'transfer' ? (
-          <ModalSelectField
-            control={control}
-            name="to_account_id"
-            label={t('fields.destinationAccount.label')}
-            options={destinationOptions}
-            placeholder={t('fields.destinationAccount.placeholder')}
-            disabled={isSubmitting}
-          />
-        ) : null}
 
         <ModalTextField
           control={control}

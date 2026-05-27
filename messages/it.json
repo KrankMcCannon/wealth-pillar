@@ -787,7 +787,8 @@
         "dateRequired": "La data è obbligatoria",
         "userRequired": "L'utente è obbligatorio",
         "accountRequired": "Il conto è obbligatorio",
-        "destinationAccountInvalid": "Il conto di destinazione non può essere lo stesso del conto di origine"
+        "destinationAccountRequired": "Seleziona il conto di atterraggio",
+        "destinationAccountInvalid": "Il conto di atterraggio non può essere lo stesso del conto di origine"
       },
       "title": {
         "create": "Nuova transazione",
@@ -817,8 +818,8 @@
           "placeholder": "Seleziona conto"
         },
         "destinationAccount": {
-          "label": "Conto destinazione",
-          "placeholder": "Seleziona conto destinazione"
+          "label": "Conto di atterraggio",
+          "placeholder": "Seleziona conto di atterraggio"
         },
         "category": {
           "label": "Categoria",

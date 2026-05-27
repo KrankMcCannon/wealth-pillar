@@ -787,6 +787,7 @@
         "dateRequired": "Date is required",
         "userRequired": "User is required",
         "accountRequired": "Account is required",
+        "destinationAccountRequired": "Select a destination account",
         "destinationAccountInvalid": "Destination account must be different from source account"
       },
       "title": {

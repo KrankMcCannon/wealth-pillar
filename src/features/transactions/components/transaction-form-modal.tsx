@@ -44,19 +44,14 @@ const createTransactionSchema = (t: ReturnType<typeof useTranslations>) =>
       account_id: z.string().min(1, t('validation.accountRequired')),
       to_account_id: z.string().optional(),
     })
-    .refine(
-      (data) => {
-        if (data.type === 'transfer') {
-          if (!data.to_account_id) return false;
-          if (data.to_account_id === data.account_id) return false;
-        }
-        return true;
-      },
-      {
-        message: t('validation.destinationAccountInvalid'),
-        path: ['to_account_id'],
-      }
-    );
+    .refine((data) => data.type !== 'transfer' || Boolean(data.to_account_id), {
+      message: t('validation.destinationAccountRequired'),
+      path: ['to_account_id'],
+    })
+    .refine((data) => data.type !== 'transfer' || data.to_account_id !== data.account_id, {
+      message: t('validation.destinationAccountInvalid'),
+      path: ['to_account_id'],
+    });
 
 interface TransactionFormModalProps {
   isOpen: boolean;
@@ -83,9 +78,11 @@ function TransactionFormModalBody({
   userFieldHelperText?: string | undefined;
   isSubmitting: boolean;
 }>) {
-  const { control, setValue } = form;
+  const { control, setValue, clearErrors } = form;
   const watchedUserId = useWatch({ control, name: 'user_id' });
   const watchedAccountId = useWatch({ control, name: 'account_id' });
+  const watchedType = useWatch({ control, name: 'type' });
+  const watchedToAccountId = useWatch({ control, name: 'to_account_id' });
 
   const filteredAccounts = useMemo(() => {
     if (!watchedUserId) return accounts;
@@ -94,6 +91,30 @@ function TransactionFormModalBody({
 
   const destinationAccounts = filteredAccounts.filter((acc) => acc.id !== watchedAccountId);
   const previousUserIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (watchedType !== 'transfer') {
+      if (watchedToAccountId) {
+        setValue('to_account_id', '');
+        clearErrors('to_account_id');
+      }
+      return;
+    }
+
+    if (!watchedToAccountId) return;
+
+    const destinationIsValid = destinationAccounts.some((acc) => acc.id === watchedToAccountId);
+    if (!destinationIsValid) {
+      setValue('to_account_id', '');
+    }
+  }, [
+    watchedType,
+    watchedToAccountId,
+    watchedAccountId,
+    destinationAccounts,
+    setValue,
+    clearErrors,
+  ]);
 
   useEffect(() => {
     if (isEditMode || !watchedUserId) return;
