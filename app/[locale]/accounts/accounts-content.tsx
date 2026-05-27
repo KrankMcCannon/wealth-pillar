@@ -5,13 +5,12 @@
  */
 
 import { useMemo, useEffect } from 'react';
-import { CreditCard, Landmark, Plus, TrendingDown, TrendingUp } from 'lucide-react';
+import { CreditCard, Landmark, TrendingDown, TrendingUp } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { AppPage, SectionHeader } from '@/components/layout';
+import { AppPage, PageFab, SectionHeader } from '@/components/layout';
 import { HomeSectionCard } from '@/components/home';
 import { AccountsList, useAccountsContent } from '@/features/accounts';
 import { Amount } from '@/components/ui/primitives';
-import { Button } from '@/components/ui';
 import { UserFilterChipRow } from '@/features/transactions/components/user-filter-chip-row';
 import { cn } from '@/lib/utils';
 import type { User } from '@/lib/types';
@@ -19,7 +18,6 @@ import type { AccountsPageData } from '@/server/use-cases/pages/accounts-page.us
 import { useAccounts, useReferenceDataStore } from '@/stores/reference-data-store';
 import {
   stitchAccounts,
-  stitchFab,
   stitchHome,
   stitchRecurring,
   stitchTransactions,
@@ -111,17 +109,11 @@ export default function AccountsContent({
       dashboardMain
       mainId="main-accounts"
       afterMain={
-        <Button
-          type="button"
-          variant="default"
-          size="icon"
-          data-testid="accounts-fab-add"
+        <PageFab
           onClick={() => openModal('account')}
-          className={stitchFab.pageAdd}
-          aria-label={t('addAccountCta')}
-        >
-          <Plus className="h-6 w-6" aria-hidden />
-        </Button>
+          ariaLabel={t('addAccountCta')}
+          testId="accounts-fab-add"
+        />
       }
     >
       <div className={stitchTransactions.mainStack}>

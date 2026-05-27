@@ -3,14 +3,13 @@
 import dynamic from 'next/dynamic';
 import { use, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { ActionMenu, AppPage } from '@/components/layout';
+import { AppPage, PageFab } from '@/components/layout';
 import UserSelector from '@/components/shared/user-selector';
 import { User } from '@/lib';
 import TabNavigation from '@/components/shared/tab-navigation';
 import type { Investment } from '@/features/investments/components/personal-investment-tab';
 import { stitchBudgets, stitchTransactions } from '@/styles/home-design-foundation';
-import { useRouter } from '@/i18n/routing';
-import { PieChart } from 'lucide-react';
+import { useModalState } from '@/lib/navigation/url-state';
 
 const PersonalInvestmentTab = dynamic(() =>
   import('@/features/investments/components/personal-investment-tab').then(
@@ -54,16 +53,8 @@ export default function InvestmentsContent({
   const { investments, summary, indexData, currentIndex } = use(investmentsDataPromise);
   const t = useTranslations('InvestmentsContent');
   const tActionMenu = useTranslations('Header.ActionMenu');
-  const router = useRouter();
+  const { openModal } = useModalState();
   const [activeTab, setActiveTab] = useState<'personal' | 'sandbox'>('personal');
-
-  const extraMenuItems = [
-    {
-      label: tActionMenu('goToBudgets'),
-      icon: PieChart,
-      onClick: () => router.push('/budgets'),
-    },
-  ];
 
   return (
     <AppPage
@@ -111,12 +102,10 @@ export default function InvestmentsContent({
         </>
       }
       afterMain={
-        <ActionMenu
-          triggerClassName={stitchTransactions.fab}
-          triggerIconClassName="h-6 w-6"
-          extraMenuItems={extraMenuItems}
-          groupedSecondary
-          align="end"
+        <PageFab
+          onClick={() => openModal('investment')}
+          ariaLabel={tActionMenu('newInvestment')}
+          testId="investments-fab-add"
         />
       }
     />

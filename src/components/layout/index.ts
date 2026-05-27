@@ -5,6 +5,7 @@
 export * from './app-page';
 export * from './bottom-navigation';
 export * from './action-menu';
+export * from './page-fab';
 export * from './dashboard-page-layout';
 export * from './page-container';
 export { SectionHeader } from '../ui/layout';

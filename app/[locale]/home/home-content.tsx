@@ -18,7 +18,7 @@ import { RecurringSeriesSection } from '@/features/recurring';
 import { RecentActivitySection } from '@/features/transactions';
 import type { User } from '@/lib/types';
 import type { DashboardPageData } from '@/server/use-cases/pages/dashboard.use-case';
-import { stitchHome } from '@/styles/home-design-foundation';
+import { stitchHome, stitchFab } from '@/styles/home-design-foundation';
 
 const RECURRING_MAX_ITEMS = 5;
 const RECENT_ACTIVITY_MAX = 5;
@@ -99,7 +99,7 @@ export default function HomeContent({
       afterMain={
         <ActionMenu
           triggerClassName={stitchHome.fab}
-          triggerIconClassName="h-6 w-6"
+          triggerIconClassName={stitchFab.pageAddIcon}
           groupedSecondary
           align="center"
           triggerAriaLabel={tBottomNav('add')}

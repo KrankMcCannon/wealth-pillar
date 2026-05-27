@@ -1,12 +1,10 @@
 'use client';
 
 import { memo, useMemo, useEffect, useRef } from 'react';
-import { Plus } from 'lucide-react';
 import { useTranslations, useLocale } from 'next-intl';
 import { cn } from '@/lib/utils';
 import type { Transaction, Category } from '@/lib/types';
-import { stitchFab, stitchTransactions } from '@/styles/home-design-foundation';
-import { Button } from '@/components/ui';
+import { stitchTransactions } from '@/styles/home-design-foundation';
 import { TransactionDayGroupSkeleton } from '@/components/ui/primitives/skeletons';
 import { groupByDay } from '../utils/group-by-day';
 import { TransactionPagination } from './transaction-pagination';
@@ -136,20 +134,6 @@ function TransactionsScreenListInner({
           />
         )}
       </div>
-
-      {onAddTransaction && (
-        <Button
-          type="button"
-          variant="default"
-          size="icon"
-          data-testid="transactions-fab-add"
-          onClick={onAddTransaction}
-          className={stitchFab.pageAdd}
-          aria-label={t('empty.addCta')}
-        >
-          <Plus className="h-6 w-6" aria-hidden />
-        </Button>
-      )}
     </div>
   );
 }

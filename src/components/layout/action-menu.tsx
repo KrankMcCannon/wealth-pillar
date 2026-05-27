@@ -16,6 +16,7 @@ import { cn } from '@/lib';
 import { useModalState } from '@/lib/navigation/url-state';
 import { usePathname } from '@/i18n/routing';
 import { useMounted } from '@/hooks/use-mounted';
+import { stitchFab } from '@/styles/home-design-foundation';
 import {
   Button,
   DropdownMenu,
@@ -201,7 +202,7 @@ export function ActionMenu({
           title={triggerTitle}
           className={triggerClassName}
         >
-          <Plus className={cn('h-5 w-5', triggerIconClassName)} />
+          <Plus className={triggerIconClassName ?? stitchFab.pageAddIcon} />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className={menuClassName} {...contentPositionProps}>

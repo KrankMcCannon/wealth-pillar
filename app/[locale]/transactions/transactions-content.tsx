@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 import { useTransactionsContent, type UseTransactionsContentProps } from '@/features/transactions';
 import type { User } from '@/lib/types';
 import type { TransactionsPageData } from '@/server/use-cases/pages/transactions-page.use-case';
-import { AppPage, HomeDashboardMain } from '@/components/layout';
+import { AppPage, HomeDashboardMain, PageFab } from '@/components/layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui';
 import { RecurringSeriesSection } from '@/features/recurring';
 import { TransactionFilterChips, TransactionsScreenList } from '@/features/transactions';
@@ -54,6 +54,7 @@ export default function TransactionsContent({
   };
 
   const t = useTranslations('TransactionsContent');
+  const tTable = useTranslations('Transactions.Table');
 
   const showUserPicker =
     (currentUser.role === 'admin' || currentUser.role === 'superadmin') && groupUsers.length > 1;
@@ -115,6 +116,14 @@ export default function TransactionsContent({
       showActions
       skipToMainHref="#main-transactions"
       skipToMainLabel={t('skipToMain')}
+      afterMain={
+        <PageFab
+          onClick={() => openModal('transaction')}
+          ariaLabel={tTable('empty.addCta')}
+          testId="transactions-fab-add"
+          hidden={activeTab !== 'Transactions'}
+        />
+      }
       betweenHeaderAndMain={
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex min-h-0 flex-col">
           <div className={stitchTransactions.tabsStickyBar}>
@@ -174,7 +183,7 @@ export default function TransactionsContent({
                   onPageChange={goToPage}
                   onPageSizeChange={setPageSize}
                   onEditTransaction={handleEditTransaction}
-                  {...(!hasActiveFilters && { onAddTransaction: () => openModal('transaction') })}
+                  onAddTransaction={() => openModal('transaction')}
                   {...(hasActiveFilters && { onClearFilters: handleClearFilters })}
                   emptyTitle={t('empty.title')}
                   emptyDescription={

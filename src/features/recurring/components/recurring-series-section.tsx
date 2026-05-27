@@ -192,7 +192,7 @@ export function RecurringSeriesSection({
         className={stitchFab.pageAdd}
         aria-label={t('empty.addButton')}
       >
-        <Plus className="h-6 w-6" aria-hidden />
+        <Plus className={stitchFab.pageAddIcon} aria-hidden />
       </Button>
     );
   };

@@ -6,8 +6,8 @@
 
 import { use, useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Plus, CheckCircle2, ShoppingCart } from 'lucide-react';
-import { AppPage } from '@/components/layout';
+import { CheckCircle2, ShoppingCart } from 'lucide-react';
+import { AppPage, PageFab } from '@/components/layout';
 import { EmptyState } from '@/components/shared';
 import {
   BudgetChart,
@@ -109,14 +109,11 @@ export default function BudgetsContent({
         </div>
       }
       afterMain={
-        <button
-          type="button"
-          className={stitchBudgets.fab}
+        <PageFab
           onClick={handleCreateBudget}
-          aria-label={t('fabAddBudget')}
-        >
-          <Plus className={stitchBudgets.fabIcon} strokeWidth={2.25} aria-hidden />
-        </button>
+          ariaLabel={t('fabAddBudget')}
+          testId="budgets-fab-add"
+        />
       }
     >
       <div className={stitchBudgets.mainStack}>

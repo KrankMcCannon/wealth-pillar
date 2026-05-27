@@ -19,6 +19,7 @@ export const stitchSurface = {
 export const stitchFab = {
   pageAdd:
     'fixed bottom-24 right-5 z-30 flex h-14 w-14 min-h-11 min-w-11 items-center justify-center rounded-2xl bg-accent text-white shadow-[0_8px_32px_rgba(0,20,86,0.45)] transition-transform hover:scale-105 active:scale-95 motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45',
+  pageAddIcon: 'size-7',
 } as const;
 
 /**
@@ -143,8 +144,6 @@ export const stitchBudgets = {
   footerMuted: 'text-muted-foreground',
   footerAccent: 'font-medium text-primary',
   footerDanger: 'font-medium text-expense',
-  fab: 'group fixed bottom-24 right-6 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-white shadow-[0_8px_16px_-4px_rgba(0,20,86,0.45)] transition-transform duration-200 hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45',
-  fabIcon: 'h-7 w-7 transition-transform duration-300 group-hover:rotate-90',
   detailsSection: 'flex flex-col gap-4 pt-4',
 
   /** Grafico andamento spese. */
@@ -181,7 +180,6 @@ export const stitchTransactions = {
   filtersChipIcon: 'mr-1 inline h-4 w-4 shrink-0',
   dayCard:
     'rounded-xl border border-border/25 bg-card/90 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]',
-  fab: stitchFab.pageAdd,
   emptyState:
     'rounded-xl border border-border/25 bg-card/90 p-6 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]',
   emptyTitle: 'text-base font-medium text-foreground',
