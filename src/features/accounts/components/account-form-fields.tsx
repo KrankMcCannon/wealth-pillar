@@ -1,9 +1,11 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import type { UseFormReturn } from 'react-hook-form';
 import { useTranslations } from 'next-intl';
 import { Landmark } from 'lucide-react';
-import type { User } from '@/lib/types';
+import type { User, AccountLiquidity, AccountType } from '@/lib/types';
+import { defaultLiquidityForType } from '@/lib/utils/account-classification';
 import { cn } from '@/lib/utils';
 import { ModalSelectField, ModalTextField, formModalStyles as s } from '@/components/form';
 import { sortSelectOptions } from '@/components/form/form-select';
@@ -12,7 +14,8 @@ import { Checkbox } from '@/components/ui';
 
 export type AccountFormData = {
   name: string;
-  type: 'payroll' | 'cash' | 'investments' | 'savings';
+  type: AccountType;
+  liquidity: AccountLiquidity;
   user_id: string;
   isDefault?: boolean | undefined;
 };
@@ -34,12 +37,26 @@ export function AccountFormFields({
   const { control, setValue, watch } = form;
 
   const watchedIsDefault = watch('isDefault');
+  const watchedType = watch('type');
+
+  const prevTypeRef = useRef(watchedType);
+  useEffect(() => {
+    if (prevTypeRef.current !== watchedType) {
+      setValue('liquidity', defaultLiquidityForType(watchedType));
+      prevTypeRef.current = watchedType;
+    }
+  }, [watchedType, setValue]);
 
   const accountTypes = [
     { value: 'payroll', label: t('accountTypes.payroll') },
     { value: 'cash', label: t('accountTypes.cash') },
     { value: 'investments', label: t('accountTypes.investments') },
     { value: 'savings', label: t('accountTypes.savings') },
+  ] as const;
+
+  const liquidityOptions = [
+    { value: 'spendable', label: t('fields.liquidity.spendable') },
+    { value: 'reserve', label: t('fields.liquidity.reserve') },
   ] as const;
 
   const userOptions = sortSelectOptions(
@@ -64,6 +81,15 @@ export function AccountFormFields({
         placeholder={t('fields.type.placeholder')}
         disabled={isSubmitting}
         leadingIcon={<Landmark className="h-5 w-5 text-primary" aria-hidden />}
+      />
+
+      <ModalSelectField
+        control={control}
+        name="liquidity"
+        label={t('fields.liquidity.label')}
+        options={[...liquidityOptions]}
+        placeholder={t('fields.liquidity.placeholder')}
+        disabled={isSubmitting}
       />
 
       <ModalSelectField

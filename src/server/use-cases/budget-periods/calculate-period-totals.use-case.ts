@@ -37,7 +37,7 @@ export const calculatePeriodTotalsUseCase = (
 
   const categorySpending: Record<string, number> = {};
   for (const t of unionTransactions) {
-    if (t.type === 'expense' || t.type === 'transfer') {
+    if (t.type === 'expense') {
       categorySpending[t.category] = (categorySpending[t.category] || 0) + t.amount;
     }
   }

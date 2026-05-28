@@ -4,21 +4,26 @@ import { Account } from '@/lib';
 import { BalanceSectionSkeleton } from '@/features/dashboard';
 import { TotalBalanceLink } from './total-balance-link';
 import { accountStyles } from '../theme/account-styles';
+import type { NetSavingsResult } from '@/server/use-cases/shared/savings.logic';
 
 interface BalanceSectionProps {
   accounts: Account[];
-  totalBalance: number;
+  spendableBalance: number;
+  reserveBalance?: number;
+  netSavings?: NetSavingsResult;
   selectedUserId?: string | undefined;
   isLoading?: boolean | undefined;
 }
 
 /**
  * Balance section on the home dashboard.
- * Renders total balance hero linking to the accounts page.
+ * Renders spendable balance hero linking to the accounts page.
  */
 export const BalanceSection = ({
   accounts,
-  totalBalance,
+  spendableBalance,
+  reserveBalance = 0,
+  netSavings,
   selectedUserId,
   isLoading = false,
 }: BalanceSectionProps) => {
@@ -32,7 +37,9 @@ export const BalanceSection = ({
     <section className={accountStyles.balanceSection.container}>
       <TotalBalanceLink
         embedded={false}
-        totalBalance={totalBalance}
+        spendableBalance={spendableBalance}
+        reserveBalance={reserveBalance}
+        {...(netSavings !== undefined ? { netSavings } : {})}
         selectedUserId={selectedUserId}
       />
     </section>

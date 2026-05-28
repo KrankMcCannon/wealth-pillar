@@ -1,7 +1,6 @@
 /**
  * TotalBalanceLink Component
- * Displays total balance with link to /accounts page
- * Used in dashboard balance section
+ * Displays spendable balance (primary) with reserve and savings metrics.
  */
 
 'use client';
@@ -12,21 +11,25 @@ import { useTranslations } from 'next-intl';
 import { Amount } from '@/components/ui/primitives/amount';
 import { accountStyles } from '../theme/account-styles';
 import { cn } from '@/lib/utils';
+import type { NetSavingsResult } from '@/server/use-cases/shared/savings.logic';
 
 interface TotalBalanceLinkProps {
-  totalBalance: number;
+  spendableBalance: number;
+  reserveBalance?: number;
+  netSavings?: NetSavingsResult;
   selectedUserId?: string | undefined;
-  /** In cima al blocco saldi: un solo contenitore arrotondato, senza “doppia card”. */
   embedded?: boolean;
 }
 
 export const TotalBalanceLink = ({
-  totalBalance,
+  spendableBalance,
+  reserveBalance = 0,
+  netSavings,
   selectedUserId,
   embedded = false,
 }: TotalBalanceLinkProps) => {
   const t = useTranslations('Accounts.Home');
-  const isPositive = totalBalance >= 0;
+  const isPositive = spendableBalance >= 0;
   const href = selectedUserId ? `/accounts?userId=${selectedUserId}` : '/accounts';
 
   return (
@@ -63,7 +66,7 @@ export const TotalBalanceLink = ({
                 : accountStyles.totalBalanceLink.label
             }
           >
-            {t('totalBalanceLabel')}
+            {t('spendableBalanceLabel')}
           </p>
           <Amount
             type={isPositive ? 'balance' : 'expense'}
@@ -79,8 +82,28 @@ export const TotalBalanceLink = ({
                   : accountStyles.totalBalanceLink.valueNegative
             }
           >
-            {totalBalance}
+            {spendableBalance}
           </Amount>
+          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+            <span>
+              {t('reserveBalanceLabel')}:{' '}
+              <Amount type="balance" size="sm" className="inline">
+                {reserveBalance}
+              </Amount>
+            </span>
+            {netSavings !== undefined ? (
+              <span>
+                {t('savedThisPeriod')}:{' '}
+                <Amount
+                  type={netSavings.net >= 0 ? 'income' : 'expense'}
+                  size="sm"
+                  className="inline"
+                >
+                  {netSavings.net}
+                </Amount>
+              </span>
+            ) : null}
+          </div>
         </div>
       </div>
 

@@ -43,7 +43,16 @@ export default function HomeContent({
     budgetsByUser = {},
     transactions = [],
     categories = [],
-    balanceViewModel = { totalBalanceAll: 0, totalBalanceByUserId: {} },
+    balanceViewModel = {
+      totalBalanceAll: 0,
+      spendableBalanceAll: 0,
+      reserveBalanceAll: 0,
+      totalBalanceByUserId: {},
+      spendableByUserId: {},
+      reserveByUserId: {},
+    },
+    netSavingsAll = { deposits: 0, withdrawals: 0, net: 0 },
+    netSavingsByUserId = {},
   } = dashboardData;
 
   const t = useTranslations('HomeContent');
@@ -57,7 +66,9 @@ export default function HomeContent({
     selectedGroupFilter,
     effectiveUserId,
     displayedDefaultAccounts,
-    totalBalance,
+    spendableBalance,
+    reserveBalance,
+    netSavings,
     selectedUserId,
     handleCreateRecurringSeries,
     handleOpenRecurringTab,
@@ -69,6 +80,8 @@ export default function HomeContent({
     budgetPeriods,
     recurringSeries,
     balanceViewModel,
+    netSavingsAll,
+    netSavingsByUserId,
   });
 
   const showUserPicker =
@@ -130,7 +143,9 @@ export default function HomeContent({
     >
       <BalanceSection
         accounts={displayedDefaultAccounts}
-        totalBalance={totalBalance}
+        spendableBalance={spendableBalance}
+        reserveBalance={reserveBalance}
+        netSavings={netSavings}
         selectedUserId={selectedUserId}
       />
 

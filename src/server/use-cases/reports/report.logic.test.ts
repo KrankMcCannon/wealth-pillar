@@ -3,6 +3,7 @@ import {
   sumIncomeExpenseInWindow,
   computeGroupAccountTypeSummary,
   netFlowDeltaPercent,
+  buildReportsSectionViewModel,
 } from './report.logic';
 import type { Account, Transaction } from '@/lib/types';
 
@@ -110,5 +111,55 @@ describe('computeGroupAccountTypeSummary', () => {
 describe('netFlowDeltaPercent', () => {
   it('returns null when both nets are zero', () => {
     expect(netFlowDeltaPercent(0, 0)).toBeNull();
+  });
+});
+
+describe('buildReportsSectionViewModel', () => {
+  it('includes spendable, reserve, and net savings', () => {
+    const accounts: Account[] = [
+      {
+        id: 'a1',
+        name: 'Payroll',
+        type: 'payroll',
+        user_ids: ['u1'],
+        group_id: 'g1',
+        balance: 300,
+        created_at: '',
+        updated_at: '',
+      },
+      {
+        id: 'a2',
+        name: 'Savings',
+        type: 'savings',
+        user_ids: ['u1'],
+        group_id: 'g1',
+        balance: 500,
+        created_at: '',
+        updated_at: '',
+      },
+    ];
+    const txs: Transaction[] = [
+      {
+        id: 't1',
+        description: '',
+        amount: 100,
+        type: 'transfer',
+        category: 'savings',
+        date: '2024-06-10',
+        user_id: 'u1',
+        account_id: 'a1',
+        to_account_id: 'a2',
+        frequency: 'once',
+        recurring_series_id: null,
+        group_id: 'g1',
+        created_at: '',
+        updated_at: '',
+      },
+    ];
+    const vm = buildReportsSectionViewModel(txs, accounts, [], ['u1'], window, null, 'u1');
+    expect(vm.totalSpendable).toBe(300);
+    expect(vm.totalReserve).toBe(500);
+    expect(vm.netSavings.net).toBe(100);
+    expect(vm.netSavings.deposits).toBe(100);
   });
 });

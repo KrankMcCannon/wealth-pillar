@@ -1,4 +1,6 @@
 import type { Account, Category, Transaction } from '@/lib/types';
+import { resolveAccountLiquidity } from '@/lib/utils/account-classification';
+import { computeNetSavings, type NetSavingsResult } from '../shared/savings.logic';
 import type {
   AccountTypeSummary,
   ReportPeriodSummary,
@@ -244,6 +246,9 @@ export interface ReportsSectionViewModel {
   topExpenses: { id: string; name: string; total: number }[];
   accountBreakdown: AccountTypeSummary[];
   totalWealth: number;
+  totalSpendable: number;
+  totalReserve: number;
+  netSavings: NetSavingsResult;
 }
 
 export function buildReportsSectionViewModel(
@@ -280,6 +285,21 @@ export function buildReportsSectionViewModel(
 
   const totalWealth = accountBreakdown.reduce((s, a) => s + a.totalBalance, 0);
 
+  const scopedAccounts =
+    userId !== undefined ? accounts.filter((a) => a.user_ids.includes(userId)) : accounts;
+  let totalSpendable = 0;
+  let totalReserve = 0;
+  for (const account of scopedAccounts) {
+    const balance = account.balance ?? 0;
+    if (resolveAccountLiquidity(account) === 'reserve') {
+      totalReserve += balance;
+    } else {
+      totalSpendable += balance;
+    }
+  }
+
+  const netSavings = computeNetSavings(transactions, accounts, window, userId);
+
   return {
     netFlow,
     income: totals.income,
@@ -288,5 +308,8 @@ export function buildReportsSectionViewModel(
     topExpenses,
     accountBreakdown,
     totalWealth,
+    totalSpendable,
+    totalReserve,
+    netSavings,
   };
 }

@@ -10,12 +10,14 @@ import {
 } from '@/lib/utils/validation-utils';
 import { invalidateAccountCaches } from '@/lib/utils/cache-utils';
 import { deleteTransactionsByAccountUseCase } from '@/server/use-cases/transactions/delete-transaction.use-case';
-import type { Account } from '@/lib/types';
+import type { Account, AccountLiquidity } from '@/lib/types';
+import { defaultLiquidityForType } from '@/lib/utils/account-classification';
 
 export interface CreateAccountInput {
   id?: string;
   name: string;
   type: Account['type'];
+  liquidity?: AccountLiquidity | null;
   user_ids: string[];
   group_id: string;
 }
@@ -23,8 +25,15 @@ export interface CreateAccountInput {
 export interface UpdateAccountInput {
   name?: string;
   type?: Account['type'];
+  liquidity?: AccountLiquidity | null;
   user_ids?: string[];
   group_id?: string;
+}
+
+function serializeAccountRow(account: Account): Account {
+  const row = { ...account, balance: Number(account.balance) } as Account;
+  const liquidity = row.liquidity ?? defaultLiquidityForType(row.type);
+  return { ...row, liquidity };
 }
 
 export const getAccountByIdUseCase = async (accountId: string): Promise<Account> => {
@@ -34,7 +43,7 @@ export const getAccountByIdUseCase = async (accountId: string): Promise<Account>
     async () => {
       const account = await AccountsRepository.findById(accountId);
       if (!account) return null;
-      return serialize({ ...account, balance: Number(account.balance) }) as Account;
+      return serialize(serializeAccountRow(account));
     },
     accountCacheKeys.byId(accountId),
     cacheOptions.account(accountId)
@@ -51,7 +60,7 @@ export const getAccountsByUserUseCase = async (userId: string): Promise<Account[
   const getCachedAccounts = cached(
     async () => {
       const accounts = await AccountsRepository.findByUser(userId);
-      return serialize(accounts.map((a) => ({ ...a, balance: Number(a.balance) }))) as Account[];
+      return serialize(accounts.map((a) => serializeAccountRow(a)));
     },
     accountCacheKeys.byUser(userId),
     cacheOptions.accountsByUser(userId)
@@ -66,7 +75,7 @@ export const getAccountsByGroupUseCase = async (groupId: string): Promise<Accoun
   const getCachedAccounts = cached(
     async () => {
       const accounts = await AccountsRepository.findByGroup(groupId);
-      return serialize(accounts.map((a) => ({ ...a, balance: Number(a.balance) }))) as Account[];
+      return serialize(accounts.map((a) => serializeAccountRow(a)));
     },
     accountCacheKeys.byGroup(groupId),
     cacheOptions.accountsByGroup(groupId)
@@ -105,10 +114,13 @@ export const createAccountUseCase = async (data: CreateAccountInput): Promise<Ac
 
   const now = new Date();
 
+  const liquidity = data.liquidity ?? defaultLiquidityForType(data.type);
+
   const account = await AccountsRepository.create({
     ...(data.id !== undefined && { id: data.id }),
     name,
     type: data.type,
+    liquidity,
     user_ids: data.user_ids,
     group_id: data.group_id,
     created_at: now,
@@ -123,7 +135,7 @@ export const createAccountUseCase = async (data: CreateAccountInput): Promise<Ac
     userIds: data.user_ids,
   });
 
-  return serialize(account);
+  return serialize(serializeAccountRow(account));
 };
 
 export const updateAccountUseCase = async (
@@ -132,7 +144,12 @@ export const updateAccountUseCase = async (
 ): Promise<Account> => {
   validateId(accountId, 'Account ID');
 
-  const account = await AccountsRepository.update(accountId, data);
+  const updatePayload: Parameters<typeof AccountsRepository.update>[1] = { ...data };
+  if (data.type !== undefined && data.liquidity === undefined) {
+    updatePayload.liquidity = defaultLiquidityForType(data.type);
+  }
+
+  const account = await AccountsRepository.update(accountId, updatePayload);
 
   if (!account) throw new Error('Failed to update account');
 
@@ -142,7 +159,7 @@ export const updateAccountUseCase = async (
     userIds: account.user_ids,
   });
 
-  return serialize(account);
+  return serialize(serializeAccountRow(account));
 };
 
 export const deleteAccountUseCase = async (accountId: string): Promise<boolean> => {

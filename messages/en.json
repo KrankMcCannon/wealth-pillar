@@ -393,6 +393,9 @@
       "netFlow": "Net flow",
       "income": "Income",
       "expense": "Expense",
+      "savedThisPeriod": "Saved this period",
+      "spendableBalance": "Available to spend",
+      "reserveBalance": "Savings & reserve",
       "noComparison": "Not enough history to compare.",
       "vsLastMonth": "vs last month",
       "vsLastWeek": "vs last week",
@@ -1111,6 +1114,9 @@
     "Home": {
       "addAccount": "Add Account",
       "totalBalanceLabel": "Total Balance",
+      "spendableBalanceLabel": "Available to spend",
+      "reserveBalanceLabel": "Savings & reserve",
+      "savedThisPeriod": "Saved this period",
       "accountCount": "{count} {count, plural, one {Account} other {Accounts}}"
     },
     "Content": {
@@ -1125,6 +1131,8 @@
       "sectionListSubtitle": "Tap a row to edit. You can delete an account from the edit screen.",
       "addAccountCta": "Add account",
       "totalBalanceLabel": "Total Balance",
+      "spendableBalanceLabel": "Available to spend",
+      "reserveBalanceLabel": "Savings & reserve",
       "stats": {
         "total": "Total",
         "positive": "Positive",
@@ -1156,6 +1164,10 @@
         "savings": "Savings Account",
         "cash": "Cash",
         "investments": "Investments"
+      },
+      "liquidity": {
+        "spendable": "Spendable",
+        "reserve": "Reserve"
       }
     },
     "FormModal": {
@@ -1185,6 +1197,12 @@
         "type": {
           "label": "Account Type",
           "placeholder": "Select type"
+        },
+        "liquidity": {
+          "label": "Liquidity role",
+          "placeholder": "Select role",
+          "spendable": "Spendable (daily use)",
+          "reserve": "Reserve (savings)"
         },
         "owner": {
           "label": "Owner",

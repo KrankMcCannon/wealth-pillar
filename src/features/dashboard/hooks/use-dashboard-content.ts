@@ -10,6 +10,7 @@ import { calculateDisplayedAccounts } from './dashboard-helpers';
 import type { Account, BudgetPeriod, User } from '@/lib/types';
 import type { RecurringTransactionSeries } from '@/lib';
 import type { DashboardBalanceViewModel } from '@/server/use-cases/accounts/account.logic';
+import type { NetSavingsResult } from '@/server/use-cases/shared/savings.logic';
 import { useRouter } from '@/i18n/routing';
 
 export interface UseDashboardContentParams {
@@ -20,6 +21,8 @@ export interface UseDashboardContentParams {
   budgetPeriods: Record<string, BudgetPeriod | null>;
   recurringSeries: RecurringTransactionSeries[];
   balanceViewModel: DashboardBalanceViewModel;
+  netSavingsAll: NetSavingsResult;
+  netSavingsByUserId: Record<string, NetSavingsResult>;
 }
 
 export interface UseDashboardContentReturn {
@@ -28,7 +31,10 @@ export interface UseDashboardContentReturn {
   selectedGroupFilter: string;
   effectiveUserId: string;
   displayedDefaultAccounts: Account[];
+  spendableBalance: number;
+  reserveBalance: number;
   totalBalance: number;
+  netSavings: NetSavingsResult;
   handleCreateRecurringSeries: () => void;
   handleOpenRecurringTab: () => void;
 }
@@ -39,6 +45,8 @@ export function useDashboardContent({
   accounts,
   accountBalances,
   balanceViewModel,
+  netSavingsAll,
+  netSavingsByUserId,
 }: UseDashboardContentParams): UseDashboardContentReturn {
   const router = useRouter();
   const { selectedGroupFilter, selectedUserId } = useUserFilter();
@@ -60,12 +68,33 @@ export function useDashboardContent({
     );
   }, [selectedUserId, accounts, groupUsers, accountBalances, isMember, currentUser]);
 
+  const spendableBalance = useMemo(() => {
+    if (selectedUserId) {
+      return balanceViewModel.spendableByUserId[selectedUserId] ?? 0;
+    }
+    return balanceViewModel.spendableBalanceAll;
+  }, [selectedUserId, balanceViewModel]);
+
+  const reserveBalance = useMemo(() => {
+    if (selectedUserId) {
+      return balanceViewModel.reserveByUserId[selectedUserId] ?? 0;
+    }
+    return balanceViewModel.reserveBalanceAll;
+  }, [selectedUserId, balanceViewModel]);
+
   const totalBalance = useMemo(() => {
     if (selectedUserId) {
       return balanceViewModel.totalBalanceByUserId[selectedUserId] ?? 0;
     }
     return balanceViewModel.totalBalanceAll;
   }, [selectedUserId, balanceViewModel]);
+
+  const netSavings = useMemo(() => {
+    if (selectedUserId) {
+      return netSavingsByUserId[selectedUserId] ?? netSavingsAll;
+    }
+    return netSavingsAll;
+  }, [selectedUserId, netSavingsAll, netSavingsByUserId]);
 
   const handleCreateRecurringSeries = useCallback(() => {
     openModal('recurring');
@@ -81,7 +110,10 @@ export function useDashboardContent({
     selectedGroupFilter,
     effectiveUserId,
     displayedDefaultAccounts,
+    spendableBalance,
+    reserveBalance,
     totalBalance,
+    netSavings,
     handleCreateRecurringSeries,
     handleOpenRecurringTab,
   };

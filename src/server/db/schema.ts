@@ -47,6 +47,7 @@ export const accounts = pgTable('accounts', {
   id: uuid('id').primaryKey().defaultRandom(),
   name: text('name'),
   type: text('type'), // payroll, savings, cash, investments
+  liquidity: text('liquidity'), // spendable, reserve (nullable; resolver derives from type)
   group_id: uuid('group_id'), // .references(() => groups.id)
   user_ids: uuid('user_ids').array().default([]),
   balance: numeric('balance').default('0'),

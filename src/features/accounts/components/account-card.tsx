@@ -6,6 +6,7 @@ import { Building2 } from 'lucide-react';
 import { formatCurrency, truncateText, cn } from '@/lib/utils';
 import type { Account } from '@/lib/types';
 import { AccountTypeMap } from '@/lib/types';
+import { resolveAccountLiquidity } from '@/lib/utils/account-classification';
 import { RowCard } from '@/components/ui/layout/row-card';
 import { stitchAccounts, stitchHome } from '@/styles/home-design-foundation';
 import { cardStyles } from '@/components/cards/theme/card-styles';
@@ -49,6 +50,9 @@ export const AccountCard = memo(function AccountCard({
     cash: t('accountTypes.cash'),
     investments: t('accountTypes.investments'),
   };
+  const liquidity = resolveAccountLiquidity(account);
+  const liquidityLabel = t(`liquidity.${liquidity}`);
+  const subtitle = `${accountTypeLabels[account.type] || AccountTypeMap[account.type] || account.type} · ${liquidityLabel}`;
 
   const interactiveAriaLabel =
     onClick !== undefined
@@ -72,7 +76,7 @@ export const AccountCard = memo(function AccountCard({
         : {})}
       iconColor="primary"
       title={balancePresentation === 'dashboard' ? account.name : truncateText(account.name, 20)}
-      subtitle={accountTypeLabels[account.type] || AccountTypeMap[account.type] || account.type}
+      subtitle={subtitle}
       primaryValue={primaryValue}
       secondaryValue={secondaryValue}
       amountVariant={amountVariant}

@@ -5,11 +5,15 @@ import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
 import { stitchReports } from '@/styles/home-design-foundation';
 import { useFormatCurrency } from '@/features/reports/hooks/use-format-currency';
+import type { NetSavingsResult } from '@/server/use-cases/shared/savings.logic';
 
 interface ReportsHeroProps {
   netFlow: number;
   income: number;
   expenses: number;
+  totalSpendable?: number;
+  totalReserve?: number;
+  netSavings?: NetSavingsResult;
   /** Delta vs previous window; `null` = no data to compare. Ignored when `omitComparison`. */
   comparisonPercent?: number | null;
   comparisonLabel?: string;
@@ -21,6 +25,9 @@ export function ReportsHero({
   netFlow,
   income,
   expenses,
+  totalSpendable,
+  totalReserve,
+  netSavings,
   comparisonPercent,
   comparisonLabel,
   omitComparison = false,
@@ -75,6 +82,27 @@ export function ReportsHero({
         <p className={stitchReports.heroEyebrow}>{t('expense')}</p>
         <p className={stitchReports.heroSmallAmount}>{formatMoney(expenses)}</p>
       </div>
+      {totalSpendable !== undefined ? (
+        <div className={stitchReports.heroSmallCard}>
+          <p className={stitchReports.heroEyebrow}>{t('spendableBalance')}</p>
+          <p className={stitchReports.heroSmallAmount}>{formatMoney(totalSpendable)}</p>
+        </div>
+      ) : null}
+      {totalReserve !== undefined ? (
+        <div className={stitchReports.heroSmallCard}>
+          <p className={stitchReports.heroEyebrow}>{t('reserveBalance')}</p>
+          <p className={stitchReports.heroSmallAmount}>{formatMoney(totalReserve)}</p>
+        </div>
+      ) : null}
+      {netSavings !== undefined ? (
+        <div className={`${stitchReports.heroSmallCard} col-span-2`}>
+          <p className={stitchReports.heroEyebrow}>{t('savedThisPeriod')}</p>
+          <p className={stitchReports.heroSmallAmount}>
+            {netSavings.net >= 0 ? '+' : ''}
+            {formatMoney(netSavings.net)}
+          </p>
+        </div>
+      ) : null}
     </section>
   );
 }

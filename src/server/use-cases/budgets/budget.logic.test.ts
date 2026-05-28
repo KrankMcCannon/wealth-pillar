@@ -67,6 +67,14 @@ describe('effectiveSpentFromTransactions', () => {
     ]);
     expect(spent).toBe(150);
   });
+
+  it('ignores transfers (not counted as spent)', () => {
+    const spent = effectiveSpentFromTransactions([
+      tx({ amount: 200, type: 'expense' }),
+      tx({ amount: 100, type: 'transfer', to_account_id: 'acc-2' }),
+    ]);
+    expect(spent).toBe(200);
+  });
 });
 
 describe('resolveEffectivePeriod', () => {

@@ -2,6 +2,14 @@ import type { Database, Json } from './database.types';
 
 export type RoleType = 'superadmin' | 'admin' | 'member';
 export type AccountType = 'payroll' | 'savings' | 'cash' | 'investments';
+export type AccountLiquidity = 'spendable' | 'reserve';
+
+export const DEFAULT_LIQUIDITY_BY_TYPE: Record<AccountType, AccountLiquidity> = {
+  payroll: 'spendable',
+  cash: 'spendable',
+  savings: 'reserve',
+  investments: 'reserve',
+};
 export type TransactionType = 'income' | 'expense' | 'transfer';
 export type TransactionFrequencyType = 'once' | 'weekly' | 'biweekly' | 'monthly' | 'yearly';
 export type BudgetType = 'monthly' | 'annually';
@@ -77,6 +85,7 @@ export interface Account {
   id: string;
   name: string;
   type: AccountType;
+  liquidity?: AccountLiquidity | null;
   user_ids: string[];
   group_id: string;
   balance?: number; // Added for performance optimization

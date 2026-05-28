@@ -69,8 +69,9 @@ export function buildBudgetChartViewModel(
         return dtB.toMillis() - dtA.toMillis();
       }),
       total: txs.reduce((sum, tx) => {
-        const signed = tx.type === 'income' ? -tx.amount : tx.amount;
-        return sum + signed;
+        if (tx.type === 'income') return sum - tx.amount;
+        if (tx.type === 'expense') return sum + tx.amount;
+        return sum;
       }, 0),
     }));
 
@@ -103,6 +104,7 @@ function buildCumulativeChartPoints(
 
   const dailySpending: Record<string, number> = {};
   for (const tx of periodTransactions) {
+    if (tx.type === 'transfer') continue;
     const dateKey = toDateString(tx.date);
     const amount = tx.type === 'income' ? -tx.amount : tx.amount;
     dailySpending[dateKey] = (dailySpending[dateKey] || 0) + amount;

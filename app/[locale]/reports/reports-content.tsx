@@ -121,6 +121,9 @@ export default function ReportsContent({
                 netFlow={group.netFlow}
                 income={group.income}
                 expenses={group.expenses}
+                totalSpendable={group.totalSpendable}
+                totalReserve={group.totalReserve}
+                netSavings={group.netSavings}
                 comparisonPercent={group.comparisonPercent}
                 comparisonLabel={comparisonLabel}
               />
@@ -173,6 +176,9 @@ export default function ReportsContent({
                     netFlow={member.netFlow}
                     income={member.income}
                     expenses={member.expenses}
+                    totalSpendable={member.totalSpendable}
+                    totalReserve={member.totalReserve}
+                    netSavings={member.netSavings}
                     omitComparison
                   />
                   <TopExpensesRanking items={member.topExpenses} />

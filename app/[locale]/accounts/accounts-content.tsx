@@ -148,19 +148,37 @@ export default function AccountsContent({
             </div>
           </div>
 
-          <div className="mt-3">
-            <p className={stitchHome.sectionEyebrow}>{t('totalBalanceLabel')}</p>
-            <Amount
-              type={balancePositive ? 'income' : 'expense'}
-              emphasis="strong"
-              currency
-              className={cn(
-                balancePositive ? stitchHome.balanceHero : stitchHome.balanceHeroNegative,
-                'mt-1 block'
-              )}
-            >
-              {Math.abs(accountStats.totalBalance)}
-            </Amount>
+          <div className="mt-3 space-y-3">
+            <div>
+              <p className={stitchHome.sectionEyebrow}>{t('spendableBalanceLabel')}</p>
+              <Amount
+                type={accountStats.spendableBalance >= 0 ? 'income' : 'expense'}
+                emphasis="strong"
+                currency
+                className={cn(
+                  accountStats.spendableBalance >= 0
+                    ? stitchHome.balanceHero
+                    : stitchHome.balanceHeroNegative,
+                  'mt-1 block'
+                )}
+              >
+                {Math.abs(accountStats.spendableBalance)}
+              </Amount>
+            </div>
+            <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+              <span>
+                {t('reserveBalanceLabel')}:{' '}
+                <Amount type="balance" size="sm" className="inline">
+                  {accountStats.reserveBalance}
+                </Amount>
+              </span>
+              <span>
+                {t('totalBalanceLabel')}:{' '}
+                <Amount type={balancePositive ? 'income' : 'expense'} size="sm" className="inline">
+                  {Math.abs(accountStats.totalBalance)}
+                </Amount>
+              </span>
+            </div>
           </div>
 
           {showBalanceBreakdown ? (

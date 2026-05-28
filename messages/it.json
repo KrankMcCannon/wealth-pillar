@@ -393,6 +393,9 @@
       "netFlow": "Flusso netto",
       "income": "Entrate",
       "expense": "Uscite",
+      "savedThisPeriod": "Risparmiato nel periodo",
+      "spendableBalance": "Disponibilità",
+      "reserveBalance": "Risparmi e riserve",
       "noComparison": "Storico insufficiente per il confronto.",
       "vsLastMonth": "rispetto al mese scorso",
       "vsLastWeek": "rispetto alla settimana scorsa",
@@ -1111,6 +1114,9 @@
     "Home": {
       "addAccount": "Aggiungi Account",
       "totalBalanceLabel": "Saldo Totale",
+      "spendableBalanceLabel": "Disponibilità",
+      "reserveBalanceLabel": "Risparmi e riserve",
+      "savedThisPeriod": "Risparmiato nel periodo",
       "accountCount": "{count} {count, plural, one {Conto} other {Conti}}"
     },
     "Content": {
@@ -1125,6 +1131,8 @@
       "sectionListSubtitle": "Tocca una riga per modificare. Puoi eliminare un conto dalla schermata di modifica.",
       "addAccountCta": "Aggiungi conto",
       "totalBalanceLabel": "Saldo Totale",
+      "spendableBalanceLabel": "Disponibilità",
+      "reserveBalanceLabel": "Risparmi e riserve",
       "stats": {
         "total": "Totale",
         "positive": "Positivi",
@@ -1156,6 +1164,10 @@
         "savings": "Conto Risparmio",
         "cash": "Contanti",
         "investments": "Investimenti"
+      },
+      "liquidity": {
+        "spendable": "Spendibile",
+        "reserve": "Riserva"
       }
     },
     "FormModal": {
@@ -1185,6 +1197,12 @@
         "type": {
           "label": "Tipo Account",
           "placeholder": "Seleziona tipo"
+        },
+        "liquidity": {
+          "label": "Ruolo liquidità",
+          "placeholder": "Seleziona ruolo",
+          "spendable": "Spendibile (uso quotidiano)",
+          "reserve": "Riserva (risparmi)"
         },
         "owner": {
           "label": "Proprietario",

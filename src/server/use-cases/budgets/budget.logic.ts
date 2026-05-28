@@ -56,7 +56,10 @@ export function effectiveSpentFromTransactions(transactions: Transaction[]): num
     if (t.type === 'income') {
       return sum - t.amount;
     }
-    return sum + t.amount;
+    if (t.type === 'expense') {
+      return sum + t.amount;
+    }
+    return sum;
   }, 0);
   return Math.max(0, spent);
 }

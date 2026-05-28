@@ -8,6 +8,7 @@ export interface Database {
           id: string;
           name: string;
           type: string;
+          liquidity: string | null;
           user_ids: string[];
           group_id: string;
           balance: number;
@@ -18,6 +19,7 @@ export interface Database {
           id?: string;
           name: string;
           type: string;
+          liquidity?: string | null;
           user_ids?: string[];
           group_id: string;
           created_at?: string | null;
@@ -27,6 +29,7 @@ export interface Database {
           id?: string;
           name?: string;
           type?: string;
+          liquidity?: string | null;
           user_ids?: string[];
           group_id?: string;
           balance?: number;

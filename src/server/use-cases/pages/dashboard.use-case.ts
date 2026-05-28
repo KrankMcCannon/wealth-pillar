@@ -13,6 +13,9 @@ import {
   computeDashboardBalanceViewModel,
   type DashboardBalanceViewModel,
 } from '../accounts/account.logic';
+import { parsePeriodDates } from '../shared/period.logic';
+import { computeNetSavings, type NetSavingsResult } from '../shared/savings.logic';
+import { roundMoney } from '@/lib/utils/money';
 import { getPortfolioUseCase, type PortfolioResult } from '../investments/investment.use-cases';
 import type {
   Account,
@@ -62,6 +65,37 @@ export interface DashboardPageData {
   budgetsByUser: Record<string, UserBudgetSummary>;
   investments: Record<string, PortfolioResult | null>;
   balanceViewModel: DashboardBalanceViewModel;
+  netSavingsAll: NetSavingsResult;
+  netSavingsByUserId: Record<string, NetSavingsResult>;
+}
+
+function buildNetSavingsForUsers(
+  transactions: Transaction[],
+  accounts: Account[],
+  budgetPeriods: Record<string, BudgetPeriod | null>,
+  userIds: string[]
+): { netSavingsAll: NetSavingsResult; netSavingsByUserId: Record<string, NetSavingsResult> } {
+  const netSavingsByUserId: Record<string, NetSavingsResult> = {};
+  let deposits = 0;
+  let withdrawals = 0;
+
+  for (const userId of userIds) {
+    const [start, end] = parsePeriodDates(budgetPeriods[userId]);
+    const window = { start: start.toJSDate(), end: end.toJSDate() };
+    const result = computeNetSavings(transactions, accounts, window, userId);
+    netSavingsByUserId[userId] = result;
+    deposits += result.deposits;
+    withdrawals += result.withdrawals;
+  }
+
+  return {
+    netSavingsByUserId,
+    netSavingsAll: {
+      deposits: roundMoney(deposits),
+      withdrawals: roundMoney(withdrawals),
+      net: roundMoney(deposits - withdrawals),
+    },
+  };
 }
 
 export interface GetDashboardPageDataOptions {
@@ -143,12 +177,12 @@ async function getCachedDashboardPageData(
       accountBalances[a.id] = Number(a.balance) || 0;
     });
 
-    const sharedSavings = accounts.find((a) => a.type === 'savings' && a.user_ids.length > 1);
-    const balanceViewModel = computeDashboardBalanceViewModel(
+    const balanceViewModel = computeDashboardBalanceViewModel(accounts, accountBalances, userIds);
+    const { netSavingsAll, netSavingsByUserId } = buildNetSavingsForUsers(
+      transactionResult.data,
       accounts,
-      accountBalances,
-      userIds,
-      sharedSavings?.id
+      budgetPeriods,
+      userIds
     );
 
     return {
@@ -161,6 +195,8 @@ async function getCachedDashboardPageData(
       budgetsByUser,
       investments,
       balanceViewModel,
+      netSavingsAll,
+      netSavingsByUserId,
     };
   }
 
@@ -223,12 +259,12 @@ async function getCachedDashboardPageData(
     accountBalances[a.id] = Number(a.balance) || 0;
   });
 
-  const sharedSavings = accounts.find((a) => a.type === 'savings' && a.user_ids.length > 1);
-  const balanceViewModel = computeDashboardBalanceViewModel(
+  const balanceViewModel = computeDashboardBalanceViewModel(accounts, accountBalances, userIds);
+  const { netSavingsAll, netSavingsByUserId } = buildNetSavingsForUsers(
+    transactionResult.data,
     accounts,
-    accountBalances,
-    userIds,
-    sharedSavings?.id
+    budgetPeriods,
+    userIds
   );
 
   return {
@@ -241,5 +277,7 @@ async function getCachedDashboardPageData(
     budgetsByUser,
     investments,
     balanceViewModel,
+    netSavingsAll,
+    netSavingsByUserId,
   };
 }

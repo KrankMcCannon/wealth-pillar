@@ -3,7 +3,8 @@
 import { useCallback, useMemo } from 'react';
 import { z } from 'zod';
 import { useLocale, useTranslations } from 'next-intl';
-import type { Account } from '@/lib/types';
+import type { Account, AccountLiquidity } from '@/lib/types';
+import { resolveAccountLiquidity } from '@/lib/utils/account-classification';
 import { getTempId } from '@/lib/utils/temp-id';
 import { createAccountAction, updateAccountAction, deleteAccountAction } from '@/features/accounts';
 import {
@@ -27,6 +28,7 @@ interface AccountFormModalProps {
 type AccountPayload = {
   name: string;
   type: Account['type'];
+  liquidity: AccountLiquidity;
   user_ids: string[];
   isDefault: boolean;
 };
@@ -53,6 +55,7 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
       z.object({
         name: z.string().min(1, t('validation.nameRequired')).trim(),
         type: z.enum(['payroll', 'cash', 'investments', 'savings']),
+        liquidity: z.enum(['spendable', 'reserve']),
         user_id: z.string().min(1, t('validation.userRequired')),
         isDefault: z.boolean().optional(),
       }),
@@ -63,6 +66,7 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
     (): AccountFormData => ({
       name: '',
       type: 'payroll',
+      liquidity: 'spendable',
       user_id: defaultFormUserId || currentUser.id,
       isDefault: false,
     }),
@@ -76,6 +80,7 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
       return {
         name: account.name,
         type: account.type,
+        liquidity: resolveAccountLiquidity(account),
         user_id: account.user_ids[0] || currentUser.id,
         isDefault: currentUser.default_account_id === account.id,
       };
@@ -101,6 +106,7 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
     (data: AccountFormData): AccountPayload => ({
       name: data.name.trim(),
       type: data.type,
+      liquidity: data.liquidity,
       user_ids: [data.user_id],
       isDefault: data.isDefault || false,
     }),
@@ -117,6 +123,7 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
         updated_at: now,
         name: payload.name,
         type: payload.type,
+        liquidity: payload.liquidity,
         user_ids: payload.user_ids,
         group_id: groupId,
       };
@@ -152,6 +159,7 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
       updateAccount(id, {
         name: payload.name,
         type: payload.type,
+        liquidity: payload.liquidity,
         user_ids: payload.user_ids,
       });
       return { originalAccount, id };
@@ -207,6 +215,7 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
           id: crypto.randomUUID(),
           name: payload.name,
           type: payload.type,
+          liquidity: payload.liquidity,
           user_ids: payload.user_ids,
           group_id: groupId,
         },
@@ -216,7 +225,12 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
     updateAction: (id, payload) =>
       updateAccountAction(
         id,
-        { name: payload.name, type: payload.type, user_ids: payload.user_ids },
+        {
+          name: payload.name,
+          type: payload.type,
+          liquidity: payload.liquidity,
+          user_ids: payload.user_ids,
+        },
         payload.isDefault,
         locale
       ),
