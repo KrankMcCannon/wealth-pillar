@@ -4,7 +4,7 @@ import { useId, memo, useState, useMemo, useCallback, useEffect, useRef } from '
 import { useLocale, useTranslations } from 'next-intl';
 import { TrendingUp, ArrowUpRight } from 'lucide-react';
 import { TransactionPagination } from '@/features/transactions';
-import type { PageSizeOption } from '@/features/transactions/hooks/use-paginated-transactions';
+import type { PageSizeOption } from '@/features/transactions/hooks/use-transactions-content';
 import { useModalState } from '@/lib/navigation/url-state';
 import { Button } from '@/components/ui/button';
 import type { Investment } from './personal-investment-tab';

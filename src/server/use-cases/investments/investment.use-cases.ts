@@ -39,9 +39,15 @@ export interface PortfolioSummary {
   totalReturnPercent: number;
 }
 
+export interface AssetAllocationSlice {
+  symbol: string;
+  value: number;
+}
+
 export interface PortfolioResult {
   investments: EnrichedInvestment[];
   summary: PortfolioSummary;
+  assetAllocation: AssetAllocationSlice[];
 }
 
 export async function getPortfolioUseCase(userId: string): Promise<PortfolioResult> {
@@ -98,6 +104,15 @@ export async function getPortfolioUseCase(userId: string): Promise<PortfolioResu
   const totalReturn = totalCurrentValue - totalPaid;
   const totalReturnPercent = totalPaid > 0 ? (totalReturn / totalPaid) * 100 : 0;
 
+  const allocationMap = new Map<string, number>();
+  for (const inv of enrichedInvestments) {
+    const key = inv.symbol.toUpperCase();
+    allocationMap.set(key, (allocationMap.get(key) || 0) + inv.currentValue);
+  }
+  const assetAllocation = [...allocationMap.entries()]
+    .map(([symbol, value]) => ({ symbol, value }))
+    .sort((a, b) => b.value - a.value);
+
   return {
     investments: enrichedInvestments,
     summary: {
@@ -109,6 +124,7 @@ export async function getPortfolioUseCase(userId: string): Promise<PortfolioResu
       totalReturn,
       totalReturnPercent,
     },
+    assetAllocation,
   };
 }
 

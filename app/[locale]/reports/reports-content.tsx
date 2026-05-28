@@ -1,7 +1,8 @@
 'use client';
 
-import { use, useCallback, useMemo, useState } from 'react';
+import { use, useCallback, useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
+import { useRouter, usePathname } from '@/i18n/routing';
 import { AppPage, HomeDashboardMain } from '@/components/layout';
 import { Button } from '@/components/ui';
 import type { ReportsPageData } from '@/server/use-cases/pages/reports-page.use-case';
@@ -13,152 +14,83 @@ import { ReportsHero } from '@/features/reports/components/reports-hero';
 import { TopExpensesRanking } from '@/features/reports/components/top-expenses-ranking';
 import { AccountBreakdownSection } from '@/features/reports/components/account-breakdown-section';
 import { HistoricalBudgetSection } from '@/features/reports/components/historical-budget-section';
-import {
-  computeCategoryStats,
-  computeUserFlows,
-  flowsToAccountTypeSummary,
-  netFlowDeltaPercent,
-  periodOverlapsWindow,
-  sumIncomeExpenseInWindow,
-  type SerializedAccount,
-  type SerializedCategory,
-  type SerializedTransaction,
-} from '@/features/reports/utils/aggregations';
-import {
-  getComparisonReportingWindow,
-  getCurrentReportingWindow,
-  type ReportsTimePreset,
-} from '@/features/reports/utils/reporting-window';
+import type { ReportsTimePreset } from '@/features/reports/utils/reporting-window';
 
 interface ReportsContentProps {
   currentUser: User;
   groupUsers: User[];
   reportsBundlePromise: Promise<ReportsPageData>;
+  initialPreset: ReportsTimePreset;
+  initialCustomStart?: string | undefined;
+  initialCustomEnd?: string | undefined;
+  initialMemberUserId?: string | undefined;
 }
 
 export default function ReportsContent({
   currentUser,
   groupUsers,
   reportsBundlePromise,
+  initialPreset,
+  initialCustomStart,
+  initialCustomEnd,
+  initialMemberUserId,
 }: ReportsContentProps) {
-  const { accountTypeSummary, periodSummaries, transactions, categories, accounts } = use(
-    reportsBundlePromise
-  ) as unknown as ReportsPageData & {
-    transactions: SerializedTransaction[];
-    categories: SerializedCategory[];
-    accounts: SerializedAccount[];
-  };
+  const data = use(reportsBundlePromise);
+  const router = useRouter();
+  const pathname = usePathname();
+  const [isPending, startTransition] = useTransition();
 
   const t = useTranslations('ReportsContent');
   const tHero = useTranslations('Reports.Hero');
-  const [preset, setPreset] = useState<ReportsTimePreset>('monthly');
-  const [customRange, setCustomRange] = useState<{ start: string; end: string } | null>(null);
+
+  const [preset, setPreset] = useState<ReportsTimePreset>(initialPreset);
+  const [customRange, setCustomRange] = useState<{ start: string; end: string } | null>(
+    initialCustomStart && initialCustomEnd
+      ? { start: initialCustomStart, end: initialCustomEnd }
+      : null
+  );
   const [memberOpen, setMemberOpen] = useState(false);
-  const [selectedUserId, setSelectedUserId] = useState<string>(currentUser.id);
-
-  const handlePresetChange = useCallback((p: ReportsTimePreset) => {
-    setPreset(p);
-    if (p !== 'custom') setCustomRange(null);
-  }, []);
-
-  const currentWindow = useMemo(
-    () => getCurrentReportingWindow(preset, customRange),
-    [preset, customRange]
+  const [selectedUserId, setSelectedUserId] = useState<string>(
+    initialMemberUserId ?? data.memberUserId ?? currentUser.id
   );
 
-  const comparisonWindow = useMemo(
-    () => getComparisonReportingWindow(preset, currentWindow),
-    [preset, currentWindow]
+  const pushParams = useCallback(
+    (next: {
+      preset?: ReportsTimePreset;
+      customStart?: string;
+      customEnd?: string;
+      member?: string;
+    }) => {
+      const params = new URLSearchParams();
+      params.set('preset', next.preset ?? preset);
+      if (next.customStart && next.customEnd) {
+        params.set('customStart', next.customStart);
+        params.set('customEnd', next.customEnd);
+      }
+      if (next.member ?? selectedUserId) {
+        params.set('member', next.member ?? selectedUserId);
+      }
+      startTransition(() => {
+        router.push(`${pathname}?${params.toString()}`);
+      });
+    },
+    [pathname, preset, router, selectedUserId]
   );
 
-  const filteredPeriodsAllUsers = useMemo(() => {
-    return periodSummaries
-      .filter((p) => periodOverlapsWindow(p, currentWindow))
-      .sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
-  }, [periodSummaries, currentWindow]);
-
-  const groupTotals = useMemo(
-    () => sumIncomeExpenseInWindow(transactions, currentWindow),
-    [transactions, currentWindow]
+  const handlePresetChange = useCallback(
+    (p: ReportsTimePreset) => {
+      setPreset(p);
+      if (p !== 'custom') {
+        setCustomRange(null);
+        pushParams({ preset: p });
+      }
+    },
+    [pushParams]
   );
 
-  const prevTotals = useMemo(() => {
-    if (!comparisonWindow) return null;
-    return sumIncomeExpenseInWindow(transactions, comparisonWindow);
-  }, [transactions, comparisonWindow]);
+  const comparisonLabel = tHero(data.comparisonLabelKey);
 
-  const groupNet = groupTotals.income - groupTotals.expenses;
-  const prevNet = prevTotals ? prevTotals.income - prevTotals.expenses : null;
-  const comparisonPercent = prevNet !== null ? netFlowDeltaPercent(groupNet, prevNet) : null;
-
-  const comparisonLabel =
-    preset === 'monthly'
-      ? tHero('vsLastMonth')
-      : preset === 'weekly'
-        ? tHero('vsLastWeek')
-        : preset === 'yearly'
-          ? tHero('vsLastYear')
-          : tHero('vsPreviousRange');
-
-  const expenseStats = useMemo(
-    () => computeCategoryStats(transactions, categories, currentWindow),
-    [transactions, categories, currentWindow]
-  );
-
-  const topThree = useMemo(
-    () => expenseStats.slice(0, 3).map((s) => ({ id: s.id, name: s.name, total: s.total })),
-    [expenseStats]
-  );
-
-  const groupTotalWealth = useMemo(
-    () => accountTypeSummary.reduce((s, a) => s + a.totalBalance, 0),
-    [accountTypeSummary]
-  );
-
-  const userFlowSummaries = useMemo(
-    () =>
-      computeUserFlows(
-        transactions,
-        accounts,
-        groupUsers.map((u) => u.id),
-        currentWindow
-      ),
-    [transactions, accounts, groupUsers, currentWindow]
-  );
-
-  const selectedUserFlow = useMemo(
-    () => userFlowSummaries.find((f) => f.userId === selectedUserId),
-    [userFlowSummaries, selectedUserId]
-  );
-
-  const memberTotals = useMemo(
-    () => sumIncomeExpenseInWindow(transactions, currentWindow, selectedUserId),
-    [transactions, currentWindow, selectedUserId]
-  );
-
-  const memberExpenseStats = useMemo(
-    () => computeCategoryStats(transactions, categories, currentWindow, selectedUserId),
-    [transactions, categories, currentWindow, selectedUserId]
-  );
-
-  const memberTopThree = useMemo(
-    () => memberExpenseStats.slice(0, 3).map((s) => ({ id: s.id, name: s.name, total: s.total })),
-    [memberExpenseStats]
-  );
-
-  const memberAccountRows = useMemo(
-    () => (selectedUserFlow ? flowsToAccountTypeSummary(selectedUserFlow.accounts) : []),
-    [selectedUserFlow]
-  );
-
-  const memberTotalWealth = useMemo(
-    () => memberAccountRows.reduce((s, a) => s + a.totalBalance, 0),
-    [memberAccountRows]
-  );
-
-  const memberPeriods = useMemo(() => {
-    return filteredPeriodsAllUsers.filter((p) => p.userId === selectedUserId);
-  }, [filteredPeriodsAllUsers, selectedUserId]);
+  const { group, member } = data;
 
   return (
     <AppPage
@@ -174,24 +106,33 @@ export default function ReportsContent({
             value={preset}
             onChange={handlePresetChange}
             customRange={customRange}
-            onCustomApply={(start, end) => setCustomRange({ start, end })}
+            onCustomApply={(start, end) => {
+              setCustomRange({ start, end });
+              pushParams({ preset: 'custom', customStart: start, customEnd: end });
+            }}
           />
 
-          <HomeDashboardMain id="main-reports">
+          <HomeDashboardMain
+            id="main-reports"
+            {...(isPending ? { className: 'opacity-70 transition-opacity' } : {})}
+          >
             <div className={stitchReports.sectionStack}>
               <ReportsHero
-                netFlow={groupNet}
-                income={groupTotals.income}
-                expenses={groupTotals.expenses}
-                comparisonPercent={comparisonPercent}
+                netFlow={group.netFlow}
+                income={group.income}
+                expenses={group.expenses}
+                comparisonPercent={group.comparisonPercent}
                 comparisonLabel={comparisonLabel}
               />
 
-              <TopExpensesRanking items={topThree} />
+              <TopExpensesRanking items={group.topExpenses} />
 
-              <AccountBreakdownSection rows={accountTypeSummary} totalWealth={groupTotalWealth} />
+              <AccountBreakdownSection
+                rows={group.accountBreakdown}
+                totalWealth={group.totalWealth}
+              />
 
-              <HistoricalBudgetSection periods={filteredPeriodsAllUsers} />
+              <HistoricalBudgetSection periods={data.filteredPeriodsAllUsers} />
             </div>
 
             <div className="mt-6 border-t border-border/25 pt-4">
@@ -222,25 +163,24 @@ export default function ReportsContent({
                     currentUser={currentUser}
                     users={groupUsers}
                     value={selectedUserId}
-                    onChange={setSelectedUserId}
+                    onChange={(id) => {
+                      setSelectedUserId(id);
+                      pushParams({ member: id });
+                    }}
                     showAllOption={false}
                   />
-                  {selectedUserFlow ? (
-                    <>
-                      <ReportsHero
-                        netFlow={memberTotals.income - memberTotals.expenses}
-                        income={memberTotals.income}
-                        expenses={memberTotals.expenses}
-                        omitComparison
-                      />
-                      <TopExpensesRanking items={memberTopThree} />
-                      <AccountBreakdownSection
-                        rows={memberAccountRows}
-                        totalWealth={memberTotalWealth}
-                      />
-                      <HistoricalBudgetSection periods={memberPeriods} />
-                    </>
-                  ) : null}
+                  <ReportsHero
+                    netFlow={member.netFlow}
+                    income={member.income}
+                    expenses={member.expenses}
+                    omitComparison
+                  />
+                  <TopExpensesRanking items={member.topExpenses} />
+                  <AccountBreakdownSection
+                    rows={member.accountBreakdown}
+                    totalWealth={member.totalWealth}
+                  />
+                  <HistoricalBudgetSection periods={data.memberPeriods} />
                 </div>
               ) : null}
             </div>

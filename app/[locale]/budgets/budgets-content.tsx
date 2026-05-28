@@ -46,6 +46,7 @@ export default function BudgetsContent({
     categories = [],
     budgetPeriods = {},
     budgetsByUser = {},
+    chartViewModelsByUser = {},
   } = pageData;
 
   const storeBudgets = useBudgets();
@@ -66,6 +67,7 @@ export default function BudgetsContent({
     currentUser,
     groupUsers,
     precalculatedData: budgetsByUser,
+    chartViewModelsByUser,
   };
 
   const t = useTranslations('Budgets.Page');

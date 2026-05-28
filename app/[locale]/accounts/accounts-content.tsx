@@ -57,6 +57,8 @@ export default function AccountsContent({
     accountBalances,
     currentUser,
     accounts,
+    statsAll: pageData.statsAll,
+    statsByUserId: pageData.statsByUserId,
   });
 
   const showUserPicker =

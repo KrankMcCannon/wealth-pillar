@@ -43,6 +43,7 @@ export default function HomeContent({
     budgetsByUser = {},
     transactions = [],
     categories = [],
+    balanceViewModel = { totalBalanceAll: 0, totalBalanceByUserId: {} },
   } = dashboardData;
 
   const t = useTranslations('HomeContent');
@@ -67,6 +68,7 @@ export default function HomeContent({
     accountBalances,
     budgetPeriods,
     recurringSeries,
+    balanceViewModel,
   });
 
   const showUserPicker =

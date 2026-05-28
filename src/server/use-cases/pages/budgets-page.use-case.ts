@@ -8,6 +8,10 @@ import {
 import { getActiveBudgetPeriodsForUsersUseCase } from '../budget-periods/get-active-budget-periods-for-users.use-case';
 import { getTransactionsByGroupUseCase } from '../transactions/get-transactions.use-case';
 import { buildBudgetsByUserPure } from '../budgets/budget.logic';
+import {
+  buildBudgetChartViewModel,
+  type BudgetChartViewModel,
+} from '../budgets/budget-chart.logic';
 import type {
   Budget,
   Account,
@@ -18,6 +22,7 @@ import type {
   UserBudgetSummary,
 } from '@/lib/types';
 import { toDateTime } from '@/lib/utils/date-utils';
+import { parsePeriodDates } from '../shared/period.logic';
 
 export interface BudgetsPageData {
   budgets: Budget[];
@@ -26,6 +31,7 @@ export interface BudgetsPageData {
   categories: Category[];
   budgetPeriods: Record<string, BudgetPeriod | null>;
   budgetsByUser: Record<string, UserBudgetSummary>;
+  chartViewModelsByUser: Record<string, BudgetChartViewModel>;
 }
 
 async function safeFetch<T>(promise: Promise<T>, fallback: T): Promise<T> {
@@ -106,6 +112,20 @@ export async function getBudgetsPageData(groupId: string): Promise<BudgetsPageDa
     budgetPeriods
   );
 
+  const chartViewModelsByUser: Record<string, BudgetChartViewModel> = {};
+  for (const user of groupUsers) {
+    const userBudgets = budgets.filter((b) => b.user_id === user.id);
+    const [periodStart, periodEnd] = parsePeriodDates(budgetPeriods[user.id]);
+    chartViewModelsByUser[user.id] = buildBudgetChartViewModel(
+      transactionResult.data,
+      userBudgets,
+      user.id,
+      periodStart,
+      periodEnd,
+      budgetsByUser[user.id] ?? null
+    );
+  }
+
   return {
     budgets,
     transactions: transactionResult.data,
@@ -113,5 +133,6 @@ export async function getBudgetsPageData(groupId: string): Promise<BudgetsPageDa
     categories,
     budgetPeriods,
     budgetsByUser,
+    chartViewModelsByUser,
   };
 }

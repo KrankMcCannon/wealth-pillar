@@ -28,7 +28,8 @@ export default function BudgetSummaryContent({
 }: Readonly<BudgetSummaryContentProps>) {
   const t = useTranslations('Budgets.SummaryPage');
 
-  const { categories, budgets, transactions, accounts, budgetsByUser } = pageData;
+  const { categories, budgets, transactions, accounts, budgetsByUser, chartViewModelsByUser } =
+    pageData;
 
   const {
     userSummary,
@@ -40,12 +41,12 @@ export default function BudgetSummaryContent({
     targetUser,
   } = useBudgetSummaryContent({
     categories,
-    budgets,
     transactions,
     accounts,
     currentUser,
     groupUsers,
     precalculatedData: budgetsByUser,
+    chartViewModelsByUser,
   });
 
   return (

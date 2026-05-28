@@ -2,7 +2,6 @@
 
 import { useSearchParams } from 'next/navigation';
 import { usePathname, useRouter } from '@/i18n/routing';
-import { useInvestmentHistory } from '@/features/investments/hooks/use-investment-history';
 import { InvestmentHistoryChart } from './investment-history-chart';
 import { BenchmarkChart } from './benchmark-chart';
 import { InvestmentList } from './investment-list';
@@ -10,6 +9,7 @@ import { investmentsStyles } from '@/features/investments/theme/investments-styl
 import { WealthHeader } from './wealth-header';
 import { AssetAllocationCard } from './asset-allocation-card';
 import { useTranslations } from 'next-intl';
+import type { AssetAllocationSlice } from '@/server/use-cases/investments/investment.use-cases';
 
 export interface Investment {
   id: string;
@@ -40,6 +40,8 @@ interface PersonalInvestmentTabProps {
     totalReturn: number;
     totalReturnPercent: number;
   };
+  assetAllocation: AssetAllocationSlice[];
+  portfolioHistory: { date: string; value: number }[];
   indexData?:
     | Array<{
         datetime?: string | undefined;
@@ -54,6 +56,8 @@ interface PersonalInvestmentTabProps {
 export function PersonalInvestmentTab({
   investments,
   summary,
+  assetAllocation,
+  portfolioHistory,
   indexData,
   currentIndex = 'IVV',
 }: Readonly<PersonalInvestmentTabProps>) {
@@ -72,29 +76,9 @@ export function PersonalInvestmentTab({
     router.replace(`${pathname}?${qs}#${benchmarkAnchorId}`, { scroll: false });
   };
 
-  const calculatedHistory = useInvestmentHistory({
-    investments,
-    indexData,
-    summary,
-    currentIndex,
-  });
-
-  // Group by symbol to aggregate multiple holdings of the same asset
-  const groupedInvestments = investments.reduce(
-    (acc, inv) => {
-      const symbol = inv.symbol || 'OTHER';
-      if (!acc[symbol]) {
-        acc[symbol] = 0;
-      }
-      acc[symbol] += inv.currentValue || 0;
-      return acc;
-    },
-    {} as Record<string, number>
-  );
-
-  const sortedGroups = Object.entries(groupedInvestments)
-    .filter(([_, value]) => value > 0)
-    .map(([symbol, value]) => ({ name: symbol, value }))
+  const sortedGroups = assetAllocation
+    .filter((item) => item.value > 0)
+    .map((item) => ({ name: item.symbol, value: item.value }))
     .sort((a, b) => b.value - a.value);
 
   const top4 = sortedGroups.slice(0, 4);
@@ -128,14 +112,12 @@ export function PersonalInvestmentTab({
         currency="EUR"
       />
 
-      {/* Bento Grid Layer 1 */}
       <div className="grid grid-cols-1 gap-6">
         <AssetAllocationCard data={allocationData} />
       </div>
 
-      {/* Charts section */}
       <div className={investmentsStyles.charts.grid}>
-        <InvestmentHistoryChart data={calculatedHistory} />
+        <InvestmentHistoryChart data={portfolioHistory} />
 
         <BenchmarkChart
           indexData={indexData}

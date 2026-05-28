@@ -6,10 +6,9 @@ import type {
   User,
   BudgetPeriod,
 } from '@/lib/types';
-import { toDateTime } from '@/lib/utils';
-import { DateTime } from 'luxon';
 import type { DateInput } from '@/lib/utils/date-utils';
 import { filterTransactionsByPeriod, filterByCategories } from '../transactions/transaction.logic';
+import { parsePeriodDates } from '../shared/period.logic';
 
 /**
  * Filter transactions that belong to a specific budget
@@ -22,16 +21,13 @@ export function filterTransactionsForBudget(
 ): Transaction[] {
   if (!periodStart) return [];
 
-  // 1. Filter by period using transaction logic
   const periodTransactions = filterTransactionsByPeriod(transactions, periodStart, periodEnd);
-
-  // 2. Filter by budget categories
   return filterByCategories(periodTransactions, budget.categories);
 }
 
 /**
- * Transactions nel periodo che ricadono nell’unione delle categorie di più budget
- * (ogni movimento conta una sola volta — utile per grafici “tutti i budget insieme”).
+ * Transactions nel periodo che ricadono nell'unione delle categorie di più budget
+ * (ogni movimento conta una sola volta — utile per grafici "tutti i budget insieme").
  */
 export function filterTransactionsForBudgetsUnion(
   transactions: Transaction[],
@@ -112,16 +108,18 @@ export function calculateBudgetsWithProgress(
 
 /**
  * Helper to build UserBudgetSummary from computed budget progress.
+ * totalSpent uses deduped union of budget category transactions (no double-count on overlap).
  */
 function buildBudgetSummary(
   user: User,
   budgetProgress: BudgetProgress[],
   activePeriod: BudgetPeriod | null | undefined,
-  periodStart: DateTime | null,
-  periodEnd: DateTime | null
+  periodStart: ReturnType<typeof parsePeriodDates>[0],
+  periodEnd: ReturnType<typeof parsePeriodDates>[1],
+  unionTransactions: Transaction[]
 ): UserBudgetSummary {
   const totalBudget = budgetProgress.reduce((sum, b) => sum + b.amount, 0);
-  const totalSpent = budgetProgress.reduce((sum, b) => sum + b.spent, 0);
+  const totalSpent = effectiveSpentFromTransactions(unionTransactions);
   const totalRemaining = totalBudget - totalSpent;
   const overallPercentage = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
 
@@ -129,26 +127,13 @@ function buildBudgetSummary(
     user,
     budgets: budgetProgress,
     activePeriod: activePeriod || undefined,
-    periodStart: periodStart?.toISO() || null,
-    periodEnd: periodEnd?.toISO() || null,
+    periodStart: periodStart.toISO() || null,
+    periodEnd: periodEnd.toISO() || null,
     totalBudget,
     totalSpent,
     totalRemaining,
     overallPercentage,
   };
-}
-
-/**
- * Parse period dates from an active budget period.
- */
-function parsePeriodDates(
-  activePeriod: BudgetPeriod | null | undefined
-): [DateTime | null, DateTime | null] {
-  const periodStart = activePeriod ? toDateTime(activePeriod.start_date) : null;
-  const periodEnd = activePeriod?.end_date
-    ? (toDateTime(activePeriod.end_date)?.endOf('day') ?? null)
-    : null;
-  return [periodStart, periodEnd];
 }
 
 /**
@@ -158,9 +143,11 @@ export function calculateUserBudgetSummaryPure(
   user: User,
   budgets: Budget[],
   transactions: Transaction[],
-  activePeriod: BudgetPeriod | null | undefined
+  activePeriod: BudgetPeriod | null | undefined,
+  now?: Date
 ): UserBudgetSummary {
-  const [periodStart, periodEnd] = parsePeriodDates(activePeriod);
+  const [periodStart, periodEnd] = parsePeriodDates(activePeriod, now);
+  const validBudgets = budgets.filter((b) => b.amount > 0);
 
   const budgetProgress = calculateBudgetsWithProgress(
     budgets,
@@ -169,57 +156,21 @@ export function calculateUserBudgetSummaryPure(
     periodEnd
   );
 
-  return buildBudgetSummary(user, budgetProgress, activePeriod, periodStart, periodEnd);
-}
+  const unionTransactions = filterTransactionsForBudgetsUnion(
+    transactions,
+    validBudgets,
+    periodStart,
+    periodEnd
+  );
 
-/**
- * Build complete budget summary for a user using AGGREGATED data
- */
-export function calculateUserBudgetSummaryFromAggregation(
-  user: User,
-  budgets: Budget[],
-  spendingData: Array<{ category: string; spent: number; income: number }>,
-  activePeriod: BudgetPeriod | null | undefined
-): UserBudgetSummary {
-  const [periodStart, periodEnd] = parsePeriodDates(activePeriod);
-
-  // Create a map for faster O(1) category lookup
-  const spendingMap = new Map<string, { spent: number; income: number }>();
-  for (const item of spendingData) {
-    spendingMap.set(item.category, { spent: item.spent, income: item.income });
-  }
-
-  // Calculate progress for each valid budget
-  const budgetProgress: BudgetProgress[] = budgets
-    .filter((b) => b.amount > 0)
-    .map((budget) => {
-      // Sum net spending for all categories in this budget
-      let budgetSpent = 0;
-      for (const cat of budget.categories) {
-        const data = spendingMap.get(cat);
-        if (data) {
-          // Net Spent = (Expense + Outgoing Transfer) - Income
-          budgetSpent += data.spent - data.income;
-        }
-      }
-
-      const effectiveSpent = Math.max(0, budgetSpent);
-      const remaining = budget.amount - effectiveSpent;
-      const percentage = budget.amount > 0 ? (effectiveSpent / budget.amount) * 100 : 0;
-
-      return {
-        id: budget.id,
-        description: budget.description,
-        amount: budget.amount,
-        spent: effectiveSpent,
-        remaining,
-        percentage,
-        categories: budget.categories,
-        transactionCount: 0, // Not available from aggregated data
-      };
-    });
-
-  return buildBudgetSummary(user, budgetProgress, activePeriod, periodStart, periodEnd);
+  return buildBudgetSummary(
+    user,
+    budgetProgress,
+    activePeriod,
+    periodStart,
+    periodEnd,
+    unionTransactions
+  );
 }
 
 /**
@@ -229,7 +180,8 @@ export function buildBudgetsByUserPure(
   groupUsers: User[],
   budgets: Budget[],
   transactions: Transaction[],
-  budgetPeriods: Record<string, BudgetPeriod | null>
+  budgetPeriods: Record<string, BudgetPeriod | null>,
+  now?: Date
 ): Record<string, UserBudgetSummary> {
   const budgetsByUserId = new Map<string, Budget[]>();
   for (const budget of budgets) {
@@ -260,7 +212,8 @@ export function buildBudgetsByUserPure(
       user,
       userBudgets,
       userTransactions,
-      activePeriod
+      activePeriod,
+      now
     );
   }
 

@@ -11,6 +11,10 @@ import { getTransactionByIdUseCase } from '@/server/use-cases/transactions/get-t
 import type { CreateTransactionInput } from '@/server/use-cases/transactions/types';
 import { canAccessUserData, isMember } from '@/lib/utils';
 import type { User, Transaction } from '@/lib/types';
+import {
+  createTransactionSchema,
+  updateTransactionSchema,
+} from '@/lib/validation/transaction-schemas';
 
 /**
  * Server Action: Create Transaction
@@ -25,7 +29,12 @@ export async function createTransactionAction(
     const gate = assertCanActOnUser(currentUser as unknown as User, input.user_id ?? undefined);
     if (!gate.ok) return { data: null, error: gate.error };
 
-    const data = await createTransactionUseCase(input);
+    const parsed = createTransactionSchema.safeParse(input);
+    if (!parsed.success) {
+      return { data: null, error: parsed.error.issues[0]?.message ?? 'Invalid input' };
+    }
+
+    const data = await createTransactionUseCase(parsed.data as CreateTransactionInput);
 
     if (data) {
       revalidateTransactionRelatedPaths();
@@ -85,8 +94,12 @@ export async function updateTransactionAction(
       }
     }
 
-    // Call service
-    const data = await updateTransactionUseCase(id, input);
+    const parsed = updateTransactionSchema.safeParse(input);
+    if (!parsed.success) {
+      return { data: null, error: parsed.error.issues[0]?.message ?? 'Invalid input' };
+    }
+
+    const data = await updateTransactionUseCase(id, parsed.data as Partial<CreateTransactionInput>);
 
     if (data) {
       revalidateTransactionRelatedPaths();

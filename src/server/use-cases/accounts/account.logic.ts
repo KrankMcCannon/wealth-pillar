@@ -1,4 +1,5 @@
-import type { Account, Transaction } from '@/lib/types';
+import type { Account } from '@/lib/types';
+import { roundMoney } from '@/lib/utils/money';
 
 /**
  * Get default accounts for users (Pure business logic)
@@ -7,73 +8,94 @@ export function getDefaultAccounts(
   accounts: Account[],
   users: Array<{ id: string; default_account_id?: string | null }>
 ): Account[] {
-  // Get all default account IDs from users (filter out null and undefined)
   const defaultAccountIds = new Set(
     users
       .map((user) => user.default_account_id)
       .filter((id): id is string => id !== null && id !== undefined)
   );
 
-  // Filter accounts to only include default accounts
   return accounts.filter((account) => defaultAccountIds.has(account.id));
 }
 
-/**
- * Calculate aggregated balance from a list of accounts
- * Uses the 'balance' field from the database
- */
-export function calculateAggregatedBalance(accounts: Account[]): number {
-  return accounts.reduce((sum, account) => sum + (account.balance || 0), 0);
+export interface AccountStats {
+  totalBalance: number;
+  totalAccounts: number;
+  positiveAccounts: number;
+  negativeAccounts: number;
+}
+
+export function computeAccountStats(accountBalances: number[]): AccountStats {
+  return accountBalances.reduce(
+    (stats, balance) => {
+      stats.totalBalance += balance;
+      if (balance > 0) stats.positiveAccounts += 1;
+      else if (balance < 0) stats.negativeAccounts += 1;
+      return stats;
+    },
+    {
+      totalBalance: 0,
+      totalAccounts: accountBalances.length,
+      positiveAccounts: 0,
+      negativeAccounts: 0,
+    }
+  );
+}
+
+export interface DashboardBalanceViewModel {
+  totalBalanceAll: number;
+  totalBalanceByUserId: Record<string, number>;
 }
 
 /**
- * Calculate account balance from transactions (Pure business logic)
+ * Precomputes dashboard total balance for "all" and each user (avoids client-side aggregation).
  */
-export function calculateAccountBalance(
-  accountIds: string | Set<string>,
-  transactions: Transaction[]
-): number {
-  const accountSet = typeof accountIds === 'string' ? new Set([accountIds]) : accountIds;
+export function computeDashboardBalanceViewModel(
+  accounts: Account[],
+  accountBalances: Record<string, number>,
+  groupUserIds: string[],
+  sharedSavingsAccountId?: string | null
+): DashboardBalanceViewModel {
+  const totalBalanceAll = roundMoney(
+    Object.values(accountBalances).reduce((sum, bal) => sum + bal, 0)
+  );
 
-  const balance = transactions.reduce((balance, transaction) => {
-    // Check if this transaction involves this account
-    const isSourceAccount = accountSet.has(transaction.account_id);
-    const isDestinationAccount =
-      transaction.to_account_id && accountSet.has(transaction.to_account_id);
-
-    // Skip if transaction doesn't involve this account
-    if (!isSourceAccount && !isDestinationAccount) {
-      return balance;
+  const totalBalanceByUserId: Record<string, number> = {};
+  for (const userId of groupUserIds) {
+    const userAccountIds = accounts.filter((a) => a.user_ids.includes(userId)).map((a) => a.id);
+    let balance = userAccountIds.reduce((sum, id) => sum + (accountBalances[id] || 0), 0);
+    if (sharedSavingsAccountId) {
+      balance += accountBalances[sharedSavingsAccountId] || 0;
     }
+    totalBalanceByUserId[userId] = roundMoney(balance);
+  }
 
-    // Handle transfers (has to_account_id)
-    if (transaction.to_account_id) {
-      if (isSourceAccount && isDestinationAccount) {
-        // Internal transfer within the set: NO NET CHANGE
-        return balance;
-      } else if (isSourceAccount) {
-        // Money leaving this account set
-        return balance - transaction.amount;
-      } else if (isDestinationAccount) {
-        // Money entering this account set
-        return balance + transaction.amount;
-      }
-    }
+  return { totalBalanceAll, totalBalanceByUserId };
+}
 
-    // Handle regular transactions (no to_account_id or not transfer)
-    if (isSourceAccount) {
-      if (transaction.type === 'income') {
-        // Income adds to balance
-        return balance + transaction.amount;
-      } else if (transaction.type === 'expense') {
-        // Expense subtracts from balance
-        return balance - transaction.amount;
-      }
-    }
+/**
+ * Precomputes account stats for filtered account sets (all users + per user).
+ */
+export function computeAccountsStatsViewModel(
+  accounts: Account[],
+  accountBalances: Record<string, number>,
+  groupUserIds: string[]
+): { all: AccountStats; byUserId: Record<string, AccountStats> } {
+  const allBalances = accounts.map((a) => accountBalances[a.id] ?? 0);
+  const byUserId: Record<string, AccountStats> = {};
 
-    return balance;
-  }, 0);
+  for (const userId of groupUserIds) {
+    const balances = accounts
+      .filter((a) => a.user_ids.includes(userId))
+      .map((a) => accountBalances[a.id] ?? 0);
+    byUserId[userId] = {
+      ...computeAccountStats(balances),
+      totalBalance: roundMoney(computeAccountStats(balances).totalBalance),
+    };
+  }
 
-  // Round to 2 decimal places to avoid floating point precision issues
-  return Math.round(balance * 100) / 100;
+  const all = computeAccountStats(allBalances);
+  return {
+    all: { ...all, totalBalance: roundMoney(all.totalBalance) },
+    byUserId,
+  };
 }

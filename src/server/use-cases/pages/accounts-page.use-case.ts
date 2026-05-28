@@ -1,14 +1,20 @@
 import { cacheLife, cacheTag } from 'next/cache';
 import { getAccountsByGroupDeduped } from '@/server/request-cache/services';
+import { computeAccountsStatsViewModel, type AccountStats } from '../accounts/account.logic';
 import type { Account, Transaction } from '@/lib/types';
 
 export interface AccountsPageData {
   accounts: Account[];
   transactions: Transaction[];
   accountBalances: Record<string, number>;
+  statsAll: AccountStats;
+  statsByUserId: Record<string, AccountStats>;
 }
 
-export async function getAccountsPageData(groupId: string): Promise<AccountsPageData> {
+export async function getAccountsPageData(
+  groupId: string,
+  groupUserIds: string[] = []
+): Promise<AccountsPageData> {
   'use cache';
   cacheLife('minutes');
   cacheTag(`group:${groupId}:accounts`);
@@ -21,9 +27,20 @@ export async function getAccountsPageData(groupId: string): Promise<AccountsPage
     accountBalances[account.id] = account.balance ?? 0;
   }
 
+  const userIds =
+    groupUserIds.length > 0 ? groupUserIds : [...new Set(accounts.flatMap((a) => a.user_ids))];
+
+  const { all: statsAll, byUserId: statsByUserId } = computeAccountsStatsViewModel(
+    accounts,
+    accountBalances,
+    userIds
+  );
+
   return {
     accounts,
-    transactions: [], // Not needed for accounts page balance display
+    transactions: [],
     accountBalances,
+    statsAll,
+    statsByUserId,
   };
 }

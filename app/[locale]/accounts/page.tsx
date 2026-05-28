@@ -24,7 +24,10 @@ async function AccountsPageData({
 }>) {
   let pageData;
   try {
-    pageData = await getAccountsPageData(groupId);
+    pageData = await getAccountsPageData(
+      groupId,
+      groupUsers.map((u) => u.id)
+    );
   } catch (err) {
     const t = await getTranslations('Errors');
     throw new Error(t('loadFailedAccounts'), { cause: err });

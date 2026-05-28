@@ -1,8 +1,5 @@
 /**
- * useBudgetsContent Hook
- *
- * Budgets page: target member via `?userId=` (from home); no `?budget=` URL.
- * Selected budget for detail/chart/transactions is client state only.
+ * useBudgetsContent Hook — display-only; budget math precomputed server-side.
  */
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
@@ -12,18 +9,7 @@ import { useBudgetsByUser, useIdNameMap } from '@/hooks';
 import { useModalState } from '@/lib/navigation/url-state';
 import { useUserFilter } from '@/hooks/state/use-user-filter';
 import { canAccessUserData, isAdmin as checkIsAdmin } from '@/lib/utils/permissions';
-import {
-  toDateTime,
-  toDateString,
-  today as luxonToday,
-  formatDateSmart,
-  formatDateShort,
-  diffInDays,
-} from '@/lib/utils/date-utils';
-import {
-  filterTransactionsForBudgetsUnion,
-  effectiveSpentFromTransactions,
-} from '@/server/use-cases/budgets/budget.logic';
+import { toDateTime, formatDateShort } from '@/lib/utils/date-utils';
 import type {
   Category,
   Budget,
@@ -33,13 +19,10 @@ import type {
   User,
   UserBudgetSummary,
 } from '@/lib/types';
+import type { BudgetChartViewModel } from '@/server/use-cases/budgets/budget-chart.logic';
 import type { GroupedTransaction } from '@/features/transactions';
 import type { ChartDataPoint } from '../components/budget-chart';
 import { useRouter } from '@/i18n/routing';
-
-// ============================================================================
-// Types
-// ============================================================================
 
 export interface UseBudgetsContentProps {
   readonly categories: Category[];
@@ -49,7 +32,8 @@ export interface UseBudgetsContentProps {
   readonly budgetPeriods: Record<string, BudgetPeriod | null>;
   readonly currentUser: User;
   readonly groupUsers: User[];
-  readonly precalculatedData?: Record<string, UserBudgetSummary>;
+  readonly precalculatedData: Record<string, UserBudgetSummary>;
+  readonly chartViewModelsByUser: Record<string, BudgetChartViewModel>;
 }
 
 interface PeriodInfo {
@@ -71,46 +55,35 @@ export interface UseBudgetsContentReturn {
   readonly router: ReturnType<typeof useRouter>;
   readonly currentUser: User;
   readonly groupUsers: User[];
-  /** Member whose budgets are shown (from URL or current user). */
   readonly budgetContextUserId: string;
   readonly isAdmin: boolean;
-
   readonly selectedBudget: Budget | null;
   readonly selectedBudgetId: string | null;
   readonly setSelectedBudgetId: (id: string | null) => void;
   readonly selectedBudgetProgress: BudgetProgressData | null;
   readonly userBudgets: Budget[];
   readonly userBudgetSummary: UserBudgetSummary | null;
-
   readonly periodInfo: PeriodInfo | null;
   readonly groupedTransactions: GroupedTransaction[];
-  /** Spesa cumulativa nel periodo su tutti i budget (union categorie), allineata al grafico. */
   readonly chartAggregateSpent: number;
   readonly chartData: ChartDataPoint[] | null;
   readonly transactionSectionSubtitle: string;
   readonly accountNamesMap: Record<string, string>;
   readonly categories: Category[];
-
   readonly handleBudgetSelect: (budgetId: string) => void;
   readonly handleCreateBudget: () => void;
   readonly handleEditBudgetById: (budgetId: string) => void;
-
   readonly openModal: ReturnType<typeof useModalState>['openModal'];
 }
-
-// ============================================================================
-// Hook Implementation
-// ============================================================================
 
 export function useBudgetsContent({
   categories,
   budgets,
-  transactions,
   accounts,
-  budgetPeriods,
   currentUser,
   groupUsers,
   precalculatedData,
+  chartViewModelsByUser,
 }: UseBudgetsContentProps): UseBudgetsContentReturn {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -142,7 +115,6 @@ export function useBudgetsContent({
     [budgets, budgetContextUserId]
   );
 
-  /** Explicit tab/card selection; when null or stale, selection falls back to the first budget. */
   const [userSelectedBudgetId, setUserSelectedBudgetId] = useState<string | null>(null);
 
   const selectedBudgetId = useMemo(() => {
@@ -166,23 +138,10 @@ export function useBudgetsContent({
     return userBudgets[0] || null;
   }, [selectedBudgetId, userBudgets]);
 
-  const budgetContextUser = useMemo(
-    () => groupUsers.find((u) => u.id === budgetContextUserId) || currentUser,
-    [groupUsers, budgetContextUserId, currentUser]
-  );
-
-  const hookGroupUsers = useMemo(() => [budgetContextUser], [budgetContextUser]);
-
-  const { budgetsByUser } = useBudgetsByUser({
-    groupUsers: hookGroupUsers,
-    budgets,
-    transactions,
-    currentUser,
-    selectedUserId: budgetContextUserId,
-    budgetPeriods,
-    precalculatedData,
-  });
+  const { budgetsByUser } = useBudgetsByUser({ precalculatedData });
   const userBudgetSummary = budgetsByUser[budgetContextUserId] ?? null;
+
+  const chartViewModel = chartViewModelsByUser[budgetContextUserId];
 
   const selectedBudgetProgress = useMemo((): BudgetProgressData | null => {
     if (!selectedBudget || !userBudgetSummary) return null;
@@ -209,22 +168,18 @@ export function useBudgetsContent({
 
   const accountNamesMap = useIdNameMap(accounts);
 
-  /** Transazioni del periodo per l’unione delle categorie di tutti i budget (grafico + lista). */
-  const allBudgetsPeriodTransactions = useMemo(() => {
-    if (!periodInfo?.start || userBudgets.length === 0) return [];
+  const chartAggregateSpent = chartViewModel?.chartAggregateSpent ?? 0;
+  const chartData = chartViewModel?.chartData ?? null;
 
-    const periodStart = periodInfo.start ? toDateTime(periodInfo.start) : null;
-    const periodEnd = periodInfo.end ? toDateTime(periodInfo.end) : null;
-
-    const userTransactions = transactions.filter((t) => t.user_id === budgetContextUser.id);
-
-    return filterTransactionsForBudgetsUnion(userTransactions, userBudgets, periodStart, periodEnd);
-  }, [periodInfo, userBudgets, budgetContextUser, transactions]);
-
-  const chartAggregateSpent = useMemo(
-    () => effectiveSpentFromTransactions(allBudgetsPeriodTransactions),
-    [allBudgetsPeriodTransactions]
-  );
+  const groupedTransactions = useMemo((): GroupedTransaction[] => {
+    const groups = chartViewModel?.groupedTransactions ?? [];
+    return groups.map((g) => ({
+      date: g.date,
+      formattedDate: formatDateShort(g.date, locale),
+      transactions: g.transactions,
+      total: g.total,
+    }));
+  }, [chartViewModel, locale]);
 
   const transactionSectionSubtitle = useMemo(() => {
     if (periodInfo?.start) {
@@ -236,82 +191,9 @@ export function useBudgetsContent({
       return `${startFormatted} - ${endFormatted}`;
     }
 
-    const count = allBudgetsPeriodTransactions.length;
+    const count = chartViewModel?.periodTransactions.length ?? 0;
     return t('transactionCount', { count });
-  }, [periodInfo, allBudgetsPeriodTransactions.length, locale, t]);
-
-  const groupedTransactions = useMemo((): GroupedTransaction[] => {
-    if (allBudgetsPeriodTransactions.length === 0) return [];
-
-    const groupedMap: Record<string, Transaction[]> = {};
-    for (const transaction of allBudgetsPeriodTransactions) {
-      const dateKey = toDateString(transaction.date);
-      if (!groupedMap[dateKey]) {
-        groupedMap[dateKey] = [];
-      }
-      groupedMap[dateKey].push(transaction);
-    }
-
-    return Object.entries(groupedMap)
-      .sort(([dateA], [dateB]) => dateB.localeCompare(dateA))
-      .map(([date, txs]) => ({
-        date,
-        formattedDate: formatDateSmart(date, locale),
-        transactions: [...txs].sort((a, b) => {
-          const dtA = toDateTime(a.date);
-          const dtB = toDateTime(b.date);
-          if (!dtA || !dtB) return 0;
-          return dtB.toMillis() - dtA.toMillis();
-        }),
-        total: txs.reduce((sum, tx) => sum + tx.amount, 0),
-      }));
-  }, [allBudgetsPeriodTransactions, locale]);
-
-  const chartData = useMemo((): ChartDataPoint[] | null => {
-    if (!periodInfo?.start || allBudgetsPeriodTransactions.length === 0) return null;
-
-    const startDate = toDateTime(periodInfo.start);
-    const endDate = periodInfo.end ? toDateTime(periodInfo.end) : luxonToday();
-    const today = luxonToday();
-
-    if (!startDate || !endDate) return null;
-
-    const totalDays = diffInDays(startDate, endDate);
-    if (totalDays <= 0) return null;
-
-    const dailySpending: Record<string, number> = {};
-    for (const tx of allBudgetsPeriodTransactions) {
-      const dateKey = toDateString(tx.date);
-      const amount = tx.type === 'income' ? -tx.amount : tx.amount;
-      dailySpending[dateKey] = (dailySpending[dateKey] || 0) + amount;
-    }
-
-    const points: ChartDataPoint[] = [];
-    let cumulative = 0;
-    const maxAmount = Math.max(1, userBudgetSummary?.totalBudget ?? 1);
-    const daysDenominator = Math.max(1, totalDays - 1);
-
-    for (let i = 0; i < totalDays; i++) {
-      const currentDate = startDate.plus({ days: i });
-      const dateKey = toDateString(currentDate);
-
-      cumulative += dailySpending[dateKey] || 0;
-      const isFuture = currentDate > today;
-
-      const x = (i / daysDenominator) * 350;
-      const y = 180 - (cumulative / maxAmount) * 150;
-
-      points.push({
-        x: Math.max(0, x),
-        y: Math.max(0, Math.min(180, y)),
-        amount: cumulative,
-        date: dateKey,
-        isFuture,
-      });
-    }
-
-    return points;
-  }, [periodInfo, allBudgetsPeriodTransactions, userBudgetSummary?.totalBudget]);
+  }, [periodInfo, chartViewModel, locale, t]);
 
   const handleBudgetSelect = useCallback((budgetId: string) => {
     setUserSelectedBudgetId(budgetId);

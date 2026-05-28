@@ -9,6 +9,10 @@ import {
 import { getTransactionsByGroupUseCase } from '../transactions/get-transactions.use-case';
 import { getBudgetsByGroupUseCase } from '../budgets/get-budgets.use-case';
 import { buildBudgetsByUserPure } from '../budgets/budget.logic';
+import {
+  computeDashboardBalanceViewModel,
+  type DashboardBalanceViewModel,
+} from '../accounts/account.logic';
 import { getPortfolioUseCase, type PortfolioResult } from '../investments/investment.use-cases';
 import type {
   Account,
@@ -57,6 +61,7 @@ export interface DashboardPageData {
   accountBalances: Record<string, number>;
   budgetsByUser: Record<string, UserBudgetSummary>;
   investments: Record<string, PortfolioResult | null>;
+  balanceViewModel: DashboardBalanceViewModel;
 }
 
 export interface GetDashboardPageDataOptions {
@@ -138,6 +143,14 @@ async function getCachedDashboardPageData(
       accountBalances[a.id] = Number(a.balance) || 0;
     });
 
+    const sharedSavings = accounts.find((a) => a.type === 'savings' && a.user_ids.length > 1);
+    const balanceViewModel = computeDashboardBalanceViewModel(
+      accounts,
+      accountBalances,
+      userIds,
+      sharedSavings?.id
+    );
+
     return {
       accounts,
       transactions: transactionResult.data,
@@ -147,6 +160,7 @@ async function getCachedDashboardPageData(
       accountBalances,
       budgetsByUser,
       investments,
+      balanceViewModel,
     };
   }
 
@@ -209,6 +223,14 @@ async function getCachedDashboardPageData(
     accountBalances[a.id] = Number(a.balance) || 0;
   });
 
+  const sharedSavings = accounts.find((a) => a.type === 'savings' && a.user_ids.length > 1);
+  const balanceViewModel = computeDashboardBalanceViewModel(
+    accounts,
+    accountBalances,
+    userIds,
+    sharedSavings?.id
+  );
+
   return {
     accounts,
     transactions: transactionResult.data,
@@ -218,5 +240,6 @@ async function getCachedDashboardPageData(
     accountBalances,
     budgetsByUser,
     investments,
+    balanceViewModel,
   };
 }

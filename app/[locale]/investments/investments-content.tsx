@@ -35,6 +35,8 @@ interface InvestmentsContentProps {
       totalReturn: number;
       totalReturnPercent: number;
     };
+    assetAllocation: { symbol: string; value: number }[];
+    portfolioHistory: { date: string; value: number }[];
     indexData: Array<{
       datetime?: string | undefined;
       time?: string | undefined;
@@ -50,7 +52,8 @@ export default function InvestmentsContent({
   groupUsers,
   investmentsDataPromise,
 }: InvestmentsContentProps) {
-  const { investments, summary, indexData, currentIndex } = use(investmentsDataPromise);
+  const { investments, summary, assetAllocation, portfolioHistory, indexData, currentIndex } =
+    use(investmentsDataPromise);
   const t = useTranslations('InvestmentsContent');
   const tActionMenu = useTranslations('Header.ActionMenu');
   const { openModal } = useModalState();
@@ -92,6 +95,8 @@ export default function InvestmentsContent({
                 <PersonalInvestmentTab
                   investments={investments}
                   summary={summary}
+                  assetAllocation={assetAllocation}
+                  portfolioHistory={portfolioHistory}
                   indexData={indexData}
                   currentIndex={currentIndex}
                 />

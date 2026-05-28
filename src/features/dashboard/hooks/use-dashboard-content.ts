@@ -1,15 +1,15 @@
 'use client';
 
 /**
- * useDashboardContent — logica condivisa per la Home dashboard (client).
+ * useDashboardContent — display-only; totals precomputed server-side.
  */
 import { useMemo, useCallback } from 'react';
-import { useUserFilter, usePermissions, useFilteredAccounts } from '@/hooks';
+import { useUserFilter, usePermissions } from '@/hooks';
 import { useModalState } from '@/lib/navigation/url-state';
 import { calculateDisplayedAccounts } from './dashboard-helpers';
-import { findSharedSavingsAccount } from '../constants';
 import type { Account, BudgetPeriod, User } from '@/lib/types';
 import type { RecurringTransactionSeries } from '@/lib';
+import type { DashboardBalanceViewModel } from '@/server/use-cases/accounts/account.logic';
 import { useRouter } from '@/i18n/routing';
 
 export interface UseDashboardContentParams {
@@ -19,6 +19,7 @@ export interface UseDashboardContentParams {
   accountBalances: Record<string, number>;
   budgetPeriods: Record<string, BudgetPeriod | null>;
   recurringSeries: RecurringTransactionSeries[];
+  balanceViewModel: DashboardBalanceViewModel;
 }
 
 export interface UseDashboardContentReturn {
@@ -37,6 +38,7 @@ export function useDashboardContent({
   groupUsers,
   accounts,
   accountBalances,
+  balanceViewModel,
 }: UseDashboardContentParams): UseDashboardContentReturn {
   const router = useRouter();
   const { selectedGroupFilter, selectedUserId } = useUserFilter();
@@ -46,12 +48,6 @@ export function useDashboardContent({
   });
 
   const { openModal } = useModalState();
-
-  const { filteredAccounts: userAccounts } = useFilteredAccounts({
-    accounts,
-    currentUser,
-    selectedUserId,
-  });
 
   const displayedDefaultAccounts = useMemo(() => {
     return calculateDisplayedAccounts(
@@ -65,20 +61,11 @@ export function useDashboardContent({
   }, [selectedUserId, accounts, groupUsers, accountBalances, isMember, currentUser]);
 
   const totalBalance = useMemo(() => {
-    let balance = 0;
     if (selectedUserId) {
-      const userAccountIds = userAccounts.map((a) => a.id);
-      balance = userAccountIds.reduce(
-        (sum, accountId) => sum + (accountBalances[accountId] || 0),
-        0
-      );
-      const sharedSavings = findSharedSavingsAccount(accounts);
-      if (sharedSavings) balance += accountBalances[sharedSavings.id] || 0;
-    } else {
-      balance = Object.values(accountBalances).reduce((sum, bal) => sum + bal, 0);
+      return balanceViewModel.totalBalanceByUserId[selectedUserId] ?? 0;
     }
-    return Math.round(balance * 100) / 100;
-  }, [selectedUserId, userAccounts, accounts, accountBalances]);
+    return balanceViewModel.totalBalanceAll;
+  }, [selectedUserId, balanceViewModel]);
 
   const handleCreateRecurringSeries = useCallback(() => {
     openModal('recurring');

@@ -9,7 +9,7 @@ import { TransactionDayGroupSkeleton } from '@/components/ui/primitives/skeleton
 import { groupByDay } from '../utils/group-by-day';
 import { TransactionPagination } from './transaction-pagination';
 import { TransactionDayList } from './transaction-day-list';
-import type { PageSizeOption } from '../hooks/use-paginated-transactions';
+import type { PageSizeOption } from '../hooks/use-transactions-content';
 
 export interface TransactionsScreenListProps {
   transactions: Transaction[];

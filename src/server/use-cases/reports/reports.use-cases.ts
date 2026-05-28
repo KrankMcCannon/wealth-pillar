@@ -2,11 +2,9 @@ import { TransactionsRepository } from '@/server/repositories/transactions.repos
 import { AccountsRepository } from '@/server/repositories/accounts.repository';
 import { CategoriesRepository } from '@/server/repositories/categories.repository';
 import { UsersRepository } from '@/server/repositories/users.repository';
-import { ReportsRepository } from '@/server/repositories/reports.repository';
 import { transactions } from '@/server/db/schema';
 import { parseBudgetPeriodsFromJson } from '@/lib/utils/budget-period-json';
 import { toDateTime, formatDateShort } from '@/lib/utils';
-import { cached } from '@/lib/cache';
 import type { Transaction, Account, BudgetPeriod, Category, User } from '@/lib/types';
 import type { Json } from '@/lib/types/database.types';
 
@@ -516,75 +514,4 @@ export function calculateTimeTrendsUseCase(
   return Array.from(dailyMap.values()).sort(
     (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
   );
-}
-
-/**
- * Get group category spending (wrapped in cached)
- */
-export async function getGroupCategorySpendingUseCase(
-  groupId: string,
-  startDate: Date,
-  endDate: Date
-) {
-  return cached(
-    async () => {
-      const data = await ReportsRepository.getGroupCategorySpending(groupId, startDate, endDate);
-      return data.map((item) => ({
-        ...item,
-        spent: Number(item.spent),
-        transaction_count: Number(item.transaction_count),
-      }));
-    },
-    ['group-category-spending', groupId, startDate.toISOString(), endDate.toISOString()],
-    { revalidate: 300 }
-  )();
-}
-
-/**
- * Get per-user category spending (spent vs income) for a group and date range.
- */
-export async function getGroupUserCategorySpendingUseCase(
-  groupId: string,
-  startDate: Date,
-  endDate: Date
-) {
-  return cached(
-    async () => {
-      const data = await ReportsRepository.getGroupUserCategorySpending(
-        groupId,
-        startDate,
-        endDate
-      );
-      return data.map((item) => ({
-        ...item,
-        spent: Number(item.spent),
-        income: Number(item.income),
-        transaction_count: Number(item.transaction_count),
-      }));
-    },
-    ['group-user-category-spending', groupId, startDate.toISOString(), endDate.toISOString()],
-    { revalidate: 300 }
-  )();
-}
-
-/**
- * Get group monthly spending (wrapped in cached)
- */
-export async function getGroupMonthlySpendingUseCase(
-  groupId: string,
-  startDate: Date,
-  endDate: Date
-) {
-  return cached(
-    async () => {
-      const data = await ReportsRepository.getGroupMonthlySpending(groupId, startDate, endDate);
-      return data.map((item) => ({
-        ...item,
-        income: Number(item.income),
-        expense: Number(item.expense),
-      }));
-    },
-    ['group-monthly-spending', groupId, startDate.toISOString(), endDate.toISOString()],
-    { revalidate: 300 }
-  )();
 }

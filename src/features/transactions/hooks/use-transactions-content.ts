@@ -10,6 +10,8 @@ import { useTransactionEditStore } from '../stores/transaction-edit-store';
 
 export type PageSizeOption = 10 | 20 | 30 | 50 | 100;
 
+export const PAGE_SIZE_OPTIONS: PageSizeOption[] = [10, 20, 30, 50, 100];
+
 export interface UseTransactionsContentProps {
   transactions: Transaction[];
   totalTransactions?: number;

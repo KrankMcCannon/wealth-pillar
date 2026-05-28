@@ -1,6 +1,10 @@
 import type { BudgetPeriod, Budget, Transaction } from '@/lib/types';
-import { toDateTime } from '@/lib/utils/date-utils';
 import { DateTime } from 'luxon';
+import { filterTransactionsByPeriod } from '../transactions/transaction.logic';
+import {
+  filterTransactionsForBudgetsUnion,
+  effectiveSpentFromTransactions,
+} from '../budgets/budget.logic';
 
 export const calculatePeriodTotalsUseCase = (
   transactions: Transaction[],
@@ -13,54 +17,30 @@ export const calculatePeriodTotalsUseCase = (
   totalSaved: number;
   categorySpending: Record<string, number>;
 } => {
-  // Filter transactions for this period and user
-  const periodTransactions = transactions.filter((t) => {
-    const txDate = toDateTime(t.date);
-    if (!txDate || t.user_id !== period.user_id) return false;
+  const periodTransactions = transactions.filter((t) => t.user_id === period.user_id);
+  const filtered = filterTransactionsByPeriod(
+    periodTransactions,
+    startDt,
+    endDt?.endOf('day') ?? null
+  );
 
-    const afterStart = txDate >= startDt;
-    const beforeEnd = endDt ? txDate <= endDt.endOf('day') : true;
-    return afterStart && beforeEnd;
-  });
-
-  let totalSpent = 0;
-  let totalBudget = 0;
-  const categorySpending: Record<string, number> = {};
-
-  // Filter valid budgets (amount > 0) for the target user
   const validBudgets = (budgets || []).filter((b) => b.user_id === period.user_id && b.amount > 0);
+  const totalBudget = validBudgets.reduce((sum, b) => sum + b.amount, 0);
 
-  const txsByCategory = new Map<string, Transaction[]>();
-  for (const t of periodTransactions) {
-    const list = txsByCategory.get(t.category) ?? [];
-    list.push(t);
-    txsByCategory.set(t.category, list);
+  const unionTransactions = filterTransactionsForBudgetsUnion(
+    filtered,
+    validBudgets,
+    startDt,
+    endDt?.endOf('day') ?? null
+  );
+  const totalSpent = effectiveSpentFromTransactions(unionTransactions);
+
+  const categorySpending: Record<string, number> = {};
+  for (const t of unionTransactions) {
+    if (t.type === 'expense' || t.type === 'transfer') {
+      categorySpending[t.category] = (categorySpending[t.category] || 0) + t.amount;
+    }
   }
-
-  // Calculate totals by processing each budget individually (matches modal logic)
-  validBudgets.forEach((budget) => {
-    totalBudget += budget.amount;
-
-    const budgetTransactions = budget.categories.flatMap((c) => txsByCategory.get(c) ?? []);
-
-    // Calculate spent for this budget (income refills, expense/transfer consume)
-    const budgetSpent = budgetTransactions.reduce((sum, t) => {
-      if (t.type === 'income') {
-        return sum - t.amount;
-      }
-      return sum + t.amount;
-    }, 0);
-
-    // Add to total spent (ensuring non-negative per budget)
-    totalSpent += Math.max(0, budgetSpent);
-
-    // Track category spending (only for expenses and transfers)
-    budgetTransactions.forEach((t) => {
-      if (t.type === 'expense' || t.type === 'transfer') {
-        categorySpending[t.category] = (categorySpending[t.category] || 0) + t.amount;
-      }
-    });
-  });
 
   const totalSaved = Math.max(0, totalBudget - totalSpent);
 
