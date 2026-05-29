@@ -3,9 +3,10 @@ import {
   effectiveSpentFromTransactions,
   buildBudgetsByUserPure,
   filterTransactionsForBudgetsUnion,
+  buildBudgetCategoryBreakdown,
 } from './budget.logic';
-import { resolveEffectivePeriod } from '../shared/period.logic';
-import type { Budget, Transaction, User, BudgetPeriod } from '@/lib/types';
+import { resolveEffectivePeriod, resolveChartPeriodEnd } from '../shared/period.logic';
+import type { Budget, Transaction, User, BudgetPeriod, Category } from '@/lib/types';
 
 const user = {
   id: 'user-1',
@@ -139,5 +140,63 @@ describe('filterTransactionsForBudgetsUnion', () => {
       period.end
     );
     expect(txs).toHaveLength(2);
+  });
+});
+
+describe('buildBudgetCategoryBreakdown', () => {
+  const categories: Category[] = [
+    {
+      id: 'cat-1',
+      key: 'food',
+      label: 'Food',
+      icon: 'cart',
+      color: '#ff0000',
+      group_id: 'group-1',
+      created_at: '2024-01-01',
+      updated_at: '2024-01-01',
+    },
+    {
+      id: 'cat-2',
+      key: 'transport',
+      label: 'Transport',
+      icon: 'car',
+      color: '#00ff00',
+      group_id: 'group-1',
+      created_at: '2024-01-01',
+      updated_at: '2024-01-01',
+    },
+  ];
+
+  it('sums spent per category with income reducing spent', () => {
+    const b = budget({ categories: ['food', 'transport'] });
+    const transactions = [
+      tx({ category: 'food', amount: 200, type: 'expense' }),
+      tx({ id: 'tx-2', category: 'food', amount: 50, type: 'income' }),
+      tx({ id: 'tx-3', category: 'transport', amount: 80, type: 'expense' }),
+      tx({
+        id: 'tx-4',
+        category: 'transport',
+        amount: 100,
+        type: 'transfer',
+        to_account_id: 'acc-2',
+      }),
+    ];
+    const breakdown = buildBudgetCategoryBreakdown(b, transactions, categories);
+    expect(breakdown).toHaveLength(2);
+    expect(breakdown[0]?.spent).toBe(150);
+    expect(breakdown[1]?.spent).toBe(80);
+  });
+
+  it('excludes zero-spent categories and sorts by spent descending', () => {
+    const b = budget({ categories: ['food', 'transport'] });
+    const breakdown = buildBudgetCategoryBreakdown(b, [], categories);
+    expect(breakdown).toHaveLength(0);
+  });
+});
+
+describe('resolveChartPeriodEnd', () => {
+  it('is exported and usable from period logic', () => {
+    const end = resolveChartPeriodEnd(null, new Date('2024-06-15'));
+    expect(end.month).toBe(6);
   });
 });

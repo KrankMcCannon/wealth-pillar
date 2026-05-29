@@ -5,10 +5,20 @@ import type {
   UserBudgetSummary,
   User,
   BudgetPeriod,
+  Category,
 } from '@/lib/types';
 import type { DateInput } from '@/lib/utils/date-utils';
 import { filterTransactionsByPeriod, filterByCategories } from '../transactions/transaction.logic';
 import { parsePeriodDates } from '../shared/period.logic';
+import { getCategoryColor, getCategoryLabel } from '../categories/category.logic';
+
+export interface BudgetCategoryBreakdownItem {
+  key: string;
+  label: string;
+  color: string;
+  spent: number;
+  transactionCount: number;
+}
 
 /**
  * Filter transactions that belong to a specific budget
@@ -48,6 +58,27 @@ export function filterTransactionsForBudgetsUnion(
 
   const periodTransactions = filterTransactionsByPeriod(transactions, periodStart, periodEnd);
   return filterByCategories(periodTransactions, [...categoryKeys]);
+}
+
+/** Per-category spending breakdown for a single budget (transactions already scoped to budget). */
+export function buildBudgetCategoryBreakdown(
+  budget: Budget,
+  transactions: Transaction[],
+  categories: Category[]
+): BudgetCategoryBreakdownItem[] {
+  return budget.categories
+    .map((key) => {
+      const categoryTxs = transactions.filter((t) => t.category === key);
+      return {
+        key,
+        label: getCategoryLabel(categories, key),
+        color: getCategoryColor(categories, key),
+        spent: effectiveSpentFromTransactions(categoryTxs),
+        transactionCount: categoryTxs.length,
+      };
+    })
+    .filter((item) => item.spent > 0)
+    .sort((a, b) => b.spent - a.spent);
 }
 
 /** Spesa effettiva da un elenco di transazioni (stessa regola dei singoli budget). */

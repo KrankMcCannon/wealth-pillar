@@ -46,3 +46,23 @@ export function parsePeriodDates(
   const effective = resolveEffectivePeriod(activePeriod, now);
   return [effective.start, effective.end];
 }
+
+/**
+ * Resolves the chart X-axis end date (may extend beyond "today" for open periods).
+ * Open active period: at least 30 days from start, or today if the period is longer.
+ * Closed period: actual end_date. No period: end of current calendar month.
+ */
+export function resolveChartPeriodEnd(
+  activePeriod: BudgetPeriod | null | undefined,
+  now: Date = new Date()
+): DateTime {
+  const effective = resolveEffectivePeriod(activePeriod, now);
+
+  if (activePeriod?.start_date && activePeriod.is_active && !activePeriod.end_date) {
+    const minEnd = effective.start.plus({ days: 30 }).endOf('day');
+    const todayEnd = DateTime.fromJSDate(now).endOf('day');
+    return minEnd > todayEnd ? minEnd : todayEnd;
+  }
+
+  return effective.end;
+}

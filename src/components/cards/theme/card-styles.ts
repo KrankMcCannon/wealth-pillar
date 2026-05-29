@@ -25,17 +25,6 @@ export const cardStyles = {
     icon: 'h-5 w-5',
     sliderIcon: 'h-3.5 w-3.5',
   },
-  budget: {
-    container:
-      'p-3 hover:bg-accent/10 transition-colors duration-200 cursor-pointer w-full text-left text-primary',
-    row: 'flex items-start justify-between gap-2 mb-2',
-    left: 'flex min-w-0 flex-1 items-start gap-3',
-    content: 'flex-1 min-w-0',
-    title: 'mb-0.5 line-clamp-2 min-w-0 text-balance pr-2 font-semibold text-[15px] leading-tight',
-    statusBadge: 'w-fit mt-1',
-    right: 'text-right shrink-0 ml-2 space-y-1',
-    progress: 'relative',
-  },
   series: {
     base: 'group cursor-pointer rounded-xl border p-2.5 transition-colors duration-200',
     /** Dentro lista raggruppata / griglia: niente bordo proprio (gestito dal contenitore). */
@@ -73,16 +62,6 @@ export const cardStyles = {
     actionIconDestructive: 'text-primary',
   },
 } as const;
-
-export function getBudgetStatusTextClass(status: 'success' | 'warning' | 'danger') {
-  if (status === 'success') return 'text-success';
-  if (status === 'warning') return 'text-warning';
-  return 'text-destructive';
-}
-
-export function getBudgetProgressStyle(progress: number): CSSProperties {
-  return { width: `${Math.min(progress, 100)}%` };
-}
 
 export function getSeriesCardClassName(params: {
   isActive: boolean;

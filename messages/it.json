@@ -1267,13 +1267,6 @@
         "createButton": "Crea Budget"
       }
     },
-    "Card": {
-      "ofPrefix": "su",
-      "spentPrefix": "Speso:",
-      "totalPrefix": "Totale:",
-      "remainingTitle": "DISPONIBILE",
-      "exceededTitle": "SFORAMENTO"
-    },
     "PeriodManager": {
       "title": "Gestione Periodi Budget",
       "description": "Gestisci i periodi di budget per tracciare le spese nel tempo",
@@ -1332,7 +1325,7 @@
       "closePeriod": "Chiudi periodo",
       "fabAddBudget": "Aggiungi budget",
       "categoryCard": {
-        "ariaOpenEdit": "Modifica budget: {name}",
+        "ariaOpenDetail": "Open budget details: {name}",
         "badgeOnTrack": "In linea",
         "badgeFixed": "Fisso",
         "badgeOver": "Oltre il budget",
@@ -1357,55 +1350,25 @@
         "createButton": "Crea budget"
       }
     },
-    "SummaryPage": {
-      "title": "Riepilogo Budget",
-      "emptyState": "Seleziona un utente con budget attivi per visualizzare il riepilogo.",
-      "cards": {
-        "budget": "Budget",
-        "spent": "Speso",
-        "available": "Disponibile"
-      },
-      "activeList": {
-        "title": "Budget Attivi"
-      },
-      "transactions": {
-        "sectionTitle": "Transazioni Correlate",
-        "emptyTitle": "Nessuna transazione",
-        "emptyDescription": "Non ci sono transazioni collegate a questi budget nel periodo corrente."
-      }
-    },
-    "Selector": {
-      "title": "Budget",
-      "subtitle": "Seleziona per visualizzare i dettagli",
-      "placeholder": "Seleziona budget",
-      "ariaLabel": "Seleziona quale budget visualizzare"
-    },
-    "DisplayCard": {
-      "actions": {
-        "title": "Azioni Budget",
-        "ariaLabel": "Apri il menu azioni per questo budget",
-        "edit": "Modifica Budget",
-        "delete": "Elimina Budget"
-      },
-      "status": {
-        "active": "Budget attivo"
-      },
-      "period": {
-        "label": "Periodo",
-        "inProgress": "In corso"
-      },
+    "Detail": {
+      "skipToMain": "Vai al dettaglio budget",
+      "editBudget": "Modifica budget",
+      "summaryAria": "Riepilogo budget",
+      "badgeOnTrack": "In linea",
+      "badgeFixed": "Fisso",
+      "badgeOver": "Oltre il budget",
+      "today": "Oggi",
       "metrics": {
-        "total": "Totale",
         "spent": "Speso",
-        "available": "Disponibile"
-      }
-    },
-    "Progress": {
-      "label": "Progresso Budget",
-      "status": {
-        "safe": "Budget sotto controllo",
-        "warning": "Attenzione, quasi esaurito",
-        "danger": "Budget superato"
+        "limit": "Limite",
+        "remaining": "Rimanente"
+      },
+      "categoriesTitle": "Categorie di spesa",
+      "transactions": {
+        "sectionTitle": "Transazioni del budget",
+        "emptyTitle": "Nessuna transazione",
+        "emptyDescription": "Nessuna transazione trovata per questo budget nel periodo",
+        "viewAll": "Vedi tutte"
       }
     },
     "Chart": {

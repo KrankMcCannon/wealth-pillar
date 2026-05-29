@@ -21,7 +21,7 @@ export interface BudgetCategoryCardProps {
   readonly progress: BudgetProgress;
   readonly categories: Category[];
   readonly isSelected: boolean;
-  /** Seleziona il budget e apre il modal di modifica. */
+  /** Seleziona il budget e apre la pagina di dettaglio. */
   readonly onPress: () => void;
 }
 
@@ -59,7 +59,7 @@ export function BudgetCategoryCard({
       type="button"
       onClick={onPress}
       aria-current={isSelected ? 'true' : undefined}
-      aria-label={t('categoryCard.ariaOpenEdit', { name: progress.description })}
+      aria-label={t('categoryCard.ariaOpenDetail', { name: progress.description })}
       className={cn(
         stitchBudgets.categoryCard,
         status === 'over' && stitchBudgets.categoryCardOver,

@@ -14,6 +14,7 @@ export * from './reports/reports.use-cases';
 export * from './pages/dashboard.use-case';
 export * from './pages/transactions-page.use-case';
 export * from './pages/budgets-page.use-case';
+export * from './pages/budget-detail-page.use-case';
 export * from './pages/accounts-page.use-case';
 export * from './investments/investment.use-cases';
 export * from './investments/available-shares.use-cases';

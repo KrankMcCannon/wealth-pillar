@@ -1267,13 +1267,6 @@
         "createButton": "Create Budget"
       }
     },
-    "Card": {
-      "ofPrefix": "of",
-      "spentPrefix": "Spent:",
-      "totalPrefix": "Total:",
-      "remainingTitle": "AVAILABLE",
-      "exceededTitle": "EXCEEDED"
-    },
     "PeriodManager": {
       "title": "Budget Period Management",
       "description": "Manage budget periods to track expenses over time",
@@ -1332,7 +1325,7 @@
       "closePeriod": "Close period",
       "fabAddBudget": "Add budget",
       "categoryCard": {
-        "ariaOpenEdit": "Edit budget: {name}",
+        "ariaOpenDetail": "Open budget details: {name}",
         "badgeOnTrack": "On track",
         "badgeFixed": "Fixed",
         "badgeOver": "Over budget",
@@ -1357,55 +1350,25 @@
         "createButton": "Create budget"
       }
     },
-    "SummaryPage": {
-      "title": "Budget Summary",
-      "emptyState": "Select a user with active budgets to view the summary.",
-      "cards": {
-        "budget": "Budget",
-        "spent": "Spent",
-        "available": "Available"
-      },
-      "activeList": {
-        "title": "Active Budgets"
-      },
-      "transactions": {
-        "sectionTitle": "Related Transactions",
-        "emptyTitle": "No transactions",
-        "emptyDescription": "There are no transactions linked to these budgets in the current period."
-      }
-    },
-    "Selector": {
-      "title": "Budget",
-      "subtitle": "Select to view details",
-      "placeholder": "Select budget",
-      "ariaLabel": "Select which budget to view"
-    },
-    "DisplayCard": {
-      "actions": {
-        "title": "Budget actions",
-        "ariaLabel": "Open actions menu for this budget",
-        "edit": "Edit Budget",
-        "delete": "Delete Budget"
-      },
-      "status": {
-        "active": "Active budget"
-      },
-      "period": {
-        "label": "Period",
-        "inProgress": "In progress"
-      },
+    "Detail": {
+      "skipToMain": "Skip to budget detail content",
+      "editBudget": "Edit budget",
+      "summaryAria": "Budget summary",
+      "badgeOnTrack": "On track",
+      "badgeFixed": "Fixed",
+      "badgeOver": "Over budget",
+      "today": "Today",
       "metrics": {
-        "total": "Total",
         "spent": "Spent",
-        "available": "Available"
-      }
-    },
-    "Progress": {
-      "label": "Budget Progress",
-      "status": {
-        "safe": "Budget under control",
-        "warning": "Attention, almost exhausted",
-        "danger": "Budget exceeded"
+        "limit": "Limit",
+        "remaining": "Remaining"
+      },
+      "categoriesTitle": "Spending categories",
+      "transactions": {
+        "sectionTitle": "Budget transactions",
+        "emptyTitle": "No transactions",
+        "emptyDescription": "No transactions found for this budget in the period",
+        "viewAll": "View all"
       }
     },
     "Chart": {

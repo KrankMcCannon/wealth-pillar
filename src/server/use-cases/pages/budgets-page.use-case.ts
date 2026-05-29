@@ -22,7 +22,7 @@ import type {
   UserBudgetSummary,
 } from '@/lib/types';
 import { toDateTime } from '@/lib/utils/date-utils';
-import { parsePeriodDates } from '../shared/period.logic';
+import { parsePeriodDates, resolveChartPeriodEnd } from '../shared/period.logic';
 import { resolvePeriodAmounts } from '../budget-periods/period-amounts.logic';
 
 export interface BudgetsPageData {
@@ -128,13 +128,14 @@ export async function getBudgetsPageData(groupId: string): Promise<BudgetsPageDa
   const chartViewModelsByUser: Record<string, BudgetChartViewModel> = {};
   for (const user of groupUsers) {
     const userBudgets = budgets.filter((b) => b.user_id === user.id);
-    const [periodStart, periodEnd] = parsePeriodDates(budgetPeriods[user.id]);
+    const [periodStart] = parsePeriodDates(budgetPeriods[user.id], now);
+    const chartPeriodEnd = resolveChartPeriodEnd(budgetPeriods[user.id], now);
     chartViewModelsByUser[user.id] = buildBudgetChartViewModel(
       transactionResult.data,
       userBudgets,
       user.id,
       periodStart,
-      periodEnd,
+      chartPeriodEnd,
       budgetsByUser[user.id] ?? null
     );
   }

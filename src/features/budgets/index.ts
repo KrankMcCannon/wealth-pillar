@@ -2,11 +2,6 @@
  * Budgets Feature - Public API
  */
 
-// Components
-export { BudgetCard } from './components/budget-card';
-// Components
-export { BudgetPeriodInfo } from './components/budget-period-info';
-export { BudgetPeriodCard } from './components/budget-period-card';
 export { BudgetSection } from './components/budget-section';
 export {
   BudgetCardSkeleton,
@@ -33,9 +28,7 @@ export {
   getBudgetByIdAction,
 } from './actions/budget-actions';
 
-// ====================================
 // Hooks
-// ====================================
 export {
   useBudgetsContent,
   type UseBudgetsContentProps,
