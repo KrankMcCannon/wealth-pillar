@@ -370,17 +370,14 @@
   },
   "ReportsContent": {
     "headerTitle": "Reports",
-    "skipToMain": "Skip to reports",
-    "sectionMemberTitle": "Member detail",
-    "sectionMemberSubtitle": "Choose someone to see the same breakdown for their activity in the range above.",
-    "memberSectionExpand": "Open member detail",
-    "memberSectionCollapse": "Close member detail"
+    "skipToMain": "Skip to reports"
   },
   "Reports": {
     "TimeFilter": {
       "ariaLabel": "Report period",
       "monthly": "Monthly",
       "weekly": "Weekly",
+      "ytd": "Year to date",
       "yearly": "Yearly",
       "custom": "Custom",
       "customTitle": "Custom range",
@@ -419,11 +416,13 @@
         "other": "Other"
       }
     },
-    "HistoricalBudget": {
-      "title": "Historical budget",
+    "BudgetPeriods": {
+      "title": "Budget periods",
       "empty": "No budget periods overlap this range.",
-      "startingBalance": "Starting balance",
-      "closingBalance": "Closing balance",
+      "spendable": "Spendable",
+      "reserve": "Reserve",
+      "initial": "Initial",
+      "final": "Final",
       "badgeOnTrack": "On track",
       "badgeOverBudget": "Over budget"
     }

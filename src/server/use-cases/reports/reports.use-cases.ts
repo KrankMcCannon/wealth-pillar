@@ -4,11 +4,17 @@ import { CategoriesRepository } from '@/server/repositories/categories.repositor
 import { UsersRepository } from '@/server/repositories/users.repository';
 import { transactions } from '@/server/db/schema';
 import { toDateTime, formatDateShort } from '@/lib/utils';
-import type { Transaction, Account, BudgetPeriod, Category, User } from '@/lib/types';
+import type { Transaction, Account, BudgetPeriod, User, AccountLiquidity } from '@/lib/types';
+import { resolveAccountLiquidity } from '@/lib/utils/account-classification';
 import { BudgetPeriodsRepository } from '@/server/repositories/budget-periods.repository';
 
+export interface PeriodLiquidityBalance {
+  startBalance: number;
+  endBalance: number;
+}
+
 /**
- * Report Period Summary with calculated metrics
+ * Report Period Summary with spendable/reserve balance breakdown
  */
 export interface ReportPeriodSummary {
   id: string;
@@ -17,17 +23,9 @@ export interface ReportPeriodSummary {
   endDate: string;
   startBalance: number;
   endBalance: number;
-  totalEarned: number;
-  totalSpent: number;
-  metricsByAccountType: Record<string, AccountMetrics>;
+  spendable: PeriodLiquidityBalance;
+  reserve: PeriodLiquidityBalance;
   userId: string;
-}
-
-export interface AccountMetrics {
-  earned: number;
-  spent: number;
-  startBalance: number;
-  endBalance: number;
 }
 
 export interface UserAccountFlow {
@@ -54,22 +52,46 @@ export interface AccountTypeSummary {
   transactionCount: number;
 }
 
-export interface CategoryStat {
-  id: string;
-  name: string;
-  type: 'income' | 'expense';
-  total: number;
-  color: string;
+type LiquidityMetrics = { earned: number; spent: number; startBalance: number; endBalance: number };
+
+function emptyLiquidityMetrics(): LiquidityMetrics {
+  return { earned: 0, spent: 0, startBalance: 0, endBalance: 0 };
+}
+
+function ensureLiquidityBucket(
+  map: Partial<Record<AccountLiquidity, LiquidityMetrics>>,
+  key: AccountLiquidity
+): LiquidityMetrics {
+  if (!map[key]) map[key] = emptyLiquidityMetrics();
+  return map[key];
 }
 
 /**
- * Normalizes account type for reporting
+ * Resolve the "year to date" window start anchored to budget periods.
+ *
+ * Returns the earliest start_date among budget periods that straddle 1 Jan of the
+ * current year (start <= 1 Jan <= end), so the YTD window aligns to the budget
+ * boundary instead of the calendar 1 Jan. Returns null when no period straddles it.
  */
-function normalizeAccountType(type: string | undefined): string {
-  if (!type) return 'other';
-  const lower = type.toLowerCase();
-  if (lower === 'investment' || lower === 'investments') return 'investments';
-  return lower;
+export function resolveYtdBudgetStart(
+  periods: BudgetPeriod[],
+  now: Date = new Date()
+): Date | null {
+  const yearStartMs = new Date(now.getFullYear(), 0, 1).getTime();
+  let earliest: number | null = null;
+
+  for (const period of periods) {
+    const start = toDateTime(period.start_date)?.toJSDate().getTime();
+    const end = (period.end_date ? toDateTime(period.end_date) : toDateTime(now))
+      ?.toJSDate()
+      .getTime();
+    if (start == null || end == null) continue;
+    if (start <= yearStartMs && end >= yearStartMs) {
+      if (earliest == null || start < earliest) earliest = start;
+    }
+  }
+
+  return earliest != null ? new Date(earliest) : null;
 }
 
 /**
@@ -180,153 +202,7 @@ export async function getReportsDataUseCase(groupId: string, groupUserIds?: stri
 }
 
 /**
- * Calculate user flow summary
- */
-export function calculateUserFlowSummaryUseCase(
-  transactions: Transaction[],
-  accounts: Account[],
-  userIds: string[]
-): UserFlowSummary[] {
-  const accountMap = new Map(accounts.map((a) => [a.id, a]));
-  const userFlows = new Map<
-    string,
-    Map<string, { earned: number; spent: number; balance: number }>
-  >();
-
-  for (const uid of userIds) {
-    userFlows.set(uid, new Map());
-  }
-
-  // Seed with account balances
-  for (const account of accounts) {
-    const type = normalizeAccountType(account.type);
-    for (const uid of account.user_ids) {
-      if (!userFlows.has(uid)) continue;
-      const typeMap = userFlows.get(uid)!;
-      if (!typeMap.has(type)) {
-        typeMap.set(type, { earned: 0, spent: 0, balance: 0 });
-      }
-      typeMap.get(type)!.balance += account.balance || 0;
-    }
-  }
-
-  // Aggregate transactions
-  for (const t of transactions) {
-    const uid = t.user_id;
-    if (!uid || !userFlows.has(uid)) continue;
-
-    const account = accountMap.get(t.account_id);
-    if (!account) continue;
-
-    const type = normalizeAccountType(account.type);
-    const typeMap = userFlows.get(uid)!;
-
-    const ensureBucket = (key: string) => {
-      if (!typeMap.has(key)) typeMap.set(key, { earned: 0, spent: 0, balance: 0 });
-      return typeMap.get(key)!;
-    };
-
-    if (t.type === 'income') {
-      ensureBucket(type).earned += t.amount;
-    } else if (t.type === 'expense') {
-      ensureBucket(type).spent += t.amount;
-    } else if (t.type === 'transfer' && t.to_account_id) {
-      const toAccount = accountMap.get(t.to_account_id);
-      if (!toAccount) continue;
-      const toType = normalizeAccountType(toAccount.type);
-      ensureBucket(type).spent += t.amount;
-      ensureBucket(toType).earned += t.amount;
-    }
-  }
-
-  return userIds.map((uid) => {
-    const typeMap = userFlows.get(uid) || new Map();
-    const accountFlows: UserAccountFlow[] = Array.from(typeMap.entries()).map(
-      ([accountType, data]) => ({
-        accountType,
-        balance: data.balance,
-        earned: data.earned,
-        spent: data.spent,
-        net: data.earned - data.spent,
-      })
-    );
-
-    const totalEarned = accountFlows.reduce((s, a) => s + a.earned, 0);
-    const totalSpent = accountFlows.reduce((s, a) => s + a.spent, 0);
-
-    return {
-      userId: uid,
-      totalEarned,
-      totalSpent,
-      netFlow: totalEarned - totalSpent,
-      accounts: accountFlows.sort((a, b) => b.balance - a.balance),
-    };
-  });
-}
-
-/**
- * Calculate account type summary for the group
- */
-export function calculateAccountTypeSummaryUseCase(
-  transactions: Transaction[],
-  accounts: Account[]
-): AccountTypeSummary[] {
-  const accountMap = new Map(accounts.map((a) => [a.id, a]));
-  const typeSummaryMap = new Map<
-    string,
-    { balance: number; earned: number; spent: number; count: number }
-  >();
-
-  // Initial balances from accounts
-  for (const acc of accounts) {
-    const type = normalizeAccountType(acc.type);
-    if (!typeSummaryMap.has(type)) {
-      typeSummaryMap.set(type, { balance: 0, earned: 0, spent: 0, count: 0 });
-    }
-    typeSummaryMap.get(type)!.balance += acc.balance || 0;
-  }
-
-  // Aggregate transactions
-  for (const t of transactions) {
-    const acc = accountMap.get(t.account_id);
-    if (!acc) continue;
-
-    const type = normalizeAccountType(acc.type);
-    if (!typeSummaryMap.has(type)) {
-      typeSummaryMap.set(type, { balance: 0, earned: 0, spent: 0, count: 0 });
-    }
-
-    const metrics = typeSummaryMap.get(type)!;
-    if (t.type === 'income') {
-      metrics.earned += t.amount;
-      metrics.count++;
-    } else if (t.type === 'expense') {
-      metrics.spent += t.amount;
-      metrics.count++;
-    } else if (t.type === 'transfer' && t.to_account_id) {
-      const toAcc = accountMap.get(t.to_account_id);
-      if (toAcc) {
-        const toType = normalizeAccountType(toAcc.type);
-        metrics.spent += t.amount;
-        if (!typeSummaryMap.has(toType)) {
-          typeSummaryMap.set(toType, { balance: 0, earned: 0, spent: 0, count: 0 });
-        }
-        typeSummaryMap.get(toType)!.earned += t.amount;
-      }
-    }
-  }
-
-  return Array.from(typeSummaryMap.entries()).map(([accountType, data]) => ({
-    accountType,
-    totalBalance: data.balance,
-    totalEarned: data.earned,
-    totalSpent: data.spent,
-    transactionCount: data.count,
-  }));
-}
-
-/**
- * Calculate period summaries
+ * Calculate period summaries with spendable/reserve balance breakdown per period.
  */
 export function calculatePeriodSummariesUseCase(
   periods: BudgetPeriod[],
@@ -339,16 +215,21 @@ export function calculatePeriodSummariesUseCase(
     return bTime - aTime;
   });
 
-  const userTypeBalances = new Map<string, Map<string, number>>();
+  const userLiquidityBalances = new Map<string, Map<AccountLiquidity, number>>();
 
   for (const acc of accounts) {
-    const type = normalizeAccountType(acc.type);
-    acc.user_ids.forEach((uid) => {
-      if (!userTypeBalances.has(uid)) userTypeBalances.set(uid, new Map());
-      const userBalances = userTypeBalances.get(uid)!;
-      userBalances.set(type, (userBalances.get(type) || 0) + (acc.balance || 0));
-    });
+    const liquidity = resolveAccountLiquidity(acc);
+    for (const uid of acc.user_ids) {
+      if (!userLiquidityBalances.has(uid)) {
+        userLiquidityBalances.set(uid, new Map());
+      }
+      const userBalances = userLiquidityBalances.get(uid)!;
+      userBalances.set(liquidity, (userBalances.get(liquidity) || 0) + (acc.balance || 0));
+    }
   }
+
+  const accountMap = new Map(accounts.map((a) => [a.id, a]));
+  const liquidityKeys: AccountLiquidity[] = ['spendable', 'reserve'];
 
   return sortedPeriods
     .map((period) => {
@@ -362,147 +243,64 @@ export function calculatePeriodSummariesUseCase(
         return date && date >= pStart && date <= pEnd;
       });
 
-      const metricsByAccountType: Record<string, AccountMetrics> = {};
-      const accountMap = new Map(accounts.map((a) => [a.id, a]));
+      const metricsByLiquidity: Partial<Record<AccountLiquidity, LiquidityMetrics>> = {};
 
       for (const t of pTransactions) {
         const account = accountMap.get(t.account_id);
         if (!account) continue;
-        const type = normalizeAccountType(account.type);
-
-        if (!metricsByAccountType[type]) {
-          metricsByAccountType[type] = { earned: 0, spent: 0, startBalance: 0, endBalance: 0 };
-        }
+        const sourceLiquidity = resolveAccountLiquidity(account);
 
         if (t.type === 'income') {
-          metricsByAccountType[type].earned += t.amount;
+          ensureLiquidityBucket(metricsByLiquidity, sourceLiquidity).earned += t.amount;
         } else if (t.type === 'expense') {
-          metricsByAccountType[type].spent += t.amount;
+          ensureLiquidityBucket(metricsByLiquidity, sourceLiquidity).spent += t.amount;
         } else if (t.type === 'transfer' && t.to_account_id) {
           const toAccount = accountMap.get(t.to_account_id);
-          const toType = toAccount ? normalizeAccountType(toAccount.type) : null;
-          metricsByAccountType[type].spent += t.amount;
-          if (toType) {
-            if (!metricsByAccountType[toType]) {
-              metricsByAccountType[toType] = {
-                earned: 0,
-                spent: 0,
-                startBalance: 0,
-                endBalance: 0,
-              };
-            }
-            metricsByAccountType[toType].earned += t.amount;
-          }
+          if (!toAccount) continue;
+          const destLiquidity = resolveAccountLiquidity(toAccount);
+          ensureLiquidityBucket(metricsByLiquidity, sourceLiquidity).spent += t.amount;
+          ensureLiquidityBucket(metricsByLiquidity, destLiquidity).earned += t.amount;
         }
       }
 
-      const userBalances = userTypeBalances.get(period.user_id) || new Map<string, number>();
-      const allTypes = new Set([...Object.keys(metricsByAccountType), ...userBalances.keys()]);
+      const userBalances =
+        userLiquidityBalances.get(period.user_id) || new Map<AccountLiquidity, number>();
+      const allLiquidity = new Set<AccountLiquidity>([
+        ...liquidityKeys,
+        ...userBalances.keys(),
+        ...(Object.keys(metricsByLiquidity) as AccountLiquidity[]),
+      ]);
 
-      allTypes.forEach((type) => {
-        const currentEndBalance = userBalances.get(type) || 0;
-        if (!metricsByAccountType[type]) {
-          metricsByAccountType[type] = { earned: 0, spent: 0, startBalance: 0, endBalance: 0 };
-        }
-        const metrics = metricsByAccountType[type];
+      for (const liquidity of allLiquidity) {
+        const currentEndBalance = userBalances.get(liquidity) || 0;
+        const metrics = ensureLiquidityBucket(metricsByLiquidity, liquidity);
         const netChange = metrics.earned - metrics.spent;
         const calculatedStartBalance = currentEndBalance - netChange;
         metrics.endBalance = currentEndBalance;
         metrics.startBalance = calculatedStartBalance;
-        userBalances.set(type, calculatedStartBalance);
-      });
+        userBalances.set(liquidity, calculatedStartBalance);
+      }
 
-      const totalEarned = pTransactions
-        .filter((t) => t.type === 'income')
-        .reduce((sum, t) => sum + t.amount, 0);
-      const totalSpent = pTransactions
-        .filter((t) => t.type === 'expense')
-        .reduce((sum, t) => sum + t.amount, 0);
+      const spendableMetrics = metricsByLiquidity.spendable ?? emptyLiquidityMetrics();
+      const reserveMetrics = metricsByLiquidity.reserve ?? emptyLiquidityMetrics();
 
       return {
         id: period.id,
         name: `${formatDateShort(period.start_date)} - ${period.end_date ? formatDateShort(period.end_date) : 'Present'}`,
         startDate: period.start_date,
         endDate: period.end_date || new Date().toISOString().split('T')[0],
-        startBalance: Object.values(metricsByAccountType).reduce(
-          (sum, m) => sum + m.startBalance,
-          0
-        ),
-        endBalance: Object.values(metricsByAccountType).reduce((sum, m) => sum + m.endBalance, 0),
-        totalEarned,
-        totalSpent,
-        metricsByAccountType,
+        startBalance: spendableMetrics.startBalance + reserveMetrics.startBalance,
+        endBalance: spendableMetrics.endBalance + reserveMetrics.endBalance,
+        spendable: {
+          startBalance: spendableMetrics.startBalance,
+          endBalance: spendableMetrics.endBalance,
+        },
+        reserve: {
+          startBalance: reserveMetrics.startBalance,
+          endBalance: reserveMetrics.endBalance,
+        },
         userId: period.user_id,
       };
     })
     .filter(Boolean) as ReportPeriodSummary[];
-}
-
-/**
- * Calculate category stats
- */
-export function calculateCategoryStatsUseCase(
-  transactions: Transaction[],
-  categories: Category[]
-): { income: CategoryStat[]; expense: CategoryStat[] } {
-  const categoryMap = new Map(categories.map((c) => [c.id, c]));
-  const statsMap = new Map<string, CategoryStat>();
-
-  for (const t of transactions) {
-    if (t.type === 'transfer') continue;
-
-    const catId = t.category;
-    const category =
-      categoryMap.get(catId) ||
-      Array.from(categoryMap.values()).find((c) => c.key.toLowerCase() === catId.toLowerCase());
-
-    const catKey = category?.id || catId;
-
-    if (!statsMap.has(catKey)) {
-      statsMap.set(catKey, {
-        id: catKey,
-        name: category?.label || catId,
-        type: t.type,
-        total: 0,
-        color: category?.color || '#cbd5e1',
-      });
-    }
-
-    statsMap.get(catKey)!.total += t.amount;
-  }
-
-  const allStats = Array.from(statsMap.values());
-  return {
-    income: allStats.filter((s) => s.type === 'income').sort((a, b) => b.total - a.total),
-    expense: allStats.filter((s) => s.type === 'expense').sort((a, b) => b.total - a.total),
-  };
-}
-
-/**
- * Calculate time trends
- */
-export function calculateTimeTrendsUseCase(
-  transactions: Transaction[],
-  range: { start: Date; end: Date }
-) {
-  const dailyMap = new Map<string, { date: string; income: number; expense: number }>();
-
-  transactions.forEach((t) => {
-    const date = toDateTime(t.date);
-    if (!date || date.toJSDate() < range.start || date.toJSDate() > range.end) return;
-    if (t.type === 'transfer') return;
-
-    const key = date.toISODate() || formatDateShort(t.date);
-    if (!dailyMap.has(key)) {
-      dailyMap.set(key, { date: key, income: 0, expense: 0 });
-    }
-    const entry = dailyMap.get(key)!;
-
-    if (t.type === 'income') entry.income += t.amount;
-    if (t.type === 'expense') entry.expense += t.amount;
-  });
-
-  return Array.from(dailyMap.values()).sort(
-    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-  );
 }

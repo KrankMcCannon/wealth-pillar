@@ -329,13 +329,12 @@ export const stitchReports = {
     'flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border/35 bg-muted/80 text-muted-foreground',
   accountMeta: 'text-[11px] text-muted-foreground',
   accountAmount: 'text-base font-semibold tabular-nums text-foreground',
-  /** Historical budget card */
-  historyCard: 'flex flex-col gap-2 rounded-xl border border-border/25 bg-card/90 p-3',
-  historyHeaderRow: 'flex items-center justify-between gap-2 border-b border-border/25 pb-2',
-  historyMonthLabel: 'text-sm font-medium text-foreground',
-  historyMetricsRow: 'flex items-start justify-between gap-3 pt-1',
-  historyMetricLabel: 'text-[11px] text-muted-foreground',
-  historyMetricValue: 'text-base font-semibold tabular-nums text-foreground',
+  /** Budget period card (reports) */
+  periodCard: 'flex flex-col gap-3 rounded-xl border border-border/25 bg-card/90 p-3',
+  periodHeaderRow: 'flex items-center justify-between gap-2',
+  periodRangeLabel: 'text-sm font-medium text-foreground',
+  periodMetricLabel: 'text-[11px] text-muted-foreground',
+  periodMetricValue: 'text-base font-semibold tabular-nums text-foreground',
   emptyWell:
     'rounded-xl bg-muted/60 px-4 py-6 text-center text-sm text-muted-foreground shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]',
 } as const;

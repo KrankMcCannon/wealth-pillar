@@ -14,7 +14,7 @@ function parseReportsParams(
 ): ReportsPageParams {
   const presetRaw = typeof searchParams.preset === 'string' ? searchParams.preset : 'monthly';
   const preset = (
-    ['monthly', 'weekly', 'yearly', 'custom'].includes(presetRaw) ? presetRaw : 'monthly'
+    ['monthly', 'weekly', 'ytd', 'yearly', 'custom'].includes(presetRaw) ? presetRaw : 'monthly'
   ) as ReportsTimePreset;
 
   return {
@@ -58,7 +58,11 @@ export default async function ReportsPage({
         initialPreset={reportParams.preset ?? 'monthly'}
         initialCustomStart={reportParams.customStart}
         initialCustomEnd={reportParams.customEnd}
-        initialMemberUserId={reportParams.memberUserId}
+        initialScope={
+          reportParams.memberUserId && groupUserIds.includes(reportParams.memberUserId)
+            ? reportParams.memberUserId
+            : 'all'
+        }
       />
     </Suspense>
   );

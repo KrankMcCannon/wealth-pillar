@@ -1,12 +1,15 @@
 import { cacheLife, cacheTag } from 'next/cache';
+import { endOfDay, startOfDay, subYears } from 'date-fns';
 import {
   getReportsDataUseCase,
   calculatePeriodSummariesUseCase,
+  resolveYtdBudgetStart,
   type ReportPeriodSummary,
 } from '../reports/reports.use-cases';
 import {
   buildReportsSectionViewModel,
   periodOverlapsWindow,
+  type DateWindow,
   type ReportsSectionViewModel,
 } from '../reports/report.logic';
 import {
@@ -14,6 +17,8 @@ import {
   getCurrentReportingWindow,
   type ReportsTimePreset,
 } from '@/features/reports/utils/reporting-window';
+
+export type ReportsScope = 'all' | string;
 
 export interface ReportsPageParams {
   preset?: ReportsTimePreset | undefined;
@@ -23,12 +28,9 @@ export interface ReportsPageParams {
 }
 
 export interface ReportsPageData {
-  group: ReportsSectionViewModel;
-  member: ReportsSectionViewModel;
-  memberUserId: string;
-  periodSummaries: ReportPeriodSummary[];
-  filteredPeriodsAllUsers: ReportPeriodSummary[];
-  memberPeriods: ReportPeriodSummary[];
+  sections: { all: ReportsSectionViewModel } & Record<string, ReportsSectionViewModel>;
+  periods: ReportPeriodSummary[];
+  defaultScope: ReportsScope;
   preset: ReportsTimePreset;
   comparisonLabelKey: 'vsLastMonth' | 'vsLastWeek' | 'vsLastYear' | 'vsPreviousRange';
 }
@@ -50,60 +52,70 @@ export async function getReportsPageDataUseCase(
       ? { start: params.customStart, end: params.customEnd }
       : null;
 
-  const currentWindow = getCurrentReportingWindow(preset, customRange);
-  const comparisonWindow = getComparisonReportingWindow(preset, currentWindow);
-
   const reportsData = await getReportsDataUseCase(groupId, groupUserIds);
   const { transactions, accounts, periods, categories, users } = reportsData;
 
   const userIds = users.map((u) => u.id);
-  const memberUserId =
-    params.memberUserId && userIds.includes(params.memberUserId)
-      ? params.memberUserId
-      : (userIds[0] ?? '');
+
+  let currentWindow: DateWindow = getCurrentReportingWindow(preset, customRange);
+  let comparisonWindow = getComparisonReportingWindow(preset, currentWindow);
+
+  if (preset === 'ytd') {
+    const now = new Date();
+    const anchor = resolveYtdBudgetStart(periods, now);
+    if (anchor) {
+      currentWindow = { start: startOfDay(anchor), end: currentWindow.end };
+      comparisonWindow = {
+        start: startOfDay(subYears(currentWindow.start, 1)),
+        end: endOfDay(subYears(currentWindow.end, 1)),
+      };
+    }
+  }
 
   const periodSummaries = calculatePeriodSummariesUseCase(periods, transactions, accounts);
-  const filteredPeriodsAllUsers = periodSummaries
+  const filteredPeriods = periodSummaries
     .filter((p) => periodOverlapsWindow(p, currentWindow))
     .sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
 
-  const memberPeriods = filteredPeriodsAllUsers.filter((p) => p.userId === memberUserId);
+  const sections: ReportsPageData['sections'] = {
+    all: buildReportsSectionViewModel(
+      transactions,
+      accounts,
+      categories,
+      userIds,
+      currentWindow,
+      comparisonWindow
+    ),
+  };
 
-  const group = buildReportsSectionViewModel(
-    transactions,
-    accounts,
-    categories,
-    userIds,
-    currentWindow,
-    comparisonWindow
-  );
+  for (const uid of userIds) {
+    sections[uid] = buildReportsSectionViewModel(
+      transactions,
+      accounts,
+      categories,
+      userIds,
+      currentWindow,
+      comparisonWindow,
+      uid
+    );
+  }
 
-  const member = buildReportsSectionViewModel(
-    transactions,
-    accounts,
-    categories,
-    userIds,
-    currentWindow,
-    null,
-    memberUserId
-  );
+  const defaultScope: ReportsScope =
+    params.memberUserId && userIds.includes(params.memberUserId) ? params.memberUserId : 'all';
 
   const comparisonLabelKey =
     preset === 'monthly'
       ? 'vsLastMonth'
       : preset === 'weekly'
         ? 'vsLastWeek'
-        : preset === 'yearly'
+        : preset === 'yearly' || preset === 'ytd'
           ? 'vsLastYear'
           : 'vsPreviousRange';
 
   return {
-    group,
-    member,
-    memberUserId,
-    periodSummaries,
-    filteredPeriodsAllUsers,
-    memberPeriods,
+    sections,
+    periods: filteredPeriods,
+    defaultScope,
     preset,
     comparisonLabelKey,
   };

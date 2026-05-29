@@ -29,9 +29,10 @@ export function ReportsTimeFilter({
   const [draftStart, setDraftStart] = useState(customRange?.start ?? '');
   const [draftEnd, setDraftEnd] = useState(customRange?.end ?? '');
 
-  const presets: { id: ReportsTimePreset; labelKey: 'monthly' | 'weekly' | 'yearly' }[] = [
-    { id: 'monthly', labelKey: 'monthly' },
+  const presets: { id: ReportsTimePreset; labelKey: 'weekly' | 'monthly' | 'ytd' | 'yearly' }[] = [
     { id: 'weekly', labelKey: 'weekly' },
+    { id: 'monthly', labelKey: 'monthly' },
+    { id: 'ytd', labelKey: 'ytd' },
     { id: 'yearly', labelKey: 'yearly' },
   ];
 

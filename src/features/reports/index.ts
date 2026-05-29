@@ -8,7 +8,7 @@ export {
   TopExpensesRanking,
   type TopExpenseRow,
   AccountBreakdownSection,
-  HistoricalBudgetSection,
-  HistoricalBudgetCard,
+  BudgetPeriodSection,
+  BudgetPeriodCard,
   derivePeriodOnTrack,
 } from './components';

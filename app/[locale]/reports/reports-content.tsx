@@ -1,11 +1,10 @@
 'use client';
 
-import { use, useCallback, useState, useTransition } from 'react';
+import { use, useCallback, useMemo, useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter, usePathname } from '@/i18n/routing';
 import { AppPage, HomeDashboardMain } from '@/components/layout';
-import { Button } from '@/components/ui';
-import type { ReportsPageData } from '@/server/use-cases/pages/reports-page.use-case';
+import type { ReportsPageData, ReportsScope } from '@/server/use-cases/pages/reports-page.use-case';
 import type { User } from '@/lib/types';
 import { stitchReports } from '@/styles/home-design-foundation';
 import UserSelector from '@/components/shared/user-selector';
@@ -13,7 +12,7 @@ import { ReportsTimeFilter } from '@/features/reports/components/reports-time-fi
 import { ReportsHero } from '@/features/reports/components/reports-hero';
 import { TopExpensesRanking } from '@/features/reports/components/top-expenses-ranking';
 import { AccountBreakdownSection } from '@/features/reports/components/account-breakdown-section';
-import { HistoricalBudgetSection } from '@/features/reports/components/historical-budget-section';
+import { BudgetPeriodSection } from '@/features/reports/components/budget-period-section';
 import type { ReportsTimePreset } from '@/features/reports/utils/reporting-window';
 
 interface ReportsContentProps {
@@ -23,7 +22,24 @@ interface ReportsContentProps {
   initialPreset: ReportsTimePreset;
   initialCustomStart?: string | undefined;
   initialCustomEnd?: string | undefined;
-  initialMemberUserId?: string | undefined;
+  initialScope?: ReportsScope | undefined;
+}
+
+function buildReportsSearchParams(
+  preset: ReportsTimePreset,
+  customRange: { start: string; end: string } | null,
+  scope: ReportsScope
+): string {
+  const params = new URLSearchParams();
+  params.set('preset', preset);
+  if (preset === 'custom' && customRange) {
+    params.set('customStart', customRange.start);
+    params.set('customEnd', customRange.end);
+  }
+  if (scope !== 'all') {
+    params.set('member', scope);
+  }
+  return params.toString();
 }
 
 export default function ReportsContent({
@@ -33,7 +49,7 @@ export default function ReportsContent({
   initialPreset,
   initialCustomStart,
   initialCustomEnd,
-  initialMemberUserId,
+  initialScope,
 }: ReportsContentProps) {
   const data = use(reportsBundlePromise);
   const router = useRouter();
@@ -49,32 +65,34 @@ export default function ReportsContent({
       ? { start: initialCustomStart, end: initialCustomEnd }
       : null
   );
-  const [memberOpen, setMemberOpen] = useState(false);
-  const [selectedUserId, setSelectedUserId] = useState<string>(
-    initialMemberUserId ?? data.memberUserId ?? currentUser.id
+  const [selectedScope, setSelectedScope] = useState<ReportsScope>(
+    initialScope ?? data.defaultScope
   );
 
-  const pushParams = useCallback(
-    (next: {
-      preset?: ReportsTimePreset;
-      customStart?: string;
-      customEnd?: string;
-      member?: string;
-    }) => {
-      const params = new URLSearchParams();
-      params.set('preset', next.preset ?? preset);
-      if (next.customStart && next.customEnd) {
-        params.set('customStart', next.customStart);
-        params.set('customEnd', next.customEnd);
-      }
-      if (next.member ?? selectedUserId) {
-        params.set('member', next.member ?? selectedUserId);
-      }
+  const syncScopeToUrl = useCallback(
+    (scope: ReportsScope) => {
+      const query = buildReportsSearchParams(preset, customRange, scope);
+      const url = query ? `${pathname}?${query}` : pathname;
+      window.history.replaceState(null, '', url);
+    },
+    [pathname, preset, customRange]
+  );
+
+  const pushTimeParams = useCallback(
+    (next: { preset?: ReportsTimePreset; customStart?: string; customEnd?: string }) => {
+      const nextPreset = next.preset ?? preset;
+      const nextCustom =
+        next.customStart && next.customEnd
+          ? { start: next.customStart, end: next.customEnd }
+          : nextPreset === 'custom'
+            ? customRange
+            : null;
+      const query = buildReportsSearchParams(nextPreset, nextCustom, selectedScope);
       startTransition(() => {
-        router.push(`${pathname}?${params.toString()}`);
+        router.push(query ? `${pathname}?${query}` : pathname);
       });
     },
-    [pathname, preset, router, selectedUserId]
+    [pathname, preset, customRange, selectedScope, router]
   );
 
   const handlePresetChange = useCallback(
@@ -82,15 +100,34 @@ export default function ReportsContent({
       setPreset(p);
       if (p !== 'custom') {
         setCustomRange(null);
-        pushParams({ preset: p });
+        pushTimeParams({ preset: p });
       }
     },
-    [pushParams]
+    [pushTimeParams]
+  );
+
+  const handleScopeChange = useCallback(
+    (scope: string) => {
+      const next: ReportsScope = scope === 'all' ? 'all' : scope;
+      setSelectedScope(next);
+      syncScopeToUrl(next);
+    },
+    [syncScopeToUrl]
   );
 
   const comparisonLabel = tHero(data.comparisonLabelKey);
 
-  const { group, member } = data;
+  const section =
+    selectedScope === 'all'
+      ? data.sections.all
+      : (data.sections[selectedScope] ?? data.sections.all);
+
+  const scopedPeriods = useMemo(() => {
+    if (selectedScope === 'all') return data.periods;
+    return data.periods.filter((p) => p.userId === selectedScope);
+  }, [data.periods, selectedScope]);
+
+  const userSelectorValue = selectedScope === 'all' ? 'all' : selectedScope;
 
   return (
     <AppPage
@@ -108,7 +145,7 @@ export default function ReportsContent({
             customRange={customRange}
             onCustomApply={(start, end) => {
               setCustomRange({ start, end });
-              pushParams({ preset: 'custom', customStart: start, customEnd: end });
+              pushTimeParams({ preset: 'custom', customStart: start, customEnd: end });
             }}
           />
 
@@ -117,78 +154,34 @@ export default function ReportsContent({
             {...(isPending ? { className: 'opacity-70 transition-opacity' } : {})}
           >
             <div className={stitchReports.sectionStack}>
+              <UserSelector
+                hideTitle
+                currentUser={currentUser}
+                users={groupUsers}
+                value={userSelectorValue}
+                onChange={handleScopeChange}
+                showAllOption
+              />
+
               <ReportsHero
-                netFlow={group.netFlow}
-                income={group.income}
-                expenses={group.expenses}
-                totalSpendable={group.totalSpendable}
-                totalReserve={group.totalReserve}
-                netSavings={group.netSavings}
-                comparisonPercent={group.comparisonPercent}
+                netFlow={section.netFlow}
+                income={section.income}
+                expenses={section.expenses}
+                totalSpendable={section.totalSpendable}
+                totalReserve={section.totalReserve}
+                netSavings={section.netSavings}
+                comparisonPercent={section.comparisonPercent}
                 comparisonLabel={comparisonLabel}
               />
 
-              <TopExpensesRanking items={group.topExpenses} />
+              <TopExpensesRanking items={section.topExpenses} />
 
               <AccountBreakdownSection
-                rows={group.accountBreakdown}
-                totalWealth={group.totalWealth}
+                rows={section.accountBreakdown}
+                totalWealth={section.totalWealth}
               />
 
-              <HistoricalBudgetSection periods={data.filteredPeriodsAllUsers} />
-            </div>
-
-            <div className="mt-6 border-t border-border/25 pt-4">
-              <div className="flex flex-col gap-3">
-                <div className="flex flex-col gap-2">
-                  <h2 className={stitchReports.sectionTitle}>{t('sectionMemberTitle')}</h2>
-                  <p className="text-sm leading-snug text-muted-foreground">
-                    {t('sectionMemberSubtitle')}
-                  </p>
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="w-full border-border/40 bg-muted/50 text-foreground hover:bg-accent"
-                  aria-expanded={memberOpen}
-                  aria-controls="reports-member-panel"
-                  onClick={() => setMemberOpen((o) => !o)}
-                >
-                  {memberOpen ? t('memberSectionCollapse') : t('memberSectionExpand')}
-                </Button>
-              </div>
-
-              {memberOpen ? (
-                <div id="reports-member-panel" className="mt-4 flex flex-col gap-5">
-                  <UserSelector
-                    hideTitle
-                    currentUser={currentUser}
-                    users={groupUsers}
-                    value={selectedUserId}
-                    onChange={(id) => {
-                      setSelectedUserId(id);
-                      pushParams({ member: id });
-                    }}
-                    showAllOption={false}
-                  />
-                  <ReportsHero
-                    netFlow={member.netFlow}
-                    income={member.income}
-                    expenses={member.expenses}
-                    totalSpendable={member.totalSpendable}
-                    totalReserve={member.totalReserve}
-                    netSavings={member.netSavings}
-                    omitComparison
-                  />
-                  <TopExpensesRanking items={member.topExpenses} />
-                  <AccountBreakdownSection
-                    rows={member.accountBreakdown}
-                    totalWealth={member.totalWealth}
-                  />
-                  <HistoricalBudgetSection periods={data.memberPeriods} />
-                </div>
-              ) : null}
+              <BudgetPeriodSection periods={scopedPeriods} />
             </div>
           </HomeDashboardMain>
         </div>

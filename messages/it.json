@@ -370,17 +370,14 @@
   },
   "ReportsContent": {
     "headerTitle": "Rapporti",
-    "skipToMain": "Vai al contenuto dei rapporti",
-    "sectionMemberTitle": "Dettaglio membro",
-    "sectionMemberSubtitle": "Scegli qualcuno per vedere lo stesso riepilogo sulle sue transazioni nell’intervallo sopra.",
-    "memberSectionExpand": "Apri dettaglio membro",
-    "memberSectionCollapse": "Chiudi dettaglio membro"
+    "skipToMain": "Vai al contenuto dei rapporti"
   },
   "Reports": {
     "TimeFilter": {
       "ariaLabel": "Periodo del rapporto",
       "monthly": "Mensile",
       "weekly": "Settimanale",
+      "ytd": "Da inizio anno",
       "yearly": "Annuale",
       "custom": "Personalizzato",
       "customTitle": "Intervallo personalizzato",
@@ -419,11 +416,13 @@
         "other": "Altro"
       }
     },
-    "HistoricalBudget": {
-      "title": "Budget storico",
-      "empty": "Nessun periodo budget si sovrappone a questo intervallo.",
-      "startingBalance": "Saldo iniziale",
-      "closingBalance": "Saldo finale",
+    "BudgetPeriods": {
+      "title": "Periodi di budget",
+      "empty": "Nessun periodo di budget si sovrappone a questo intervallo.",
+      "spendable": "Spendibile",
+      "reserve": "Riserva",
+      "initial": "Iniziale",
+      "final": "Finale",
       "badgeOnTrack": "In linea",
       "badgeOverBudget": "Fuori budget"
     }
