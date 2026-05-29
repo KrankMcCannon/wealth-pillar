@@ -3,7 +3,6 @@
 import { useCallback, useMemo } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import type { UserBudgetSummary } from '@/lib';
-import { BudgetSectionSkeleton } from '@/features/dashboard';
 import { HomeSectionCard } from '@/components/home';
 import { EmptyState } from '@/components/shared';
 import { SectionHeader } from '@/components/layout';
@@ -20,7 +19,6 @@ import { stitchHome, stitchSurface } from '@/styles/home-design-foundation';
 interface BudgetSectionProps {
   budgetsByUser: Record<string, UserBudgetSummary>;
   selectedViewUserId?: string | undefined;
-  isLoading?: boolean;
   headerLeading?: React.ReactNode;
 }
 
@@ -30,7 +28,6 @@ interface BudgetSectionProps {
 export const BudgetSection = ({
   budgetsByUser,
   selectedViewUserId,
-  isLoading,
   headerLeading,
 }: BudgetSectionProps) => {
   const router = useRouter();
@@ -62,12 +59,6 @@ export const BudgetSection = ({
     () => [...budgetEntries].sort((a, b) => b.totalBudget - a.totalBudget),
     [budgetEntries]
   );
-
-  const isInitialLoading = isLoading && budgetEntries.length === 0;
-
-  if (isInitialLoading) {
-    return <BudgetSectionSkeleton />;
-  }
 
   if (budgetEntries.length === 0 || totalBudgetRows === 0) {
     return (

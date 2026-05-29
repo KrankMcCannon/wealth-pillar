@@ -78,7 +78,6 @@ export default function BudgetsContent({
       title={t('title')}
       subtitle={t('pageSubtitle')}
       showBack
-      showActions
       skipToMainHref="#main-budgets"
       skipToMainLabel={t('skipToMain')}
       dashboardMain

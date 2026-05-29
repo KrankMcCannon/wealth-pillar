@@ -36,9 +36,6 @@ export default function HomeContent({
 }: HomeContentProps) {
   const dashboardData = use(dashboardDataPromise);
   const {
-    accounts = [],
-    accountBalances = {},
-    budgetPeriods = {},
     recurringSeries = [],
     budgetsByUser = {},
     transactions = [],
@@ -65,7 +62,6 @@ export default function HomeContent({
     isMember,
     selectedGroupFilter,
     effectiveUserId,
-    displayedDefaultAccounts,
     spendableBalance,
     reserveBalance,
     netSavings,
@@ -74,11 +70,6 @@ export default function HomeContent({
     handleOpenRecurringTab,
   } = useDashboardContent({
     currentUser,
-    groupUsers,
-    accounts,
-    accountBalances,
-    budgetPeriods,
-    recurringSeries,
     balanceViewModel,
     netSavingsAll,
     netSavingsByUserId,
@@ -142,7 +133,6 @@ export default function HomeContent({
       }
     >
       <BalanceSection
-        accounts={displayedDefaultAccounts}
         spendableBalance={spendableBalance}
         reserveBalance={reserveBalance}
         netSavings={netSavings}

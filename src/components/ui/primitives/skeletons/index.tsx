@@ -14,7 +14,12 @@ export {
   FullTransactionsPageSkeleton,
 } from './transaction-skeletons';
 
-export { BalanceSectionSkeleton, BudgetSectionSkeleton } from './dashboard-skeletons';
+export {
+  BalanceSectionSkeleton,
+  BudgetSectionSkeleton,
+  HomePageSectionsSkeleton,
+  RecentActivitySectionSkeleton,
+} from './dashboard-skeletons';
 
 export {
   BudgetCardSkeleton,

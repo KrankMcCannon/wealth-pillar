@@ -11,7 +11,7 @@ export function InvestmentsSkeleton() {
 
   return (
     <PageContainer>
-      <Header title={t('headerTitle')} showBack showActions={false} />
+      <Header title={t('headerTitle')} showBack />
 
       <div className={stitchTransactions.tabsStickyBar}>
         <div className="flex flex-col gap-3 px-4 pt-1">

@@ -6,20 +6,13 @@
 import { useMemo, useCallback } from 'react';
 import { useUserFilter, usePermissions } from '@/hooks';
 import { useModalState } from '@/lib/navigation/url-state';
-import { calculateDisplayedAccounts } from './dashboard-helpers';
-import type { Account, BudgetPeriod, User } from '@/lib/types';
-import type { RecurringTransactionSeries } from '@/lib';
+import type { User } from '@/lib/types';
 import type { DashboardBalanceViewModel } from '@/server/use-cases/accounts/account.logic';
 import type { NetSavingsResult } from '@/server/use-cases/shared/savings.logic';
 import { useRouter } from '@/i18n/routing';
 
 export interface UseDashboardContentParams {
   currentUser: User;
-  groupUsers: User[];
-  accounts: Account[];
-  accountBalances: Record<string, number>;
-  budgetPeriods: Record<string, BudgetPeriod | null>;
-  recurringSeries: RecurringTransactionSeries[];
   balanceViewModel: DashboardBalanceViewModel;
   netSavingsAll: NetSavingsResult;
   netSavingsByUserId: Record<string, NetSavingsResult>;
@@ -30,10 +23,8 @@ export interface UseDashboardContentReturn {
   selectedUserId: string | undefined;
   selectedGroupFilter: string;
   effectiveUserId: string;
-  displayedDefaultAccounts: Account[];
   spendableBalance: number;
   reserveBalance: number;
-  totalBalance: number;
   netSavings: NetSavingsResult;
   handleCreateRecurringSeries: () => void;
   handleOpenRecurringTab: () => void;
@@ -41,9 +32,6 @@ export interface UseDashboardContentReturn {
 
 export function useDashboardContent({
   currentUser,
-  groupUsers,
-  accounts,
-  accountBalances,
   balanceViewModel,
   netSavingsAll,
   netSavingsByUserId,
@@ -57,17 +45,6 @@ export function useDashboardContent({
 
   const { openModal } = useModalState();
 
-  const displayedDefaultAccounts = useMemo(() => {
-    return calculateDisplayedAccounts(
-      accounts,
-      groupUsers,
-      accountBalances,
-      currentUser,
-      selectedUserId,
-      isMember
-    );
-  }, [selectedUserId, accounts, groupUsers, accountBalances, isMember, currentUser]);
-
   const spendableBalance = useMemo(() => {
     if (selectedUserId) {
       return balanceViewModel.spendableByUserId[selectedUserId] ?? 0;
@@ -80,13 +57,6 @@ export function useDashboardContent({
       return balanceViewModel.reserveByUserId[selectedUserId] ?? 0;
     }
     return balanceViewModel.reserveBalanceAll;
-  }, [selectedUserId, balanceViewModel]);
-
-  const totalBalance = useMemo(() => {
-    if (selectedUserId) {
-      return balanceViewModel.totalBalanceByUserId[selectedUserId] ?? 0;
-    }
-    return balanceViewModel.totalBalanceAll;
   }, [selectedUserId, balanceViewModel]);
 
   const netSavings = useMemo(() => {
@@ -109,10 +79,8 @@ export function useDashboardContent({
     selectedUserId,
     selectedGroupFilter,
     effectiveUserId,
-    displayedDefaultAccounts,
     spendableBalance,
     reserveBalance,
-    totalBalance,
     netSavings,
     handleCreateRecurringSeries,
     handleOpenRecurringTab,

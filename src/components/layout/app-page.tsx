@@ -27,7 +27,6 @@ export interface AppPageProps {
   title?: string;
   subtitle?: string;
   showBack?: boolean;
-  showActions?: boolean;
   isDashboard?: boolean;
   onAvatarClick?: () => void;
   onBack?: () => void;
@@ -53,7 +52,6 @@ export function AppPage({
   title,
   subtitle,
   showBack,
-  showActions,
   isDashboard,
   onAvatarClick,
   onBack,
@@ -98,7 +96,6 @@ export function AppPage({
         {...(title !== undefined ? { title } : {})}
         {...(subtitle !== undefined ? { subtitle } : {})}
         {...(showBack !== undefined ? { showBack } : {})}
-        {...(showActions !== undefined ? { showActions } : {})}
         {...(isDashboard !== undefined ? { isDashboard } : {})}
         {...(onAvatarClick !== undefined ? { onAvatarClick } : {})}
         {...(onBack !== undefined ? { onBack } : {})}

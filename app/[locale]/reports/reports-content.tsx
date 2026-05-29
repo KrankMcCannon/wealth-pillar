@@ -134,7 +134,6 @@ export default function ReportsContent({
       currentUser={currentUser}
       title={t('headerTitle')}
       showBack
-      showActions
       skipToMainHref="#main-reports"
       skipToMainLabel={t('skipToMain')}
       betweenHeaderAndMain={

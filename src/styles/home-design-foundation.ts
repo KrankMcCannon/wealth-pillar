@@ -178,8 +178,8 @@ export const stitchTransactions = {
   chipActive: 'bg-accent text-foreground shadow-[inset_0_0_0_1px_rgba(143,176,255,0.28)]',
   chipInactive: 'border border-border/35 bg-muted/80 text-muted-foreground hover:bg-accent',
   filtersChipIcon: 'mr-1 inline h-4 w-4 shrink-0',
-  dayCard:
-    'rounded-xl border border-border/25 bg-card/90 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]',
+  /** Row list wrapper — layout only; surface lives on section card + individual rows. */
+  dayCard: 'flex flex-col gap-2',
   emptyState:
     'rounded-xl border border-border/25 bg-card/90 p-6 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]',
   emptyTitle: 'text-base font-medium text-foreground',
@@ -222,7 +222,7 @@ export const stitchTransactions = {
 } as const;
 
 /** Grouped list inside dashboard section cards (home activity, recurring preview, transaction day groups). */
-export const stitchDashboardGroupedList = `${stitchTransactions.dayCard} flex flex-col gap-2 p-1`;
+export const stitchDashboardGroupedList = stitchTransactions.dayCard;
 
 /**
  * Tab Ricorrenti (Transazioni) — summary, gruppi, empty state, FAB wrapper.
@@ -259,7 +259,7 @@ export const stitchRecurring = {
   groupSection: 'space-y-2',
   groupLabel: stitchTransactions.dayHeaderTitle,
   groupCard: stitchTransactions.dayCard,
-  listStack: 'flex flex-col gap-2 p-1',
+  listStack: stitchTransactions.dayCard,
   emptyState: stitchTransactions.emptyState,
   emptyTitle: stitchTransactions.emptyTitle,
   emptyDescription: stitchTransactions.emptyDescription,

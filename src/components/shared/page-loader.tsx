@@ -10,17 +10,13 @@ import {
 import { headerStyles } from '@/components/layout/theme/header-styles';
 import { Skeleton } from '@/components/ui/skeleton';
 import { TransactionListSkeleton } from '@/components/ui/primitives/skeletons';
+import { HomePageSectionsSkeleton } from '@/components/ui/primitives/skeletons/dashboard-skeletons';
 import { cn } from '@/lib/utils';
 import { STICKY_HEADER_BASE } from '@/lib/utils/ui-constants';
-import {
-  stitchHome,
-  stitchDashboardGroupedList,
-  stitchTransactions,
-  stitchTransactionPageSearch,
-} from '@/styles/home-design-foundation';
+import { stitchTransactions, stitchTransactionPageSearch } from '@/styles/home-design-foundation';
 
 const pageLoaderStyles = {
-  page: 'relative flex w-full min-h-[100svh] flex-col bg-card md:pl-64',
+  page: 'relative flex w-full min-h-[100svh] flex-col bg-card',
   container: 'flex-1 flex items-center justify-center',
   content: 'text-center',
   iconWrap:
@@ -48,46 +44,6 @@ function HeaderSkeleton() {
   );
 }
 
-function HomeListBlockSkeleton() {
-  return (
-    <section className={stitchHome.sectionCard} aria-hidden>
-      <div className="mb-3 flex items-center justify-between">
-        <Skeleton className="h-5 w-36" />
-        <Skeleton className="h-4 w-14" />
-      </div>
-      <div className={stitchDashboardGroupedList}>
-        {[1, 2, 3].map((i) => (
-          <div key={i} className={stitchHome.listRow}>
-            <Skeleton className="size-8 shrink-0 rounded-xl" />
-            <div className="min-w-0 flex-1 flex flex-col gap-1.5">
-              <Skeleton className="h-4 w-[60%]" />
-              <Skeleton className="h-3 w-20" />
-            </div>
-            <Skeleton className="h-4 w-16 shrink-0" />
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function BalanceBlockSkeleton() {
-  return (
-    <section className={stitchHome.balanceSection} aria-hidden>
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-3">
-          <Skeleton className="size-11 shrink-0 rounded-2xl" />
-          <div className="flex min-w-0 flex-col gap-2">
-            <Skeleton className="h-3 w-24" />
-            <Skeleton className="h-8 w-36 max-w-full" />
-          </div>
-        </div>
-        <Skeleton className="size-8 shrink-0 rounded-full" />
-      </div>
-    </section>
-  );
-}
-
 interface HomePageSkeletonProps {
   skipLabel: string;
 }
@@ -98,10 +54,7 @@ function HomePageSkeleton({ skipLabel }: HomePageSkeletonProps) {
       <SkipToMainLink href="#main-dashboard">{skipLabel}</SkipToMainLink>
       <HeaderSkeleton />
       <HomeDashboardMain ariaBusy>
-        <BalanceBlockSkeleton />
-        <HomeListBlockSkeleton />
-        <HomeListBlockSkeleton />
-        <HomeListBlockSkeleton />
+        <HomePageSectionsSkeleton />
       </HomeDashboardMain>
       <BottomNavigation />
     </PageContainer>

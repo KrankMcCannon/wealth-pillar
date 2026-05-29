@@ -87,7 +87,6 @@ export default function InvestmentsContent({
       currentUser={currentUser}
       title={t('headerTitle')}
       showBack
-      showActions
       skipToMainHref="#main-investments"
       skipToMainLabel={t('mainLandmark')}
       betweenHeaderAndMain={

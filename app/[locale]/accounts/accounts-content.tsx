@@ -105,7 +105,6 @@ export default function AccountsContent({
       currentUser={currentUser}
       title={t('headerTitle')}
       showBack
-      showActions
       skipToMainHref="#main-accounts"
       skipToMainLabel={t('headerTitle')}
       dashboardMain

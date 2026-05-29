@@ -8,6 +8,8 @@ export {
   BalanceSectionSkeleton,
   BudgetSectionSkeleton,
   RecurringSeriesSkeleton,
+  RecentActivitySectionSkeleton,
+  HomePageSectionsSkeleton,
 } from './components';
 
 // Hooks

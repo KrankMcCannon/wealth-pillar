@@ -22,9 +22,7 @@ export default async function HomePage({
   // requireGroupId needs currentUser so it runs after the parallel wave resolves.
   const groupId = await requireGroupId(currentUser);
 
-  const dashboardDataPromise = getDashboardPageData(groupId, {
-    includeInvestments: false,
-  }).catch((err) => {
+  const dashboardDataPromise = getDashboardPageData(groupId).catch((err) => {
     const message = err instanceof Error ? err.message : t('loadError');
     throw new Error(message, { cause: err });
   });

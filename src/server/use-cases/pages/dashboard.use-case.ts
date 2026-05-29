@@ -17,7 +17,6 @@ import { parsePeriodDates } from '../shared/period.logic';
 import { computeNetSavings, type NetSavingsResult } from '../shared/savings.logic';
 import { resolvePeriodAmounts } from '../budget-periods/period-amounts.logic';
 import { roundMoney } from '@/lib/utils/money';
-import { getPortfolioUseCase, type PortfolioResult } from '../investments/investment.use-cases';
 import type {
   Account,
   Transaction,
@@ -28,6 +27,7 @@ import type {
   UserBudgetSummary,
   User,
 } from '@/lib/types';
+
 /**
  * Check if an error is a request abort error (specific to Next.js/Supabase)
  */
@@ -64,7 +64,6 @@ export interface DashboardPageData {
   categories: Category[];
   accountBalances: Record<string, number>;
   budgetsByUser: Record<string, UserBudgetSummary>;
-  investments: Record<string, PortfolioResult | null>;
   balanceViewModel: DashboardBalanceViewModel;
   netSavingsAll: NetSavingsResult;
   netSavingsByUserId: Record<string, NetSavingsResult>;
@@ -121,25 +120,14 @@ function buildNetSavingsForUsers(
   };
 }
 
-export interface GetDashboardPageDataOptions {
-  /** Home non usa il portfolio: evita N fetch investimenti. Default true per compatibilità futura. */
-  includeInvestments?: boolean;
-}
-
 /**
  * Fetch all data for the dashboard page
  */
-export async function getDashboardPageData(
-  groupId: string,
-  options?: GetDashboardPageDataOptions
-): Promise<DashboardPageData> {
-  return getCachedDashboardPageData(groupId, options?.includeInvestments ?? true);
+export async function getDashboardPageData(groupId: string): Promise<DashboardPageData> {
+  return getCachedDashboardPageData(groupId);
 }
 
-async function getCachedDashboardPageData(
-  groupId: string,
-  includeInvestments: boolean
-): Promise<DashboardPageData> {
+async function getCachedDashboardPageData(groupId: string): Promise<DashboardPageData> {
   'use cache';
   cacheLife('minutes');
   cacheTag(`group:${groupId}:transactions`);
@@ -147,7 +135,6 @@ async function getCachedDashboardPageData(
   cacheTag(`group:${groupId}:accounts`);
   cacheTag('categories');
 
-  // 1. Get group users first
   let groupUsers: User[] = [];
   try {
     groupUsers = await getGroupUsersByGroupIdDeduped(groupId);
@@ -158,117 +145,31 @@ async function getCachedDashboardPageData(
   }
   const userIds = groupUsers.map((u) => u.id);
 
-  if (!includeInvestments) {
-    const [accounts, transactionResult, budgets, recurringSeries, categories, periodMap] =
-      await Promise.all([
-        safeFetch(getAccountsByGroupDeduped(groupId), [] as Account[], 'Failed to fetch accounts'),
-        safeFetch(
-          getTransactionsByGroupUseCase(groupId),
-          { data: [] as Transaction[], total: 0, hasMore: false },
-          'Failed to fetch transactions'
-        ),
-        safeFetch(getBudgetsByGroupUseCase(groupId), [] as Budget[], 'Failed to fetch budgets'),
-        safeFetch(
-          getSeriesByGroupUseCase(groupId),
-          [] as RecurringTransactionSeries[],
-          'Failed to fetch recurring series'
-        ),
-        safeFetch(getAllCategoriesDeduped(), [] as Category[], 'Failed to fetch categories'),
-        safeFetch(
-          getActiveBudgetPeriodsForUsersUseCase(userIds),
-          {} as Record<string, BudgetPeriod | null>,
-          'Failed to fetch budget periods'
-        ),
-      ]);
-
-    const budgetPeriods: Record<string, BudgetPeriod | null> = {};
-    const investments: Record<string, PortfolioResult | null> = {};
-    userIds.forEach((userId) => {
-      budgetPeriods[userId] = periodMap?.[userId] ?? null;
-      investments[userId] = null;
-    });
-
-    const budgetsByUser = enrichBudgetSummariesWithPeriodAmounts(
-      buildBudgetsByUserPure(groupUsers, budgets, transactionResult.data, budgetPeriods),
-      groupUsers,
-      transactionResult.data,
-      accounts,
-      budgetPeriods
-    );
-
-    const accountBalances: Record<string, number> = {};
-    accounts.forEach((a) => {
-      accountBalances[a.id] = Number(a.balance) || 0;
-    });
-
-    const balanceViewModel = computeDashboardBalanceViewModel(accounts, accountBalances, userIds);
-    const { netSavingsAll, netSavingsByUserId } = buildNetSavingsForUsers(
-      transactionResult.data,
-      accounts,
-      budgetPeriods,
-      userIds
-    );
-
-    return {
-      accounts,
-      transactions: transactionResult.data,
-      budgetPeriods,
-      recurringSeries,
-      categories,
-      accountBalances,
-      budgetsByUser,
-      investments,
-      balanceViewModel,
-      netSavingsAll,
-      netSavingsByUserId,
-    };
-  }
-
-  const investmentPromises = groupUsers.map((u) =>
-    safeFetch<PortfolioResult | null>(
-      getPortfolioUseCase(u.id),
-      null,
-      `Failed to fetch investments for user ${u.id}`
-    )
-  );
-
-  const [
-    accounts,
-    transactionResult,
-    budgets,
-    recurringSeries,
-    categories,
-    periodMap,
-    investmentResults,
-  ] = await Promise.all([
-    safeFetch(getAccountsByGroupDeduped(groupId), [] as Account[], 'Failed to fetch accounts'),
-    safeFetch(
-      getTransactionsByGroupUseCase(groupId),
-      { data: [] as Transaction[], total: 0, hasMore: false },
-      'Failed to fetch transactions'
-    ),
-    safeFetch(getBudgetsByGroupUseCase(groupId), [] as Budget[], 'Failed to fetch budgets'),
-    safeFetch(
-      getSeriesByGroupUseCase(groupId),
-      [] as RecurringTransactionSeries[],
-      'Failed to fetch recurring series'
-    ),
-    safeFetch(getAllCategoriesDeduped(), [] as Category[], 'Failed to fetch categories'),
-    safeFetch(
-      getActiveBudgetPeriodsForUsersUseCase(userIds),
-      {} as Record<string, BudgetPeriod | null>,
-      'Failed to fetch budget periods'
-    ),
-    Promise.all(investmentPromises),
-  ]);
+  const [accounts, transactionResult, budgets, recurringSeries, categories, periodMap] =
+    await Promise.all([
+      safeFetch(getAccountsByGroupDeduped(groupId), [] as Account[], 'Failed to fetch accounts'),
+      safeFetch(
+        getTransactionsByGroupUseCase(groupId),
+        { data: [] as Transaction[], total: 0, hasMore: false },
+        'Failed to fetch transactions'
+      ),
+      safeFetch(getBudgetsByGroupUseCase(groupId), [] as Budget[], 'Failed to fetch budgets'),
+      safeFetch(
+        getSeriesByGroupUseCase(groupId),
+        [] as RecurringTransactionSeries[],
+        'Failed to fetch recurring series'
+      ),
+      safeFetch(getAllCategoriesDeduped(), [] as Category[], 'Failed to fetch categories'),
+      safeFetch(
+        getActiveBudgetPeriodsForUsersUseCase(userIds),
+        {} as Record<string, BudgetPeriod | null>,
+        'Failed to fetch budget periods'
+      ),
+    ]);
 
   const budgetPeriods: Record<string, BudgetPeriod | null> = {};
-  const investments: Record<string, PortfolioResult | null> = {};
-
-  userIds.forEach((userId, index) => {
-    const period = periodMap?.[userId] ?? null;
-    budgetPeriods[userId] = period;
-    investments[userId] = investmentResults?.[index] || null;
+  userIds.forEach((userId) => {
+    budgetPeriods[userId] = periodMap?.[userId] ?? null;
   });
 
   const budgetsByUser = enrichBudgetSummariesWithPeriodAmounts(
@@ -300,7 +201,6 @@ async function getCachedDashboardPageData(
     categories,
     accountBalances,
     budgetsByUser,
-    investments,
     balanceViewModel,
     netSavingsAll,
     netSavingsByUserId,

@@ -74,7 +74,6 @@ export default function SettingsContent({
         title={t('headerTitle')}
         showBack
         onBack={() => router.push('/home')}
-        showActions
       >
         <main className={stitchSettings.pageMain}>
           <ProfileSection

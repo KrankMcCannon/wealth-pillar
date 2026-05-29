@@ -87,3 +87,44 @@ export function RecurringSeriesSkeleton() {
     </section>
   );
 }
+
+export function RecentActivitySectionSkeleton() {
+  return (
+    <section className={stitchHome.sectionCard} aria-hidden>
+      <div className="mb-3 flex items-center justify-between">
+        <div className="flex flex-col gap-1">
+          <Skeleton className="h-5 w-36" />
+          <Skeleton className="h-3 w-28" />
+        </div>
+        <Skeleton className="h-4 w-14 shrink-0" />
+      </div>
+      <div className={stitchDashboardGroupedList}>
+        <SkeletonList
+          count={3}
+          spacing="flex flex-col gap-2"
+          renderItem={() => (
+            <div className={stitchHome.listRow}>
+              <Skeleton className="size-8 shrink-0 rounded-xl" />
+              <div className="min-w-0 flex-1 flex flex-col gap-1.5">
+                <Skeleton className="h-4 w-[60%]" />
+                <Skeleton className="h-3 w-20" />
+              </div>
+              <Skeleton className="h-4 w-16 shrink-0" />
+            </div>
+          )}
+        />
+      </div>
+    </section>
+  );
+}
+
+export function HomePageSectionsSkeleton() {
+  return (
+    <>
+      <BalanceSectionSkeleton />
+      <BudgetSectionSkeleton />
+      <RecurringSeriesSkeleton />
+      <RecentActivitySectionSkeleton />
+    </>
+  );
+}

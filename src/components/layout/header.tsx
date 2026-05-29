@@ -15,8 +15,6 @@ interface HeaderProps {
   className?: string;
   currentUser?: { name?: string; role?: string };
   onAvatarClick?: (() => void) | undefined;
-  /** Kept for API compatibility — no longer rendered (was desktop-only). */
-  showActions?: boolean;
   onBack?: () => void;
 }
 

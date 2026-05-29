@@ -77,7 +77,6 @@ export default function BudgetDetailContent({
       subtitle={periodSubtitle}
       showBack
       onBack={() => router.push(`/budgets?userId=${encodeURIComponent(budget.user_id)}`)}
-      showActions
       skipToMainHref="#main-budget-detail"
       skipToMainLabel={t('skipToMain')}
       dashboardMain

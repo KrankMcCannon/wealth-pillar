@@ -113,7 +113,6 @@ export default function TransactionsContent({
       currentUser={currentUser}
       title={t('headerTitle')}
       showBack
-      showActions
       skipToMainHref="#main-transactions"
       skipToMainLabel={t('skipToMain')}
       afterMain={
