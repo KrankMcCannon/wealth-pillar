@@ -13,10 +13,7 @@ import {
   computeDashboardBalanceViewModel,
   type DashboardBalanceViewModel,
 } from '../accounts/account.logic';
-import { parsePeriodDates } from '../shared/period.logic';
-import { computeNetSavings, type NetSavingsResult } from '../shared/savings.logic';
 import { resolvePeriodAmounts } from '../budget-periods/period-amounts.logic';
-import { roundMoney } from '@/lib/utils/money';
 import type {
   Account,
   Transaction,
@@ -65,8 +62,6 @@ export interface DashboardPageData {
   accountBalances: Record<string, number>;
   budgetsByUser: Record<string, UserBudgetSummary>;
   balanceViewModel: DashboardBalanceViewModel;
-  netSavingsAll: NetSavingsResult;
-  netSavingsByUserId: Record<string, NetSavingsResult>;
 }
 
 function enrichBudgetSummariesWithPeriodAmounts(
@@ -89,35 +84,6 @@ function enrichBudgetSummariesWithPeriodAmounts(
     };
   }
   return result;
-}
-
-function buildNetSavingsForUsers(
-  transactions: Transaction[],
-  accounts: Account[],
-  budgetPeriods: Record<string, BudgetPeriod | null>,
-  userIds: string[]
-): { netSavingsAll: NetSavingsResult; netSavingsByUserId: Record<string, NetSavingsResult> } {
-  const netSavingsByUserId: Record<string, NetSavingsResult> = {};
-  let deposits = 0;
-  let withdrawals = 0;
-
-  for (const userId of userIds) {
-    const [start, end] = parsePeriodDates(budgetPeriods[userId]);
-    const window = { start: start.toJSDate(), end: end.toJSDate() };
-    const result = computeNetSavings(transactions, accounts, window, userId);
-    netSavingsByUserId[userId] = result;
-    deposits += result.deposits;
-    withdrawals += result.withdrawals;
-  }
-
-  return {
-    netSavingsByUserId,
-    netSavingsAll: {
-      deposits: roundMoney(deposits),
-      withdrawals: roundMoney(withdrawals),
-      net: roundMoney(deposits - withdrawals),
-    },
-  };
 }
 
 /**
@@ -186,12 +152,6 @@ async function getCachedDashboardPageData(groupId: string): Promise<DashboardPag
   });
 
   const balanceViewModel = computeDashboardBalanceViewModel(accounts, accountBalances, userIds);
-  const { netSavingsAll, netSavingsByUserId } = buildNetSavingsForUsers(
-    transactionResult.data,
-    accounts,
-    budgetPeriods,
-    userIds
-  );
 
   return {
     accounts,
@@ -202,7 +162,5 @@ async function getCachedDashboardPageData(groupId: string): Promise<DashboardPag
     accountBalances,
     budgetsByUser,
     balanceViewModel,
-    netSavingsAll,
-    netSavingsByUserId,
   };
 }

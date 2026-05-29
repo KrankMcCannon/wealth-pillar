@@ -96,8 +96,6 @@ const dashboardData: DashboardPageData = {
     spendableByUserId: {},
     reserveByUserId: {},
   },
-  netSavingsAll: { deposits: 0, withdrawals: 0, net: 0 },
-  netSavingsByUserId: {},
 };
 
 describe('HomeContent', () => {

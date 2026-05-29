@@ -8,14 +8,11 @@ import { useUserFilter, usePermissions } from '@/hooks';
 import { useModalState } from '@/lib/navigation/url-state';
 import type { User } from '@/lib/types';
 import type { DashboardBalanceViewModel } from '@/server/use-cases/accounts/account.logic';
-import type { NetSavingsResult } from '@/server/use-cases/shared/savings.logic';
 import { useRouter } from '@/i18n/routing';
 
 export interface UseDashboardContentParams {
   currentUser: User;
   balanceViewModel: DashboardBalanceViewModel;
-  netSavingsAll: NetSavingsResult;
-  netSavingsByUserId: Record<string, NetSavingsResult>;
 }
 
 export interface UseDashboardContentReturn {
@@ -25,7 +22,6 @@ export interface UseDashboardContentReturn {
   effectiveUserId: string;
   spendableBalance: number;
   reserveBalance: number;
-  netSavings: NetSavingsResult;
   handleCreateRecurringSeries: () => void;
   handleOpenRecurringTab: () => void;
 }
@@ -33,8 +29,6 @@ export interface UseDashboardContentReturn {
 export function useDashboardContent({
   currentUser,
   balanceViewModel,
-  netSavingsAll,
-  netSavingsByUserId,
 }: UseDashboardContentParams): UseDashboardContentReturn {
   const router = useRouter();
   const { selectedGroupFilter, selectedUserId } = useUserFilter();
@@ -59,13 +53,6 @@ export function useDashboardContent({
     return balanceViewModel.reserveBalanceAll;
   }, [selectedUserId, balanceViewModel]);
 
-  const netSavings = useMemo(() => {
-    if (selectedUserId) {
-      return netSavingsByUserId[selectedUserId] ?? netSavingsAll;
-    }
-    return netSavingsAll;
-  }, [selectedUserId, netSavingsAll, netSavingsByUserId]);
-
   const handleCreateRecurringSeries = useCallback(() => {
     openModal('recurring');
   }, [openModal]);
@@ -81,7 +68,6 @@ export function useDashboardContent({
     effectiveUserId,
     spendableBalance,
     reserveBalance,
-    netSavings,
     handleCreateRecurringSeries,
     handleOpenRecurringTab,
   };

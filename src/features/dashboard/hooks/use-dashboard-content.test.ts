@@ -25,9 +25,6 @@ const balanceViewModel: DashboardBalanceViewModel = {
   reserveByUserId: { u1: 200 },
 };
 
-const netSavingsAll = { deposits: 100, withdrawals: 40, net: 60 };
-const netSavingsByUserId = { u1: netSavingsAll };
-
 const currentUser = {
   id: 'u1',
   name: 'Alex',
@@ -36,21 +33,19 @@ const currentUser = {
 } as const;
 
 describe('useDashboardContent', () => {
-  it('returns spendable and reserve balances without totalBalance', () => {
+  it('returns only spendable and reserve balances (no totalBalance, no netSavings)', () => {
     const { result } = renderHook(() =>
       useDashboardContent({
         currentUser: currentUser as never,
         balanceViewModel,
-        netSavingsAll,
-        netSavingsByUserId,
       })
     );
 
     expect(result.current.spendableBalance).toBe(800);
     expect(result.current.reserveBalance).toBe(200);
-    expect(result.current.netSavings).toEqual(netSavingsAll);
     expect(result.current.isMember).toBe(true);
     expect(result.current).not.toHaveProperty('totalBalance');
+    expect(result.current).not.toHaveProperty('netSavings');
     expect(result.current).not.toHaveProperty('displayedDefaultAccounts');
   });
 });

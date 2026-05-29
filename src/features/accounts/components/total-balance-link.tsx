@@ -1,6 +1,6 @@
 /**
  * TotalBalanceLink Component
- * Displays spendable balance (primary) with reserve and savings metrics.
+ * Displays spendable balance (primary) with the reserve metric.
  */
 
 'use client';
@@ -11,12 +11,10 @@ import { useTranslations } from 'next-intl';
 import { Amount } from '@/components/ui/primitives/amount';
 import { accountStyles } from '../theme/account-styles';
 import { cn } from '@/lib/utils';
-import type { NetSavingsResult } from '@/server/use-cases/shared/savings.logic';
 
 interface TotalBalanceLinkProps {
   spendableBalance: number;
   reserveBalance?: number;
-  netSavings?: NetSavingsResult;
   selectedUserId?: string | undefined;
   embedded?: boolean;
 }
@@ -24,7 +22,6 @@ interface TotalBalanceLinkProps {
 export const TotalBalanceLink = ({
   spendableBalance,
   reserveBalance = 0,
-  netSavings,
   selectedUserId,
   embedded = false,
 }: TotalBalanceLinkProps) => {
@@ -84,25 +81,13 @@ export const TotalBalanceLink = ({
           >
             {spendableBalance}
           </Amount>
-          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+          <div className="mt-2 text-xs text-muted-foreground">
             <span>
               {t('reserveBalanceLabel')}:{' '}
               <Amount type="balance" size="sm" className="inline">
                 {reserveBalance}
               </Amount>
             </span>
-            {netSavings !== undefined ? (
-              <span>
-                {t('savedThisPeriod')}:{' '}
-                <Amount
-                  type={netSavings.net >= 0 ? 'income' : 'expense'}
-                  size="sm"
-                  className="inline"
-                >
-                  {netSavings.net}
-                </Amount>
-              </span>
-            ) : null}
           </div>
         </div>
       </div>

@@ -1112,7 +1112,6 @@
       "totalBalanceLabel": "Saldo Totale",
       "spendableBalanceLabel": "Disponibilità",
       "reserveBalanceLabel": "Risparmi e riserve",
-      "savedThisPeriod": "Risparmiato nel periodo",
       "accountCount": "{count} {count, plural, one {Conto} other {Conti}}"
     },
     "Content": {

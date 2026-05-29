@@ -2,12 +2,10 @@
 
 import { TotalBalanceLink } from './total-balance-link';
 import { accountStyles } from '../theme/account-styles';
-import type { NetSavingsResult } from '@/server/use-cases/shared/savings.logic';
 
 interface BalanceSectionProps {
   spendableBalance: number;
   reserveBalance?: number;
-  netSavings?: NetSavingsResult;
   selectedUserId?: string | undefined;
 }
 
@@ -18,7 +16,6 @@ interface BalanceSectionProps {
 export const BalanceSection = ({
   spendableBalance,
   reserveBalance = 0,
-  netSavings,
   selectedUserId,
 }: BalanceSectionProps) => {
   return (
@@ -27,7 +24,6 @@ export const BalanceSection = ({
         embedded={false}
         spendableBalance={spendableBalance}
         reserveBalance={reserveBalance}
-        {...(netSavings !== undefined ? { netSavings } : {})}
         selectedUserId={selectedUserId}
       />
     </section>

@@ -48,8 +48,6 @@ export default function HomeContent({
       spendableByUserId: {},
       reserveByUserId: {},
     },
-    netSavingsAll = { deposits: 0, withdrawals: 0, net: 0 },
-    netSavingsByUserId = {},
   } = dashboardData;
 
   const t = useTranslations('HomeContent');
@@ -64,15 +62,12 @@ export default function HomeContent({
     effectiveUserId,
     spendableBalance,
     reserveBalance,
-    netSavings,
     selectedUserId,
     handleCreateRecurringSeries,
     handleOpenRecurringTab,
   } = useDashboardContent({
     currentUser,
     balanceViewModel,
-    netSavingsAll,
-    netSavingsByUserId,
   });
 
   const showUserPicker =
@@ -135,7 +130,6 @@ export default function HomeContent({
       <BalanceSection
         spendableBalance={spendableBalance}
         reserveBalance={reserveBalance}
-        netSavings={netSavings}
         selectedUserId={selectedUserId}
       />
 
