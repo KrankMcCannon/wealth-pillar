@@ -1325,7 +1325,9 @@
       "hero": {
         "totalAvailable": "Totale disponibile da spendere",
         "totalBudgeted": "Totale in budget",
-        "totalSpent": "Totale speso"
+        "totalSpent": "Totale speso",
+        "spendableSpent": "Speso (spendibile)",
+        "reserveSaved": "Accantonato (riserva)"
       },
       "closePeriod": "Chiudi periodo",
       "fabAddBudget": "Aggiungi budget",
@@ -1513,8 +1515,8 @@
       },
       "deleteTitle": "Elimina periodo",
       "metrics": {
-        "spent": "Speso",
-        "saved": "Risparmiato"
+        "spent": "Speso (spendibile)",
+        "saved": "Accantonato (riserva)"
       },
       "topCategories": "Top Categorie"
     },
@@ -1529,8 +1531,8 @@
         "completed": "Concluso"
       },
       "metrics": {
-        "spent": "Speso",
-        "saved": "Risparmiato"
+        "spent": "Speso (spendibile)",
+        "saved": "Accantonato (riserva)"
       },
       "topCategories": "Principali Categorie"
     },

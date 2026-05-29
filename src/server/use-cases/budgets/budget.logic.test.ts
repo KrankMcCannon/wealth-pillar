@@ -17,7 +17,6 @@ const user = {
   avatar: null,
   theme_color: null,
   default_account_id: null,
-  budget_periods: null,
   budget_start_date: null,
   created_at: '2024-01-01',
   updated_at: '2024-01-01',

@@ -191,7 +191,6 @@ export async function completeOnboardingAction(
       group_id: groupId,
       role: 'admin',
       clerk_id: user.clerkId,
-      budget_periods: [],
     });
 
     if (!createdUser) {

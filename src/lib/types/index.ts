@@ -1,4 +1,4 @@
-import type { Database, Json } from './database.types';
+import type { Database } from './database.types';
 
 export type RoleType = 'superadmin' | 'admin' | 'member';
 export type AccountType = 'payroll' | 'savings' | 'cash' | 'investments';
@@ -72,13 +72,12 @@ export interface Group {
 /** User row: Drizzle allows null name/email; timestamps may be Date or ISO string; jsonb may infer as unknown. */
 export type User = Omit<
   Database['public']['Tables']['users']['Row'],
-  'name' | 'email' | 'created_at' | 'updated_at' | 'budget_periods'
+  'name' | 'email' | 'created_at' | 'updated_at'
 > & {
   name: string | null;
   email: string | null;
   created_at: DateString | null;
   updated_at: DateString | null;
-  budget_periods: Json | null | unknown;
 };
 
 export interface Account {
@@ -142,11 +141,23 @@ export interface RecurringTransactionSeries {
 export interface BudgetPeriod {
   id: string;
   user_id: string;
+  group_id?: string | null;
   start_date: DateString;
   end_date: DateString | null;
   is_active: boolean;
+  spendable_spent?: number | null;
+  reserve_saved?: number | null;
+  category_spending?: Record<string, number> | null;
+  snapshot_at?: DateString | null;
   created_at: DateString;
   updated_at: DateString;
+}
+
+/** Resolved liquidity amounts for a budget period (live or snapshot). */
+export interface PeriodLiquidityAmounts {
+  spendableSpent: number;
+  reserveSaved: number;
+  categorySpending: Record<string, number>;
 }
 
 export interface Budget {
@@ -246,6 +257,10 @@ export interface UserBudgetSummary {
   totalSpent: number;
   totalRemaining: number;
   overallPercentage: number;
+  /** Real spend from spendable accounts in the period (transaction-driven). */
+  periodSpendableSpent: number;
+  /** Real net moved to reserve in the period (transfer-driven). */
+  periodReserveSaved: number;
 }
 
 /** Row shape: Drizzle returns Date timestamps; Supabase types use string — accept both. */
@@ -265,18 +280,6 @@ export interface UserPreferencesUpdate {
   notifications_push?: boolean;
   notifications_email?: boolean;
   notifications_budget_alerts?: boolean;
-}
-
-/**
- * Budget Period JSON structure used in database
- */
-export interface BudgetPeriodJSON {
-  id: string;
-  start_date: string;
-  end_date: string | null;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
 }
 
 // Market Data Types

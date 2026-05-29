@@ -11,6 +11,7 @@ import { getActiveBudgetPeriodUseCase } from '@/server/use-cases/budget-periods/
 import { calculatePeriodTotalsUseCase } from '@/server/use-cases/budget-periods/calculate-period-totals.use-case';
 import { getTransactionsByUserUseCase } from '@/server/use-cases/transactions/get-transactions.use-case';
 import { getBudgetsByUserUseCase } from '@/server/use-cases/budgets/get-budgets.use-case';
+import { AccountsRepository } from '@/server/repositories/accounts.repository';
 import { canAccessUserData, isMember } from '@/lib/utils';
 import type { BudgetPeriod, User } from '@/lib/types';
 import type { ServiceResult } from '@/lib/types/service-result';
@@ -342,9 +343,10 @@ export async function getPeriodPreviewAction(
 
     // Fetch necessary data on server
     // We fetch all transactions for the user to ensure accurate calculations
-    const [transactions, budgets] = await Promise.all([
+    const [transactions, budgets, accounts] = await Promise.all([
       getTransactionsByUserUseCase(userId),
       getBudgetsByUserUseCase(userId),
+      AccountsRepository.findByUser(userId),
     ]);
 
     // Instantiate a temporary period object for calculation
@@ -362,7 +364,7 @@ export async function getPeriodPreviewAction(
     const startDt = DateTime.fromISO(startDate);
     const endDt = DateTime.fromISO(endDate);
 
-    const totals = calculatePeriodTotalsUseCase(transactions, tempPeriod, startDt, endDt, budgets);
+    const totals = calculatePeriodTotalsUseCase(transactions, tempPeriod, startDt, endDt, accounts);
 
     // Calculate total budget amount
     const totalBudget = budgets.filter((b) => b.amount > 0).reduce((sum, b) => sum + b.amount, 0);

@@ -1325,7 +1325,9 @@
       "hero": {
         "totalAvailable": "Total available to spend",
         "totalBudgeted": "Total budgeted",
-        "totalSpent": "Total spent"
+        "totalSpent": "Total spent",
+        "spendableSpent": "Spent (spendable)",
+        "reserveSaved": "Set aside (reserve)"
       },
       "closePeriod": "Close period",
       "fabAddBudget": "Add budget",
@@ -1513,8 +1515,8 @@
       },
       "deleteTitle": "Delete period",
       "metrics": {
-        "spent": "Spent",
-        "saved": "Saved"
+        "spent": "Spent (spendable)",
+        "saved": "Set aside (reserve)"
       },
       "topCategories": "Top Categories"
     },
@@ -1529,8 +1531,8 @@
         "completed": "Completed"
       },
       "metrics": {
-        "spent": "Spent",
-        "saved": "Saved"
+        "spent": "Spent (spendable)",
+        "saved": "Set aside (reserve)"
       },
       "topCategories": "Top Categories"
     },

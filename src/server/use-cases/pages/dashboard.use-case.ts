@@ -15,6 +15,7 @@ import {
 } from '../accounts/account.logic';
 import { parsePeriodDates } from '../shared/period.logic';
 import { computeNetSavings, type NetSavingsResult } from '../shared/savings.logic';
+import { resolvePeriodAmounts } from '../budget-periods/period-amounts.logic';
 import { roundMoney } from '@/lib/utils/money';
 import { getPortfolioUseCase, type PortfolioResult } from '../investments/investment.use-cases';
 import type {
@@ -67,6 +68,28 @@ export interface DashboardPageData {
   balanceViewModel: DashboardBalanceViewModel;
   netSavingsAll: NetSavingsResult;
   netSavingsByUserId: Record<string, NetSavingsResult>;
+}
+
+function enrichBudgetSummariesWithPeriodAmounts(
+  budgetsByUser: Record<string, UserBudgetSummary>,
+  groupUsers: User[],
+  transactions: Transaction[],
+  accounts: Account[],
+  budgetPeriods: Record<string, BudgetPeriod | null>
+): Record<string, UserBudgetSummary> {
+  const result = { ...budgetsByUser };
+  for (const user of groupUsers) {
+    const period = budgetPeriods[user.id];
+    const summary = result[user.id];
+    if (!period || !summary) continue;
+    const amounts = resolvePeriodAmounts(period, transactions, accounts);
+    result[user.id] = {
+      ...summary,
+      periodSpendableSpent: amounts.spendableSpent,
+      periodReserveSaved: amounts.reserveSaved,
+    };
+  }
+  return result;
 }
 
 function buildNetSavingsForUsers(
@@ -165,10 +188,11 @@ async function getCachedDashboardPageData(
       investments[userId] = null;
     });
 
-    const budgetsByUser = buildBudgetsByUserPure(
+    const budgetsByUser = enrichBudgetSummariesWithPeriodAmounts(
+      buildBudgetsByUserPure(groupUsers, budgets, transactionResult.data, budgetPeriods),
       groupUsers,
-      budgets,
       transactionResult.data,
+      accounts,
       budgetPeriods
     );
 
@@ -247,10 +271,11 @@ async function getCachedDashboardPageData(
     investments[userId] = investmentResults?.[index] || null;
   });
 
-  const budgetsByUser = buildBudgetsByUserPure(
+  const budgetsByUser = enrichBudgetSummariesWithPeriodAmounts(
+    buildBudgetsByUserPure(groupUsers, budgets, transactionResult.data, budgetPeriods),
     groupUsers,
-    budgets,
     transactionResult.data,
+    accounts,
     budgetPeriods
   );
 

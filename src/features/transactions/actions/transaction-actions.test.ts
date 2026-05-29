@@ -58,7 +58,6 @@ function createMockUser(overrides: Partial<User> = {}): User {
     role: 'admin',
     clerk_id: 'clerk-1',
     default_account_id: null,
-    budget_periods: null,
     created_at: '2024-01-01T00:00:00Z',
     updated_at: '2024-01-01T00:00:00Z',
     ...overrides,

@@ -3,10 +3,9 @@ import { AccountsRepository } from '@/server/repositories/accounts.repository';
 import { CategoriesRepository } from '@/server/repositories/categories.repository';
 import { UsersRepository } from '@/server/repositories/users.repository';
 import { transactions } from '@/server/db/schema';
-import { parseBudgetPeriodsFromJson } from '@/lib/utils/budget-period-json';
 import { toDateTime, formatDateShort } from '@/lib/utils';
 import type { Transaction, Account, BudgetPeriod, Category, User } from '@/lib/types';
-import type { Json } from '@/lib/types/database.types';
+import { BudgetPeriodsRepository } from '@/server/repositories/budget-periods.repository';
 
 /**
  * Report Period Summary with calculated metrics
@@ -76,16 +75,8 @@ function normalizeAccountType(type: string | undefined): string {
 /**
  * Get processed budget periods for a user including synthetic active one
  */
-export function getProcessedUserPeriodsUseCase(user: User): BudgetPeriod[] {
-  let userPeriods: BudgetPeriod[] = [];
-
-  const rawPeriods = parseBudgetPeriodsFromJson(user.budget_periods as Json | null);
-  if (rawPeriods.length > 0) {
-    userPeriods = rawPeriods.map((bp) => ({
-      ...bp,
-      user_id: user.id,
-    })) as BudgetPeriod[];
-  }
+export async function getProcessedUserPeriodsUseCase(user: User): Promise<BudgetPeriod[]> {
+  const userPeriods = await BudgetPeriodsRepository.findByUser(user.id);
 
   const hasActive = userPeriods.some((p) => p.is_active && !p.end_date);
 
@@ -174,10 +165,10 @@ export async function getReportsDataUseCase(groupId: string, groupUserIds?: stri
       ? users.filter((u) => groupUserIds.includes(u.id))
       : users;
 
-  // Process periods for each user
-  const allPeriods: BudgetPeriod[] = filteredUsers.flatMap((u) =>
-    getProcessedUserPeriodsUseCase(u)
+  const periodArrays = await Promise.all(
+    filteredUsers.map((u) => getProcessedUserPeriodsUseCase(u))
   );
+  const allPeriods: BudgetPeriod[] = periodArrays.flat();
 
   return {
     transactions: normalizedTransactions,

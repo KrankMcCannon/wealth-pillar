@@ -11,6 +11,8 @@ export interface BudgetsSummaryHeroProps {
     readonly totalAvailable: string;
     readonly totalBudgeted: string;
     readonly totalSpent: string;
+    readonly spendableSpent: string;
+    readonly reserveSaved: string;
   };
 }
 
@@ -44,9 +46,15 @@ export function BudgetsSummaryHero({ summary, labels }: Readonly<BudgetsSummaryH
             </p>
           </div>
           <div>
-            <p className={stitchBudgets.heroMetricLabel}>{labels.totalSpent}</p>
+            <p className={stitchBudgets.heroMetricLabel}>{labels.spendableSpent}</p>
             <p className={stitchBudgets.heroMetricValue}>
-              {formatCurrencyLocale(summary.totalSpent, locale)}
+              {formatCurrencyLocale(summary.periodSpendableSpent, locale)}
+            </p>
+          </div>
+          <div>
+            <p className={stitchBudgets.heroMetricLabel}>{labels.reserveSaved}</p>
+            <p className={stitchBudgets.heroMetricValue}>
+              {formatCurrencyLocale(summary.periodReserveSaved, locale)}
             </p>
           </div>
         </div>

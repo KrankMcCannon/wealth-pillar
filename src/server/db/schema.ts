@@ -23,7 +23,6 @@ export const users = pgTable('users', {
   theme_color: text('theme_color').default('#3B82F6'),
   budget_start_date: integer('budget_start_date').default(1),
   role: text('role').default('member'),
-  budget_periods: jsonb('budget_periods').default([]),
   created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
   updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow(),
 });
@@ -101,9 +100,14 @@ export const budgets = pgTable('budgets', {
 export const budgetPeriods = pgTable('budget_periods', {
   id: uuid('id').primaryKey().defaultRandom(),
   user_id: uuid('user_id'),
+  group_id: uuid('group_id'),
   start_date: date('start_date'),
   end_date: date('end_date'),
   is_active: boolean('is_active').default(false),
+  spendable_spent: numeric('spendable_spent'),
+  reserve_saved: numeric('reserve_saved'),
+  category_spending: jsonb('category_spending').default({}),
+  snapshot_at: timestamp('snapshot_at', { withTimezone: true }),
   created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
   updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow(),
 });

@@ -127,6 +127,8 @@ export default function BudgetsContent({
                 totalAvailable: t('hero.totalAvailable'),
                 totalBudgeted: t('hero.totalBudgeted'),
                 totalSpent: t('hero.totalSpent'),
+                spendableSpent: t('hero.spendableSpent'),
+                reserveSaved: t('hero.reserveSaved'),
               }}
             />
 

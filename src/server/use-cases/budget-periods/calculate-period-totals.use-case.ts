@@ -1,48 +1,29 @@
-import type { BudgetPeriod, Budget, Transaction } from '@/lib/types';
+import type { BudgetPeriod, Transaction, Account } from '@/lib/types';
 import { DateTime } from 'luxon';
-import { filterTransactionsByPeriod } from '../transactions/transaction.logic';
-import {
-  filterTransactionsForBudgetsUnion,
-  effectiveSpentFromTransactions,
-} from '../budgets/budget.logic';
+import { resolvePeriodAmounts } from './period-amounts.logic';
 
 export const calculatePeriodTotalsUseCase = (
   transactions: Transaction[],
   period: BudgetPeriod,
   startDt: DateTime,
   endDt: DateTime | null,
-  budgets: Budget[]
+  accounts: Account[]
 ): {
   totalSpent: number;
   totalSaved: number;
   categorySpending: Record<string, number>;
 } => {
-  const periodTransactions = transactions.filter((t) => t.user_id === period.user_id);
-  const filtered = filterTransactionsByPeriod(
-    periodTransactions,
-    startDt,
-    endDt?.endOf('day') ?? null
-  );
+  const periodForResolve: BudgetPeriod = {
+    ...period,
+    start_date: startDt.toISODate() ?? period.start_date,
+    end_date: endDt?.toISODate() ?? period.end_date,
+  };
 
-  const validBudgets = (budgets || []).filter((b) => b.user_id === period.user_id && b.amount > 0);
-  const totalBudget = validBudgets.reduce((sum, b) => sum + b.amount, 0);
+  const amounts = resolvePeriodAmounts(periodForResolve, transactions, accounts);
 
-  const unionTransactions = filterTransactionsForBudgetsUnion(
-    filtered,
-    validBudgets,
-    startDt,
-    endDt?.endOf('day') ?? null
-  );
-  const totalSpent = effectiveSpentFromTransactions(unionTransactions);
-
-  const categorySpending: Record<string, number> = {};
-  for (const t of unionTransactions) {
-    if (t.type === 'expense') {
-      categorySpending[t.category] = (categorySpending[t.category] || 0) + t.amount;
-    }
-  }
-
-  const totalSaved = Math.max(0, totalBudget - totalSpent);
-
-  return { totalSpent, totalSaved, categorySpending };
+  return {
+    totalSpent: amounts.spendableSpent,
+    totalSaved: amounts.reserveSaved,
+    categorySpending: amounts.categorySpending,
+  };
 };

@@ -1,11 +1,16 @@
-import type { BudgetPeriod, BudgetPeriodJSON } from '@/lib/types';
-import type { Json } from '@/lib/types/database.types';
-import { parseBudgetPeriodsFromJson } from '@/lib/utils/budget-period-json';
-import { toDateTime, todayDateString } from '@/lib/utils/date-utils';
+import type { BudgetPeriod } from '@/lib/types';
+import { toDateTime } from '@/lib/utils/date-utils';
 import { UsersRepository } from '@/server/repositories/users.repository';
+import { BudgetPeriodsRepository } from '@/server/repositories/budget-periods.repository';
+import { AccountsRepository } from '@/server/repositories/accounts.repository';
 import { invalidateBudgetPeriodCaches } from '@/lib/utils/cache-utils';
-import { jsonToBudgetPeriod } from './get-budget-periods-by-user.use-case';
 import { DateTime } from 'luxon';
+import { getTransactionsByUserUseCase } from '../transactions/get-transactions.use-case';
+import {
+  computePeriodLiquidityAmounts,
+  periodToDateWindow,
+  snapshotFieldsFromAmounts,
+} from './period-amounts.logic';
 
 const validateNewPeriod = (userId: string, startDate: string | Date): DateTime => {
   if (!userId) throw new Error('User ID is required');
@@ -17,31 +22,22 @@ const validateNewPeriod = (userId: string, startDate: string | Date): DateTime =
   return startDt;
 };
 
-const prepareNewPeriodList = (
-  currentPeriods: BudgetPeriodJSON[],
-  startDt: DateTime
-): { updatedPeriods: BudgetPeriodJSON[]; newPeriod: BudgetPeriodJSON } => {
-  const dayBeforeStart = startDt.minus({ days: 1 }).toISODate() as string;
+async function snapshotAndDeactivateActive(
+  active: BudgetPeriod,
+  endDate: string,
+  transactions: Awaited<ReturnType<typeof getTransactionsByUserUseCase>>,
+  accounts: Awaited<ReturnType<typeof AccountsRepository.findByUser>>
+): Promise<void> {
+  const closedPeriod: BudgetPeriod = { ...active, end_date: endDate, is_active: false };
+  const window = periodToDateWindow(closedPeriod);
+  const amounts = computePeriodLiquidityAmounts(transactions, accounts, window, active.user_id);
 
-  const updatedPeriods = currentPeriods.map((p) => ({
-    ...p,
+  await BudgetPeriodsRepository.update(active.id, {
     is_active: false,
-    end_date: p.is_active && !p.end_date ? dayBeforeStart : p.end_date,
-  }));
-
-  const newPeriod: BudgetPeriodJSON = {
-    id: crypto.randomUUID(),
-    start_date: startDt.toISODate() as string,
-    end_date: null,
-    is_active: true,
-    created_at: todayDateString(),
-    updated_at: todayDateString(),
-  };
-
-  updatedPeriods.push(newPeriod);
-
-  return { updatedPeriods, newPeriod };
-};
+    end_date: endDate,
+    ...snapshotFieldsFromAmounts(amounts),
+  });
+}
 
 export const createBudgetPeriodUseCase = async (
   userId: string,
@@ -51,15 +47,31 @@ export const createBudgetPeriodUseCase = async (
 
   const user = await UsersRepository.findById(userId);
   if (!user) throw new Error('User not found');
+  if (!user.group_id) throw new Error('User has no group');
 
-  const periods = parseBudgetPeriodsFromJson(user.budget_periods as Json);
-  const { updatedPeriods, newPeriod } = prepareNewPeriodList(periods, startDt);
+  const dayBeforeStart = startDt.minus({ days: 1 }).toISODate() as string;
 
-  await UsersRepository.update(userId, {
-    budget_periods: updatedPeriods as unknown as Json,
+  const [active, transactions, accounts] = await Promise.all([
+    BudgetPeriodsRepository.findActiveByUser(userId),
+    getTransactionsByUserUseCase(userId),
+    AccountsRepository.findByUser(userId),
+  ]);
+
+  if (active) {
+    await snapshotAndDeactivateActive(active, dayBeforeStart, transactions, accounts);
+  }
+
+  const newPeriod = await BudgetPeriodsRepository.create({
+    user_id: userId,
+    group_id: user.group_id,
+    start_date: startDt.toISODate() as string,
+    end_date: null,
+    is_active: true,
+    created_at: new Date(),
+    updated_at: new Date(),
   });
 
   invalidateBudgetPeriodCaches({ userId });
 
-  return jsonToBudgetPeriod(newPeriod, userId);
+  return newPeriod;
 };
