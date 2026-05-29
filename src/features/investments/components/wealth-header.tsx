@@ -21,7 +21,6 @@ export function WealthHeader({
   const isPositive = trendAmount >= 0;
   const TrendIcon = isPositive ? TrendingUp : TrendingDown;
 
-  // Format total value
   const formattedTotal = format.number(totalValue, {
     style: 'currency',
     currency,
@@ -29,7 +28,6 @@ export function WealthHeader({
     maximumFractionDigits: 2,
   });
 
-  // Format trend amount
   const formattedTrendAmount = format.number(Math.abs(trendAmount), {
     style: 'currency',
     currency,
@@ -37,7 +35,6 @@ export function WealthHeader({
     maximumFractionDigits: 2,
   });
 
-  // Format trend percentage
   const formattedTrendPercentage = format.number(Math.abs(trendPercentage) / 100, {
     style: 'percent',
     minimumFractionDigits: 2,
@@ -46,28 +43,23 @@ export function WealthHeader({
 
   return (
     <section
-      className={
-        investmentsStyles.card.root +
-        ' ' +
-        investmentsStyles.card.content +
-        ' flex flex-col items-center justify-center text-center'
-      }
+      className={`${investmentsStyles.card.root} ${investmentsStyles.card.content} flex flex-col items-center justify-center text-center`}
     >
-      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground mb-2">
+      <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
         {t('totalPortfolioValue')}
       </p>
-      <h1 className="text-4xl md:text-5xl font-bold text-primary mb-4 tabular-nums tracking-[-0.02em]">
+      <h1 className="mb-4 text-4xl font-bold tabular-nums tracking-[-0.02em] text-primary">
         {formattedTotal}
       </h1>
 
       <div
-        className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold ring-1 ring-inset ${
+        className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-[12px] font-bold ring-1 ring-inset ${
           isPositive
             ? 'bg-income/10 text-income ring-income/20'
             : 'bg-expense/10 text-expense ring-expense/20'
         }`}
       >
-        <TrendIcon className="w-3.5 h-3.5" />
+        <TrendIcon className="size-3.5" />
         <span>
           {isPositive ? '+' : ''}
           {formattedTrendAmount} ({formattedTrendPercentage}) {t('today')}

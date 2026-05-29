@@ -1,10 +1,11 @@
 import type { CSSProperties } from 'react';
 
-export const rechartsInitialDimension = { width: 400, height: 300 };
-export const rechartsPieChartInitialDimension = { width: 300, height: 250 };
-export const rechartsBarTrendsInitialDimension = { width: 300, height: 250 };
-export const rechartsBenchmarkInitialDimension = { width: 400, height: 300 };
-export const rechartsSandboxInitialDimension = { width: 600, height: 300 };
+/** Match mobile chart container heights to avoid invalid first-paint dimensions. */
+export const rechartsInitialDimension = { width: 360, height: 220 };
+export const rechartsPieChartInitialDimension = { width: 360, height: 225 };
+export const rechartsBarTrendsInitialDimension = { width: 360, height: 220 };
+export const rechartsBenchmarkInitialDimension = { width: 360, height: 220 };
+export const rechartsSandboxInitialDimension = { width: 360, height: 280 };
 
 /**
  * Colori e stili Recharts allineati ai token OKLCH in globals.css (dark mode incluso).
@@ -30,3 +31,9 @@ export function rechartsTooltipContentStyle(): CSSProperties {
 export const rechartsTooltipItemStyle: CSSProperties = {
   color: 'var(--color-popover-foreground)',
 };
+
+/** Disable entrance animations to avoid jank on tab remounts. */
+export const rechartsAnimationOff = {
+  isAnimationActive: false,
+  animationDuration: 0,
+} as const;

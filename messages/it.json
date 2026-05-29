@@ -462,9 +462,6 @@
       "totalPaidLabel": "Totale Pagato",
       "totalPaidDescription": "Investito + tasse",
       "fallback": {
-        "equities": "Azioni",
-        "bonds": "Obbligazioni",
-        "cash": "Liquidità",
         "others": "Altro"
       }
     },

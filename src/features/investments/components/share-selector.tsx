@@ -48,7 +48,7 @@ function renderSearchResults(
 
   if (results.length > 0) {
     return (
-      <div className="space-y-1">
+      <div className="flex flex-col gap-1">
         {results.map((share) => (
           <SelectPrimitive.Item key={share.id} value={share.symbol} className={styles.item}>
             <SelectPrimitive.ItemText>

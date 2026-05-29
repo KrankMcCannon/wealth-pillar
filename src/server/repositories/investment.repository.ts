@@ -1,6 +1,6 @@
 import { db } from '@/server/db/drizzle';
 import { investments } from '@/server/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, inArray } from 'drizzle-orm';
 
 export class InvestmentRepository {
   static async findByUser(userId: string) {
@@ -8,6 +8,15 @@ export class InvestmentRepository {
       .select()
       .from(investments)
       .where(eq(investments.user_id, userId))
+      .orderBy(investments.created_at);
+  }
+
+  static async findByUsers(userIds: string[]) {
+    if (userIds.length === 0) return [];
+    return await db
+      .select()
+      .from(investments)
+      .where(inArray(investments.user_id, userIds))
       .orderBy(investments.created_at);
   }
 

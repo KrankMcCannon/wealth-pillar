@@ -462,9 +462,6 @@
       "totalPaidLabel": "Total Paid",
       "totalPaidDescription": "Invested + taxes",
       "fallback": {
-        "equities": "Equities",
-        "bonds": "Bonds",
-        "cash": "Cash",
         "others": "Others"
       }
     },

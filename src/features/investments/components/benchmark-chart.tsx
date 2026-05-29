@@ -12,16 +12,17 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { cn } from '@/lib/utils';
 import { ShareSelector } from './share-selector';
 import { investmentsStyles } from '@/features/investments/theme/investments-styles';
 import {
   investmentChartColors,
+  rechartsAnimationOff,
   rechartsBenchmarkInitialDimension,
   rechartsTooltipContentStyle,
   rechartsTooltipItemStyle,
 } from './investment-chart-theme';
 import { formatBenchmarkAxisHead, formatLocaleMediumDate } from './chart-format-utils';
+import { InvestmentChartContainer } from './investment-chart-container';
 
 function rowDateKey(row: {
   datetime?: string | undefined;
@@ -79,20 +80,16 @@ export function BenchmarkChart({
       className={investmentsStyles.card.root}
       id={anchorId}
     >
-      <CardHeader className="flex flex-col gap-2 px-3 pt-3 sm:gap-4">
-        <div className="flex min-w-0 flex-col justify-between gap-2 md:flex-row md:items-center md:gap-4">
-          <div className="min-w-0">
-            <CardTitle id={titleId} className={investmentsStyles.card.title}>
-              {t('title')}
-            </CardTitle>
-            <CardDescription className={cn(investmentsStyles.card.description, 'hidden sm:block')}>
-              {t('description', { index: currentIndex })}
-            </CardDescription>
-          </div>
-          <div className="w-full min-w-[200px] md:w-auto">
-            <ShareSelector value={currentIndex} onChange={onBenchmarkChange} />
-          </div>
+      <CardHeader className={`${investmentsStyles.card.header} flex flex-col gap-3`}>
+        <div className="min-w-0">
+          <CardTitle id={titleId} className={investmentsStyles.card.title}>
+            {t('title')}
+          </CardTitle>
+          <CardDescription className={investmentsStyles.card.description}>
+            {t('description', { index: currentIndex })}
+          </CardDescription>
         </div>
+        <ShareSelector value={currentIndex} onChange={onBenchmarkChange} />
       </CardHeader>
       <CardContent className={investmentsStyles.card.content}>
         {srSummary ? (
@@ -101,7 +98,7 @@ export function BenchmarkChart({
           </p>
         ) : null}
         {hasData ? (
-          <div className={investmentsStyles.charts.container} aria-hidden>
+          <InvestmentChartContainer className={investmentsStyles.charts.container} aria-hidden>
             <ResponsiveContainer
               width="100%"
               height="100%"
@@ -156,10 +153,11 @@ export function BenchmarkChart({
                   dot={false}
                   strokeWidth={3}
                   activeDot={{ r: 6, strokeWidth: 0 }}
+                  {...rechartsAnimationOff}
                 />
               </LineChart>
             </ResponsiveContainer>
-          </div>
+          </InvestmentChartContainer>
         ) : (
           <div className={investmentsStyles.charts.fallback}>{t('fallback')}</div>
         )}

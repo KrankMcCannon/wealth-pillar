@@ -4,10 +4,7 @@ import InvestmentsContent from './investments-content';
 import { InvestmentsSkeleton } from '@/components/ui/primitives/skeletons';
 import { requirePageAuth } from '@/lib/auth/page-auth';
 import { withTimeout } from '@/lib/utils/with-timeout';
-import {
-  getPortfolioUseCase,
-  getHistoricalPortfolioUseCase,
-} from '@/server/use-cases/investments/investment.use-cases';
+import { getInvestmentsOverviewUseCase } from '@/server/use-cases/investments/investment.use-cases';
 import { getMarketDataUseCase } from '@/server/use-cases/market-data/market-data.use-cases';
 
 export default async function InvestmentsPage(props: {
@@ -22,20 +19,30 @@ export default async function InvestmentsPage(props: {
 
   const indexSymbol = typeof searchParams.index === 'string' ? searchParams.index : 'IVV';
 
+  const isAdmin = currentUser.role === 'admin' || currentUser.role === 'superadmin';
+  const selectedUser = typeof searchParams.user === 'string' ? searchParams.user : 'all';
+  const groupUserIds = groupUsers.map((u) => u.id);
+  const targetUserIds = !isAdmin
+    ? [currentUser.id]
+    : selectedUser !== 'all' && groupUserIds.includes(selectedUser)
+      ? [selectedUser]
+      : groupUserIds.length > 0
+        ? groupUserIds
+        : [currentUser.id];
+
   const investmentsDataPromise = Promise.all([
-    getPortfolioUseCase(currentUser.id),
-    getHistoricalPortfolioUseCase(currentUser.id),
+    getInvestmentsOverviewUseCase(targetUserIds),
     withTimeout(
       getMarketDataUseCase(indexSymbol),
       1500,
       [] as Awaited<ReturnType<typeof getMarketDataUseCase>>
     ),
   ])
-    .then(([portfolioData, portfolioHistory, indexData]) => ({
-      investments: portfolioData.investments,
-      summary: portfolioData.summary,
-      assetAllocation: portfolioData.assetAllocation,
-      portfolioHistory,
+    .then(([overview, indexData]) => ({
+      investments: overview.investments,
+      summary: overview.summary,
+      assetAllocation: overview.assetAllocation,
+      portfolioHistory: overview.portfolioHistory,
       indexData,
       currentIndex: indexSymbol,
     }))

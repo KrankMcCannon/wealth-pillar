@@ -68,13 +68,13 @@ export const InvestmentList = memo(function InvestmentList({ investments }: Inve
     <div
       role="status"
       aria-live="polite"
-      className="flex flex-col items-center justify-center py-10 sm:py-14 text-center"
+      className="flex flex-col items-center justify-center py-10 text-center"
     >
-      <div className="bg-primary/10 p-4 rounded-full mb-4 text-primary" aria-hidden>
-        <TrendingUp className="h-10 w-10 sm:h-12 sm:w-12" strokeWidth={1.25} />
+      <div className="mb-4 rounded-full bg-primary/10 p-4 text-primary" aria-hidden>
+        <TrendingUp className="size-10" strokeWidth={1.25} />
       </div>
-      <p className="text-lg font-semibold text-primary mb-2">{tList('empty')}</p>
-      <p className="max-w-md px-2 text-sm leading-snug text-muted-foreground mb-6">
+      <p className="mb-2 text-lg font-semibold text-primary">{tList('empty')}</p>
+      <p className="mb-6 max-w-md px-2 text-sm leading-snug text-muted-foreground">
         {tList('emptyDescription')}
       </p>
       <Button type="button" size="sm" onClick={() => openModal('investment')}>
@@ -84,108 +84,71 @@ export const InvestmentList = memo(function InvestmentList({ investments }: Inve
   );
 
   return (
-    <section
-      ref={sectionRef}
-      className={investmentsStyles.card.root + ' md:hidden'}
-      aria-labelledby={headingId}
-    >
-      <div className={investmentsStyles.card.header + ' flex justify-between items-center'}>
+    <section ref={sectionRef} className={investmentsStyles.card.root} aria-labelledby={headingId}>
+      <div className={`${investmentsStyles.card.header} flex items-center justify-between`}>
         <h2 id={headingId} className={investmentsStyles.card.title}>
           {tList('title')}
         </h2>
-        {showPagination && (
-          <button className="text-sm font-medium text-primary hover:underline">
-            {tList('viewAll')}
-          </button>
+      </div>
+
+      <div className={investmentsStyles.card.content}>
+        {isEmpty ? (
+          emptyBlock
+        ) : (
+          <ul className="flex flex-col">
+            {paginatedRows.map((inv) => {
+              const sym = (inv.symbol?.toUpperCase() ?? '').trim() || '—';
+              const date = inv.created_at
+                ? new Date(inv.created_at).toLocaleDateString(locale, {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                  })
+                : '—';
+
+              return (
+                <li
+                  key={inv.id}
+                  className={`${investmentsStyles.list.row} ${investmentsStyles.list.rowHover}`}
+                >
+                  <div className="flex min-w-0 flex-1 items-center gap-3">
+                    <div className={investmentsStyles.list.iconWrap} aria-hidden>
+                      <ArrowUpRight className="size-5 opacity-80" />
+                    </div>
+                    <div className="flex min-w-0 flex-col">
+                      <div className="flex items-center gap-2">
+                        <span className={investmentsStyles.list.symbol}>{sym}</span>
+                        <span className={investmentsStyles.list.badge}>
+                          {tList('shares', { count: inv.shares_acquired })}
+                        </span>
+                      </div>
+                      <p className={investmentsStyles.list.meta}>{inv.name}</p>
+                    </div>
+                  </div>
+                  <div className="flex shrink-0 flex-col items-end gap-1">
+                    <span className={investmentsStyles.list.amount}>
+                      {formatMoney(locale, inv.currency, inv.totalPaid || 0)}
+                    </span>
+                    <span className={investmentsStyles.list.date}>{date}</span>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
         )}
       </div>
 
-      <div className={investmentsStyles.card.content + ' overflow-x-auto'}>
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="border-b border-border/25">
-              <th className="py-3 px-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                {tList('columns.instrument')}
-              </th>
-              <th className="py-3 px-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground text-right">
-                {tList('columns.paid')}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {isEmpty ? (
-              <tr>
-                <td colSpan={4} className="py-4">
-                  {emptyBlock}
-                </td>
-              </tr>
-            ) : (
-              paginatedRows.map((inv) => {
-                const sym = (inv.symbol?.toUpperCase() ?? '').trim() || '—';
-                const date = inv.created_at
-                  ? new Date(inv.created_at).toLocaleDateString(locale, {
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric',
-                    })
-                  : '—';
-
-                return (
-                  <tr
-                    key={inv.id}
-                    className="border-b border-border/15 hover:bg-accent/40 transition-colors group cursor-default last:border-0"
-                  >
-                    <td className="p-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-primary/40 flex items-center justify-center text-primary border border-primary/20 shadow-[0_0_15px_rgba(59,130,246,0.05)] group-hover:scale-105 transition-all duration-300 shrink-0">
-                          <ArrowUpRight className="w-5 h-5 opacity-80" />
-                        </div>
-                        <div className="flex flex-col min-w-0">
-                          <div className="flex items-center gap-2">
-                            <h3 className="text-[15px] font-bold text-white tracking-tight leading-none">
-                              {sym}
-                            </h3>
-                            <span className="px-1.5 py-0.5 rounded bg-primary/10 text-primary text-[9px] font-bold uppercase tracking-wider border border-primary/20">
-                              {tList('shares', { count: inv.shares_acquired })}
-                            </span>
-                          </div>
-                          <p className="text-[11px] font-medium text-muted-foreground truncate mt-1 opacity-90 leading-tight">
-                            {inv.name}
-                          </p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="p-3">
-                      <div className="flex flex-col items-end gap-2">
-                        <span className="text-sm font-bold text-white tabular-nums leading-none">
-                          {formatMoney(locale, inv.currency, inv.totalPaid || 0)}
-                        </span>
-                        <span className="text-[10px] font-bold text-muted-foreground tabular-nums">
-                          {date}
-                        </span>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
-      </div>
-
       {showPagination && (
-        <div>
-          <TransactionPagination
-            currentPage={pageForDisplay}
-            totalPages={totalPages}
-            totalItems={totalItems}
-            pageSize={pageSize}
-            onPageChange={setCurrentPage}
-            onPageSizeChange={handlePageSizeChange}
-            messagesNamespace={PAGINATION_MESSAGES}
-            customStyles={investmentsStyles.pagination}
-          />
-        </div>
+        <TransactionPagination
+          currentPage={pageForDisplay}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={handlePageSizeChange}
+          messagesNamespace={PAGINATION_MESSAGES}
+          customStyles={investmentsStyles.pagination}
+        />
       )}
     </section>
   );

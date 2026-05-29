@@ -1,24 +1,25 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { use, useState } from 'react';
+import { Suspense, use, useCallback, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
-import { AppPage, PageFab } from '@/components/layout';
+import { useSearchParams } from 'next/navigation';
+import { usePathname, useRouter } from '@/i18n/routing';
+import { AppPage, HomeDashboardMain, PageFab } from '@/components/layout';
 import UserSelector from '@/components/shared/user-selector';
 import { User } from '@/lib';
-import TabNavigation from '@/components/shared/tab-navigation';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui';
 import type { Investment } from '@/features/investments/components/personal-investment-tab';
-import { stitchBudgets, stitchTransactions } from '@/styles/home-design-foundation';
-import { useModalState } from '@/lib/navigation/url-state';
+import { PersonalInvestmentTab } from '@/features/investments/components/personal-investment-tab';
+import { stitchTransactions } from '@/styles/home-design-foundation';
+import { useModalState, useTabState } from '@/lib/navigation/url-state';
 
-const PersonalInvestmentTab = dynamic(() =>
-  import('@/features/investments/components/personal-investment-tab').then(
-    (m) => m.PersonalInvestmentTab
-  )
-);
-
-const SandboxForecastTab = dynamic(() =>
-  import('@/features/investments/components/sandbox-forecast-tab').then((m) => m.SandboxForecastTab)
+const SandboxForecastTab = dynamic(
+  () =>
+    import('@/features/investments/components/sandbox-forecast-tab').then(
+      (m) => m.SandboxForecastTab
+    ),
+  { ssr: false }
 );
 
 interface InvestmentsContentProps {
@@ -57,7 +58,29 @@ export default function InvestmentsContent({
   const t = useTranslations('InvestmentsContent');
   const tActionMenu = useTranslations('Header.ActionMenu');
   const { openModal } = useModalState();
-  const [activeTab, setActiveTab] = useState<'personal' | 'sandbox'>('personal');
+  const { activeTab, setActiveTab } = useTabState('personal');
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [, startNavigation] = useTransition();
+
+  const selectedUser = searchParams.get('user') ?? 'all';
+
+  const handleUserChange = useCallback(
+    (userId: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (userId === 'all') {
+        params.delete('user');
+      } else {
+        params.set('user', userId);
+      }
+      const qs = params.toString();
+      startNavigation(() => {
+        router.push(qs ? `${pathname}?${qs}` : pathname);
+      });
+    },
+    [pathname, router, searchParams]
+  );
 
   return (
     <AppPage
@@ -65,33 +88,33 @@ export default function InvestmentsContent({
       title={t('headerTitle')}
       showBack
       showActions
-      beforeHeader={
-        <div className={stitchBudgets.decorWrap}>
-          <div className={stitchBudgets.decorBlobTL} />
-          <div className={stitchBudgets.decorBlobBR} />
-        </div>
-      }
+      skipToMainHref="#main-investments"
+      skipToMainLabel={t('mainLandmark')}
       betweenHeaderAndMain={
-        <>
-          <div className="sticky z-30 border-b border-border/15 bg-background/90 pt-1 pb-3 shadow-sm backdrop-blur-sm">
-            <div className="space-y-3 px-4">
-              <UserSelector hideTitle currentUser={currentUser} users={groupUsers} />
-
-              <TabNavigation
-                tabs={[
-                  { id: 'personal', label: t('tabs.personal') },
-                  { id: 'sandbox', label: t('tabs.sandbox') },
-                ]}
-                activeTab={activeTab}
-                onTabChange={(id) => setActiveTab(id as 'personal' | 'sandbox')}
-                variant="stitch"
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex min-h-0 flex-col">
+          <div className={stitchTransactions.tabsStickyBar}>
+            <div className="flex flex-col gap-3 px-4 pt-1">
+              <UserSelector
+                hideTitle
+                currentUser={currentUser}
+                users={groupUsers}
+                value={selectedUser}
+                onChange={handleUserChange}
               />
+              <TabsList className={stitchTransactions.tabsList} aria-label={t('mainLandmark')}>
+                <TabsTrigger className={stitchTransactions.tabsTrigger} value="personal">
+                  {t('tabs.personal')}
+                </TabsTrigger>
+                <TabsTrigger className={stitchTransactions.tabsTrigger} value="sandbox">
+                  {t('tabs.sandbox')}
+                </TabsTrigger>
+              </TabsList>
             </div>
           </div>
 
-          <main className={stitchTransactions.mainStack} aria-label={t('mainLandmark')}>
-            <div className="flex flex-col gap-5">
-              {activeTab === 'personal' && (
+          <HomeDashboardMain id="main-investments" aria-label={t('mainLandmark')}>
+            <TabsContent value="personal" className="mt-0">
+              <div className={stitchTransactions.mainStack}>
                 <PersonalInvestmentTab
                   investments={investments}
                   summary={summary}
@@ -100,11 +123,18 @@ export default function InvestmentsContent({
                   indexData={indexData}
                   currentIndex={currentIndex}
                 />
-              )}
-              {activeTab === 'sandbox' && <SandboxForecastTab />}
-            </div>
-          </main>
-        </>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="sandbox" className="mt-0">
+              <div className={stitchTransactions.mainStack}>
+                <Suspense fallback={null}>
+                  <SandboxForecastTab />
+                </Suspense>
+              </div>
+            </TabsContent>
+          </HomeDashboardMain>
+        </Tabs>
       }
       afterMain={
         <PageFab

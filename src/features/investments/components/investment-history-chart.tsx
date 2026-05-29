@@ -12,15 +12,16 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { cn } from '@/lib/utils';
 import { investmentsStyles } from '@/features/investments/theme/investments-styles';
 import {
   investmentChartColors,
+  rechartsAnimationOff,
   rechartsInitialDimension,
   rechartsTooltipContentStyle,
   rechartsTooltipItemStyle,
 } from './investment-chart-theme';
 import { formatHistoryAxisDate, formatLocaleMediumDate } from './chart-format-utils';
+import { InvestmentChartContainer } from './investment-chart-container';
 
 interface InvestmentHistoryChartProps {
   data: { date: string; value: number }[];
@@ -57,7 +58,7 @@ export function InvestmentHistoryChart({ data }: Readonly<InvestmentHistoryChart
         <CardTitle id={titleId} className={investmentsStyles.card.title}>
           {t('title')}
         </CardTitle>
-        <CardDescription className={cn(investmentsStyles.card.description, 'hidden sm:block')}>
+        <CardDescription className={investmentsStyles.card.description}>
           {t('description')}
         </CardDescription>
       </CardHeader>
@@ -68,7 +69,7 @@ export function InvestmentHistoryChart({ data }: Readonly<InvestmentHistoryChart
           </p>
         ) : null}
         {hasData ? (
-          <div className={investmentsStyles.charts.container} aria-hidden>
+          <InvestmentChartContainer className={investmentsStyles.charts.container} aria-hidden>
             <ResponsiveContainer
               width="100%"
               height="100%"
@@ -138,10 +139,11 @@ export function InvestmentHistoryChart({ data }: Readonly<InvestmentHistoryChart
                   fillOpacity={1}
                   fill="url(#colorHistory)"
                   activeDot={{ r: 6, strokeWidth: 0 }}
+                  {...rechartsAnimationOff}
                 />
               </AreaChart>
             </ResponsiveContainer>
-          </div>
+          </InvestmentChartContainer>
         ) : (
           <div className={investmentsStyles.charts.fallback}>{t('fallback')}</div>
         )}

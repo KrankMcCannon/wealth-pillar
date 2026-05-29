@@ -10,6 +10,7 @@ import { WealthHeader } from './wealth-header';
 import { AssetAllocationCard } from './asset-allocation-card';
 import { useTranslations } from 'next-intl';
 import type { AssetAllocationSlice } from '@/server/use-cases/investments/investment.use-cases';
+import { buildAllocationChartData } from '@/features/investments/utils/allocation-chart-data';
 
 export interface Investment {
   id: string;
@@ -65,7 +66,7 @@ export function PersonalInvestmentTab({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const t = useTranslations('Investments');
+  const t = useTranslations('Investments.PersonalTab');
 
   const handleBenchmarkChange = (symbol: string) => {
     if (!symbol || symbol === currentIndex) return;
@@ -76,32 +77,7 @@ export function PersonalInvestmentTab({
     router.replace(`${pathname}?${qs}#${benchmarkAnchorId}`, { scroll: false });
   };
 
-  const sortedGroups = assetAllocation
-    .filter((item) => item.value > 0)
-    .map((item) => ({ name: item.symbol, value: item.value }))
-    .sort((a, b) => b.value - a.value);
-
-  const top4 = sortedGroups.slice(0, 4);
-  const others = sortedGroups.slice(4);
-  const othersTotal = others.reduce((sum, item) => sum + item.value, 0);
-
-  const allocationData = top4.map((item, index) => ({
-    ...item,
-    color: [
-      'var(--color-primary)',
-      'var(--color-income)',
-      'var(--color-primary)',
-      'var(--color-ring)',
-    ][index] as string,
-  }));
-
-  if (othersTotal > 0) {
-    allocationData.push({
-      name: t('fallback.others'),
-      value: othersTotal,
-      color: 'var(--color-primary)',
-    });
-  }
+  const allocationData = buildAllocationChartData(assetAllocation, t('fallback.others'));
 
   return (
     <div className={investmentsStyles.container}>
@@ -112,11 +88,9 @@ export function PersonalInvestmentTab({
         currency="EUR"
       />
 
-      <div className="grid grid-cols-1 gap-6">
-        <AssetAllocationCard data={allocationData} />
-      </div>
+      <AssetAllocationCard data={allocationData} />
 
-      <div className={investmentsStyles.charts.grid}>
+      <div className={investmentsStyles.charts.stack}>
         <InvestmentHistoryChart data={portfolioHistory} />
 
         <BenchmarkChart

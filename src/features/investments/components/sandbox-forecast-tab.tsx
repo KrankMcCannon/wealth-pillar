@@ -3,9 +3,8 @@
 import { useState, useMemo, useCallback, useId } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
 import {
   AreaChart,
   Area,
@@ -18,31 +17,49 @@ import {
 import { investmentsStyles } from '@/features/investments/theme/investments-styles';
 import {
   investmentChartColors,
+  rechartsAnimationOff,
   rechartsSandboxInitialDimension,
   rechartsTooltipContentStyle,
   rechartsTooltipItemStyle,
 } from './investment-chart-theme';
+import { InvestmentChartContainer } from './investment-chart-container';
 
 const MAX_FORECAST_AMOUNT = 1e12;
 const MAX_FORECAST_YEARS = 80;
 const MIN_FORECAST_YEARS = 1;
 
-function clampAmount(raw: string, fallback: number): number {
+export function clampAmount(raw: string, fallback: number): number {
   const n = Number(raw);
   if (!Number.isFinite(n)) return fallback;
   return Math.min(MAX_FORECAST_AMOUNT, Math.max(0, n));
 }
 
-function clampYears(raw: string, fallback: number): number {
+export function clampYears(raw: string, fallback: number): number {
   const n = Math.trunc(Number(raw));
   if (!Number.isFinite(n)) return fallback;
   return Math.min(MAX_FORECAST_YEARS, Math.max(MIN_FORECAST_YEARS, n));
 }
 
-function clampRate(raw: string, fallback: number): number {
+export function clampRate(raw: string, fallback: number): number {
   const n = Number(raw);
   if (!Number.isFinite(n)) return fallback;
   return Math.min(50, Math.max(-50, n));
+}
+
+export function buildForecastSeries(amount: number, years: number, rate: number) {
+  const data: Array<{ year: number; amount: number }> = [];
+  let current = amount;
+  const r = rate / 100;
+  const currentYear = new Date().getFullYear();
+
+  for (let i = 0; i <= years; i++) {
+    data.push({
+      year: currentYear + i,
+      amount: Math.round(current),
+    });
+    current = current * (1 + r);
+  }
+  return data;
 }
 
 export function SandboxForecastTab() {
@@ -54,21 +71,10 @@ export function SandboxForecastTab() {
   const [years, setYears] = useState<number>(10);
   const [rate, setRate] = useState<number>(7);
 
-  const forecastData = useMemo(() => {
-    const data = [];
-    let current = amount;
-    const r = rate / 100;
-    const currentYear = new Date().getFullYear();
-
-    for (let i = 0; i <= years; i++) {
-      data.push({
-        year: currentYear + i,
-        amount: Math.round(current),
-      });
-      current = current * (1 + r);
-    }
-    return data;
-  }, [amount, years, rate]);
+  const forecastData = useMemo(
+    () => buildForecastSeries(amount, years, rate),
+    [amount, years, rate]
+  );
 
   const firstForecast = forecastData[0];
   const lastForecast = forecastData[forecastData.length - 1];
@@ -107,16 +113,14 @@ export function SandboxForecastTab() {
           <CardTitle id={titleId} className={investmentsStyles.card.title}>
             {t('title')}
           </CardTitle>
-          <CardDescription className={cn(investmentsStyles.card.description, 'hidden sm:block')}>
+          <CardDescription className={investmentsStyles.card.description}>
             {t('description')}
           </CardDescription>
         </CardHeader>
         <CardContent className={investmentsStyles.card.contentNoPadding}>
-          <div className={investmentsStyles.sandbox.grid}>
-            <div className={investmentsStyles.sandbox.inputGroup}>
-              <Label htmlFor="amount" className={investmentsStyles.sandbox.label}>
-                {t('fields.initialAmount')}
-              </Label>
+          <FieldGroup className={investmentsStyles.sandbox.fieldsWrap}>
+            <Field>
+              <FieldLabel htmlFor="amount">{t('fields.initialAmount')}</FieldLabel>
               <Input
                 id="amount"
                 type="number"
@@ -128,11 +132,9 @@ export function SandboxForecastTab() {
                 onChange={(e) => onAmountChange(e.target.value)}
                 className={investmentsStyles.sandbox.input}
               />
-            </div>
-            <div className={investmentsStyles.sandbox.inputGroup}>
-              <Label htmlFor="rate" className={investmentsStyles.sandbox.label}>
-                {t('fields.annualReturn')}
-              </Label>
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="rate">{t('fields.annualReturn')}</FieldLabel>
               <Input
                 id="rate"
                 type="number"
@@ -144,11 +146,9 @@ export function SandboxForecastTab() {
                 onChange={(e) => onRateChange(e.target.value)}
                 className={investmentsStyles.sandbox.input}
               />
-            </div>
-            <div className={investmentsStyles.sandbox.inputGroup}>
-              <Label htmlFor="years" className={investmentsStyles.sandbox.label}>
-                {t('fields.durationYears')}
-              </Label>
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="years">{t('fields.durationYears')}</FieldLabel>
               <Input
                 id="years"
                 type="number"
@@ -160,8 +160,8 @@ export function SandboxForecastTab() {
                 onChange={(e) => onYearsChange(e.target.value)}
                 className={investmentsStyles.sandbox.input}
               />
-            </div>
-          </div>
+            </Field>
+          </FieldGroup>
 
           <div className={investmentsStyles.sandbox.chartSection}>
             {chartSrSummary ? (
@@ -169,7 +169,10 @@ export function SandboxForecastTab() {
                 {chartSrSummary}
               </p>
             ) : null}
-            <div className={investmentsStyles.charts.sandboxContainer} aria-hidden>
+            <InvestmentChartContainer
+              className={investmentsStyles.charts.sandboxContainer}
+              aria-hidden
+            >
               <ResponsiveContainer
                 width="100%"
                 height="100%"
@@ -237,10 +240,11 @@ export function SandboxForecastTab() {
                     fillOpacity={1}
                     fill="url(#colorForecast)"
                     activeDot={{ r: 6, strokeWidth: 0 }}
+                    {...rechartsAnimationOff}
                   />
                 </AreaChart>
               </ResponsiveContainer>
-            </div>
+            </InvestmentChartContainer>
           </div>
         </CardContent>
       </Card>
