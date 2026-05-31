@@ -33,12 +33,14 @@ const preferences = {
 
 describe('useSettings', () => {
   it('exposes stitch settings handlers without delete/notification APIs', () => {
-    const { result } = renderHook(() => useSettings(user as never, preferences as never, []));
+    const { result } = renderHook(() => useSettings(user as never, preferences as never));
 
     expect(result.current.userInitials).toBe('AM');
     expect(result.current.isAdmin).toBe(true);
     expect(result.current).not.toHaveProperty('handleDeleteAccountClick');
     expect(result.current).not.toHaveProperty('handleNotificationToggle');
+    expect(result.current).not.toHaveProperty('groupUsers');
+    expect(result.current).not.toHaveProperty('closeSettingsModal');
 
     act(() => {
       result.current.handlePreferenceUpdate('currency', 'USD');

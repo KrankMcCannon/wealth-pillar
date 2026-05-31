@@ -5,7 +5,6 @@ import type { User, UserPreferences, UserPreferencesUpdate } from '@/lib/types';
 
 export interface SettingsModalsContextValue {
   currentUser: User;
-  groupUsers: User[];
   preferences: UserPreferences | null;
   isAdmin: boolean;
   onPreferenceUpdate: <K extends keyof UserPreferencesUpdate>(

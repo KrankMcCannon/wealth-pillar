@@ -1,16 +1,13 @@
 'use server';
 
-import {
-  getUsersByGroupUseCase,
-  updateUserProfileUseCase,
-} from '@/server/use-cases/users/user.use-cases';
+import { updateUserProfileUseCase } from '@/server/use-cases/users/user.use-cases';
 import {
   getUserPreferencesUseCase,
   updateUserPreferencesUseCase,
 } from '@/server/use-cases/users/get-user-preferences.use-case';
 import { createGroupInvitationUseCase } from '@/server/use-cases/groups/group-invitations.use-cases';
 import type { UserPreferences, GroupInvitation } from '@/lib/types';
-import type { UserPreferencesUpdate, User } from '@/lib/types';
+import type { UserPreferencesUpdate } from '@/lib/types';
 import type { ServiceResult } from '@/lib/types/service-result';
 
 /**
@@ -194,26 +191,5 @@ export async function sendGroupInvitationAction(
       data: null,
       error: error instanceof Error ? error.message : 'Failed to send invitation',
     };
-  }
-}
-
-/**
- * Gets all users in a specific group
- * Server action for Group Management Section
- *
- * @param groupId - Group ID
- * @returns List of users or error
- */
-export async function getGroupUsersAction(groupId: string): Promise<User[] | null> {
-  try {
-    if (!groupId || groupId.trim() === '') {
-      return null;
-    }
-
-    const users = await getUsersByGroupUseCase(groupId);
-    return users as unknown as User[];
-  } catch (error) {
-    console.error('Failed to get group users:', error);
-    return null;
   }
 }

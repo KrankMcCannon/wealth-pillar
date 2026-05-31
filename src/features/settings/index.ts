@@ -4,12 +4,6 @@
 
 // Components
 export {
-  SettingsHeaderSkeleton,
-  ProfileSectionSkeleton,
-  GroupManagementSectionSkeleton,
-  PreferencesSectionSkeleton,
-  SupportSectionSkeleton,
-  SettingsPageSkeleton,
   EditProfileModal,
   usePreferenceOptions,
   InviteMemberModal,
@@ -17,6 +11,7 @@ export {
   GroupSection,
   PreferencesSection,
   SupportSection,
+  SettingsRow,
 } from './components';
 
 // Actions

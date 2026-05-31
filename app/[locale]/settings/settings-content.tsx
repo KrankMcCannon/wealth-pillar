@@ -16,24 +16,13 @@ import { SettingsModalsProvider } from '@/features/settings/context/settings-mod
 import SettingsModalRenderer from '@/features/settings/components/settings-modal-renderer';
 import type { User, UserPreferences } from '@/lib/types';
 
-interface SettingsData {
-  accountCount: number;
-  transactionCount: number;
-  preferences: UserPreferences;
-}
-
 interface SettingsContentProps {
   currentUser: User;
-  groupUsers: User[];
-  settingsDataPromise: Promise<SettingsData>;
+  preferencesPromise: Promise<UserPreferences>;
 }
 
-export default function SettingsContent({
-  currentUser,
-  groupUsers,
-  settingsDataPromise,
-}: SettingsContentProps) {
-  const { preferences: initialPreferences } = use(settingsDataPromise);
+export default function SettingsContent({ currentUser, preferencesPromise }: SettingsContentProps) {
+  const initialPreferences = use(preferencesPromise);
   const t = useTranslations('SettingsContent');
 
   const {
@@ -44,7 +33,7 @@ export default function SettingsContent({
     openSettingsModal,
     handleSignOut,
     handlePreferenceUpdate,
-  } = useSettings(currentUser, initialPreferences, groupUsers);
+  } = useSettings(currentUser, initialPreferences);
 
   const router = useRouter();
 
@@ -62,7 +51,6 @@ export default function SettingsContent({
     <SettingsModalsProvider
       value={{
         currentUser,
-        groupUsers,
         preferences: preferences ?? null,
         isAdmin,
         onPreferenceUpdate: handlePreferenceUpdate,

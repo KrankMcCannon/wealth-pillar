@@ -76,9 +76,6 @@
   "SettingsPage": {
     "loading": "Loading settings..."
   },
-  "SettingsItem": {
-    "change": "Change"
-  },
   "SettingsContent": {
     "headerTitle": "Settings",
     "currencyModalTitle": "Select Currency",

@@ -3,23 +3,17 @@
  */
 
 import { Suspense } from 'react';
-import { getTranslations } from 'next-intl/server';
-import { requirePageAuth } from '@/lib/auth/page-auth';
-import { getAccountCountByUserUseCase } from '@/server/use-cases/accounts/account.use-cases';
-import { getTransactionCountByUserUseCase } from '@/server/use-cases/transactions/get-transactions.use-case';
+import { requireUserAuth } from '@/lib/auth/page-auth';
 import { getUserPreferencesUseCase } from '@/server/use-cases/users/get-user-preferences.use-case';
 import SettingsContent from './settings-content';
-import { PageLoader } from '@/components/shared';
+import { SettingsPageSkeleton } from '@/components/ui/primitives/skeletons/settings-skeletons';
 import { withTimeout } from '@/lib/utils/with-timeout';
 import type { UserPreferences } from '@/lib/types';
 
 export default async function SettingsPage({
   params,
 }: Readonly<{ params: Promise<{ locale: string }> }>) {
-  const [{ currentUser, groupUsers }, t] = await Promise.all([
-    requirePageAuth(params),
-    getTranslations('SettingsPage'),
-  ]);
+  const { currentUser } = await requireUserAuth(params);
 
   const now = new Date();
   const fallbackPreferences: UserPreferences = {
@@ -35,30 +29,16 @@ export default async function SettingsPage({
     updated_at: now,
   };
 
-  // Build a single streaming promise for the slower per-user counts and preferences.
-  // groupUsers is already resolved above (from cached getGroupUsers — no extra DB round-trip).
-  const settingsDataPromise = Promise.all([
-    withTimeout(getAccountCountByUserUseCase(currentUser.id), 2000, 0, 'accountCount'),
-    withTimeout(getTransactionCountByUserUseCase(currentUser.id), 2000, 0, 'transactionCount'),
-    withTimeout(
-      getUserPreferencesUseCase(currentUser.id),
-      2500,
-      fallbackPreferences,
-      'userPreferences'
-    ),
-  ]).then(([accountCount, transactionCount, preferences]) => ({
-    accountCount,
-    transactionCount,
-    preferences,
-  }));
+  const preferencesPromise = withTimeout(
+    getUserPreferencesUseCase(currentUser.id),
+    2500,
+    fallbackPreferences,
+    'userPreferences'
+  );
 
   return (
-    <Suspense fallback={<PageLoader message={t('loading')} />}>
-      <SettingsContent
-        currentUser={currentUser}
-        groupUsers={groupUsers}
-        settingsDataPromise={settingsDataPromise}
-      />
+    <Suspense fallback={<SettingsPageSkeleton />}>
+      <SettingsContent currentUser={currentUser} preferencesPromise={preferencesPromise} />
     </Suspense>
   );
 }

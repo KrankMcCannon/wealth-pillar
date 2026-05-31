@@ -2,15 +2,6 @@
  * Settings Components - Centralized exports
  */
 
-export {
-  SettingsHeaderSkeleton,
-  ProfileSectionSkeleton,
-  GroupManagementSectionSkeleton,
-  PreferencesSectionSkeleton,
-  SupportSectionSkeleton,
-  SettingsPageSkeleton,
-} from './settings-skeletons';
-
 export { EditProfileModal } from './edit-profile-modal';
 export {
   usePreferenceOptions,
@@ -22,6 +13,7 @@ export {
   TimezonePreferenceModal,
 } from './settings-preference-modals';
 export { InviteMemberModal } from './invite-member-modal';
+export { SettingsRow } from './sections/settings-row';
 
 export * from './sections/ProfileSection';
 export * from './sections/GroupSection';

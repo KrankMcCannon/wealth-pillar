@@ -1,6 +1,6 @@
 'use client';
 
-import { ChevronRight, CreditCard, Globe, Moon, Languages } from 'lucide-react';
+import { CreditCard, Globe, Moon, Languages } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useTheme } from 'next-themes';
 import { stitchSettings as s } from '@/styles/home-design-foundation';
@@ -9,6 +9,7 @@ import { usePreferenceOptions } from '@/features/settings/utils/preference-optio
 import { getLanguagePreferenceForLocale } from '@/features/settings/utils/language-preference';
 import type { UserPreferences } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { SettingsRow } from './settings-row';
 
 interface PreferencesSectionProps {
   preferences: UserPreferences | null;
@@ -17,31 +18,13 @@ interface PreferencesSectionProps {
   onOpenTimezone: () => void;
 }
 
-function PreferenceRow({
-  icon,
-  label,
-  value,
-  onClick,
-  divider = true,
-}: Readonly<{
-  icon: React.ReactNode;
-  label: string;
-  value?: React.ReactNode;
-  onClick: () => void;
-  divider?: boolean;
-}>) {
-  return (
-    <button type="button" className={cn(s.row, divider && s.rowDivider)} onClick={onClick}>
-      <div className={s.rowLeft}>
-        <div className={s.rowIconWrap}>{icon}</div>
-        <span className={s.rowLabel}>{label}</span>
-      </div>
-      <div className="flex shrink-0 items-center gap-2">
-        {value ? <span className={s.rowValue}>{value}</span> : null}
-        <ChevronRight className={s.rowChevron} aria-hidden />
-      </div>
-    </button>
-  );
+function resolveOptionLabel(
+  value: string | undefined,
+  options: { value: string; label: string }[],
+  fallback: string
+): string {
+  if (!value) return fallback;
+  return options.find((opt) => opt.value === value)?.label ?? value;
 }
 
 export function PreferencesSection({
@@ -59,40 +42,37 @@ export function PreferencesSection({
 
   const isDark = mounted && (resolvedTheme ?? theme) === 'dark';
 
-  const currencyLabel =
-    preferences?.currency &&
-    currencyOptions.find((opt) => opt.value === preferences.currency)?.label
-      ? currencyOptions.find((opt) => opt.value === preferences.currency)?.label
-      : (preferences?.currency ?? t('currencyFallback'));
+  const currencyLabel = resolveOptionLabel(
+    preferences?.currency,
+    currencyOptions,
+    preferences?.currency ?? t('currencyFallback')
+  );
 
-  const languageLabel =
-    currentLanguage && languageOptions.find((opt) => opt.value === currentLanguage)?.label
-      ? languageOptions.find((opt) => opt.value === currentLanguage)?.label
-      : t('languageFallback');
+  const languageLabel = resolveOptionLabel(currentLanguage, languageOptions, t('languageFallback'));
 
-  const timezoneLabel =
-    preferences?.timezone &&
-    timezoneOptions.find((opt) => opt.value === preferences.timezone)?.label
-      ? timezoneOptions.find((opt) => opt.value === preferences.timezone)?.label
-      : t('timezoneFallback');
+  const timezoneLabel = resolveOptionLabel(
+    preferences?.timezone,
+    timezoneOptions,
+    preferences?.timezone ?? t('timezoneFallback')
+  );
 
   return (
-    <section className="space-y-2">
+    <section className="flex flex-col gap-2">
       <h3 className={s.sectionEyebrow}>{t('title')}</h3>
       <div className={s.sectionCard}>
-        <PreferenceRow
+        <SettingsRow
           icon={<CreditCard className={s.rowIcon} aria-hidden />}
           label={t('currencyLabel')}
           value={currencyLabel}
           onClick={onOpenCurrency}
         />
-        <PreferenceRow
+        <SettingsRow
           icon={<Languages className={s.rowIcon} aria-hidden />}
           label={t('languageLabel')}
           value={languageLabel}
           onClick={onOpenLanguage}
         />
-        <PreferenceRow
+        <SettingsRow
           icon={<Globe className={s.rowIcon} aria-hidden />}
           label={t('timezoneLabel')}
           value={timezoneLabel}

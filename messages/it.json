@@ -76,9 +76,6 @@
   "SettingsPage": {
     "loading": "Caricamento impostazioni..."
   },
-  "SettingsItem": {
-    "change": "Cambia"
-  },
   "SettingsContent": {
     "headerTitle": "Impostazioni",
     "currencyModalTitle": "Seleziona Valuta",

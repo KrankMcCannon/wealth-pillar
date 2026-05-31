@@ -28,15 +28,7 @@ export {
   BudgetPageSkeleton,
 } from './budget-skeletons';
 
-export {
-  SettingsHeaderSkeleton as HeaderSkeleton,
-  SettingsHeaderSkeleton,
-  ProfileSectionSkeleton as SectionSkeleton,
-  ProfileSectionSkeleton,
-  GroupManagementSectionSkeleton,
-  PreferencesSectionSkeleton,
-  SettingsPageSkeleton,
-} from './settings-skeletons';
+export { SettingsPageSkeleton } from './settings-skeletons';
 
 export { InvestmentsSkeleton } from './investments-skeleton';
 export { ReportsSkeleton } from './reports-skeleton';

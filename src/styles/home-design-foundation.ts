@@ -398,10 +398,10 @@ export const stitchSettings = {
   rowValue: 'shrink-0 text-sm text-muted-foreground',
   rowChevron: 'h-5 w-5 shrink-0 text-muted-foreground',
   profileCard:
-    'flex flex-col items-center gap-4 rounded-2xl border border-border/20 bg-card/90 p-4 shadow-[0_16px_36px_rgba(0,7,30,0.28)] sm:flex-row sm:items-start sm:p-5',
+    'flex flex-row items-center gap-4 rounded-2xl border border-border/20 bg-card/90 p-4 shadow-[0_16px_36px_rgba(0,7,30,0.28)]',
   profileAvatar:
-    'flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted text-2xl font-bold text-primary',
-  profileInfo: 'min-w-0 flex-1 text-center sm:text-left',
+    'flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted text-xl font-bold text-primary',
+  profileInfo: 'min-w-0 flex-1',
   profileName: 'truncate text-xl font-semibold tracking-tight text-primary',
   profileEmail: 'mt-1 truncate text-sm text-muted-foreground',
   editButton:

@@ -6,15 +6,11 @@ import type { User, UserPreferences, UserPreferencesUpdate } from '@/lib/types';
 import { useRouter } from '@/i18n/routing';
 import { useModalState, type SettingsModalKind } from '@/lib/navigation/url-state';
 
-export function useSettings(
-  currentUser: User,
-  initialPreferences: UserPreferences,
-  groupUsers: User[]
-) {
+export function useSettings(currentUser: User, initialPreferences: UserPreferences) {
   const router = useRouter();
   const { user: clerkUser } = useUser();
   const { signOut } = useClerk();
-  const { openModal, closeModal } = useModalState();
+  const { openModal } = useModalState();
 
   const [preferences, setOptimisticPreferences] = useOptimistic(
     initialPreferences,
@@ -66,14 +62,11 @@ export function useSettings(
   };
 
   return {
-    currentUser,
-    groupUsers,
     isAdmin,
     preferences,
     isSigningOut,
     userInitials,
     openSettingsModal,
-    closeSettingsModal: closeModal,
     handleSignOut,
     handlePreferenceUpdate,
   };
