@@ -13,6 +13,7 @@ import {
   getAccountsByGroupDeduped,
   getAllCategoriesDeduped,
 } from '@/server/request-cache/services';
+import { getUsedCategoryKeysByGroupUseCase } from '@/server/use-cases/transactions/get-transactions.use-case';
 import { ModalProvider } from '@/providers/modal-provider';
 import { ReferenceDataInitializer } from '@/providers/reference-data-initializer';
 import { UserProvider } from '@/providers/user-provider';
@@ -60,10 +61,11 @@ export async function LocaleLayoutBody({
       type GroupAccounts = Awaited<ReturnType<typeof getAccountsByGroupDeduped>>;
       type AllCategories = Awaited<ReturnType<typeof getAllCategoriesDeduped>>;
 
-      const [groupUsers, accounts, categories] = await Promise.all([
+      const [groupUsers, accounts, categories, usedCategoryKeys] = await Promise.all([
         withTimeout(getGroupUsers(), 1500, [currentUser] as GroupUsers),
         withTimeout(getAccountsByGroupDeduped(currentUser.group_id), 1500, [] as GroupAccounts),
         withTimeout(getAllCategoriesDeduped(), 1200, [] as AllCategories),
+        withTimeout(getUsedCategoryKeysByGroupUseCase(currentUser.group_id), 1500, [] as string[]),
       ]);
 
       appContent = (
@@ -72,6 +74,7 @@ export async function LocaleLayoutBody({
             data={{
               accounts: accounts || [],
               categories: categories || [],
+              usedCategoryKeys: usedCategoryKeys || [],
             }}
           >
             <ModalProvider>{children}</ModalProvider>

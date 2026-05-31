@@ -1,8 +1,10 @@
 'use server';
 
+import { getCurrentUser } from '@/lib/auth/cached-auth';
 import { updateUserProfileUseCase } from '@/server/use-cases/users/user.use-cases';
 import { updateUserPreferencesUseCase } from '@/server/use-cases/users/get-user-preferences.use-case';
 import { createGroupInvitationUseCase } from '@/server/use-cases/groups/group-invitations.use-cases';
+import { updateGroupUseCase } from '@/server/use-cases/groups/groups.use-cases';
 import type { UserPreferences, GroupInvitation } from '@/lib/types';
 import type { UserPreferencesUpdate } from '@/lib/types';
 import type { ServiceResult } from '@/lib/types/service-result';
@@ -149,6 +151,54 @@ export async function sendGroupInvitationAction(
     return {
       data: null,
       error: error instanceof Error ? error.message : 'Failed to send invitation',
+    };
+  }
+}
+
+/**
+ * Updates group name (admin only)
+ * Server action for ManageGroupModal
+ */
+export async function updateGroupAction(
+  groupId: string,
+  name: string
+): Promise<ServiceResult<{ id: string; name: string }>> {
+  try {
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return { data: null, error: 'Not authenticated' };
+    }
+
+    const isAdmin = currentUser.role === 'admin' || currentUser.role === 'superadmin';
+    if (!isAdmin) {
+      return { data: null, error: 'Permission denied' };
+    }
+
+    if (!groupId || groupId.trim() === '') {
+      return { data: null, error: 'Group ID is required' };
+    }
+
+    if (currentUser.group_id !== groupId) {
+      return { data: null, error: 'Permission denied' };
+    }
+
+    if (!name || name.trim() === '') {
+      return { data: null, error: 'Group name is required' };
+    }
+
+    const data = await updateGroupUseCase(groupId, { name: name.trim() });
+
+    return {
+      data: {
+        id: data.id,
+        name: data.name ?? '',
+      },
+      error: null,
+    };
+  } catch (error) {
+    return {
+      data: null,
+      error: error instanceof Error ? error.message : 'Failed to update group',
     };
   }
 }

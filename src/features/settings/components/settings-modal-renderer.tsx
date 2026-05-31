@@ -10,6 +10,12 @@ const EditProfileModal = lazy(() =>
 const InviteMemberModal = lazy(() =>
   import('./invite-member-modal').then((m) => ({ default: m.InviteMemberModal }))
 );
+const ManageGroupModal = lazy(() =>
+  import('./manage-group-modal').then((m) => ({ default: m.ManageGroupModal }))
+);
+const ManageCategoriesModal = lazy(() =>
+  import('./manage-categories-modal').then((m) => ({ default: m.ManageCategoriesModal }))
+);
 const CurrencyPreferenceModal = lazy(() =>
   import('./settings-preference-modals').then((m) => ({ default: m.CurrencyPreferenceModal }))
 );
@@ -34,7 +40,7 @@ export default function SettingsModalRenderer() {
     return null;
   }
 
-  const { currentUser, isAdmin } = ctx;
+  const { currentUser, isAdmin, groupName } = ctx;
 
   return (
     <Suspense fallback={null}>
@@ -60,6 +66,18 @@ export default function SettingsModalRenderer() {
           currentUserId={currentUser.id}
         />
       ) : null}
+
+      {activeKind === 'group' ? (
+        <ManageGroupModal
+          isOpen
+          onClose={closeModal}
+          groupId={currentUser.group_id || ''}
+          groupName={groupName}
+          isAdmin={isAdmin}
+        />
+      ) : null}
+
+      {activeKind === 'categories' ? <ManageCategoriesModal isOpen onClose={closeModal} /> : null}
     </Suspense>
   );
 }

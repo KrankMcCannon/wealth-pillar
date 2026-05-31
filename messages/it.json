@@ -96,6 +96,19 @@
       "manageGroupTitle": "Gestione gruppo",
       "inviteMemberTitle": "Invita al gruppo"
     },
+    "Categories": {
+      "title": "Categorie",
+      "manageTitle": "Gestisci categorie",
+      "modalTitle": "Categorie",
+      "modalDescription": "Aggiungi, modifica o elimina le categorie del gruppo",
+      "customTitle": "Le tue categorie",
+      "systemTitle": "Categorie predefinite",
+      "addLabel": "Aggiungi categoria",
+      "inUseBadge": "In uso",
+      "inUseHint": "Usata da transazioni del gruppo: puoi modificarla, non eliminarla",
+      "emptyCustom": "Nessuna categoria personalizzata",
+      "emptySystem": "Nessuna categoria predefinita"
+    },
     "Preferences": {
       "title": "Preferenze",
       "currencyLabel": "Valuta",
@@ -178,6 +191,32 @@
       "cancelButton": "Annulla",
       "savingButton": "Salvataggio...",
       "saveChangesButton": "Salva Modifiche"
+    },
+    "ManageGroup": {
+      "validation": {
+        "nameRequired": "Il nome del gruppo è obbligatorio",
+        "nameMax": "Il nome deve essere massimo 100 caratteri"
+      },
+      "toast": {
+        "noChangesTitle": "Nessuna modifica",
+        "noChangesDescription": "Il nome del gruppo è già quello attuale",
+        "errorTitle": "Errore",
+        "updateFailedDescription": "Impossibile aggiornare il gruppo",
+        "updatedTitle": "Gruppo aggiornato",
+        "updatedDescription": "Il nome del gruppo è stato salvato"
+      },
+      "title": "Gestione gruppo",
+      "description": "Visualizza i membri e aggiorna il nome del gruppo",
+      "nameLabel": "Nome del gruppo",
+      "namePlaceholder": "Famiglia Rossi",
+      "membersTitle": "Membri",
+      "inviteButton": "Invita membro",
+      "cancelButton": "Annulla",
+      "saveButton": "Salva",
+      "roles": {
+        "admin": "Amministratore",
+        "member": "Membro"
+      }
     },
     "DeleteAccount": {
       "title": "Elimina Account",
@@ -1564,14 +1603,19 @@
       "buttons": {
         "save": "Salva",
         "create": "Crea Categoria",
-        "cancel": "Annulla"
+        "cancel": "Annulla",
+        "delete": "Elimina categoria"
       },
+      "deleteDialogTitle": "Elimina categoria",
+      "deleteConfirm": "Eliminare questa categoria? L'azione non può essere annullata.",
       "toast": {
         "errorTitle": "Errore",
         "updatedTitle": "Categoria aggiornata",
         "updatedDescription": "Modifiche salvate correttamente.",
         "createdTitle": "Categoria creata",
         "createdDescription": "Categoria aggiunta correttamente.",
+        "deletedTitle": "Categoria eliminata",
+        "deletedDescription": "La categoria è stata rimossa.",
         "revertedHint": "I dati mostrati sono tornati allo stato precedente.",
         "optimisticCreateFailedHint": "La bozza è stata rimossa dalla lista."
       },
@@ -1596,7 +1640,9 @@
         "colorEmpty": "Il colore non può essere vuoto",
         "createFailed": "Impossibile creare la categoria",
         "updateFailed": "Impossibile aggiornare la categoria",
-        "deleteFailed": "Impossibile eliminare la categoria"
+        "deleteFailed": "Impossibile eliminare la categoria",
+        "systemImmutable": "Le categorie predefinite non possono essere modificate o eliminate",
+        "hasTransactions": "Questa categoria è usata da transazioni del gruppo e non può essere eliminata"
       }
     }
   },

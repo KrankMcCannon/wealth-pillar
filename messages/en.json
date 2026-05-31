@@ -96,6 +96,19 @@
       "manageGroupTitle": "Group Management",
       "inviteMemberTitle": "Invite to Group"
     },
+    "Categories": {
+      "title": "Categories",
+      "manageTitle": "Manage categories",
+      "modalTitle": "Categories",
+      "modalDescription": "Add, edit, or delete your group categories",
+      "customTitle": "Your categories",
+      "systemTitle": "Default categories",
+      "addLabel": "Add category",
+      "inUseBadge": "In use",
+      "inUseHint": "Used by group transactions: you can edit it, not delete it",
+      "emptyCustom": "No custom categories yet",
+      "emptySystem": "No default categories"
+    },
     "Preferences": {
       "title": "Preferences",
       "currencyLabel": "Currency",
@@ -178,6 +191,32 @@
       "cancelButton": "Cancel",
       "savingButton": "Saving...",
       "saveChangesButton": "Save Changes"
+    },
+    "ManageGroup": {
+      "validation": {
+        "nameRequired": "Group name is required",
+        "nameMax": "Name must be at most 100 characters"
+      },
+      "toast": {
+        "noChangesTitle": "No changes",
+        "noChangesDescription": "The group name is already current",
+        "errorTitle": "Error",
+        "updateFailedDescription": "Unable to update group",
+        "updatedTitle": "Group updated",
+        "updatedDescription": "The group name was saved"
+      },
+      "title": "Group management",
+      "description": "View members and update the group name",
+      "nameLabel": "Group name",
+      "namePlaceholder": "Rossi household",
+      "membersTitle": "Members",
+      "inviteButton": "Invite member",
+      "cancelButton": "Cancel",
+      "saveButton": "Save",
+      "roles": {
+        "admin": "Administrator",
+        "member": "Member"
+      }
     },
     "DeleteAccount": {
       "title": "Delete Account",
@@ -1564,14 +1603,19 @@
       "buttons": {
         "save": "Save",
         "create": "Create Category",
-        "cancel": "Cancel"
+        "cancel": "Cancel",
+        "delete": "Delete category"
       },
+      "deleteDialogTitle": "Delete category",
+      "deleteConfirm": "Delete this category? This action cannot be undone.",
       "toast": {
         "errorTitle": "Error",
         "updatedTitle": "Category updated",
         "updatedDescription": "Changes saved successfully.",
         "createdTitle": "Category created",
         "createdDescription": "Category added successfully.",
+        "deletedTitle": "Category deleted",
+        "deletedDescription": "The category was removed.",
         "revertedHint": "What you see has been restored to the previous state.",
         "optimisticCreateFailedHint": "The draft entry was removed from the list."
       },
@@ -1596,7 +1640,9 @@
         "colorEmpty": "Color cannot be empty",
         "createFailed": "Failed to create category",
         "updateFailed": "Failed to update category",
-        "deleteFailed": "Failed to delete category"
+        "deleteFailed": "Failed to delete category",
+        "systemImmutable": "Default categories cannot be edited or deleted",
+        "hasTransactions": "This category is used by group transactions and cannot be deleted"
       }
     }
   },

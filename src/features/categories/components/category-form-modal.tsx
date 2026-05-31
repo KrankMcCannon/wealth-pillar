@@ -3,15 +3,30 @@
 import { useCallback, useMemo } from 'react';
 import { z } from 'zod';
 import { useLocale, useTranslations } from 'next-intl';
+import { useRouter } from '@/i18n/routing';
 import type { Category } from '@/lib';
 import { getTempId } from '@/lib/utils/temp-id';
 import { getDefaultColor, isValidColor } from '@/server/use-cases/categories/category.logic';
 import { categoryStyles } from '../theme/category-styles';
-import { createCategoryAction, updateCategoryAction } from '@/features/categories';
-import { EntityFormModal, useEntityFormRowReset, useEntityFormSubmit } from '@/components/form';
-import { ModalFooterActions } from '@/components/ui/modal-footer-actions';
+import {
+  createCategoryAction,
+  updateCategoryAction,
+  deleteCategoryAction,
+} from '@/features/categories';
+import { isSystemCategory } from '@/features/categories/utils/category-helpers';
+import {
+  EntityFormModal,
+  EntityFormFooter,
+  useEntityFormRowReset,
+  useEntityFormSubmit,
+} from '@/components/form';
+import { toast } from '@/hooks/use-toast';
 import { useRequiredGroupId } from '@/hooks';
-import { useCategories, useReferenceDataStore } from '@/stores/reference-data-store';
+import {
+  useCategories,
+  useUsedCategoryKeys,
+  useReferenceDataStore,
+} from '@/stores/reference-data-store';
 import { CategoryFormFields, type CategoryFormData } from './category-form-fields';
 
 interface CategoryFormModalProps {
@@ -23,14 +38,23 @@ interface CategoryFormModalProps {
 function CategoryFormModal({ isOpen, onClose, editId }: Readonly<CategoryFormModalProps>) {
   const t = useTranslations('Categories.FormModal');
   const locale = useLocale();
+  const router = useRouter();
   const groupId = useRequiredGroupId();
 
   const storeCategories = useCategories();
+  const usedCategoryKeys = useUsedCategoryKeys();
   const addCategory = useReferenceDataStore((state) => state.addCategory);
   const updateCategory = useReferenceDataStore((state) => state.updateCategory);
   const removeCategory = useReferenceDataStore((state) => state.removeCategory);
 
   const isEditMode = Boolean(editId);
+  const editingCategory = useMemo(
+    () => (editId ? storeCategories.find((cat) => cat.id === editId) : undefined),
+    [editId, storeCategories]
+  );
+  const isCustomCategory = editingCategory ? !isSystemCategory(editingCategory) : true;
+  const isCategoryInUse = editingCategory ? usedCategoryKeys.includes(editingCategory.key) : false;
+  const canDelete = isEditMode && isCustomCategory && !isCategoryInUse;
   const title = isEditMode ? t('title.edit') : t('title.create');
   const description = isEditMode ? t('description.edit') : t('description.create');
 
@@ -202,6 +226,20 @@ function CategoryFormModal({ isOpen, onClose, editId }: Readonly<CategoryFormMod
     unknownErrorMessage: t('errors.unknown'),
   });
 
+  const handleDelete = useCallback(async () => {
+    if (!editId) return;
+    const result = await deleteCategoryAction(editId, locale);
+    if (result.error) {
+      throw new Error(result.error);
+    }
+    toast({
+      title: t('toast.deletedTitle'),
+      description: t('toast.deletedDescription'),
+      variant: 'success',
+    });
+    router.refresh();
+  }, [editId, locale, router, t]);
+
   return (
     <EntityFormModal<CategoryFormData>
       isOpen={isOpen}
@@ -212,15 +250,28 @@ function CategoryFormModal({ isOpen, onClose, editId }: Readonly<CategoryFormMod
       defaultValues={createDefaults}
       resetValues={resetValues ?? createDefaults}
       formClassName={categoryStyles.formModal.form}
+      {...(canDelete
+        ? {
+            deletion: {
+              enabled: true,
+              title: t('deleteDialogTitle'),
+              message: t('deleteConfirm'),
+              confirmText: t('buttons.delete'),
+              cancelText: t('buttons.cancel'),
+              onDelete: handleDelete,
+            },
+          }
+        : {})}
       onSubmit={handleSubmit}
-      footer={(_, isSubmitting) => (
-        <ModalFooterActions
-          variant="dual"
-          cancelLabel={t('buttons.cancel')}
-          submitLabel={isEditMode ? t('buttons.save') : t('buttons.create')}
-          onCancel={onClose}
-          submitType="submit"
+      footer={(_, isSubmitting, { openDeleteDialog }) => (
+        <EntityFormFooter
+          isEditMode={isEditMode}
           isSubmitting={isSubmitting}
+          submitLabel={isEditMode ? t('buttons.save') : t('buttons.create')}
+          deleteLabel={t('buttons.delete')}
+          deleteTestId="category-form-delete"
+          showSubmitSpinner
+          {...(canDelete && openDeleteDialog ? { onDelete: openDeleteDialog } : {})}
         />
       )}
     >

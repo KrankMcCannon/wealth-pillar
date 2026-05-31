@@ -25,7 +25,6 @@ vi.mock('@/components/layout', () => ({
   AppPage: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="app-page">{children}</div>
   ),
-  ActionMenu: () => <div data-testid="action-menu" />,
 }));
 
 vi.mock('@/components/ui', () => ({
@@ -118,5 +117,6 @@ describe('HomeContent', () => {
     expect(screen.getByTestId('budget-section')).toBeInTheDocument();
     expect(screen.getByTestId('recurring-section')).toBeInTheDocument();
     expect(screen.getByTestId('recent-activity-section')).toBeInTheDocument();
+    expect(screen.queryByTestId('action-menu')).not.toBeInTheDocument();
   });
 });

@@ -248,6 +248,20 @@ export class TransactionsRepository {
   }
 
   /**
+   * Distinct category keys referenced by transactions in a group
+   */
+  static async getUsedCategoryKeysByGroup(groupId: string): Promise<string[]> {
+    const rows = await db
+      .selectDistinct({ category: transactions.category })
+      .from(transactions)
+      .where(and(eq(transactions.group_id, groupId), sql`${transactions.category} IS NOT NULL`));
+
+    return rows
+      .map((row) => row.category)
+      .filter((key): key is string => typeof key === 'string' && key.length > 0);
+  }
+
+  /**
    * Apply balance delta to an account
    */
   static async updateAccountBalance(accountId: string, deltaAmount: number) {

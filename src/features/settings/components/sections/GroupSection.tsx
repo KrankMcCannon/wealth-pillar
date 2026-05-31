@@ -7,12 +7,14 @@ import { SettingsRow } from './settings-row';
 
 interface GroupSectionProps {
   isAdmin: boolean;
+  groupName?: string;
   onInviteMember: () => void;
   onManageGroup?: () => void;
 }
 
 export function GroupSection({
   isAdmin,
+  groupName,
   onInviteMember,
   onManageGroup,
 }: Readonly<GroupSectionProps>) {
@@ -25,6 +27,7 @@ export function GroupSection({
         <SettingsRow
           icon={<Users className={s.rowIcon} aria-hidden />}
           label={t('manageGroupTitle')}
+          value={groupName || undefined}
           onClick={onManageGroup}
         />
         {isAdmin ? (

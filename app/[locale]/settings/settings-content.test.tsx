@@ -55,6 +55,15 @@ vi.mock('@/features/settings/components/settings-modal-renderer', () => ({
   default: () => null,
 }));
 
+vi.mock('@/hooks/use-required-user', () => ({
+  useRequiredCurrentUser: () => currentUser,
+}));
+
+vi.mock('@/stores/reference-data-store', () => ({
+  useCategories: () => [],
+  useUsedCategoryKeys: () => [],
+}));
+
 vi.mock('@/features/settings/utils/preference-options', () => ({
   usePreferenceOptions: () => ({
     currencyOptions: [{ value: 'EUR', label: 'Euro', description: '' }],
@@ -94,6 +103,7 @@ describe('SettingsContent', () => {
       <SettingsContent
         currentUser={currentUser as never}
         initialPreferences={preferences as never}
+        initialGroupName="Famiglia Rossi"
       />
     );
 
@@ -101,8 +111,15 @@ describe('SettingsContent', () => {
     expect(screen.getByText('headerTitle')).toBeInTheDocument();
     expect(screen.getByText('Alex Mercer')).toBeInTheDocument();
     expect(screen.getByText('alex@example.com')).toBeInTheDocument();
+    expect(screen.getByText('manageTitle')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'editButton' }));
     expect(openModal).toHaveBeenCalledWith('settings:profile');
+
+    fireEvent.click(screen.getByRole('button', { name: 'manageGroupTitle' }));
+    expect(openModal).toHaveBeenCalledWith('settings:group');
+
+    fireEvent.click(screen.getByRole('button', { name: 'manageTitle' }));
+    expect(openModal).toHaveBeenCalledWith('settings:categories');
   });
 });

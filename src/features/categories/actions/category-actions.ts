@@ -14,9 +14,10 @@ import {
   type CreateCategoryInput,
   type UpdateCategoryInput,
 } from '@/server/use-cases/categories/category.use-cases';
-import { isValidColor } from '@/server/use-cases/categories/category.logic';
+import { isValidColor, isSystemCategory } from '@/server/use-cases/categories/category.logic';
 import type { Category } from '@/lib/types';
 import type { ServiceResult } from '@/lib/types/service-result';
+import { getTransactionsByGroupUseCase } from '@/server/use-cases/transactions/get-transactions.use-case';
 
 async function getCategoryActionTranslator(locale?: string) {
   if (locale) {
@@ -161,6 +162,10 @@ export async function updateCategoryAction(
     const existingCategory = await getCategoryByIdUseCase(id);
     if (!existingCategory) return { data: null, error: t('errors.notFound') };
 
+    if (isSystemCategory(existingCategory)) {
+      return { data: null, error: t('errors.systemImmutable') };
+    }
+
     // Permission check
     if (currentUser.group_id !== existingCategory.group_id) {
       return { data: null, error: t('errors.permissionDenied') };
@@ -211,9 +216,24 @@ export async function deleteCategoryAction(
     const existingCategory = await getCategoryByIdUseCase(id);
     if (!existingCategory) return { data: null, error: t('errors.notFound') };
 
+    if (isSystemCategory(existingCategory)) {
+      return { data: null, error: t('errors.systemImmutable') };
+    }
+
     // Permission check
     if (currentUser.group_id !== existingCategory.group_id) {
       return { data: null, error: t('errors.permissionDenied') };
+    }
+
+    if (existingCategory.group_id) {
+      const usage = await getTransactionsByGroupUseCase(existingCategory.group_id, {
+        category: existingCategory.key,
+        limit: 1,
+        countTotal: true,
+      });
+      if (usage.total > 0) {
+        return { data: null, error: t('errors.hasTransactions') };
+      }
     }
 
     const result = await deleteCategoryUseCase(id);

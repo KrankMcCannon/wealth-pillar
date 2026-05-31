@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { MODAL_TYPES, SETTINGS_MODAL_TYPES, isSettingsModalType } from './url-state';
 
 describe('MODAL_TYPES', () => {
-  it('includes 11 modal types (6 entity + 5 settings)', () => {
-    expect(MODAL_TYPES).toHaveLength(11);
+  it('includes 13 modal types (6 entity + 7 settings)', () => {
+    expect(MODAL_TYPES).toHaveLength(13);
     expect(MODAL_TYPES).toEqual(
       expect.arrayContaining([
         'transaction',
@@ -17,13 +17,17 @@ describe('MODAL_TYPES', () => {
         'settings:language',
         'settings:timezone',
         'settings:invite',
+        'settings:group',
+        'settings:categories',
       ])
     );
   });
 
   it('identifies settings modal types', () => {
-    expect(SETTINGS_MODAL_TYPES).toHaveLength(5);
+    expect(SETTINGS_MODAL_TYPES).toHaveLength(7);
     expect(isSettingsModalType('settings:language')).toBe(true);
+    expect(isSettingsModalType('settings:group')).toBe(true);
+    expect(isSettingsModalType('settings:categories')).toBe(true);
     expect(isSettingsModalType('transaction')).toBe(false);
     expect(isSettingsModalType(null)).toBe(false);
   });

@@ -6,7 +6,11 @@ import type { User, UserPreferences, UserPreferencesUpdate } from '@/lib/types';
 import { useRouter } from '@/i18n/routing';
 import { useModalState, type SettingsModalKind } from '@/lib/navigation/url-state';
 
-export function useSettings(currentUser: User, initialPreferences: UserPreferences) {
+export function useSettings(
+  currentUser: User,
+  initialPreferences: UserPreferences,
+  initialGroupName = ''
+) {
   const router = useRouter();
   const { user: clerkUser } = useUser();
   const { signOut } = useClerk();
@@ -18,6 +22,11 @@ export function useSettings(currentUser: User, initialPreferences: UserPreferenc
       ...state,
       ...updates,
     })
+  );
+
+  const [displayGroupName, setOptimisticGroupName] = useOptimistic(
+    initialGroupName,
+    (_state, name: string) => name
   );
 
   const [preferences, setOptimisticPreferences] = useOptimistic(
@@ -78,8 +87,18 @@ export function useSettings(currentUser: User, initialPreferences: UserPreferenc
     [setOptimisticUser]
   );
 
+  const handleGroupUpdate = useCallback(
+    (name: string) => {
+      startTransition(() => {
+        setOptimisticGroupName(name);
+      });
+    },
+    [setOptimisticGroupName]
+  );
+
   return {
     displayUser,
+    displayGroupName,
     isAdmin,
     preferences,
     isSigningOut,
@@ -88,5 +107,6 @@ export function useSettings(currentUser: User, initialPreferences: UserPreferenc
     handleSignOut,
     handlePreferenceUpdate,
     handleProfileUpdate,
+    handleGroupUpdate,
   };
 }

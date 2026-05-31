@@ -22,6 +22,7 @@ interface ReferenceDataInitializerProps {
   data: {
     accounts: Account[];
     categories: Category[];
+    usedCategoryKeys?: string[];
   };
 }
 

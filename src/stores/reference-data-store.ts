@@ -16,12 +16,17 @@ interface ReferenceDataState {
   // Data
   accounts: Account[];
   categories: Category[];
+  usedCategoryKeys: string[];
   transactions: Transaction[];
   budgets: Budget[];
   isInitialized: boolean;
 
   // Initialization
-  initialize: (data: { accounts: Account[]; categories: Category[] }) => void;
+  initialize: (data: {
+    accounts: Account[];
+    categories: Category[];
+    usedCategoryKeys?: string[];
+  }) => void;
   reset: () => void;
 
   // Account optimistic update actions
@@ -56,6 +61,7 @@ interface ReferenceDataState {
 const initialState = {
   accounts: [],
   categories: [],
+  usedCategoryKeys: [] as string[],
   transactions: [],
   budgets: [],
   isInitialized: false,
@@ -76,6 +82,7 @@ export const useReferenceDataStore = create<ReferenceDataState>()(
           {
             accounts: data.accounts,
             categories: data.categories,
+            usedCategoryKeys: data.usedCategoryKeys ?? [],
             isInitialized: true,
           },
           false,
@@ -255,6 +262,11 @@ export const useAccounts = () => useReferenceDataStore((state) => state.accounts
  * Subscribes only to categories changes
  */
 export const useCategories = () => useReferenceDataStore((state) => state.categories);
+
+/**
+ * Get category keys in use by transactions within the current group
+ */
+export const useUsedCategoryKeys = () => useReferenceDataStore((state) => state.usedCategoryKeys);
 
 /**
  * Get transactions

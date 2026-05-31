@@ -1,5 +1,5 @@
 import { cached } from '@/lib/cache';
-import { CACHE_TAGS, cacheOptions } from '@/lib/cache/config';
+import { CACHE_TAGS, cacheOptions, CACHE_TTL } from '@/lib/cache/config';
 import { transactionCacheKeys } from '@/lib/cache/keys';
 import { cacheLife, cacheTag } from 'next/cache';
 import { serialize } from '@/lib/utils/serializer';
@@ -83,6 +83,21 @@ export async function getTransactionsByAccountUseCase(accountId: string): Promis
   );
 
   return getCachedTransactions();
+}
+
+export async function getUsedCategoryKeysByGroupUseCase(groupId: string): Promise<string[]> {
+  if (!groupId?.trim()) throw new Error('Group ID is required');
+
+  const getCachedKeys = cached(
+    async () => TransactionsRepository.getUsedCategoryKeysByGroup(groupId),
+    [`group:${groupId}:used-category-keys`],
+    {
+      revalidate: CACHE_TTL.TRANSACTION,
+      tags: [CACHE_TAGS.TRANSACTIONS, `group:${groupId}:transactions`],
+    }
+  );
+
+  return getCachedKeys();
 }
 
 export async function getTransactionByIdUseCase(transactionId: string): Promise<Transaction> {

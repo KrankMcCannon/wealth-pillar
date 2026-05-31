@@ -8,6 +8,7 @@ import {
   useSettings,
   ProfileSection,
   GroupSection,
+  CategoriesSection,
   PreferencesSection,
   SupportSection,
 } from '@/features/settings';
@@ -18,13 +19,19 @@ import type { User, UserPreferences } from '@/lib/types';
 interface SettingsContentProps {
   currentUser: User;
   initialPreferences: UserPreferences;
+  initialGroupName?: string;
 }
 
-export default function SettingsContent({ currentUser, initialPreferences }: SettingsContentProps) {
+export default function SettingsContent({
+  currentUser,
+  initialPreferences,
+  initialGroupName = '',
+}: SettingsContentProps) {
   const t = useTranslations('SettingsContent');
 
   const {
     displayUser,
+    displayGroupName,
     preferences,
     isAdmin,
     userInitials,
@@ -33,7 +40,8 @@ export default function SettingsContent({ currentUser, initialPreferences }: Set
     handleSignOut,
     handlePreferenceUpdate,
     handleProfileUpdate,
-  } = useSettings(currentUser, initialPreferences);
+    handleGroupUpdate,
+  } = useSettings(currentUser, initialPreferences, initialGroupName);
 
   const router = useRouter();
 
@@ -53,8 +61,10 @@ export default function SettingsContent({ currentUser, initialPreferences }: Set
         currentUser: displayUser,
         preferences: preferences ?? null,
         isAdmin,
+        groupName: displayGroupName,
         onPreferenceUpdate: handlePreferenceUpdate,
         onProfileUpdate: handleProfileUpdate,
+        onGroupUpdate: handleGroupUpdate,
       }}
     >
       <AppPage
@@ -73,9 +83,12 @@ export default function SettingsContent({ currentUser, initialPreferences }: Set
 
           <GroupSection
             isAdmin={isAdmin}
+            groupName={displayGroupName}
             onInviteMember={() => openSettingsModal('invite')}
-            onManageGroup={() => openSettingsModal('invite')}
+            onManageGroup={() => openSettingsModal('group')}
           />
+
+          <CategoriesSection onManageCategories={() => openSettingsModal('categories')} />
 
           <PreferencesSection
             preferences={preferences}

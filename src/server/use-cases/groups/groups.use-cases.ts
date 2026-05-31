@@ -86,3 +86,31 @@ export async function deleteGroupUseCase(groupId: string): Promise<void> {
   revalidateTag(CACHE_TAGS.GROUP(groupId), 'max');
   revalidateTag(CACHE_TAGS.GROUP_USERS(groupId), 'max');
 }
+
+export interface UpdateGroupInput {
+  name?: string;
+}
+
+export async function updateGroupUseCase(groupId: string, input: UpdateGroupInput): Promise<Group> {
+  if (!groupId?.trim()) throw new Error('Group ID is required');
+  if (!input || Object.keys(input).length === 0) {
+    throw new Error('At least one field must be provided');
+  }
+
+  const updateData: Record<string, string> = {};
+
+  if (input.name !== undefined) {
+    const name = validateRequiredString(input.name, 'Group name');
+    if (name.length > 100) throw new Error('Group name must be 100 characters or less');
+    updateData.name = name;
+  }
+
+  const group = await GroupsRepository.update(groupId, updateData);
+  if (!group) throw new Error('Failed to update group');
+
+  revalidateTag(CACHE_TAGS.GROUPS, 'max');
+  revalidateTag(CACHE_TAGS.GROUP(groupId), 'max');
+  revalidateTag(CACHE_TAGS.GROUP_USERS(groupId), 'max');
+
+  return serialize(group) as unknown as Group;
+}

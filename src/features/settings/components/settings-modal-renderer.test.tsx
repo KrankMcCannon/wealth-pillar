@@ -26,9 +26,19 @@ vi.mock('@/features/settings/context/settings-modals-context', () => ({
       timezone: 'Europe/Rome',
     },
     isAdmin: true,
+    groupName: 'Famiglia Rossi',
     onPreferenceUpdate: vi.fn(),
     onProfileUpdate: vi.fn(),
+    onGroupUpdate: vi.fn(),
   }),
+}));
+
+vi.mock('./manage-group-modal', () => ({
+  ManageGroupModal: () => <div data-testid="manage-group-modal">group</div>,
+}));
+
+vi.mock('./manage-categories-modal', () => ({
+  ManageCategoriesModal: () => <div data-testid="manage-categories-modal">categories</div>,
 }));
 
 vi.mock('./edit-profile-modal', () => ({
@@ -67,5 +77,21 @@ describe('SettingsModalRenderer', () => {
     const { container } = render(<SettingsModalRenderer />);
 
     expect(container).toBeEmptyDOMElement();
+  });
+
+  it('renders manage group modal when active', async () => {
+    modalState.modal = 'settings:group';
+
+    render(<SettingsModalRenderer />);
+
+    expect(await screen.findByTestId('manage-group-modal')).toBeInTheDocument();
+  });
+
+  it('renders manage categories modal when active', async () => {
+    modalState.modal = 'settings:categories';
+
+    render(<SettingsModalRenderer />);
+
+    expect(await screen.findByTestId('manage-categories-modal')).toBeInTheDocument();
   });
 });

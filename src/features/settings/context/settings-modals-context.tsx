@@ -7,11 +7,13 @@ export interface SettingsModalsContextValue {
   currentUser: User;
   preferences: UserPreferences | null;
   isAdmin: boolean;
+  groupName: string;
   onPreferenceUpdate: <K extends keyof UserPreferencesUpdate>(
     key: K,
     value: UserPreferencesUpdate[K]
   ) => void;
   onProfileUpdate: (updates: Partial<Pick<User, 'name' | 'email'>>) => void;
+  onGroupUpdate: (name: string) => void;
 }
 
 const SettingsModalsContext = createContext<SettingsModalsContextValue | null>(null);

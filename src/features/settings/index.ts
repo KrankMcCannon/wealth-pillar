@@ -12,6 +12,7 @@ export {
   PreferencesSection,
   SupportSection,
   SettingsRow,
+  CategoriesSection,
 } from './components';
 
 // Actions
@@ -19,6 +20,7 @@ export {
   updateUserProfileAction,
   updateUserPreferencesAction,
   sendGroupInvitationAction,
+  updateGroupAction,
 } from './actions';
 
 // Hooks

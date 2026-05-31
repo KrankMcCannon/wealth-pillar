@@ -2,7 +2,7 @@
 
 import { use, useCallback, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { AppPage, ActionMenu } from '@/components/layout';
+import { AppPage } from '@/components/layout';
 import {
   Drawer,
   DrawerContent,
@@ -18,7 +18,6 @@ import { RecurringSeriesSection } from '@/features/recurring';
 import { RecentActivitySection } from '@/features/transactions';
 import type { User } from '@/lib/types';
 import type { DashboardPageData } from '@/server/use-cases/pages/dashboard.use-case';
-import { stitchHome, stitchFab } from '@/styles/home-design-foundation';
 
 const RECURRING_MAX_ITEMS = 5;
 const RECENT_ACTIVITY_MAX = 5;
@@ -51,7 +50,6 @@ export default function HomeContent({
   } = dashboardData;
 
   const t = useTranslations('HomeContent');
-  const tBottomNav = useTranslations('BottomNav');
   const [userPickerOpen, setUserPickerOpen] = useState(false);
 
   const openUserPicker = useCallback(() => setUserPickerOpen(true), []);
@@ -97,15 +95,6 @@ export default function HomeContent({
       skipToMainLabel={t('skipToContent')}
       {...(showUserPicker ? { onAvatarClick: openUserPicker } : {})}
       dashboardMain
-      afterMain={
-        <ActionMenu
-          triggerClassName={stitchHome.fab}
-          triggerIconClassName={stitchFab.pageAddIcon}
-          groupedSecondary
-          align="center"
-          triggerAriaLabel={tBottomNav('add')}
-        />
-      }
       beforeMain={
         showUserPicker ? (
           <Drawer open={userPickerOpen} onOpenChange={setUserPickerOpen}>
