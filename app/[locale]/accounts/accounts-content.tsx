@@ -16,12 +16,7 @@ import { cn } from '@/lib/utils';
 import type { User } from '@/lib/types';
 import type { AccountsPageData } from '@/server/use-cases/pages/accounts-page.use-case';
 import { useAccounts, useReferenceDataStore } from '@/stores/reference-data-store';
-import {
-  stitchAccounts,
-  stitchHome,
-  stitchRecurring,
-  stitchTransactions,
-} from '@/styles/home-design-foundation';
+import { stitchAccounts, stitchHome, stitchTransactions } from '@/styles/home-design-foundation';
 
 interface AccountsContentProps {
   currentUser: User;
@@ -67,31 +62,34 @@ export default function AccountsContent({
   const metricStats = useMemo(
     () => [
       {
-        label: t('stats.total'),
-        value: accountStats.totalAccounts,
-        variant: 'primary' as const,
-        Icon: Landmark,
-        iconWrap: stitchRecurring.statIconWrap,
-        iconClass: stitchRecurring.statIcon,
-        valueClass: stitchRecurring.statValue,
-      },
-      {
         label: t('stats.positive'),
         value: accountStats.positiveAccounts,
         variant: 'success' as const,
         Icon: TrendingUp,
-        iconWrap: stitchRecurring.statIconWrapSuccess,
-        iconClass: stitchRecurring.statIconSuccess,
-        valueClass: stitchRecurring.statValueSuccess,
+        itemClass: stitchAccounts.statMiniItemSuccess,
+        iconWrap: stitchAccounts.statMiniIconWrapSuccess,
+        iconClass: stitchAccounts.statMiniIconSuccess,
+        valueClass: stitchAccounts.statMiniValueSuccess,
       },
       {
         label: t('stats.negative'),
         value: accountStats.negativeAccounts,
         variant: 'destructive' as const,
         Icon: TrendingDown,
-        iconWrap: stitchRecurring.statIconWrapDestructive,
-        iconClass: stitchRecurring.statIconDestructive,
-        valueClass: stitchRecurring.statValueDestructive,
+        itemClass: stitchAccounts.statMiniItemDestructive,
+        iconWrap: stitchAccounts.statMiniIconWrapDestructive,
+        iconClass: stitchAccounts.statMiniIconDestructive,
+        valueClass: stitchAccounts.statMiniValueDestructive,
+      },
+      {
+        label: t('stats.total'),
+        value: accountStats.totalAccounts,
+        variant: 'primary' as const,
+        Icon: Landmark,
+        itemClass: stitchAccounts.statMiniItemPrimary,
+        iconWrap: stitchAccounts.statMiniIconWrap,
+        iconClass: stitchAccounts.statMiniIcon,
+        valueClass: stitchAccounts.statMiniValue,
       },
     ],
     [t, accountStats.totalAccounts, accountStats.positiveAccounts, accountStats.negativeAccounts]
@@ -132,70 +130,57 @@ export default function AccountsContent({
           </p>
         ) : null}
 
-        <HomeSectionCard aria-labelledby="accounts-section-balance">
-          <div className={stitchRecurring.summaryHeaderRow}>
-            <div className={stitchRecurring.summaryIconWrap}>
-              <CreditCard className={stitchRecurring.summaryIcon} aria-hidden />
+        <HomeSectionCard aria-labelledby="accounts-section-balance" className="space-y-2">
+          <div className={stitchAccounts.summaryHeaderLeft}>
+            <div className={stitchAccounts.summaryIconWrap}>
+              <CreditCard className={stitchAccounts.summaryIcon} aria-hidden />
             </div>
             <div className="min-w-0">
-              <h2 id="accounts-section-balance" className={stitchRecurring.summaryTitle}>
+              <h2 id="accounts-section-balance" className={stitchAccounts.summaryTitle}>
                 {t('sectionBalanceTitle')}
               </h2>
-              <p className={stitchRecurring.summarySubtitle}>
+              <p className={stitchAccounts.summarySubtitle}>
                 {t('headerSubtitle', { count: accountStats.totalAccounts })}
               </p>
             </div>
           </div>
 
-          <div className="mt-3 space-y-3">
-            <div>
-              <p className={stitchHome.sectionEyebrow}>{t('spendableBalanceLabel')}</p>
+          <div className={stitchAccounts.balanceMetaRow}>
+            <span className={stitchAccounts.balanceMetaLine}>
+              <span>{t('spendableBalanceLabel')}</span>
               <Amount
                 type={accountStats.spendableBalance >= 0 ? 'income' : 'expense'}
+                size="sm"
                 emphasis="strong"
-                currency
-                className={cn(
-                  accountStats.spendableBalance >= 0
-                    ? stitchHome.balanceHero
-                    : stitchHome.balanceHeroNegative,
-                  'mt-1 block'
-                )}
+                className="inline"
               >
                 {Math.abs(accountStats.spendableBalance)}
               </Amount>
-            </div>
-            <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-              <span>
-                {t('reserveBalanceLabel')}:{' '}
-                <Amount type="balance" size="sm" className="inline">
-                  {accountStats.reserveBalance}
-                </Amount>
-              </span>
-              <span>
-                {t('totalBalanceLabel')}:{' '}
-                <Amount type={balancePositive ? 'income' : 'expense'} size="sm" className="inline">
-                  {Math.abs(accountStats.totalBalance)}
-                </Amount>
-              </span>
-            </div>
+            </span>
+            <span className={stitchAccounts.balanceMetaLine}>
+              <span>{t('reserveBalanceLabel')}</span>
+              <Amount type="balance" size="sm" className="inline">
+                {accountStats.reserveBalance}
+              </Amount>
+            </span>
+            <span className={stitchAccounts.balanceMetaLine}>
+              <span>{t('totalBalanceLabel')}</span>
+              <Amount type={balancePositive ? 'income' : 'expense'} size="sm" className="inline">
+                {Math.abs(accountStats.totalBalance)}
+              </Amount>
+            </span>
           </div>
 
           {showBalanceBreakdown ? (
-            <div className={stitchRecurring.statsGrid}>
+            <div className={stitchAccounts.statMiniGrid}>
               {metricStats.map((stat) => (
-                <div
-                  key={stat.label}
-                  className={cn(
-                    stitchRecurring.statItem,
-                    stat.variant === 'primary' && stitchRecurring.statItemPrimary,
-                    stat.variant === 'success' && stitchRecurring.statItemSuccess,
-                    stat.variant === 'destructive' && stitchRecurring.statItemDestructive
-                  )}
-                >
-                  <div className={stat.iconWrap}>
-                    <stat.Icon className={stat.iconClass} aria-hidden />
+                <div key={stat.label} className={cn(stitchAccounts.statMiniItem, stat.itemClass)}>
+                  <div className={stitchAccounts.statMiniHeader}>
+                    <div className={stat.iconWrap}>
+                      <stat.Icon className={stat.iconClass} aria-hidden />
+                    </div>
+                    <p className={stitchAccounts.statMiniLabel}>{stat.label}</p>
                   </div>
-                  <p className={stitchRecurring.statLabel}>{stat.label}</p>
                   <p className={stat.valueClass}>
                     {typeof stat.value === 'number' ? stat.value.toLocaleString() : stat.value}
                   </p>

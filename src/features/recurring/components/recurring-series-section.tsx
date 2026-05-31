@@ -79,6 +79,42 @@ export function RecurringSeriesSection({
     totalMonthlyRecurring,
   } = view;
 
+  const monthlyStats = useMemo(
+    () => [
+      {
+        label: t('stats.incomePerMonth'),
+        Icon: TrendingUp,
+        itemClass: stitchRecurring.statMiniItemSuccess,
+        iconWrap: stitchRecurring.statMiniIconWrapSuccess,
+        iconClass: stitchRecurring.statMiniIconSuccess,
+        valueClass: stitchRecurring.statMiniValueSuccess,
+        amount: monthlyTotals.totalIncome,
+        amountType: 'income' as const,
+      },
+      {
+        label: t('stats.expensesPerMonth'),
+        Icon: TrendingDown,
+        itemClass: stitchRecurring.statMiniItemDestructive,
+        iconWrap: stitchRecurring.statMiniIconWrapDestructive,
+        iconClass: stitchRecurring.statMiniIconDestructive,
+        valueClass: stitchRecurring.statMiniValueDestructive,
+        amount: -monthlyTotals.totalExpenses,
+        amountType: 'expense' as const,
+      },
+      {
+        label: t('summary.totalMonthlyLabel'),
+        Icon: Banknote,
+        itemClass: stitchRecurring.statMiniItemPrimary,
+        iconWrap: stitchRecurring.statMiniIconWrap,
+        iconClass: stitchRecurring.statMiniIcon,
+        valueClass: stitchRecurring.statMiniValuePrimary,
+        amount: totalMonthlyRecurring,
+        amountType: 'neutral' as const,
+      },
+    ],
+    [t, totalMonthlyRecurring, monthlyTotals.totalIncome, monthlyTotals.totalExpenses]
+  );
+
   const renderPageEmptyState = () => (
     <div className={cn(stitchRecurring.emptyState, className)} role="status" aria-live="polite">
       <p className={stitchRecurring.emptyTitle}>{t('empty.title')}</p>
@@ -225,60 +261,39 @@ export function RecurringSeriesSection({
   return (
     <div className={cn(stitchRecurring.relativeWrap, className)}>
       <div className={stitchRecurring.summaryCard}>
-        <div className={stitchRecurring.summaryHeaderRow}>
-          <div className={stitchRecurring.summaryIconWrap}>
-            <RefreshCw className={stitchRecurring.summaryIcon} aria-hidden />
-          </div>
-          <div className="min-w-0">
-            <h3 className={stitchRecurring.summaryTitle}>{t('title')}</h3>
-            <p className={stitchRecurring.summarySubtitle}>{renderSubtitle()}</p>
+        <div className={stitchRecurring.summaryTopRow}>
+          <div className={stitchRecurring.summaryHeaderLeft}>
+            <div className={stitchRecurring.summaryIconWrap}>
+              <RefreshCw className={stitchRecurring.summaryIcon} aria-hidden />
+            </div>
+            <div className="min-w-0">
+              <h3 className={stitchRecurring.summaryTitle}>{t('title')}</h3>
+              <p className={stitchRecurring.summarySubtitle}>{renderSubtitle()}</p>
+            </div>
           </div>
         </div>
 
         {showStats && filteredSeries.length > 0 ? (
-          <div className={stitchRecurring.statsGrid}>
-            <div className={cn(stitchRecurring.statItem, stitchRecurring.statItemPrimary)}>
-              <div className={stitchRecurring.statIconWrap}>
-                <Banknote className={stitchRecurring.statIcon} aria-hidden />
+          <div className={stitchRecurring.statMiniGrid}>
+            {monthlyStats.map((stat) => (
+              <div key={stat.label} className={cn(stitchRecurring.statMiniItem, stat.itemClass)}>
+                <div className={stitchRecurring.statMiniHeader}>
+                  <div className={stat.iconWrap}>
+                    <stat.Icon className={stat.iconClass} aria-hidden />
+                  </div>
+                  <p className={stitchRecurring.statMiniLabel}>{stat.label}</p>
+                </div>
+                <Amount
+                  type={stat.amountType}
+                  size="sm"
+                  emphasis="strong"
+                  currency
+                  className={stat.valueClass}
+                >
+                  {stat.amount}
+                </Amount>
               </div>
-              <p className={stitchRecurring.statLabel}>{t('summary.totalMonthlyLabel')}</p>
-              <Amount
-                type="neutral"
-                size="md"
-                emphasis="strong"
-                className={stitchRecurring.statValue}
-              >
-                {totalMonthlyRecurring}
-              </Amount>
-            </div>
-            <div className={cn(stitchRecurring.statItem, stitchRecurring.statItemSuccess)}>
-              <div className={stitchRecurring.statIconWrapSuccess}>
-                <TrendingUp className={stitchRecurring.statIconSuccess} aria-hidden />
-              </div>
-              <p className={stitchRecurring.statLabel}>{t('stats.incomePerMonth')}</p>
-              <Amount
-                type="income"
-                size="md"
-                emphasis="strong"
-                className={stitchRecurring.statValueSuccess}
-              >
-                {monthlyTotals.totalIncome}
-              </Amount>
-            </div>
-            <div className={cn(stitchRecurring.statItem, stitchRecurring.statItemDestructive)}>
-              <div className={stitchRecurring.statIconWrapDestructive}>
-                <TrendingDown className={stitchRecurring.statIconDestructive} aria-hidden />
-              </div>
-              <p className={stitchRecurring.statLabel}>{t('stats.expensesPerMonth')}</p>
-              <Amount
-                type="expense"
-                size="md"
-                emphasis="strong"
-                className={stitchRecurring.statValueDestructive}
-              >
-                {-monthlyTotals.totalExpenses}
-              </Amount>
-            </div>
+            ))}
           </div>
         ) : null}
       </div>

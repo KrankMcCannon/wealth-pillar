@@ -223,38 +223,62 @@ export const stitchTransactions = {
 /** Grouped list inside dashboard section cards (home activity, recurring preview, transaction day groups). */
 export const stitchDashboardGroupedList = stitchTransactions.dayCard;
 
+/** Compact 3-up stat tiles (accounts breakdown, recurring monthly summary). */
+export const stitchStatMini = {
+  grid: 'grid grid-cols-3 gap-2 border-t border-border/25 pt-2.5',
+  item: 'flex min-w-0 flex-col gap-1 rounded-xl border px-2.5 py-2 text-left',
+  itemRow: 'flex min-w-0 items-center justify-between gap-2 rounded-xl border px-2.5 py-2',
+  itemPrimary: 'border-border/35 bg-muted/70',
+  itemSuccess: 'border-teal-accent/28 bg-teal-accent/15',
+  itemDestructive: 'border-expense/35 bg-expense/15',
+  header: 'flex min-w-0 items-center gap-1.5',
+  iconWrap:
+    'flex size-5 shrink-0 items-center justify-center rounded-full border border-border/35 bg-accent',
+  iconWrapSuccess:
+    'flex size-5 shrink-0 items-center justify-center rounded-full border border-teal-accent/35 bg-teal-accent/15',
+  iconWrapDestructive:
+    'flex size-5 shrink-0 items-center justify-center rounded-full border border-expense/35 bg-expense/15',
+  icon: 'h-2.5 w-2.5 text-primary',
+  iconSuccess: 'h-2.5 w-2.5 text-income',
+  iconDestructive: 'h-2.5 w-2.5 text-expense',
+  label: 'truncate text-[10px] font-semibold uppercase tracking-wide text-muted-foreground',
+  value: 'text-base font-semibold tabular-nums leading-tight text-foreground',
+  valuePrimary: 'text-base font-semibold tabular-nums leading-tight text-primary',
+  valueSuccess: 'text-base font-semibold tabular-nums leading-tight text-income',
+  valueDestructive: 'text-base font-semibold tabular-nums leading-tight text-expense',
+} as const;
+
 /**
  * Tab Ricorrenti (Transazioni) — summary, gruppi, empty state, FAB wrapper.
  */
 export const stitchRecurring = {
   relativeWrap: 'relative flex flex-col gap-4',
   summaryCard:
-    'rounded-2xl border border-border/20 bg-card/90 p-4 shadow-[0_16px_36px_rgba(0,7,30,0.28)]',
-  summaryHeaderRow: 'flex items-center gap-2',
+    'space-y-2 rounded-2xl border border-border/20 bg-card/90 p-4 shadow-[0_16px_36px_rgba(0,7,30,0.28)]',
+  summaryTopRow: 'flex flex-wrap items-start justify-between gap-x-3 gap-y-2',
+  summaryHeaderLeft: 'flex min-w-0 items-center gap-2',
   summaryIconWrap:
-    'flex size-10 shrink-0 items-center justify-center rounded-full border border-border/35 bg-muted/85',
-  summaryIcon: 'h-4 w-4 text-primary',
-  summaryTitle: 'text-base font-semibold tracking-tight text-foreground',
-  summarySubtitle: 'mt-0.5 text-sm text-muted-foreground',
-  statsGrid: 'mt-3 grid grid-cols-3 gap-2 border-t border-border/25 pt-3',
-  statItem:
-    'flex flex-col items-center justify-center gap-1 rounded-lg border px-2 py-2 text-center',
-  statItemPrimary: 'border-border/35 bg-muted/70',
-  statItemSuccess: 'border-teal-accent/28 bg-teal-accent/15',
-  statItemDestructive: 'border-expense/35 bg-expense/15',
-  statIconWrap:
-    'flex size-7 shrink-0 items-center justify-center rounded-full border border-border/35 bg-accent',
-  statIconWrapSuccess:
-    'flex size-7 shrink-0 items-center justify-center rounded-full border border-teal-accent/35 bg-teal-accent/15',
-  statIconWrapDestructive:
-    'flex size-7 shrink-0 items-center justify-center rounded-full border border-expense/35 bg-expense/15',
-  statIcon: 'h-3.5 w-3.5 text-primary',
-  statIconSuccess: 'h-3.5 w-3.5 text-income',
-  statIconDestructive: 'h-3.5 w-3.5 text-expense',
-  statLabel: 'text-[10px] font-semibold uppercase tracking-wide text-muted-foreground',
-  statValue: 'text-[17px] font-semibold tabular-nums leading-tight text-foreground',
-  statValueSuccess: 'text-[17px] font-semibold tabular-nums leading-tight text-income',
-  statValueDestructive: 'text-[17px] font-semibold tabular-nums leading-tight text-expense',
+    'flex size-8 shrink-0 items-center justify-center rounded-full border border-border/35 bg-muted/85',
+  summaryIcon: 'h-3.5 w-3.5 text-primary',
+  summaryTitle: 'text-sm font-semibold tracking-tight text-foreground',
+  summarySubtitle: 'text-xs text-muted-foreground',
+  statMiniGrid: stitchStatMini.grid,
+  statMiniItem: stitchStatMini.item,
+  statMiniItemPrimary: stitchStatMini.itemPrimary,
+  statMiniItemSuccess: stitchStatMini.itemSuccess,
+  statMiniItemDestructive: stitchStatMini.itemDestructive,
+  statMiniHeader: stitchStatMini.header,
+  statMiniIconWrap: stitchStatMini.iconWrap,
+  statMiniIconWrapSuccess: stitchStatMini.iconWrapSuccess,
+  statMiniIconWrapDestructive: stitchStatMini.iconWrapDestructive,
+  statMiniIcon: stitchStatMini.icon,
+  statMiniIconSuccess: stitchStatMini.iconSuccess,
+  statMiniIconDestructive: stitchStatMini.iconDestructive,
+  statMiniLabel: stitchStatMini.label,
+  statMiniValue: stitchStatMini.value,
+  statMiniValuePrimary: stitchStatMini.valuePrimary,
+  statMiniValueSuccess: stitchStatMini.valueSuccess,
+  statMiniValueDestructive: stitchStatMini.valueDestructive,
   groupSection: 'space-y-2',
   groupLabel: stitchTransactions.dayHeaderTitle,
   groupCard: stitchTransactions.dayCard,
@@ -277,6 +301,33 @@ export const stitchAccounts = {
   /** Banner vista membro (contesto). */
   memberBanner:
     'rounded-lg border border-border/30 bg-muted/60 px-3 py-2 text-sm leading-snug text-muted-foreground',
+  /** Compact balance summary card (accounts page only). */
+  summaryHeaderLeft: 'flex min-w-0 items-center gap-2',
+  summaryIconWrap:
+    'flex size-8 shrink-0 items-center justify-center rounded-full border border-border/35 bg-muted/85',
+  summaryIcon: 'h-3.5 w-3.5 text-primary',
+  summaryTitle: 'text-sm font-semibold tracking-tight text-foreground',
+  summarySubtitle: 'text-xs text-muted-foreground',
+  /** Disponibilità + saldo totale + riserve: righe uniformi una sotto l'altra. */
+  balanceMetaRow: 'flex flex-col gap-1 text-sm text-muted-foreground',
+  balanceMetaLine: 'flex items-baseline justify-between gap-3',
+  statMiniGrid: stitchStatMini.grid,
+  statMiniItem: stitchStatMini.itemRow,
+  statMiniItemPrimary: stitchStatMini.itemPrimary,
+  statMiniItemSuccess: stitchStatMini.itemSuccess,
+  statMiniItemDestructive: stitchStatMini.itemDestructive,
+  statMiniHeader: stitchStatMini.header,
+  statMiniIconWrap: stitchStatMini.iconWrap,
+  statMiniIconWrapSuccess: stitchStatMini.iconWrapSuccess,
+  statMiniIconWrapDestructive: stitchStatMini.iconWrapDestructive,
+  statMiniIcon: stitchStatMini.icon,
+  statMiniIconSuccess: stitchStatMini.iconSuccess,
+  statMiniIconDestructive: stitchStatMini.iconDestructive,
+  statMiniLabel: stitchStatMini.label,
+  statMiniValue: stitchStatMini.value,
+  statMiniValuePrimary: stitchStatMini.valuePrimary,
+  statMiniValueSuccess: stitchStatMini.valueSuccess,
+  statMiniValueDestructive: stitchStatMini.valueDestructive,
   accountListIconWrap: 'border border-border/35 bg-muted/85 !text-primary',
   accountListTitle: 'font-semibold text-[15px] leading-snug text-foreground',
   accountListSubtitle: 'mt-0.5 text-[11px] font-medium text-muted-foreground',
