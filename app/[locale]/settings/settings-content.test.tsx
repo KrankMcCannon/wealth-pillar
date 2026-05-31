@@ -93,7 +93,7 @@ describe('SettingsContent', () => {
     render(
       <SettingsContent
         currentUser={currentUser as never}
-        preferencesPromise={Promise.resolve(preferences as never)}
+        initialPreferences={preferences as never}
       />
     );
 

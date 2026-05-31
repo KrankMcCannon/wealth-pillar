@@ -123,10 +123,19 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
     return mapBudgetToFormData(result.data);
   }, []);
 
+  const getEditValuesSync = useCallback(
+    (id: string) => {
+      const budget = storeBudgets.find((item) => item.id === id);
+      return budget ? mapBudgetToFormData(budget) : undefined;
+    },
+    [storeBudgets]
+  );
+
   const { resetValues, isReady, isLoading } = useEntityFormRowReset({
     editId,
     createValues: createDefaults,
     loadEditValues,
+    getEditValuesSync,
   });
 
   const buildPayload = useCallback(

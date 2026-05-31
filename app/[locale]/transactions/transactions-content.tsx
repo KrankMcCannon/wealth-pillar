@@ -13,6 +13,7 @@ import {
   RecurrentTabPanel,
 } from '@/features/transactions';
 import { stitchTransactions } from '@/styles/home-design-foundation';
+import { useRecurringEditStore } from '@/features/recurring/stores/recurring-edit-store';
 
 interface TransactionsContentProps {
   currentUser: User;
@@ -71,6 +72,16 @@ export default function TransactionsContent({
     openModal,
     isNavigatingFilters,
   } = useTransactionsContent(props);
+
+  const setRecurringEditSeed = useRecurringEditStore((state) => state.setSeed);
+
+  const handleEditRecurringSeries = useCallback(
+    (series: RecurringTransactionSeries) => {
+      setRecurringEditSeed(series);
+      openModal('recurring', series.id);
+    },
+    [openModal, setRecurringEditSeed]
+  );
 
   const hasActiveFilters = useMemo(
     () =>
@@ -178,7 +189,7 @@ export default function TransactionsContent({
                 onUserFilterChange={handleUserFilterChange}
                 showUserPicker={showUserPicker}
                 onCreateRecurringSeries={() => openModal('recurring')}
-                onEditRecurringSeries={(series) => openModal('recurring', series.id)}
+                onEditRecurringSeries={handleEditRecurringSeries}
               />
             </TabsContent>
           </HomeDashboardMain>

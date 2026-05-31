@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 export interface UseEntityFormRowResetOptions<T> {
   editId?: string | null | undefined;
@@ -15,10 +15,13 @@ export interface UseEntityFormRowResetResult<T> {
   resetValues: T | undefined;
   isReady: boolean;
   isLoading: boolean;
+  loadFailed: boolean;
+  retryLoad: () => void;
 }
 
 type AsyncLoadState<T> = {
   editId: string;
+  requestId: number;
   values?: T;
   failed?: boolean;
 };
@@ -43,7 +46,10 @@ export function useEntityFormRowReset<T>({
       ? getOptimisticEditValues?.(editId)
       : undefined;
 
+  const hasCachedEditValues = syncValues !== undefined || optimisticValues !== undefined;
+
   const [asyncLoad, setAsyncLoad] = useState<AsyncLoadState<T> | null>(null);
+  const [retryToken, setRetryToken] = useState(0);
 
   const loadEditValuesRef = useRef(loadEditValues);
   const onLoadErrorRef = useRef(onLoadError);
@@ -54,39 +60,46 @@ export function useEntityFormRowReset<T>({
   }, [loadEditValues, onLoadError]);
 
   useEffect(() => {
-    if (!editId || syncValues !== undefined || !loadEditValuesRef.current) {
+    if (!editId || hasCachedEditValues || !loadEditValuesRef.current) {
       return;
     }
 
     const controller = new AbortController();
+    const requestId = retryToken;
 
     loadEditValuesRef
       .current(editId, controller.signal)
       .then((values) => {
         if (controller.signal.aborted) return;
         if (values) {
-          setAsyncLoad({ editId, values });
+          setAsyncLoad({ editId, requestId, values });
           return;
         }
         onLoadErrorRef.current?.(undefined);
-        setAsyncLoad({ editId, failed: true });
+        setAsyncLoad({ editId, requestId, failed: true });
       })
       .catch(() => {
         if (controller.signal.aborted) return;
         onLoadErrorRef.current?.(undefined);
-        setAsyncLoad({ editId, failed: true });
+        setAsyncLoad({ editId, requestId, failed: true });
       });
 
     return () => {
       controller.abort();
     };
-  }, [editId, syncValues]);
+  }, [editId, hasCachedEditValues, retryToken]);
+
+  const retryLoad = useCallback(() => {
+    setRetryToken((token) => token + 1);
+  }, []);
 
   if (!isEditMode) {
     return {
       resetValues: createValues,
       isReady: true,
       isLoading: false,
+      loadFailed: false,
+      retryLoad,
     };
   }
 
@@ -95,10 +108,15 @@ export function useEntityFormRowReset<T>({
       resetValues: syncValues,
       isReady: true,
       isLoading: false,
+      loadFailed: false,
+      retryLoad,
     };
   }
 
-  const loadEntry = asyncLoad?.editId === editId ? asyncLoad : undefined;
+  const loadEntry =
+    asyncLoad !== null && asyncLoad.editId === editId && asyncLoad.requestId === retryToken
+      ? asyncLoad
+      : undefined;
   const loadedValues = loadEntry?.values;
   const loadFinished = loadEntry !== undefined;
   const resetValues = loadedValues ?? optimisticValues;
@@ -107,5 +125,7 @@ export function useEntityFormRowReset<T>({
     resetValues,
     isReady: loadedValues !== undefined || optimisticValues !== undefined,
     isLoading: !loadFinished && Boolean(loadEditValues) && optimisticValues === undefined,
+    loadFailed: loadEntry?.failed === true,
+    retryLoad,
   };
 }

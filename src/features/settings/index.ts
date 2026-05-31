@@ -17,7 +17,6 @@ export {
 // Actions
 export {
   updateUserProfileAction,
-  getUserPreferencesAction,
   updateUserPreferencesAction,
   sendGroupInvitationAction,
 } from './actions';

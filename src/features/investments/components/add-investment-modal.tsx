@@ -1,19 +1,22 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { z } from 'zod';
 import { useTranslations } from 'next-intl';
-import { useRouter } from '@/i18n/routing';
 import {
   createInvestmentAction,
   getInvestmentByIdAction,
   updateInvestmentAction,
 } from '@/features/investments/actions/investment-actions';
-import { EntityFormModal } from '@/components/form/entity-form-modal';
+import { EntityFormModal, useEntityFormRowReset, useEntityFormSubmit } from '@/components/form';
 import { ModalFooterActions } from '@/components/ui/modal-footer-actions';
 import { toast } from '@/hooks/use-toast';
 import { transactionStyles } from '@/features/transactions/theme/transaction-styles';
 import { InvestmentFormFields, type InvestmentFormData } from './investment-form-fields';
+import {
+  buildInvestmentPayload,
+  mapInvestmentToFormData,
+} from '@/features/investments/utils/investment-form-data';
 
 const createInvestmentSchema = (t: ReturnType<typeof useTranslations>) =>
   z.object({
@@ -50,13 +53,8 @@ export default function AddInvestmentModal({
   editId,
 }: Readonly<AddInvestmentModalProps>) {
   const t = useTranslations('Investments.AddModal');
-  const router = useRouter();
   const investmentSchema = useMemo(() => createInvestmentSchema(t), [t]);
   const isEditMode = Boolean(editId);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const [isLoadingRow, setIsLoadingRow] = useState(false);
-  const [loadRetryToken, setLoadRetryToken] = useState(0);
-  const [resetValues, setResetValues] = useState<InvestmentFormData | undefined>(undefined);
 
   const createDefaults: InvestmentFormData = useMemo(
     () => ({
@@ -71,76 +69,69 @@ export default function AddInvestmentModal({
     []
   );
 
-  useEffect(() => {
-    if (!isOpen) return;
+  const handleLoadError = useCallback(() => {
+    toast({
+      title: t('toast.errorTitle'),
+      description: t('toast.loadError'),
+      variant: 'destructive',
+    });
+  }, [t]);
 
-    let cancelled = false;
-
-    const run = async () => {
-      setLoadError(null);
-
-      if (!editId) {
-        setIsLoadingRow(false);
-        setResetValues(createDefaults);
-        return;
+  const loadEditValues = useCallback(
+    async (id: string, signal: AbortSignal) => {
+      const res = await getInvestmentByIdAction(id);
+      if (signal.aborted) return null;
+      if (res.error || !res.data) {
+        const msg =
+          res.error === 'NOT_FOUND'
+            ? t('toast.notFound')
+            : res.error === 'UNAUTHENTICATED'
+              ? t('toast.errorTitle')
+              : (res.error ?? t('toast.loadError'));
+        toast({ title: t('toast.errorTitle'), description: msg, variant: 'destructive' });
+        return null;
       }
+      return mapInvestmentToFormData(res.data);
+    },
+    [t]
+  );
 
-      setIsLoadingRow(true);
+  const { resetValues, isReady, isLoading, loadFailed, retryLoad } = useEntityFormRowReset({
+    editId,
+    createValues: createDefaults,
+    loadEditValues,
+    onLoadError: handleLoadError,
+  });
 
-      try {
-        const res = await getInvestmentByIdAction(editId);
-        if (cancelled) return;
-        setIsLoadingRow(false);
+  const buildPayload = useCallback((data: InvestmentFormData) => buildInvestmentPayload(data), []);
 
-        if (res.error || !res.data) {
-          const msg =
-            res.error === 'NOT_FOUND'
-              ? t('toast.notFound')
-              : res.error === 'UNAUTHENTICATED'
-                ? t('toast.errorTitle')
-                : (res.error ?? t('toast.loadError'));
-          setLoadError(msg);
-          toast({ title: t('toast.errorTitle'), description: msg, variant: 'destructive' });
-          return;
-        }
+  const getSuccessToast = useCallback(
+    (edit: boolean) =>
+      edit
+        ? { title: t('toast.updatedTitle'), description: t('toast.updatedDescription') }
+        : { title: t('toast.createdTitle'), description: t('toast.createdDescription') },
+    [t]
+  );
 
-        const row = res.data;
-        const fallbackDay = new Date().toISOString().slice(0, 10);
-        const dateStr =
-          row.created_at === null
-            ? fallbackDay
-            : (row.created_at.toISOString().split('T')[0] ?? fallbackDay);
-        const currency: 'EUR' | 'USD' = row.currency === 'USD' ? 'USD' : 'EUR';
-
-        setResetValues({
-          name: row.name,
-          symbol: row.symbol,
-          amount: String(row.amount),
-          tax_paid: String(row.tax_paid ?? 0),
-          shares: String(row.shares_acquired),
-          currency,
-          created_at: dateStr,
-        });
-      } catch {
-        if (!cancelled) {
-          setIsLoadingRow(false);
-          setLoadError(t('toast.loadError'));
-        }
-      }
-    };
-
-    run().catch(() => undefined);
-
-    return () => {
-      cancelled = true;
-    };
-  }, [isOpen, editId, t, loadRetryToken, createDefaults]);
+  const handleSubmit = useEntityFormSubmit({
+    isEditMode,
+    editId,
+    onClose,
+    buildPayload,
+    createAction: createInvestmentAction,
+    updateAction: (id, payload) => updateInvestmentAction({ id, ...payload }),
+    getSuccessToast,
+    errorToast: { title: t('toast.errorTitle') },
+    unknownErrorMessage: t('toast.saveError'),
+    closeBeforeSubmit: !isEditMode,
+  });
 
   const title = isEditMode ? t('title.edit') : t('title.create');
   const description = isEditMode ? t('description.edit') : t('description.create');
 
   return (
     <EntityFormModal<InvestmentFormData>
+      key={`${editId ?? 'create'}-${isReady ? 'ready' : 'pending'}`}
       isOpen={isOpen}
       onClose={onClose}
       title={title}
@@ -149,82 +140,9 @@ export default function AddInvestmentModal({
       defaultValues={createDefaults}
       resetValues={resetValues ?? createDefaults}
       repositionInputs={false}
-      isLoading={Boolean(editId) && isLoadingRow}
+      isLoading={Boolean(editId) && (isLoading || !isReady)}
       formClassName={transactionStyles.form.container}
-      onSubmit={async (data, form) => {
-        try {
-          if (isEditMode && editId) {
-            const res = await updateInvestmentAction({
-              id: editId,
-              name: data.name,
-              symbol: data.symbol,
-              amount: Number(data.amount),
-              shares_acquired: Number(data.shares),
-              currency: data.currency,
-              created_at: new Date(data.created_at),
-              tax_paid: Number(data.tax_paid) || 0,
-              currency_rate: 1,
-              net_earn: 0,
-            });
-
-            if (res.error) {
-              toast({
-                title: t('toast.errorTitle'),
-                description: res.error,
-                variant: 'destructive',
-              });
-              return;
-            }
-            toast({
-              title: t('toast.updatedTitle'),
-              description: t('toast.updatedDescription'),
-              variant: 'success',
-            });
-            onClose();
-            router.refresh();
-            return;
-          }
-
-          onClose();
-
-          const payload = {
-            name: data.name,
-            symbol: data.symbol.toUpperCase(),
-            amount: Number(data.amount),
-            shares_acquired: Number(data.shares),
-            currency: data.currency,
-            created_at: new Date(data.created_at),
-            tax_paid: Number(data.tax_paid) || 0,
-            currency_rate: 1,
-            net_earn: 0,
-          };
-
-          try {
-            const res = await createInvestmentAction(payload);
-            if (res.error) {
-              toast({
-                title: t('toast.errorTitle'),
-                description: res.error,
-                variant: 'destructive',
-              });
-              return;
-            }
-            toast({
-              title: t('toast.createdTitle'),
-              description: t('toast.createdDescription'),
-              variant: 'success',
-            });
-            router.refresh();
-          } catch (createErr) {
-            const message = createErr instanceof Error ? createErr.message : t('toast.saveError');
-            toast({ title: t('toast.errorTitle'), description: message, variant: 'destructive' });
-          }
-        } catch (error) {
-          const message = error instanceof Error ? error.message : t('toast.saveError');
-          form.setError('root', { message });
-          toast({ title: t('toast.errorTitle'), description: message, variant: 'destructive' });
-        }
-      }}
+      onSubmit={handleSubmit}
       footer={(_, isSubmitting) => (
         <ModalFooterActions
           variant="dual"
@@ -233,18 +151,15 @@ export default function AddInvestmentModal({
           onCancel={onClose}
           submitType="submit"
           isSubmitting={isSubmitting}
-          disabled={Boolean(loadError) || (Boolean(editId) && isLoadingRow)}
+          disabled={loadFailed || (Boolean(editId) && (isLoading || !isReady))}
         />
       )}
     >
       {(form) => (
         <InvestmentFormFields
           form={form}
-          loadError={loadError}
-          onRetryLoad={() => {
-            setLoadError(null);
-            setLoadRetryToken((n) => n + 1);
-          }}
+          loadError={loadFailed ? t('toast.loadError') : null}
+          onRetryLoad={retryLoad}
         />
       )}
     </EntityFormModal>

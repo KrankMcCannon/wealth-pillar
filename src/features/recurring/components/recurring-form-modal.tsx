@@ -25,6 +25,7 @@ import { todayDateString } from '@/lib/utils/date-utils';
 import { useAccounts, useCategories } from '@/stores/reference-data-store';
 import { useRouter } from '@/i18n/routing';
 import { toast } from '@/hooks/use-toast';
+import { useRecurringEditStore } from '../stores/recurring-edit-store';
 
 import { RecurrencePicker } from './recurrence-picker';
 import { calculateDefaultAccountId, formatDateForInput } from './recurring-form-helpers';
@@ -166,9 +167,21 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
   const { currentUser, groupUsers, groupId, selectedUserId } = useEntityFormPermissions();
   const categories = useCategories();
   const router = useRouter();
-  const [seriesIsActive, setSeriesIsActive] = useState<boolean | undefined>(undefined);
+  const seedSeries = useRecurringEditStore((state) => state.seed);
+  const clearSeed = useRecurringEditStore((state) => state.clearSeed);
+  const [activeByEditId, setActiveByEditId] = useState<Record<string, boolean>>({});
+
+  const handleClose = useCallback(() => {
+    clearSeed();
+    onClose();
+  }, [clearSeed, onClose]);
+
+  useEffect(() => () => clearSeed(), [clearSeed]);
 
   const isEditMode = Boolean(editId);
+  const seriesIsActive = !editId
+    ? undefined
+    : (activeByEditId[editId] ?? (seedSeries?.id === editId ? seedSeries.is_active : undefined));
   const title = isEditMode ? t('title.edit') : t('title.create');
   const recurringSchema = useMemo(() => createRecurringSchema(t), [t]);
   const today = todayDateString();
@@ -193,17 +206,27 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
     const result = await getRecurringSeriesByIdAction(id);
     if (signal.aborted) return null;
     if (!result.data) {
-      setSeriesIsActive(undefined);
       return null;
     }
-    setSeriesIsActive(result.data.is_active);
+    setActiveByEditId((prev) => ({ ...prev, [id]: result.data!.is_active }));
     return mapSeriesToFormData(result.data);
   }, []);
+
+  const getOptimisticEditValues = useCallback(
+    (id: string) => {
+      if (seedSeries?.id === id) {
+        return mapSeriesToFormData(seedSeries);
+      }
+      return undefined;
+    },
+    [seedSeries]
+  );
 
   const { resetValues, isReady, isLoading } = useEntityFormRowReset({
     editId,
     createValues: createDefaults,
     loadEditValues,
+    getOptimisticEditValues,
   });
 
   const buildPayload = useCallback(
@@ -226,7 +249,7 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
   >({
     isEditMode,
     editId,
-    onClose,
+    onClose: handleClose,
     buildPayload,
     createAction: (payload) => createRecurringSeriesAction(payload),
     updateAction: (id, payload) => updateRecurringSeriesAction({ id, ...payload }),
@@ -244,7 +267,7 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
       toast({ title: t('toast.errorTitle'), description: result.error, variant: 'destructive' });
       return;
     }
-    setSeriesIsActive(nextActive);
+    setActiveByEditId((prev) => ({ ...prev, [editId]: nextActive }));
     toast({
       title: nextActive ? tSeriesCard('actions.resume') : tSeriesCard('actions.pause'),
       description: t('toast.updatedDescription'),
@@ -277,7 +300,7 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
   return (
     <EntityFormModal<RecurringFormData>
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={handleClose}
       title={title}
       schema={recurringSchema}
       defaultValues={createDefaults}

@@ -32,7 +32,6 @@ export * from './sonner';
 export * from './skeleton';
 export * from './empty';
 export * from './field';
-export * from './sheet';
 export * from './avatar';
 export * from './scroll-area';
 export * from './spinner';

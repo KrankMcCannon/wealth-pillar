@@ -4,10 +4,16 @@ import { stitchSurface } from '@/styles/home-design-foundation';
  * Shared form-modal layout tokens.
  */
 export const formModalStyles = {
-  shell: {
+  drawerShell: {
     content:
-      'max-h-[85vh] gap-0 rounded-t-3xl border-t border-border/22 bg-card px-0 pb-0 shadow-xl',
-    handle: 'mx-auto mt-3 mb-2 h-1.5 w-12 shrink-0 rounded-full bg-modal-handle/40',
+      'fixed bottom-0 left-0 right-0 z-150 flex max-h-[96dvh] flex-col gap-0 overflow-hidden rounded-t-3xl border-t border-border/22 bg-card pb-[env(safe-area-inset-bottom)] shadow-xl',
+    header: 'flex flex-col gap-2 border-b border-border/22 px-4 py-3 text-left',
+    footer: 'mt-auto flex flex-col gap-3 p-4 pb-[max(env(safe-area-inset-bottom),0.75rem)]',
+  },
+  shell: {
+    content: 'gap-0 px-0 pb-0',
+    handle:
+      'mx-auto mt-3 mb-2 h-1.5 w-12 shrink-0 rounded-full border-0 bg-modal-handle/40 opacity-100',
     header: 'flex flex-col gap-2 border-b border-border/22 px-4 py-3 text-left',
     title: 'min-w-0 flex-1 text-left text-lg font-semibold leading-snug text-modal-fg',
     description: 'text-left text-sm leading-relaxed text-modal-fg-muted',
@@ -39,7 +45,7 @@ export const formModalStyles = {
     'min-w-0 flex-1 text-left text-xl font-semibold leading-snug tracking-tight text-modal-fg',
   formColumn: 'flex min-h-0 flex-1 flex-col',
   scrollBody:
-    'min-h-0 flex-1 space-y-6 overflow-y-auto px-1 pb-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
+    'flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-1 pb-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
   amountSection: 'flex flex-col items-center py-1',
   amountEyebrow: 'mb-2 text-[11px] font-semibold uppercase tracking-wider text-modal-fg-muted',
   amountRow: 'group/amount flex w-full max-w-[220px] items-center justify-center',
@@ -50,7 +56,7 @@ export const formModalStyles = {
   amountTrack: 'mt-3 h-0.5 w-32 overflow-hidden rounded-full bg-modal-border/35',
   amountTrackFill:
     'h-full w-0 rounded-full bg-modal-ring transition-all duration-300 ease-out group-focus-within/amount:w-full',
-  fieldStack: 'space-y-3',
+  fieldStack: 'flex flex-col gap-3',
   selectorTrigger:
     'flex min-h-[72px] w-full items-center justify-between gap-3 rounded-xl border border-transparent bg-modal-elevated/90 px-4 py-3 text-left shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)] transition-colors hover:bg-modal-elevated-hover focus:outline-none focus-visible:border-modal-ring/55 focus-visible:ring-2 focus-visible:ring-modal-ring/25 data-[state=open]:border-modal-ring/45',
   selectorIconWrap:

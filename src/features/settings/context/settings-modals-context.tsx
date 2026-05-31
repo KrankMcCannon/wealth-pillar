@@ -11,6 +11,7 @@ export interface SettingsModalsContextValue {
     key: K,
     value: UserPreferencesUpdate[K]
   ) => void;
+  onProfileUpdate: (updates: Partial<Pick<User, 'name' | 'email'>>) => void;
 }
 
 const SettingsModalsContext = createContext<SettingsModalsContextValue | null>(null);

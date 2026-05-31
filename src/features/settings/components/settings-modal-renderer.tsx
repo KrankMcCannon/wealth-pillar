@@ -1,47 +1,65 @@
 'use client';
 
+import { lazy, Suspense } from 'react';
 import { useSettingsModalsContextOptional } from '@/features/settings/context/settings-modals-context';
-import { useModalState } from '@/lib/navigation/url-state';
-import { EditProfileModal } from './edit-profile-modal';
-import { InviteMemberModal } from './invite-member-modal';
-import {
-  CurrencyPreferenceModal,
-  LanguagePreferenceModal,
-  TimezonePreferenceModal,
-} from './settings-preference-modals';
+import { useModalState, type SettingsModalKind } from '@/lib/navigation/url-state';
+
+const EditProfileModal = lazy(() =>
+  import('./edit-profile-modal').then((m) => ({ default: m.EditProfileModal }))
+);
+const InviteMemberModal = lazy(() =>
+  import('./invite-member-modal').then((m) => ({ default: m.InviteMemberModal }))
+);
+const CurrencyPreferenceModal = lazy(() =>
+  import('./settings-preference-modals').then((m) => ({ default: m.CurrencyPreferenceModal }))
+);
+const LanguagePreferenceModal = lazy(() =>
+  import('./settings-preference-modals').then((m) => ({ default: m.LanguagePreferenceModal }))
+);
+const TimezonePreferenceModal = lazy(() =>
+  import('./settings-preference-modals').then((m) => ({ default: m.TimezonePreferenceModal }))
+);
+
+function parseSettingsModalKind(modal: string | null): SettingsModalKind | null {
+  if (!modal?.startsWith('settings:')) return null;
+  return modal.replace('settings:', '') as SettingsModalKind;
+}
 
 export default function SettingsModalRenderer() {
   const { modal, closeModal } = useModalState();
   const ctx = useSettingsModalsContextOptional();
+  const activeKind = parseSettingsModalKind(modal);
 
-  if (!ctx || !modal?.startsWith('settings:')) {
+  if (!ctx || !activeKind) {
     return null;
   }
 
   const { currentUser, isAdmin } = ctx;
 
   return (
-    <>
-      <EditProfileModal
-        isOpen={modal === 'settings:profile'}
-        onClose={closeModal}
-        userId={currentUser.id}
-        currentName={currentUser.name ?? ''}
-        currentEmail={currentUser.email ?? ''}
-      />
+    <Suspense fallback={null}>
+      {activeKind === 'profile' ? (
+        <EditProfileModal
+          isOpen
+          onClose={closeModal}
+          userId={currentUser.id}
+          currentName={currentUser.name ?? ''}
+          currentEmail={currentUser.email ?? ''}
+        />
+      ) : null}
 
-      <CurrencyPreferenceModal />
-      <LanguagePreferenceModal />
-      <TimezonePreferenceModal />
+      {activeKind === 'currency' ? <CurrencyPreferenceModal /> : null}
+      {activeKind === 'language' ? <LanguagePreferenceModal /> : null}
+      {activeKind === 'timezone' ? <TimezonePreferenceModal /> : null}
 
-      {isAdmin ? (
+      {activeKind === 'invite' && isAdmin ? (
         <InviteMemberModal
-          isOpen={modal === 'settings:invite'}
+          isOpen
           onClose={closeModal}
           groupId={currentUser.group_id || ''}
           currentUserId={currentUser.id}
         />
       ) : null}
-    </>
+    </Suspense>
   );
 }

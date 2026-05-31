@@ -5,7 +5,6 @@ import { useTranslations } from 'next-intl';
 import { Users } from 'lucide-react';
 import { useUserFilter } from '@/hooks';
 import { User } from '@/lib/types';
-import { UserSelectorSkeleton } from '@/components/ui/primitives/skeletons/dashboard-skeletons';
 import type { CSSProperties } from 'react';
 
 const userSelectorStyles = {
@@ -16,11 +15,11 @@ const userSelectorStyles = {
     scrollbarWidth: 'thin',
   } satisfies CSSProperties,
   item: {
-    base: 'group flex min-h-11 min-w-[44px] shrink-0 items-center gap-2.5 rounded-full border px-3 py-2 text-left text-[12px] font-medium tracking-wide outline-none transition-[background-color,border-color,box-shadow] duration-200 focus-visible:ring-2 focus-visible:ring-ring/35 focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none sm:min-h-[48px] sm:px-3.5',
+    base: 'group flex min-h-11 min-w-[44px] shrink-0 items-center gap-2.5 rounded-full border px-3 py-2 text-left text-[12px] font-medium tracking-wide outline-none transition-[background-color,border-color,box-shadow] duration-200 focus-visible:ring-2 focus-visible:ring-ring/35 focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none',
     active:
       'border-transparent bg-accent text-foreground shadow-[inset_0_0_0_1px_rgba(143,176,255,0.28)]',
     inactive:
-      'border-border/35 bg-muted/80 text-muted-foreground hover:bg-accent hover:text-foreground',
+      'border-border/35 bg-muted/80 text-muted-foreground active:bg-accent active:text-foreground',
   },
   avatar: {
     base: 'flex size-8 shrink-0 items-center justify-center rounded-full border text-[11px] font-bold tabular-nums transition-colors duration-200',
@@ -29,7 +28,7 @@ const userSelectorStyles = {
     allIcon: 'size-4 text-primary',
   },
   initials: 'leading-none',
-  label: 'max-w-[6.5rem] truncate text-foreground sm:max-w-[7.5rem]',
+  label: 'max-w-[7.5rem] truncate text-foreground',
   dots: {
     container: 'mt-2 flex max-w-full justify-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-hide',
     base: 'h-1 rounded-full transition-all duration-300',
@@ -56,7 +55,6 @@ function getInitials(name: string): string {
 
 interface UserSelectorProps {
   className?: string;
-  isLoading?: boolean;
   currentUser: User;
   users: User[];
   /** Optional: Controlled value (if provided, useUserFilter is ignored) */
@@ -73,7 +71,6 @@ interface UserSelectorProps {
 const UserSelector = memo(
   ({
     className = '',
-    isLoading = false,
     currentUser,
     users,
     value,
@@ -136,15 +133,6 @@ const UserSelector = memo(
       return null;
     }
 
-    // Loading state
-    if (isLoading) {
-      return (
-        <section className={className} aria-label={t('contextLabel')} aria-busy="true">
-          <UserSelectorSkeleton />
-        </section>
-      );
-    }
-
     return (
       <section
         className={`${userSelectorStyles.container} ${className}`}
@@ -169,7 +157,6 @@ const UserSelector = memo(
                 className={`${userSelectorStyles.item.base} ${
                   isSelected ? userSelectorStyles.item.active : userSelectorStyles.item.inactive
                 }`}
-                disabled={isLoading}
                 aria-pressed={isSelected}
                 aria-label={t('selectUserAria', { name: member.name })}
               >

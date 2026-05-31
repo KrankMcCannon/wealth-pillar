@@ -8,7 +8,7 @@ import { ModalTextField } from '@/components/form/modal-fields';
 import { ModalFooterActions } from '@/components/ui/modal-footer-actions';
 import { toast } from '@/hooks/use-toast';
 import { updateUserProfileAction } from '@/features/settings';
-import { useRouter } from '@/i18n/routing';
+import { useSettingsModalsContextOptional } from '@/features/settings/context/settings-modals-context';
 
 const createEditProfileSchema = (t: ReturnType<typeof useTranslations>) =>
   z.object({
@@ -39,7 +39,7 @@ export function EditProfileModal({
 }: Readonly<EditProfileModalProps>) {
   const t = useTranslations('SettingsModals.EditProfile');
   const editProfileSchema = useMemo(() => createEditProfileSchema(t), [t]);
-  const router = useRouter();
+  const settingsContext = useSettingsModalsContextOptional();
 
   const defaultValues = useMemo(
     (): EditProfileFormData => ({
@@ -99,7 +99,10 @@ export function EditProfileModal({
           throw new Error('update failed');
         }
 
-        router.refresh();
+        settingsContext?.onProfileUpdate({
+          name: updatedUser.name,
+          email: updatedUser.email,
+        });
         toast({
           title: t('toast.updatedTitle'),
           description: t('toast.updatedDescription'),

@@ -5,13 +5,14 @@ import { cn } from '@/lib/utils';
 import { stitchSurface } from '@/styles/home-design-foundation';
 import * as React from 'react';
 import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from './sheet';
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHandle,
+  DrawerHeader,
+  DrawerTitle,
+} from './drawer';
 import { Spinner } from './spinner';
 import { X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -46,7 +47,7 @@ export function ModalWrapper({
   showCloseButton = true,
   isLoading = false,
   disableOutsideClose = false,
-  repositionInputs: _repositionInputs = false,
+  repositionInputs = false,
   handleClassName,
   drawerHeaderClassName,
   drawerCloseClassName,
@@ -64,37 +65,33 @@ export function ModalWrapper({
   );
 
   return (
-    <Sheet open={isOpen} onOpenChange={handleOpenChange}>
-      <SheetContent
-        side="bottom"
-        showCloseButton={false}
-        className={cn(modalS.shell.content, className)}
-        {...(disableOutsideClose
-          ? {
-              onInteractOutside: (event) => event.preventDefault(),
-              onEscapeKeyDown: (event) => event.preventDefault(),
-            }
-          : {})}
-      >
-        <div className={cn(modalS.shell.handle, handleClassName)} aria-hidden />
-        <SheetHeader className={cn(modalS.shell.header, drawerHeaderClassName)}>
+    <Drawer
+      open={isOpen}
+      onOpenChange={handleOpenChange}
+      dismissible={!disableOutsideClose}
+      repositionInputs={repositionInputs}
+      shouldScaleBackground={false}
+    >
+      <DrawerContent className={cn(modalS.shell.content, className)}>
+        <DrawerHandle className={cn(modalS.shell.handle, handleClassName)} aria-hidden />
+        <DrawerHeader className={cn(modalS.shell.header, drawerHeaderClassName)}>
           <div className="flex w-full min-w-0 items-center justify-between gap-3">
-            <SheetTitle className={cn(modalS.shell.title, titleClassName)}>{title}</SheetTitle>
+            <DrawerTitle className={cn(modalS.shell.title, titleClassName)}>{title}</DrawerTitle>
             {showCloseButton ? (
-              <SheetClose className={cn(modalS.shell.closeButton, drawerCloseClassName)}>
+              <DrawerClose className={cn(modalS.shell.closeButton, drawerCloseClassName)}>
                 <X aria-hidden />
                 <span className="sr-only">{tCommon('closeDialog')}</span>
-              </SheetClose>
+              </DrawerClose>
             ) : null}
           </div>
           {description ? (
-            <SheetDescription className={cn(modalS.shell.description, descriptionClassName)}>
+            <DrawerDescription className={cn(modalS.shell.description, descriptionClassName)}>
               {description}
-            </SheetDescription>
+            </DrawerDescription>
           ) : (
-            <SheetDescription className="sr-only">{title}</SheetDescription>
+            <DrawerDescription className="sr-only">{title}</DrawerDescription>
           )}
-        </SheetHeader>
+        </DrawerHeader>
 
         {isLoading ? (
           <div className={modalS.shell.loadingWrap}>
@@ -103,8 +100,8 @@ export function ModalWrapper({
         ) : (
           <div className={modalS.shell.body}>{children}</div>
         )}
-      </SheetContent>
-    </Sheet>
+      </DrawerContent>
+    </Drawer>
   );
 }
 

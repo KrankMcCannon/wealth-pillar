@@ -59,14 +59,8 @@ describe('useEntityFormRowReset', () => {
     expect(loadEditValues).not.toHaveBeenCalled();
   });
 
-  it('applies optimistic edit values before fetch completes', async () => {
-    let resolveLoad: (value: { name: string } | null) => void = () => {};
-    const loadEditValues = vi.fn(
-      () =>
-        new Promise<{ name: string } | null>((resolve) => {
-          resolveLoad = resolve;
-        })
-    );
+  it('skips async load when optimistic edit values are available', async () => {
+    const loadEditValues = vi.fn(async () => ({ name: 'loaded' }));
 
     const { result } = renderHook(() =>
       useEntityFormRowReset({
@@ -79,11 +73,7 @@ describe('useEntityFormRowReset', () => {
 
     expect(result.current.resetValues).toEqual({ name: 'seed' });
     expect(result.current.isReady).toBe(true);
-
-    resolveLoad({ name: 'loaded' });
-
-    await waitFor(() => {
-      expect(result.current.resetValues).toEqual({ name: 'loaded' });
-    });
+    expect(result.current.isLoading).toBe(false);
+    expect(loadEditValues).not.toHaveBeenCalled();
   });
 });

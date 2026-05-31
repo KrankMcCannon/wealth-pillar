@@ -12,6 +12,14 @@ export function useSettings(currentUser: User, initialPreferences: UserPreferenc
   const { signOut } = useClerk();
   const { openModal } = useModalState();
 
+  const [displayUser, setOptimisticUser] = useOptimistic(
+    currentUser,
+    (state: User, updates: Partial<Pick<User, 'name' | 'email'>>) => ({
+      ...state,
+      ...updates,
+    })
+  );
+
   const [preferences, setOptimisticPreferences] = useOptimistic(
     initialPreferences,
     (state: UserPreferences, newPreferences: Partial<UserPreferences>) => ({
@@ -22,15 +30,15 @@ export function useSettings(currentUser: User, initialPreferences: UserPreferenc
 
   const [isSigningOut, setIsSigningOut] = useState(false);
 
-  const userInitials = currentUser?.name
-    ? currentUser.name
+  const userInitials = displayUser?.name
+    ? displayUser.name
         .split(' ')
         .map((n: string) => n[0])
         .join('')
         .toUpperCase()
     : clerkUser?.firstName?.charAt(0) || 'U';
 
-  const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'superadmin';
+  const isAdmin = displayUser?.role === 'admin' || displayUser?.role === 'superadmin';
 
   const openSettingsModal = useCallback(
     (kind: SettingsModalKind) => {
@@ -61,7 +69,17 @@ export function useSettings(currentUser: User, initialPreferences: UserPreferenc
     });
   };
 
+  const handleProfileUpdate = useCallback(
+    (updates: Partial<Pick<User, 'name' | 'email'>>) => {
+      startTransition(() => {
+        setOptimisticUser(updates);
+      });
+    },
+    [setOptimisticUser]
+  );
+
   return {
+    displayUser,
     isAdmin,
     preferences,
     isSigningOut,
@@ -69,5 +87,6 @@ export function useSettings(currentUser: User, initialPreferences: UserPreferenc
     openSettingsModal,
     handleSignOut,
     handlePreferenceUpdate,
+    handleProfileUpdate,
   };
 }

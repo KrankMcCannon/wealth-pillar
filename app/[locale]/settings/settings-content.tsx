@@ -1,6 +1,5 @@
 'use client';
 
-import { use } from 'react';
 import { useTranslations } from 'next-intl';
 import { AppPage, toAppPageHeaderUser } from '@/components/layout';
 import { useRouter } from '@/i18n/routing';
@@ -18,14 +17,14 @@ import type { User, UserPreferences } from '@/lib/types';
 
 interface SettingsContentProps {
   currentUser: User;
-  preferencesPromise: Promise<UserPreferences>;
+  initialPreferences: UserPreferences;
 }
 
-export default function SettingsContent({ currentUser, preferencesPromise }: SettingsContentProps) {
-  const initialPreferences = use(preferencesPromise);
+export default function SettingsContent({ currentUser, initialPreferences }: SettingsContentProps) {
   const t = useTranslations('SettingsContent');
 
   const {
+    displayUser,
     preferences,
     isAdmin,
     userInitials,
@@ -33,31 +32,33 @@ export default function SettingsContent({ currentUser, preferencesPromise }: Set
     openSettingsModal,
     handleSignOut,
     handlePreferenceUpdate,
+    handleProfileUpdate,
   } = useSettings(currentUser, initialPreferences);
 
   const router = useRouter();
 
-  if (!currentUser) return null;
+  if (!displayUser) return null;
 
   const settingsHeaderUser = {
-    ...toAppPageHeaderUser(currentUser),
+    ...toAppPageHeaderUser(displayUser),
     role:
-      currentUser.role === 'superadmin' || currentUser.role === 'admin'
+      displayUser.role === 'superadmin' || displayUser.role === 'admin'
         ? 'admin'
-        : ((currentUser.role || 'member') as 'admin' | 'member'),
+        : ((displayUser.role || 'member') as 'admin' | 'member'),
   };
 
   return (
     <SettingsModalsProvider
       value={{
-        currentUser,
+        currentUser: displayUser,
         preferences: preferences ?? null,
         isAdmin,
         onPreferenceUpdate: handlePreferenceUpdate,
+        onProfileUpdate: handleProfileUpdate,
       }}
     >
       <AppPage
-        currentUser={currentUser}
+        currentUser={displayUser}
         headerUser={settingsHeaderUser}
         title={t('headerTitle')}
         showBack
@@ -65,7 +66,7 @@ export default function SettingsContent({ currentUser, preferencesPromise }: Set
       >
         <main className={stitchSettings.pageMain}>
           <ProfileSection
-            currentUser={currentUser}
+            currentUser={displayUser}
             userInitials={userInitials}
             onEditProfile={() => openSettingsModal('profile')}
           />

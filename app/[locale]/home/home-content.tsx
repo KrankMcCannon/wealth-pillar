@@ -116,12 +116,7 @@ export default function HomeContent({
                   {t('userPickerDescription')}
                 </DrawerDescription>
               </DrawerHeader>
-              <UserSelector
-                currentUser={currentUser}
-                users={groupUsers}
-                hideTitle
-                isLoading={false}
-              />
+              <UserSelector currentUser={currentUser} users={groupUsers} hideTitle />
             </DrawerContent>
           </Drawer>
         ) : undefined
