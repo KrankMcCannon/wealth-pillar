@@ -1,39 +1,30 @@
-import { useState, useMemo, useCallback, useTransition, useRef } from 'react';
+import { useState, useMemo, useCallback, useTransition, useEffect, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useIdNameMap } from '@/hooks';
+import { useDebouncedValue } from '@/hooks/use-debounced-value';
 import { defaultFiltersState } from '../components/transaction-filters';
 import type { TransactionFiltersState } from '@/server/use-cases/transactions/transaction.logic';
 import type { Transaction, Budget, Account } from '@/lib/types';
 import { useModalState, useTabState, type ModalType } from '@/lib/navigation/url-state';
 import { useRouter } from '@/i18n/routing';
 import { useTransactionEditStore } from '../stores/transaction-edit-store';
+import {
+  optimisticTransactionBus,
+  type OptimisticTransactionAction,
+} from '../stores/optimistic-transactions';
+import { loadMoreTransactionsAction } from '../actions/transaction-actions';
+import type { AppliedTransactionsQuery } from '@/server/use-cases/pages/transactions-page.use-case';
+import { appliedQueryToListQuery, buildTransactionsQueryString } from '../utils/transactions-query';
 
-export type PageSizeOption = 10 | 20 | 30 | 50 | 100;
-
-export const PAGE_SIZE_OPTIONS: PageSizeOption[] = [10, 20, 30, 50, 100];
+export { appliedQueryToListQuery } from '../utils/transactions-query';
 
 export interface UseTransactionsContentProps {
   transactions: Transaction[];
-  totalTransactions?: number;
+  hasMore: boolean;
+  nextCursor?: string;
   budgets: Budget[];
   accounts: Account[];
-  currentPage: number;
-  totalPages: number;
-  pageSize: number;
-  /** Server-provided keyset token for the next page (sequential forward navigation). */
-  nextCursor?: string;
-  appliedQuery: {
-    user?: string;
-    q?: string;
-    type: 'all' | 'income' | 'expense' | 'transfer';
-    dateRange: 'all' | 'today' | 'week' | 'month' | 'year' | 'custom';
-    startDate?: string;
-    endDate?: string;
-    account?: string;
-    category?: string;
-    /** Chiavi categoria separate da virgola (stesso formato query server). */
-    categories?: string;
-  };
+  appliedQuery: AppliedTransactionsQuery;
 }
 
 export interface UseTransactionsContentReturn {
@@ -46,26 +37,17 @@ export interface UseTransactionsContentReturn {
   setFilters: React.Dispatch<React.SetStateAction<TransactionFiltersState>>;
   selectedBudget: Budget | null;
   handleClearBudgetFilter: () => void;
-  currentPage: number;
-  totalPages: number;
-  pageSize: number;
-  setPageSize: (size: PageSizeOption) => void;
-  isChangingPage: boolean;
-  pageError: string | null;
-  goToPage: (page: number) => Promise<void>;
-  nextPage: () => Promise<void>;
-  prevPage: () => Promise<void>;
-  currentPageItems: Transaction[];
-  filteredCount: number;
-  storeTransactions: Transaction[];
+  hasMore: boolean;
+  isLoadingMore: boolean;
+  loadMore: () => Promise<void>;
+  listItems: Transaction[];
   accountNames: Record<string, string>;
   handleEditTransaction: (transaction: Transaction) => void;
   openModal: (type: ModalType, id?: string) => void;
+  isNavigatingFilters: boolean;
 }
 
-function toFiltersFromQuery(
-  props: UseTransactionsContentProps['appliedQuery']
-): TransactionFiltersState {
+function toFiltersFromQuery(props: AppliedTransactionsQuery): TransactionFiltersState {
   const resolvedType = props.type === 'transfer' ? 'all' : props.type;
   const keysFromCsv = props.categories
     ? props.categories
@@ -87,76 +69,72 @@ function toFiltersFromQuery(
   };
 }
 
-function buildQueryString(
-  filters: TransactionFiltersState,
-  page: number,
-  pageSize: number,
-  userId?: string,
-  cursor?: string
-) {
-  const params = new URLSearchParams();
-  if (userId) params.set('user', userId);
-  if (filters.searchQuery.trim()) params.set('q', filters.searchQuery.trim());
-  if (filters.type !== 'all') params.set('type', filters.type);
-  if (filters.dateRange !== 'all') params.set('dateRange', filters.dateRange);
-  if (filters.startDate) params.set('startDate', filters.startDate);
-  if (filters.endDate) params.set('endDate', filters.endDate);
-  if (filters.accountId && filters.accountId !== 'all') params.set('account', filters.accountId);
-  if (filters.categoryKeys && filters.categoryKeys.length > 0) {
-    params.set('categories', filters.categoryKeys.join(','));
-  } else if (filters.categoryKey && filters.categoryKey !== 'all') {
-    params.set('category', filters.categoryKey);
+function applyOptimisticAction(
+  state: Transaction[],
+  transaction: Transaction,
+  action: OptimisticTransactionAction,
+  tempId?: string
+): Transaction[] {
+  switch (action) {
+    case 'add':
+      return [transaction, ...state];
+    case 'replace':
+      return state.map((item) => (item.id === tempId ? transaction : item));
+    case 'remove':
+      return state.filter((item) => item.id !== tempId);
+    default:
+      return state;
   }
-  params.set('page', String(page));
-  params.set('pageSize', String(pageSize));
-  if (page > 1 && cursor) params.set('cursor', cursor);
-  return params.toString();
-}
-
-function filtersMatch(a: TransactionFiltersState, b: TransactionFiltersState): boolean {
-  return (
-    a.searchQuery === b.searchQuery &&
-    a.type === b.type &&
-    a.dateRange === b.dateRange &&
-    a.categoryKey === b.categoryKey &&
-    a.accountId === b.accountId &&
-    (a.startDate ?? null) === (b.startDate ?? null) &&
-    (a.endDate ?? null) === (b.endDate ?? null) &&
-    (a.budgetId ?? null) === (b.budgetId ?? null) &&
-    JSON.stringify(a.categoryKeys ?? []) === JSON.stringify(b.categoryKeys ?? [])
-  );
 }
 
 export function useTransactionsContent({
-  transactions,
-  totalTransactions = 0,
+  transactions: serverTransactions,
+  hasMore: initialHasMore,
+  nextCursor: initialNextCursor,
   budgets,
   accounts,
-  currentPage,
-  totalPages,
-  pageSize,
-  nextCursor,
   appliedQuery,
 }: UseTransactionsContentProps): UseTransactionsContentReturn {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isNavigating, startNavigation] = useTransition();
-  const [pageError, setPageError] = useState<string | null>(null);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [listItems, setListItems] = useState(serverTransactions);
+  const [hasMore, setHasMore] = useState(initialHasMore);
+  const [nextCursor, setNextCursor] = useState<string | undefined>(initialNextCursor);
+  const loadMoreLock = useRef(false);
 
   const { openModal } = useModalState();
   const { activeTab, setActiveTab } = useTabState('Transactions');
 
   const urlFilters = useMemo(() => toFiltersFromQuery(appliedQuery), [appliedQuery]);
-  const [pendingFilters, setPendingFilters] = useState<TransactionFiltersState | null>(null);
-  const lastPushedFilterQueryRef = useRef<string | null>(null);
+  const [searchDraft, setSearchDraft] = useState(urlFilters.searchQuery);
 
-  const filters = useMemo(() => {
-    if (pendingFilters === null) return urlFilters;
-    if (filtersMatch(pendingFilters, urlFilters)) return urlFilters;
-    return pendingFilters;
-  }, [pendingFilters, urlFilters]);
+  useEffect(() => {
+    setSearchDraft(urlFilters.searchQuery);
+  }, [urlFilters.searchQuery]);
+
+  useEffect(() => {
+    setListItems(serverTransactions);
+    setHasMore(initialHasMore);
+    setNextCursor(initialNextCursor);
+  }, [serverTransactions, initialHasMore, initialNextCursor]);
+
+  useEffect(() => {
+    return optimisticTransactionBus.subscribe((transaction, action, tempId) => {
+      setListItems((prev) => applyOptimisticAction(prev, transaction, action, tempId));
+    });
+  }, []);
+
+  const filters = useMemo(
+    () => ({ ...urlFilters, searchQuery: searchDraft }),
+    [urlFilters, searchDraft]
+  );
+
+  const debouncedSearch = useDebouncedValue(searchDraft, 300);
 
   const selectedUserId = appliedQuery.user;
+
   const selectedBudget = useMemo(() => {
     const budgetId = searchParams.get('budget');
     if (!budgetId) return null;
@@ -164,89 +142,90 @@ export function useTransactionsContent({
   }, [searchParams, budgets]);
 
   const pushQuery = useCallback(
-    (
-      nextFilters: TransactionFiltersState,
-      nextPage: number,
-      nextPageSize: number,
-      userId?: string,
-      cursor?: string
-    ) => {
-      setPageError(null);
-      const query = buildQueryString(nextFilters, nextPage, nextPageSize, userId, cursor);
+    (nextFilters: TransactionFiltersState, userId?: string) => {
+      const query = buildTransactionsQueryString(nextFilters, userId);
+      const budget = searchParams.get('budget');
+      const tab = searchParams.get('tab');
+      const parts = [query];
+      if (budget) parts.push(`budget=${encodeURIComponent(budget)}`);
+      if (tab && tab !== 'Transactions') parts.push(`tab=${encodeURIComponent(tab)}`);
+      const qs = parts.filter(Boolean).join('&');
       startNavigation(() => {
-        router.push(`/transactions?${query}`);
+        router.push(`/transactions?${qs}`);
       });
     },
-    [router]
+    [router, searchParams, startNavigation]
   );
 
-  const navigateFiltersToUrl = useCallback(
-    (next: TransactionFiltersState) => {
-      const query = buildQueryString(next, 1, pageSize, selectedUserId);
-      if (lastPushedFilterQueryRef.current === query) return;
-
-      lastPushedFilterQueryRef.current = query;
-      setPageError(null);
-      startNavigation(() => {
-        router.push(`/transactions?${query}`);
-      });
-    },
-    [pageSize, router, selectedUserId, startNavigation]
-  );
+  useEffect(() => {
+    const trimmed = debouncedSearch.trim();
+    const urlQ = (appliedQuery.q ?? '').trim();
+    if (trimmed === urlQ) return;
+    pushQuery({ ...urlFilters, searchQuery: debouncedSearch }, selectedUserId);
+  }, [debouncedSearch, appliedQuery.q, urlFilters, pushQuery, selectedUserId]);
 
   const setFilters: React.Dispatch<React.SetStateAction<TransactionFiltersState>> = useCallback(
     (updater) => {
-      const base =
-        pendingFilters !== null && !filtersMatch(pendingFilters, urlFilters)
-          ? pendingFilters
-          : urlFilters;
+      const base = { ...urlFilters, searchQuery: searchDraft };
       const next = typeof updater === 'function' ? updater(base) : updater;
 
-      setPendingFilters(next);
+      if (next.searchQuery !== searchDraft) {
+        setSearchDraft(next.searchQuery);
+      }
 
-      queueMicrotask(() => {
-        if (filtersMatch(next, urlFilters)) {
-          lastPushedFilterQueryRef.current = null;
-          return;
-        }
-        navigateFiltersToUrl(next);
+      const nonSearchChanged =
+        next.type !== urlFilters.type ||
+        next.dateRange !== urlFilters.dateRange ||
+        next.categoryKey !== urlFilters.categoryKey ||
+        next.accountId !== urlFilters.accountId ||
+        (next.startDate ?? null) !== (urlFilters.startDate ?? null) ||
+        (next.endDate ?? null) !== (urlFilters.endDate ?? null) ||
+        JSON.stringify(next.categoryKeys ?? []) !== JSON.stringify(urlFilters.categoryKeys ?? []);
+
+      if (nonSearchChanged) {
+        pushQuery(next, selectedUserId);
+      }
+    },
+    [urlFilters, searchDraft, pushQuery, selectedUserId]
+  );
+
+  const loadMore = useCallback(async () => {
+    if (!hasMore || !nextCursor || isLoadingMore || loadMoreLock.current) return;
+    loadMoreLock.current = true;
+    setIsLoadingMore(true);
+    try {
+      const listQuery = appliedQueryToListQuery(appliedQuery, searchDraft);
+      const result = await loadMoreTransactionsAction({
+        query: listQuery,
+        cursor: nextCursor,
       });
-    },
-    [navigateFiltersToUrl, pendingFilters, urlFilters]
-  );
-
-  const goToPage = useCallback(
-    async (page: number) => {
-      const nextPage = Math.max(1, Math.min(page, totalPages));
-      const forwardOne = nextPage === currentPage + 1;
-      const cursorForUrl = forwardOne && nextCursor ? nextCursor : undefined;
-      pushQuery(filters, nextPage, pageSize, selectedUserId, cursorForUrl);
-    },
-    [currentPage, filters, nextCursor, pageSize, pushQuery, selectedUserId, totalPages]
-  );
-
-  const nextPage = useCallback(async () => goToPage(currentPage + 1), [goToPage, currentPage]);
-  const prevPage = useCallback(async () => goToPage(currentPage - 1), [goToPage, currentPage]);
-
-  const setPageSize = useCallback(
-    (size: PageSizeOption) => {
-      pushQuery(filters, 1, size, selectedUserId);
-    },
-    [filters, pushQuery, selectedUserId]
-  );
+      if (result.error || !result.data) return;
+      setListItems((prev) => [...prev, ...result.data!.transactions]);
+      setHasMore(result.data.hasMore);
+      setNextCursor(result.data.nextCursor);
+    } finally {
+      setIsLoadingMore(false);
+      loadMoreLock.current = false;
+    }
+  }, [hasMore, nextCursor, isLoadingMore, appliedQuery, searchDraft]);
 
   const handleUserFilterChange = useCallback(
     (userId: string) => {
-      pushQuery(filters, 1, pageSize, userId === 'all' ? undefined : userId);
+      pushQuery(filters, userId === 'all' ? undefined : userId);
     },
-    [filters, pageSize, pushQuery]
+    [filters, pushQuery]
   );
 
   const handleClearBudgetFilter = useCallback(() => {
     const nextFilters = { ...defaultFiltersState };
-    setPendingFilters(nextFilters);
-    pushQuery(nextFilters, 1, pageSize, selectedUserId);
-  }, [pageSize, pushQuery, selectedUserId]);
+    setSearchDraft('');
+    const tab = searchParams.get('tab');
+    const query = buildTransactionsQueryString(nextFilters, selectedUserId);
+    const qs = tab && tab !== 'Transactions' ? `${query}&tab=${encodeURIComponent(tab)}` : query;
+    startNavigation(() => {
+      router.push(`/transactions?${qs}`);
+    });
+  }, [router, searchParams, selectedUserId, startNavigation]);
 
   const accountNames = useIdNameMap(accounts);
   const setTransactionEditSeed = useTransactionEditStore((state) => state.setSeed);
@@ -269,20 +248,13 @@ export function useTransactionsContent({
     setFilters,
     selectedBudget,
     handleClearBudgetFilter,
-    currentPage,
-    totalPages,
-    pageSize,
-    setPageSize,
-    isChangingPage: isNavigating,
-    pageError,
-    goToPage,
-    nextPage,
-    prevPage,
-    currentPageItems: transactions,
-    filteredCount: totalTransactions,
-    storeTransactions: transactions,
+    hasMore,
+    isLoadingMore,
+    loadMore,
+    listItems,
     accountNames,
     handleEditTransaction,
     openModal,
+    isNavigatingFilters: isNavigating,
   };
 }

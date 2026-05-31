@@ -521,8 +521,7 @@ export const transactionStyles = {
     cellRight: 'text-right',
     cellCenter: 'text-center',
     cellNarrow: 'px-2 py-3 align-middle',
-    descriptionText:
-      'text-sm font-medium text-primary/90 truncate max-w-[140px] sm:max-w-[200px] md:max-w-[260px]',
+    descriptionText: 'text-sm font-medium text-primary/90 truncate max-w-[min(100%,18rem)]',
     accountText: 'text-[11px] text-primary/45 font-medium truncate max-w-[80px]',
     amount: 'text-sm font-bold tabular-nums tracking-tight',
     amountIncome: 'text-success',

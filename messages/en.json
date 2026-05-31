@@ -603,6 +603,7 @@
       "noTransactionsYet": "There are no transactions yet. Start by adding one.",
       "noFilterResults": "No transactions match your current filters."
     },
+    "recurrentLoadError": "Could not load recurring transactions.",
     "paginationError": "Could not load the page.",
     "paginationRetry": "Retry",
     "allLoaded": "All transactions loaded ({count})",
@@ -741,6 +742,11 @@
     },
     "Row": {
       "delete": "Delete"
+    },
+    "LoadMore": {
+      "cta": "Load more",
+      "loading": "Loading…",
+      "end": "End of list"
     },
     "Table": {
       "columns": {

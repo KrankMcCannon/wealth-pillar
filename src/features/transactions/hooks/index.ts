@@ -6,6 +6,5 @@ export {
   useTransactionsContent,
   type UseTransactionsContentProps,
   type UseTransactionsContentReturn,
-  type PageSizeOption,
-  PAGE_SIZE_OPTIONS,
 } from './use-transactions-content';
+export { appliedQueryToListQuery } from '../utils/transactions-query';

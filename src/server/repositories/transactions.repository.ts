@@ -22,6 +22,8 @@ export interface TransactionFilterOptions {
   offset?: number;
   /** When set, fetches rows strictly after this cursor; do not pass offset together with this. */
   cursorAfter?: TransactionCursorAfter;
+  /** When false, skips COUNT(*) and uses limit+1 overflow for hasMore (keyset / infinite scroll). Default true. */
+  countTotal?: boolean;
 }
 
 export type InsertTransaction = typeof transactions.$inferInsert;
@@ -81,12 +83,20 @@ export class TransactionsRepository {
 
     const listWhere = and(...dataConditions);
 
-    // Count for full filter set (not narrowed by cursor)
-    const countResult = await db
-      .select({ total: count() })
-      .from(transactions)
-      .where(and(...filterConditions));
-    const total = countResult[0]?.total ?? 0;
+    const countTotal = options?.countTotal !== false;
+    const pageLimit = options?.limit ?? 0;
+
+    let total = 0;
+    if (countTotal) {
+      const countResult = await db
+        .select({ total: count() })
+        .from(transactions)
+        .where(and(...filterConditions));
+      total = countResult[0]?.total ?? 0;
+    }
+
+    const fetchLimit =
+      pageLimit > 0 && !countTotal ? pageLimit + 1 : pageLimit > 0 ? pageLimit : undefined;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let query: any = db
@@ -95,17 +105,27 @@ export class TransactionsRepository {
       .where(listWhere)
       .orderBy(desc(transactions.date), desc(transactions.created_at), desc(transactions.id));
 
-    if (options?.limit) {
-      query = query.limit(options.limit);
-      if (options.offset && !options.cursorAfter) {
+    if (fetchLimit) {
+      query = query.limit(fetchLimit);
+      if (countTotal && options?.offset && !options.cursorAfter) {
         query = query.offset(options.offset);
       }
     }
 
-    const data = await query;
+    const rawData = await query;
 
-    const offset = options?.offset ?? 0;
-    const hasMore = options?.limit ? offset + data.length < total : false;
+    let data = rawData;
+    let hasMore = false;
+
+    if (!countTotal && pageLimit > 0) {
+      hasMore = rawData.length > pageLimit;
+      if (hasMore) {
+        data = rawData.slice(0, pageLimit);
+      }
+    } else if (countTotal && pageLimit > 0) {
+      const offset = options?.offset ?? 0;
+      hasMore = offset + data.length < total;
+    }
 
     return {
       data,

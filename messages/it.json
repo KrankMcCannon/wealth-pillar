@@ -603,6 +603,7 @@
       "noTransactionsYet": "Non ci sono ancora transazioni. Inizia aggiungendone una.",
       "noFilterResults": "Nessun risultato con i filtri applicati."
     },
+    "recurrentLoadError": "Impossibile caricare le transazioni ricorrenti.",
     "paginationError": "Impossibile caricare la pagina.",
     "paginationRetry": "Riprova",
     "allLoaded": "Tutte le transazioni caricate ({count})",
@@ -741,6 +742,11 @@
     },
     "Row": {
       "delete": "Elimina"
+    },
+    "LoadMore": {
+      "cta": "Carica altre",
+      "loading": "Caricamento…",
+      "end": "Fine elenco"
     },
     "Table": {
       "columns": {

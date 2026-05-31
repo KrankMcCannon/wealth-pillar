@@ -29,8 +29,6 @@
 
 'use client';
 
-import { useRef } from 'react';
-import { useVirtualizer } from '@/lib/react-virtual';
 import { SectionHeader } from '@/components/layout';
 import { EmptyState } from '@/components/shared';
 import { Transaction, Category } from '@/lib';
@@ -42,24 +40,6 @@ import { TransactionDayGroupSkeleton } from '@/components/ui/primitives/skeleton
 import { formatCurrency, cn } from '@/lib/utils';
 import { FileText, type LucideIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-
-/**
- * Minimum number of day groups before switching to the virtualised list.
- * Raised to 30 so the non-virtualised path covers the typical first-page
- * load (~50 transactions spread over a few weeks).  When the user scrolls
- * past this threshold the virtualiser takes over without a visible jump
- * because parentRef is always attached to the scroll container.
- */
-const VIRTUALIZE_THRESHOLD = 30;
-
-/** Approximate height (px): day header + card + transaction rows */
-function estimateGroupHeight(group: GroupedTransaction): number {
-  const header = 52;
-  const cardPadding = 16;
-  const rowHeight = 64;
-  const count = group.transactions?.length ?? 0;
-  return header + cardPadding + count * rowHeight;
-}
 
 /**
  * Grouped transaction structure
@@ -152,24 +132,12 @@ export function TransactionDayList({
   onEditTransaction,
 }: Readonly<TransactionDayListProps>) {
   const t = useTranslations('Transactions.DayList');
-  // parentRef is always attached so it is ready when useVirtual flips to true
-  const parentRef = useRef<HTMLDivElement>(null);
   const hasTransactions = groupedTransactions.length > 0;
-  const useVirtual = hasTransactions && groupedTransactions.length > VIRTUALIZE_THRESHOLD;
   const resolvedEmptyTitle = emptyTitle ?? t('empty.title');
   const resolvedEmptyDescription = emptyDescription ?? t('empty.description');
   const resolvedViewAllLabel = viewAllLabel ?? t('viewAll');
 
   const DayHeadingTag = sectionTitle ? 'h4' : 'h3';
-
-  const rowVirtualizer = useVirtualizer({
-    count: useVirtual ? groupedTransactions.length : 0,
-    getScrollElement: () => parentRef.current,
-    estimateSize: (index) => estimateGroupHeight(groupedTransactions[index]!),
-    overscan: 3,
-    // Dynamic measurement corrects imprecise estimates after items mount
-    measureElement: (el) => el?.getBoundingClientRect().height ?? 0,
-  });
 
   const headerClassName = cn(transactionStyles.dayList.sectionHeader, sectionHeaderClassName);
 
@@ -221,48 +189,9 @@ export function TransactionDayList({
         />
       )}
 
-      {/* Transactions List — parentRef is always set so the virtualiser has
-          correct dimensions the moment useVirtual becomes true. */}
-      <div
-        ref={parentRef}
-        className={cn(
-          transactionStyles.dayList.container,
-          useVirtual && 'overflow-auto max-h-[65vh] min-h-[320px]'
-        )}
-      >
+      <div className={transactionStyles.dayList.container}>
         {hasTransactions ? (
-          useVirtual ? (
-            <div
-              style={{
-                height: `${rowVirtualizer.getTotalSize()}px`,
-                width: '100%',
-                position: 'relative',
-              }}
-            >
-              {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-                const group = groupedTransactions[virtualRow.index];
-                if (!group) return null;
-                return (
-                  <div
-                    key={group.date}
-                    ref={rowVirtualizer.measureElement}
-                    data-index={virtualRow.index}
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: '100%',
-                      transform: `translateY(${virtualRow.start}px)`,
-                    }}
-                  >
-                    {renderGroup(group)}
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            groupedTransactions.map((group) => renderGroup(group))
-          )
+          groupedTransactions.map((group) => renderGroup(group))
         ) : (
           <EmptyState
             icon={emptyIcon}

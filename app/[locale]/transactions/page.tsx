@@ -1,13 +1,13 @@
 /**
  * Transactions Page - Server Component
  *
- * Uses paginated data fetching (50 transactions per load)
+ * Keyset list window (30 rows); load-more via server action.
  */
 
 import { Suspense } from 'react';
 import { requireGroupId, requirePageAuth } from '@/lib/auth/page-auth';
-import { getTransactionsPageData } from '@/server/use-cases';
-import type { TransactionsPageQuery } from '@/server/use-cases/pages/transactions-page.use-case';
+import { getTransactionsListData } from '@/server/use-cases';
+import type { TransactionsListQuery } from '@/server/use-cases/pages/transactions-page.use-case';
 import TransactionsContent from './transactions-content';
 import TransactionPageLoading from './loading';
 
@@ -23,23 +23,24 @@ export default async function TransactionsPage({
   const resolvedSearchParams = await searchParams;
   const typeRaw =
     typeof resolvedSearchParams.type === 'string' ? resolvedSearchParams.type : undefined;
-  const typeParam: TransactionsPageQuery['type'] =
+  const typeParam: TransactionsListQuery['type'] =
     typeRaw === 'all' || typeRaw === 'income' || typeRaw === 'expense' || typeRaw === 'transfer'
       ? typeRaw
       : undefined;
   const dateRangeRaw =
     typeof resolvedSearchParams.dateRange === 'string' ? resolvedSearchParams.dateRange : undefined;
-  const dateRangeParam: TransactionsPageQuery['dateRange'] =
+  const dateRangeParam: TransactionsListQuery['dateRange'] =
     dateRangeRaw === 'all' ||
     dateRangeRaw === 'today' ||
     dateRangeRaw === 'week' ||
     dateRangeRaw === 'month' ||
     dateRangeRaw === 'year' ||
-    dateRangeRaw === 'custom'
+    dateRangeRaw === 'custom' ||
+    dateRangeRaw === 'today'
       ? dateRangeRaw
       : undefined;
 
-  const query: TransactionsPageQuery = {
+  const query: TransactionsListQuery = {
     ...(typeof resolvedSearchParams.user === 'string' ? { user: resolvedSearchParams.user } : {}),
     ...(typeof resolvedSearchParams.q === 'string' ? { q: resolvedSearchParams.q } : {}),
     ...(typeParam ? { type: typeParam } : {}),
@@ -59,16 +60,12 @@ export default async function TransactionsPage({
     ...(typeof resolvedSearchParams.categories === 'string'
       ? { categories: resolvedSearchParams.categories }
       : {}),
-    ...(typeof resolvedSearchParams.page === 'string' ? { page: resolvedSearchParams.page } : {}),
-    ...(typeof resolvedSearchParams.pageSize === 'string'
-      ? { pageSize: resolvedSearchParams.pageSize }
-      : {}),
-    ...(typeof resolvedSearchParams.cursor === 'string'
-      ? { cursor: resolvedSearchParams.cursor }
+    ...(typeof resolvedSearchParams.budget === 'string'
+      ? { budget: resolvedSearchParams.budget }
       : {}),
   };
 
-  const pageDataPromise = getTransactionsPageData(groupId, query, currentUser).catch((err) => {
+  const pageDataPromise = getTransactionsListData(groupId, query, currentUser).catch((err) => {
     const message = err instanceof Error ? err.message : 'Errore nel caricamento delle transazioni';
     throw new Error(message, { cause: err });
   });

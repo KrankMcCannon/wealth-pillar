@@ -4,19 +4,16 @@ import {
   getAccountsByGroupDeduped,
   getAllCategoriesDeduped,
 } from '@/server/request-cache/services';
-import { getSeriesByGroupUseCase } from '../recurring/recurring.use-cases';
 import { getBudgetsByGroupUseCase } from '../budgets/get-budgets.use-case';
-import type {
-  Transaction,
-  Category,
-  Account,
-  RecurringTransactionSeries,
-  Budget,
-} from '@/lib/types';
+import type { Transaction, Category, Account, Budget } from '@/lib/types';
 import type { User } from '@/lib/types';
+import type { TransactionFilterOptions } from '@/server/repositories/transactions.repository';
 import { decodeTransactionCursor, encodeTransactionCursor } from '@/lib/utils/transaction-cursor';
 
-export interface TransactionsPageQuery {
+/** Fixed window size for transactions list (keyset infinite scroll). */
+export const TRANSACTIONS_LIST_PAGE_SIZE = 30;
+
+export interface TransactionsListQuery {
   user?: string;
   q?: string;
   type?: 'all' | 'income' | 'expense' | 'transfer';
@@ -27,13 +24,16 @@ export interface TransactionsPageQuery {
   category?: string;
   /** Chiavi categoria separate da virgola (es. unione categorie di più budget). */
   categories?: string;
-  page?: string;
-  pageSize?: string;
-  /** Opaque keyset cursor (exclusive) for sequential forward pagination */
+  /** Budget filter mode: load budgets metadata for banner. */
+  budget?: string;
+  /** Opaque keyset cursor for load-more (server actions / internal). */
   cursor?: string;
 }
 
-interface ResolvedTransactionsQuery {
+/** @deprecated Use TransactionsListQuery — kept for transitional imports. */
+export type TransactionsPageQuery = TransactionsListQuery;
+
+export interface ResolvedTransactionFilters {
   userId?: string;
   searchQuery?: string;
   type?: 'income' | 'expense' | 'transfer';
@@ -42,35 +42,39 @@ interface ResolvedTransactionsQuery {
   accountId?: string;
   category?: string;
   categoryKeys?: string[];
-  page: number;
-  pageSize: number;
 }
 
-export interface TransactionsPageData {
+export interface TransactionsListData {
   transactions: Transaction[];
-  total: number;
   hasMore: boolean;
+  nextCursor?: string;
+  appliedQuery: AppliedTransactionsQuery;
+  categories: Category[];
+  accounts: Account[];
+  /** Present only when `?budget=` is in the URL (budget-filter banner). */
+  budgets: Budget[];
+}
+
+export type AppliedTransactionsQuery = {
+  user?: string;
+  q?: string;
+  type: 'all' | 'income' | 'expense' | 'transfer';
+  dateRange: 'all' | 'today' | 'week' | 'month' | 'year' | 'custom';
+  startDate?: string;
+  endDate?: string;
+  account?: string;
+  category?: string;
+  categories?: string;
+};
+
+/** @deprecated Use TransactionsListData */
+export type TransactionsPageData = TransactionsListData & {
+  total: number;
   currentPage: number;
   totalPages: number;
   pageSize: number;
-  /** Present when another page exists after the current window (keyset or offset). */
-  nextCursor?: string;
-  appliedQuery: {
-    user?: string;
-    q?: string;
-    type: 'all' | 'income' | 'expense' | 'transfer';
-    dateRange: 'all' | 'today' | 'week' | 'month' | 'year' | 'custom';
-    startDate?: string;
-    endDate?: string;
-    account?: string;
-    category?: string;
-    categories?: string;
-  };
-  categories: Category[];
-  accounts: Account[];
-  recurringSeries: RecurringTransactionSeries[];
-  budgets: Budget[];
-}
+  recurringSeries: never[];
+};
 
 async function safeFetch<T>(promise: Promise<T>, fallback: T): Promise<T> {
   try {
@@ -99,7 +103,10 @@ function endOfDay(date: Date): Date {
   return next;
 }
 
-function resolveDateRange(query: TransactionsPageQuery): { startDate?: Date; endDate?: Date } {
+export function resolveDateRange(query: TransactionsListQuery): {
+  startDate?: Date;
+  endDate?: Date;
+} {
   const now = new Date();
   switch (query.dateRange) {
     case 'today':
@@ -132,16 +139,10 @@ function resolveDateRange(query: TransactionsPageQuery): { startDate?: Date; end
   }
 }
 
-function resolveTransactionsQuery(
-  query: TransactionsPageQuery,
+export function resolveTransactionsFilters(
+  query: TransactionsListQuery,
   currentUser: User
-): ResolvedTransactionsQuery {
-  const parsedPage = Number.parseInt(query.page ?? '1', 10);
-  const page = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
-
-  const parsedPageSize = Number.parseInt(query.pageSize ?? '30', 10);
-  const pageSize = [10, 20, 30, 50, 100].includes(parsedPageSize) ? parsedPageSize : 30;
-
+): ResolvedTransactionFilters {
   const resolvedDate = resolveDateRange(query);
   const isMember = currentUser.role === 'member';
   const userId = isMember ? currentUser.id : query.user;
@@ -165,15 +166,13 @@ function resolveTransactionsQuery(
       : query.category
         ? { category: query.category }
         : {}),
-    page,
-    pageSize,
   };
 }
 
-function buildAppliedQuery(
-  query: TransactionsPageQuery,
+export function buildAppliedQuery(
+  query: TransactionsListQuery,
   currentUser: User
-): TransactionsPageData['appliedQuery'] {
+): AppliedTransactionsQuery {
   const isMember = currentUser.role === 'member';
   return {
     ...(isMember ? { user: currentUser.id } : query.user ? { user: query.user } : {}),
@@ -188,105 +187,131 @@ function buildAppliedQuery(
   };
 }
 
-export async function getTransactionsPageData(
-  groupId: string,
-  query: TransactionsPageQuery,
-  currentUser: User
-): Promise<TransactionsPageData> {
-  return getCachedTransactionsPageData(groupId, query, currentUser.id, currentUser.role);
+export function buildTransactionRepositoryOptions(
+  filters: ResolvedTransactionFilters,
+  options?: { cursor?: string; limit?: number }
+): TransactionFilterOptions {
+  const decodedCursor = options?.cursor?.trim()
+    ? decodeTransactionCursor(options.cursor.trim())
+    : undefined;
+
+  return {
+    limit: options?.limit ?? TRANSACTIONS_LIST_PAGE_SIZE,
+    countTotal: false,
+    ...(decodedCursor
+      ? {
+          cursorAfter: {
+            date: decodedCursor.date,
+            createdAt: decodedCursor.createdAt,
+            id: decodedCursor.id,
+          },
+        }
+      : {}),
+    ...(filters.userId ? { userId: filters.userId } : {}),
+    ...(filters.searchQuery ? { searchQuery: filters.searchQuery } : {}),
+    ...(filters.type ? { type: filters.type } : {}),
+    ...(filters.startDate ? { startDate: filters.startDate } : {}),
+    ...(filters.endDate ? { endDate: filters.endDate } : {}),
+    ...(filters.accountId ? { accountId: filters.accountId } : {}),
+    ...(filters.categoryKeys?.length ? { categoryKeys: filters.categoryKeys } : {}),
+    ...(filters.category ? { category: filters.category } : {}),
+  };
 }
 
-async function getCachedTransactionsPageData(
+function encodeNextCursor(rows: Transaction[]): string | undefined {
+  const last = rows[rows.length - 1];
+  if (!last) return undefined;
+  return encodeTransactionCursor({
+    date: last.date,
+    created_at: last.created_at,
+    id: last.id,
+  });
+}
+
+export async function getTransactionsListData(
   groupId: string,
-  query: TransactionsPageQuery,
+  query: TransactionsListQuery,
+  currentUser: User
+): Promise<TransactionsListData> {
+  return getCachedTransactionsListData(groupId, query, currentUser.id, currentUser.role);
+}
+
+async function getCachedTransactionsListData(
+  groupId: string,
+  query: TransactionsListQuery,
   userId: string,
   userRole: User['role']
-): Promise<TransactionsPageData> {
+): Promise<TransactionsListData> {
   'use cache';
   cacheLife('minutes');
   cacheTag(`group:${groupId}:transactions`);
-  cacheTag(`group:${groupId}:budgets`);
   cacheTag(`group:${groupId}:accounts`);
   cacheTag('categories');
-
-  const currentUser = { id: userId, role: userRole } as User;
-
-  const resolvedQuery = resolveTransactionsQuery(query, currentUser);
-  const pageSize = resolvedQuery.pageSize;
-  const page = resolvedQuery.page;
-  const offset = (page - 1) * pageSize;
-
-  const cursorToken = query.cursor?.trim();
-  const decodedCursor = page > 1 && cursorToken ? decodeTransactionCursor(cursorToken) : undefined;
-  const useKeyset = Boolean(page > 1 && decodedCursor);
-
-  const fetchLimit = useKeyset ? pageSize + 1 : pageSize;
-  const fetchOffset = useKeyset ? undefined : page === 1 ? 0 : offset;
-
-  const [transactionResult, categories, accounts, recurringSeries, budgets] = await Promise.all([
-    safeFetch(
-      getTransactionsByGroupUseCase(groupId, {
-        limit: fetchLimit,
-        ...(fetchOffset !== undefined ? { offset: fetchOffset } : {}),
-        ...(useKeyset && decodedCursor
-          ? {
-              cursorAfter: {
-                date: decodedCursor.date,
-                createdAt: decodedCursor.createdAt,
-                id: decodedCursor.id,
-              },
-            }
-          : {}),
-        ...(resolvedQuery.userId ? { userId: resolvedQuery.userId } : {}),
-        ...(resolvedQuery.searchQuery ? { searchQuery: resolvedQuery.searchQuery } : {}),
-        ...(resolvedQuery.type ? { type: resolvedQuery.type } : {}),
-        ...(resolvedQuery.startDate ? { startDate: resolvedQuery.startDate } : {}),
-        ...(resolvedQuery.endDate ? { endDate: resolvedQuery.endDate } : {}),
-        ...(resolvedQuery.accountId ? { accountId: resolvedQuery.accountId } : {}),
-        ...(resolvedQuery.categoryKeys?.length ? { categoryKeys: resolvedQuery.categoryKeys } : {}),
-        ...(resolvedQuery.category ? { category: resolvedQuery.category } : {}),
-      }),
-      {
-        data: [] as Transaction[],
-        total: 0,
-        hasMore: false,
-      }
-    ),
-    safeFetch(getAllCategoriesDeduped(), [] as Category[]),
-    safeFetch(getAccountsByGroupDeduped(groupId), [] as Account[]),
-    safeFetch(getSeriesByGroupUseCase(groupId), [] as RecurringTransactionSeries[]),
-    safeFetch(getBudgetsByGroupUseCase(groupId), [] as Budget[]),
-  ]);
-
-  let rows = transactionResult.data;
-  if (useKeyset && rows.length > pageSize) {
-    rows = rows.slice(0, pageSize);
+  if (query.budget?.trim()) {
+    cacheTag(`group:${groupId}:budgets`);
   }
 
-  const totalPages = Math.max(1, Math.ceil(transactionResult.total / pageSize));
-  const hasNextPage = page < totalPages && rows.length > 0;
-  const last = rows[rows.length - 1];
-  const nextCursor =
-    hasNextPage && last
-      ? encodeTransactionCursor({
-          date: last.date,
-          created_at: last.created_at,
-          id: last.id,
-        })
-      : undefined;
+  const currentUser = { id: userId, role: userRole } as User;
+  const filters = resolveTransactionsFilters(query, currentUser);
+  const repoOptions = buildTransactionRepositoryOptions(filters);
+
+  const fetchBudgets = Boolean(query.budget?.trim());
+
+  const [transactionResult, categories, accounts, budgets] = await Promise.all([
+    safeFetch(getTransactionsByGroupUseCase(groupId, repoOptions), {
+      data: [] as Transaction[],
+      total: 0,
+      hasMore: false,
+    }),
+    safeFetch(getAllCategoriesDeduped(), [] as Category[]),
+    safeFetch(getAccountsByGroupDeduped(groupId), [] as Account[]),
+    fetchBudgets
+      ? safeFetch(getBudgetsByGroupUseCase(groupId), [] as Budget[])
+      : Promise.resolve([] as Budget[]),
+  ]);
+
+  const rows = transactionResult.data;
+  const nextCursor = transactionResult.hasMore ? encodeNextCursor(rows) : undefined;
 
   return {
     transactions: rows,
-    total: transactionResult.total,
-    hasMore: page < totalPages,
-    currentPage: page,
-    totalPages,
-    pageSize,
+    hasMore: transactionResult.hasMore,
     ...(nextCursor ? { nextCursor } : {}),
     appliedQuery: buildAppliedQuery(query, currentUser),
     categories,
     accounts,
-    recurringSeries,
     budgets,
   };
+}
+
+/** Uncached fetch for load-more server actions (no COUNT, keyset only). */
+export async function fetchTransactionsWindow(
+  groupId: string,
+  query: TransactionsListQuery,
+  currentUser: User
+): Promise<{
+  transactions: Transaction[];
+  hasMore: boolean;
+  nextCursor?: string;
+}> {
+  const filters = resolveTransactionsFilters(query, currentUser);
+  const repoOptions = buildTransactionRepositoryOptions(filters, {
+    ...(query.cursor ? { cursor: query.cursor } : {}),
+  });
+  const result = await getTransactionsByGroupUseCase(groupId, repoOptions);
+  const nextCursor = result.hasMore ? encodeNextCursor(result.data) : undefined;
+  return {
+    transactions: result.data,
+    hasMore: result.hasMore,
+    ...(nextCursor ? { nextCursor } : {}),
+  };
+}
+
+/** @deprecated Use getTransactionsListData */
+export async function getTransactionsPageData(
+  groupId: string,
+  query: TransactionsListQuery,
+  currentUser: User
+): Promise<TransactionsListData> {
+  return getTransactionsListData(groupId, query, currentUser);
 }

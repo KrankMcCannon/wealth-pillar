@@ -1,22 +1,23 @@
 'use client';
 
-import { Suspense, use, useCallback, useMemo } from 'react';
+import { use, useCallback, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { useTransactionsContent, type UseTransactionsContentProps } from '@/features/transactions';
 import type { User } from '@/lib/types';
-import type { TransactionsPageData } from '@/server/use-cases/pages/transactions-page.use-case';
+import type { TransactionsListData } from '@/server/use-cases/pages/transactions-page.use-case';
 import { AppPage, HomeDashboardMain, PageFab } from '@/components/layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui';
-import { RecurringSeriesSection } from '@/features/recurring';
-import { TransactionFilterChips, TransactionsScreenList } from '@/features/transactions';
-import { UserFilterChipRow } from '@/features/transactions/components/user-filter-chip-row';
-import { RecurringSeriesSkeleton } from '@/features/transactions/components/transaction-skeletons';
-import { useOptimisticTransactions } from '@/features/transactions/hooks/use-optimistic-transactions';
+import {
+  TransactionFilterChips,
+  TransactionsScreenList,
+  RecurrentTabPanel,
+} from '@/features/transactions';
 import { stitchTransactions } from '@/styles/home-design-foundation';
+
 interface TransactionsContentProps {
   currentUser: User;
   groupUsers: User[];
-  pageDataPromise: Promise<TransactionsPageData>;
+  pageDataPromise: Promise<TransactionsListData>;
 }
 
 export default function TransactionsContent({
@@ -27,30 +28,21 @@ export default function TransactionsContent({
   const pageData = use(pageDataPromise);
   const {
     transactions = [],
-    total = 0,
-    currentPage: initialCurrentPage = 1,
-    totalPages: initialTotalPages = 1,
-    pageSize: initialPageSize = 30,
+    hasMore: initialHasMore = false,
     nextCursor: initialNextCursor,
     appliedQuery,
-    recurringSeries = [],
     budgets = [],
     accounts = [],
     categories = [],
   } = pageData;
 
-  const optimisticTransactions = useOptimisticTransactions(transactions);
-
   const props: UseTransactionsContentProps = {
-    transactions: optimisticTransactions,
-    totalTransactions: total,
+    transactions,
+    hasMore: initialHasMore,
     budgets,
     accounts,
-    currentPage: initialCurrentPage,
-    totalPages: initialTotalPages,
-    pageSize: initialPageSize,
-    ...(initialNextCursor ? { nextCursor: initialNextCursor } : {}),
     appliedQuery,
+    ...(initialNextCursor ? { nextCursor: initialNextCursor } : {}),
   };
 
   const t = useTranslations('TransactionsContent');
@@ -68,19 +60,15 @@ export default function TransactionsContent({
     setFilters,
     selectedBudget,
     handleClearBudgetFilter,
-    currentPage,
-    totalPages,
-    pageSize,
-    setPageSize,
-    isChangingPage,
-    pageError,
-    goToPage,
-    currentPageItems,
-    filteredCount,
+    hasMore,
+    isLoadingMore,
+    loadMore,
+    listItems,
     accountNames,
     handleEditTransaction,
     openModal,
     router,
+    isNavigatingFilters,
   } = useTransactionsContent(props);
 
   const hasActiveFilters = useMemo(
@@ -157,30 +145,14 @@ export default function TransactionsContent({
                   {...(selectedBudget ? { onClearBudgetFilter: handleClearBudgetFilter } : {})}
                 />
 
-                {pageError && (
-                  <div role="alert" className={stitchTransactions.pageErrorBanner}>
-                    <span>{t('paginationError')}</span>
-                    <button
-                      type="button"
-                      onClick={() => goToPage(currentPage)}
-                      className={stitchTransactions.pageErrorRetry}
-                    >
-                      {t('paginationRetry')}
-                    </button>
-                  </div>
-                )}
-
                 <TransactionsScreenList
-                  transactions={currentPageItems}
-                  totalFilteredCount={filteredCount}
+                  transactions={listItems}
                   accountNames={accountNames}
                   categories={categories}
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  pageSize={pageSize}
-                  isChangingPage={isChangingPage}
-                  onPageChange={goToPage}
-                  onPageSizeChange={setPageSize}
+                  hasMore={hasMore}
+                  isLoadingMore={isLoadingMore}
+                  isNavigatingFilters={isNavigatingFilters}
+                  onLoadMore={loadMore}
                   onEditTransaction={handleEditTransaction}
                   onAddTransaction={() => openModal('transaction')}
                   {...(hasActiveFilters && { onClearFilters: handleClearFilters })}
@@ -197,28 +169,16 @@ export default function TransactionsContent({
             </TabsContent>
 
             <TabsContent value="Recurrent" className="mt-0">
-              <Suspense fallback={<RecurringSeriesSkeleton />}>
-                <div className={stitchTransactions.mainStack}>
-                  {showUserPicker ? (
-                    <UserFilterChipRow
-                      groupUsers={groupUsers}
-                      selectedUserId={selectedUserId}
-                      onUserFilterChange={handleUserFilterChange}
-                    />
-                  ) : null}
-                  <RecurringSeriesSection
-                    series={recurringSeries}
-                    selectedUserId={selectedUserId ?? undefined}
-                    showStats
-                    showActions
-                    showDelete={false}
-                    onCreateRecurringSeries={() => openModal('recurring')}
-                    onEditRecurringSeries={(series) => openModal('recurring', series.id)}
-                    groupUsers={groupUsers}
-                    onSeriesUpdate={() => router.refresh()}
-                  />
-                </div>
-              </Suspense>
+              <RecurrentTabPanel
+                isActive={activeTab === 'Recurrent'}
+                groupUsers={groupUsers}
+                selectedUserId={selectedUserId}
+                onUserFilterChange={handleUserFilterChange}
+                showUserPicker={showUserPicker}
+                onCreateRecurringSeries={() => openModal('recurring')}
+                onEditRecurringSeries={(series) => openModal('recurring', series.id)}
+                onSeriesUpdate={() => router.refresh()}
+              />
             </TabsContent>
           </HomeDashboardMain>
         </Tabs>

@@ -1,27 +1,23 @@
 'use client';
 
-import { memo, useMemo, useEffect, useRef } from 'react';
+import { memo, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { cn } from '@/lib/utils';
 import type { Transaction, Category } from '@/lib/types';
 import { stitchTransactions } from '@/styles/home-design-foundation';
 import { TransactionDayGroupSkeleton } from '@/components/ui/primitives/skeletons';
 import { groupByDay } from '../utils/group-by-day';
-import { TransactionPagination } from './transaction-pagination';
 import { TransactionDayList } from './transaction-day-list';
-import type { PageSizeOption } from '../hooks/use-transactions-content';
+import { Button, Spinner } from '@/components/ui';
 
 export interface TransactionsScreenListProps {
   transactions: Transaction[];
-  totalFilteredCount: number;
   accountNames: Record<string, string>;
   categories: Category[];
-  currentPage: number;
-  totalPages: number;
-  pageSize: number;
-  isChangingPage: boolean;
-  onPageChange: (page: number) => void;
-  onPageSizeChange?: (size: PageSizeOption) => void;
+  hasMore: boolean;
+  isLoadingMore: boolean;
+  isNavigatingFilters?: boolean;
+  onLoadMore: () => void;
   onEditTransaction: (transaction: Transaction) => void;
   onAddTransaction?: () => void;
   onClearFilters?: () => void;
@@ -41,15 +37,12 @@ function ListSkeleton() {
 
 function TransactionsScreenListInner({
   transactions,
-  totalFilteredCount,
-  accountNames: _accountNames,
+  accountNames,
   categories,
-  currentPage,
-  totalPages,
-  pageSize,
-  isChangingPage,
-  onPageChange,
-  onPageSizeChange,
+  hasMore,
+  isLoadingMore,
+  isNavigatingFilters = false,
+  onLoadMore,
   onEditTransaction,
   onAddTransaction,
   onClearFilters,
@@ -58,25 +51,48 @@ function TransactionsScreenListInner({
   className,
 }: TransactionsScreenListProps) {
   const t = useTranslations('Transactions.Table');
+  const tLoadMore = useTranslations('Transactions.LoadMore');
   const locale = useLocale();
 
   const dayGroups = useMemo(() => groupByDay(transactions, locale), [transactions, locale]);
-  const isEmpty = transactions.length === 0 && !isChangingPage;
-  const showPagination = totalPages > 1 || totalFilteredCount > 0;
 
-  const sectionRef = useRef<HTMLDivElement>(null);
-  const prevIsChangingPage = useRef(false);
+  const isEmpty = transactions.length === 0 && !isNavigatingFilters;
+  const showLoadMore = hasMore && transactions.length > 0;
+
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  const handleIntersect = useCallback(
+    (entries: IntersectionObserverEntry[]) => {
+      const entry = entries[0];
+      if (entry?.isIntersecting && hasMore && !isLoadingMore) {
+        onLoadMore();
+      }
+    },
+    [hasMore, isLoadingMore, onLoadMore]
+  );
+
   useEffect(() => {
-    if (prevIsChangingPage.current && !isChangingPage) {
-      sectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-    prevIsChangingPage.current = isChangingPage;
-  }, [isChangingPage]);
+    const node = sentinelRef.current;
+    if (!node || !showLoadMore) return;
+
+    const observer = new IntersectionObserver(handleIntersect, {
+      root: null,
+      rootMargin: '120px',
+      threshold: 0,
+    });
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [handleIntersect, showLoadMore]);
 
   return (
-    <div ref={sectionRef} className={cn('relative', className)}>
-      <div className={cn('transition-opacity duration-200', isChangingPage && 'opacity-50')}>
-        {isChangingPage ? (
+    <div className={cn('relative', className)}>
+      <div
+        className={cn(
+          'flex flex-col gap-4 transition-opacity duration-200',
+          isNavigatingFilters && 'opacity-50'
+        )}
+      >
+        {isNavigatingFilters ? (
           <ListSkeleton />
         ) : isEmpty ? (
           <div className={stitchTransactions.emptyState} role="status" aria-live="polite">
@@ -114,25 +130,40 @@ function TransactionsScreenListInner({
               total: group.net,
               count: group.transactions.length,
             }))}
-            accountNames={_accountNames}
+            accountNames={accountNames}
             categories={categories}
-            className="space-y-5"
+            className="flex flex-col gap-5"
             onEditTransaction={onEditTransaction}
           />
         )}
 
-        {showPagination && (
-          <TransactionPagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            totalItems={totalFilteredCount}
-            pageSize={pageSize}
-            isLoading={isChangingPage}
-            onPageChange={onPageChange}
-            {...(onPageSizeChange !== undefined ? { onPageSizeChange } : {})}
-            className="mt-6 pt-2"
-          />
-        )}
+        {showLoadMore && !isNavigatingFilters ? (
+          <div className="flex flex-col items-center gap-3 pt-2">
+            <div ref={sentinelRef} className="h-px w-full" aria-hidden />
+            <Button
+              type="button"
+              variant="outline"
+              className="min-h-11 w-full max-w-sm"
+              disabled={isLoadingMore}
+              onClick={onLoadMore}
+            >
+              {isLoadingMore ? (
+                <>
+                  <Spinner data-icon="inline-start" />
+                  {tLoadMore('loading')}
+                </>
+              ) : (
+                tLoadMore('cta')
+              )}
+            </Button>
+          </div>
+        ) : null}
+
+        {!hasMore && transactions.length > 0 && !isNavigatingFilters ? (
+          <p className="py-4 text-center text-sm text-muted-foreground" role="status">
+            {tLoadMore('end')}
+          </p>
+        ) : null}
       </div>
     </div>
   );

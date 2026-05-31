@@ -36,6 +36,17 @@ test.describe('Transaction Flows', () => {
       }
     });
 
+    test('should show load more control when list has more pages', async ({ page }) => {
+      await page.goto('/transactions');
+      await page.waitForLoadState('domcontentloaded');
+      await page.waitForTimeout(2000);
+
+      const loadMore = page.getByRole('button', { name: /Carica altre|Load more/i });
+      if (await loadMore.isVisible({ timeout: 3000 })) {
+        await expect(loadMore).toBeEnabled();
+      }
+    });
+
     test('should show recurring FAB and open create modal when series exist', async ({ page }) => {
       await page.goto('/transactions?tab=Recurrent');
       await page.waitForLoadState('domcontentloaded');
