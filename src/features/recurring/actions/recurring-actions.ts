@@ -17,7 +17,6 @@ import {
   updateSeriesUseCase,
 } from '@/server/use-cases/recurring/recurring.use-cases';
 import { serialize } from '@/lib/utils/serializer';
-import { devWarn } from '@/lib/utils/dev-log';
 import type { ServiceResult } from '@/lib/types/service-result';
 
 /**
@@ -353,23 +352,4 @@ export async function toggleRecurringSeriesActiveAction(
   isActive: boolean
 ): Promise<ServiceResult<RecurringTransactionSeries>> {
   return updateRecurringSeriesAction({ id: seriesId, is_active: isActive });
-}
-
-/**
- * Execute a recurring series - create a transaction from it
- * This increments total_executions and updates due_day.
- *
- * @returns The created transaction ID or error
- */
-export async function executeRecurringSeriesAction(
-  seriesId: string
-): Promise<ServiceResult<{ transactionId: string }>> {
-  devWarn('Series execution not implemented yet for series:', seriesId);
-  // const today = new Date();
-  // Per ora ritorniamo un messaggio informativo
-  return {
-    data: null,
-    error:
-      'Funzione temporaneamente disabilitata. La creazione automatica delle transazioni sarà abilitata in seguito.',
-  };
 }

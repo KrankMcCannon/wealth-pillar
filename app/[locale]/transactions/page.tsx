@@ -7,6 +7,7 @@
 import { Suspense } from 'react';
 import { requireGroupId, requirePageAuth } from '@/lib/auth/page-auth';
 import { getTransactionsListData } from '@/server/use-cases';
+import { getSeriesByGroupUseCase } from '@/server/use-cases/recurring/recurring.use-cases';
 import type { TransactionsListQuery } from '@/server/use-cases/pages/transactions-page.use-case';
 import TransactionsContent from './transactions-content';
 import TransactionPageLoading from './loading';
@@ -70,12 +71,19 @@ export default async function TransactionsPage({
     throw new Error(message, { cause: err });
   });
 
+  const recurringSeriesPromise = getSeriesByGroupUseCase(groupId).catch((err) => {
+    const message =
+      err instanceof Error ? err.message : 'Errore nel caricamento delle serie ricorrenti';
+    throw new Error(message, { cause: err });
+  });
+
   return (
     <Suspense fallback={<TransactionPageLoading />}>
       <TransactionsContent
         currentUser={currentUser}
         groupUsers={groupUsers}
         pageDataPromise={pageDataPromise}
+        recurringSeriesPromise={recurringSeriesPromise}
       />
     </Suspense>
   );

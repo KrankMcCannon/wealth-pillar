@@ -683,7 +683,6 @@
       "FilterChips": {
         "toolbarAria": "Filtri transazioni",
         "userToolbarAria": "Filtra per membro del gruppo",
-        "userChipsScrollHint": "Scorri in orizzontale per altri membri",
         "filters": "Filtri",
         "drawerTitle": "Filtri avanzati"
       },

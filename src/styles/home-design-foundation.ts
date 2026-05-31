@@ -208,11 +208,10 @@ export const stitchTransactions = {
   /** Toolbar tipo / filtri: bleed allineato al main dashboard (mx negativo = px-4). */
   chipRow: 'flex gap-2 overflow-x-auto pb-0.5 scrollbar-hide -mx-4 px-4',
   /** Riga membri: scroll orizzontale con snap su mobile; wrap da `sm` per evitare overflow. */
-  chipRowUserWrap: 'min-w-0 space-y-1',
+  chipRowUserWrap: 'min-w-0',
   chipRowUserScroll:
     'flex min-h-[44px] min-w-0 gap-2 overflow-x-auto overscroll-x-contain scroll-smooth pb-1 pt-0.5 [-webkit-overflow-scrolling:touch] scrollbar-hide snap-x snap-mandatory motion-reduce:scroll-auto motion-reduce:snap-none sm:flex-wrap sm:overflow-visible sm:pb-0.5',
   chipSnapItem: 'snap-start shrink-0',
-  chipScrollHint: 'px-1 text-[10px] font-medium leading-tight text-muted-foreground/75 sm:hidden',
   /** Tab Transazioni / Ricorrenti — stessa lingua cromatica di stitchHome.sectionCard. */
   tabsList:
     'grid h-12 w-full grid-cols-2 place-items-center gap-1 rounded-full border border-border/35 bg-card/95 p-1 shadow-[0_14px_30px_rgba(0,7,30,0.3)]',
@@ -230,7 +229,7 @@ export const stitchDashboardGroupedList = stitchTransactions.dayCard;
 export const stitchRecurring = {
   relativeWrap: 'relative flex flex-col gap-4',
   summaryCard:
-    'rounded-2xl border border-border/20 bg-card/90 p-4 shadow-[0_16px_36px_rgba(0,7,30,0.28)] sm:p-5',
+    'rounded-2xl border border-border/20 bg-card/90 p-4 shadow-[0_16px_36px_rgba(0,7,30,0.28)]',
   summaryHeaderRow: 'flex items-center gap-2',
   summaryIconWrap:
     'flex size-10 shrink-0 items-center justify-center rounded-full border border-border/35 bg-muted/85',

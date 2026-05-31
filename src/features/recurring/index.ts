@@ -13,7 +13,6 @@ export {
   deleteRecurringSeriesAction,
   getRecurringSeriesByIdAction,
   toggleRecurringSeriesActiveAction,
-  executeRecurringSeriesAction,
   type CreateRecurringSeriesInput,
   type UpdateRecurringSeriesInput,
 } from './actions/recurring-actions';

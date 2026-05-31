@@ -3,7 +3,7 @@
 import { use, useCallback, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { useTransactionsContent, type UseTransactionsContentProps } from '@/features/transactions';
-import type { User } from '@/lib/types';
+import type { User, RecurringTransactionSeries } from '@/lib/types';
 import type { TransactionsListData } from '@/server/use-cases/pages/transactions-page.use-case';
 import { AppPage, HomeDashboardMain, PageFab } from '@/components/layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui';
@@ -18,12 +18,14 @@ interface TransactionsContentProps {
   currentUser: User;
   groupUsers: User[];
   pageDataPromise: Promise<TransactionsListData>;
+  recurringSeriesPromise: Promise<RecurringTransactionSeries[]>;
 }
 
 export default function TransactionsContent({
   currentUser,
   groupUsers,
   pageDataPromise,
+  recurringSeriesPromise,
 }: TransactionsContentProps) {
   const pageData = use(pageDataPromise);
   const {
@@ -67,7 +69,6 @@ export default function TransactionsContent({
     accountNames,
     handleEditTransaction,
     openModal,
-    router,
     isNavigatingFilters,
   } = useTransactionsContent(props);
 
@@ -171,13 +172,13 @@ export default function TransactionsContent({
             <TabsContent value="Recurrent" className="mt-0">
               <RecurrentTabPanel
                 isActive={activeTab === 'Recurrent'}
+                recurringSeriesPromise={recurringSeriesPromise}
                 groupUsers={groupUsers}
                 selectedUserId={selectedUserId}
                 onUserFilterChange={handleUserFilterChange}
                 showUserPicker={showUserPicker}
                 onCreateRecurringSeries={() => openModal('recurring')}
                 onEditRecurringSeries={(series) => openModal('recurring', series.id)}
-                onSeriesUpdate={() => router.refresh()}
               />
             </TabsContent>
           </HomeDashboardMain>

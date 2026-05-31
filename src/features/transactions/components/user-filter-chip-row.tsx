@@ -45,7 +45,6 @@ export function UserFilterChipRow({
           />
         ))}
       </div>
-      <p className={stitchTransactions.chipScrollHint}>{tChips('userChipsScrollHint')}</p>
     </div>
   );
 }

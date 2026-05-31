@@ -63,5 +63,4 @@ export {
   updateTransactionAction,
   deleteTransactionAction,
   loadMoreTransactionsAction,
-  loadRecurringTabAction,
 } from './actions/transaction-actions';

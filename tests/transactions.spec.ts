@@ -32,8 +32,17 @@ test.describe('Transaction Flows', () => {
       const recurringTab = page.locator('text=Ricorrenti');
       if (await recurringTab.isVisible({ timeout: 5000 })) {
         await recurringTab.click();
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(1000);
+        await expect(page.locator('button:has(svg.lucide-play)')).toHaveCount(0);
       }
+    });
+
+    test('should load recurring tab from server without execute controls', async ({ page }) => {
+      await page.goto('/transactions?tab=Recurrent');
+      await page.waitForLoadState('domcontentloaded');
+      await page.waitForTimeout(2000);
+
+      await expect(page.locator('button:has(svg.lucide-play)')).toHaveCount(0);
     });
 
     test('should show load more control when list has more pages', async ({ page }) => {

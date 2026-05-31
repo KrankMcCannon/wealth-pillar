@@ -683,7 +683,6 @@
       "FilterChips": {
         "toolbarAria": "Transaction filters",
         "userToolbarAria": "Filter by group member",
-        "userChipsScrollHint": "Swipe sideways for more members",
         "filters": "Filters",
         "drawerTitle": "Advanced filters"
       },

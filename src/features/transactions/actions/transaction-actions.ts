@@ -19,9 +19,6 @@ import {
   fetchTransactionsWindow,
   type TransactionsListQuery,
 } from '@/server/use-cases/pages/transactions-page.use-case';
-import { getSeriesByGroupUseCase } from '@/server/use-cases/recurring/recurring.use-cases';
-import { getBudgetsByGroupUseCase } from '@/server/use-cases/budgets/get-budgets.use-case';
-import type { RecurringTransactionSeries, Budget } from '@/lib/types';
 
 /**
  * Server Action: Create Transaction
@@ -193,37 +190,6 @@ export async function loadMoreTransactionsAction(input: LoadMoreTransactionsInpu
     return {
       data: null,
       error: error instanceof Error ? error.message : 'Failed to load more transactions',
-    };
-  }
-}
-
-export async function loadRecurringTabAction(): Promise<
-  ServiceResult<{
-    recurringSeries: RecurringTransactionSeries[];
-    budgets: Budget[];
-  }>
-> {
-  try {
-    const currentUser = await getCurrentUser();
-    if (!currentUser) {
-      return { data: null, error: 'Non autenticato. Effettua il login per continuare.' };
-    }
-
-    const groupId = currentUser.group_id?.trim();
-    if (!groupId) {
-      return { data: null, error: 'Gruppo non trovato' };
-    }
-
-    const [recurringSeries, budgets] = await Promise.all([
-      getSeriesByGroupUseCase(groupId),
-      getBudgetsByGroupUseCase(groupId),
-    ]);
-
-    return { data: { recurringSeries, budgets }, error: null };
-  } catch (error) {
-    return {
-      data: null,
-      error: error instanceof Error ? error.message : 'Failed to load recurring data',
     };
   }
 }

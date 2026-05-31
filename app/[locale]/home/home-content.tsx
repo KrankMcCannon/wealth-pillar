@@ -139,7 +139,6 @@ export default function HomeContent({
         series={recurringSeries}
         selectedUserId={recurringFilterUserId}
         showStats={false}
-        showActions={false}
         onCreateRecurringSeries={handleCreateRecurringSeries}
         onCardClick={handleOpenRecurringTab}
         homeDashboardListLayout

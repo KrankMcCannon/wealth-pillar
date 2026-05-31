@@ -1,5 +1,3 @@
-import type { CSSProperties } from 'react';
-
 export const cardStyles = {
   account: {
     container: 'min-w-[180px] shrink-0 px-3',
@@ -25,58 +23,4 @@ export const cardStyles = {
     icon: 'h-5 w-5',
     sliderIcon: 'h-3.5 w-3.5',
   },
-  series: {
-    base: 'group cursor-pointer rounded-xl border p-2.5 transition-colors duration-200',
-    /** Dentro lista raggruppata / griglia: niente bordo proprio (gestito dal contenitore). */
-    embedded: 'rounded-none border-0 shadow-none bg-transparent ring-0',
-    inactive: 'border-border/25 bg-card/82 opacity-70',
-    overdue: 'border-expense/35 bg-card/90 hover:bg-accent',
-    dueToday: 'border-amber-300/45 bg-card/94 hover:bg-accent',
-    dueSoon: 'border-border/45 bg-card/92 hover:bg-accent',
-    default: 'border-border/35 bg-card/92 hover:bg-accent',
-    layout: 'flex items-center justify-between gap-2.5',
-    left: 'flex min-w-0 flex-1 items-center gap-2.5',
-    icon: 'shrink-0 rounded-full',
-    content: 'flex-1 min-w-0',
-    titleRow: 'mb-0.5 flex items-center gap-1.5',
-    title: 'truncate text-foreground transition-colors group-hover:text-foreground',
-    details: 'space-y-0.5',
-    frequency: 'font-base text-muted-foreground',
-    dueDate: 'text-muted-foreground',
-    userBadges: 'mt-1 flex items-center gap-1',
-    userBadge:
-      'flex h-5 w-5 items-center justify-center rounded-full border border-border/35 text-[10px] font-bold text-foreground',
-    userBadgeOverflow: 'text-[10px] font-medium text-muted-foreground',
-    right: 'flex shrink-0 flex-col items-end gap-0.5',
-    actions: 'flex items-center gap-1',
-    actionButton:
-      'h-9 w-9 min-h-9 min-w-9 rounded-md p-0 transition-all duration-200 touch-manipulation',
-    actionPrimary: 'hover:bg-primary/12',
-    actionWarning: 'hover:bg-expense/12',
-    actionNeutral: 'hover:bg-primary/10',
-    actionDestructive: 'hover:bg-expense/12',
-    actionIcon: 'h-4 w-4',
-    actionIconAccent: 'text-primary',
-    actionIconWarning: 'text-expense',
-    actionIconPrimary: 'text-primary',
-    actionIconDestructive: 'text-primary',
-  },
 } as const;
-
-export function getSeriesCardClassName(params: {
-  isActive: boolean;
-  isOverdue: boolean;
-  isDueToday: boolean;
-  isDueSoon: boolean;
-}) {
-  const { isActive, isOverdue, isDueToday, isDueSoon } = params;
-  if (!isActive) return `${cardStyles.series.base} ${cardStyles.series.inactive}`;
-  if (isOverdue) return `${cardStyles.series.base} ${cardStyles.series.overdue}`;
-  if (isDueToday) return `${cardStyles.series.base} ${cardStyles.series.dueToday}`;
-  if (isDueSoon) return `${cardStyles.series.base} ${cardStyles.series.dueSoon}`;
-  return `${cardStyles.series.base} ${cardStyles.series.default}`;
-}
-
-export function getSeriesUserBadgeStyle(color: string | undefined): CSSProperties {
-  return { backgroundColor: color || 'oklch(var(--color-primary))' };
-}
