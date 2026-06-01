@@ -276,6 +276,17 @@ body {
   -webkit-overflow-scrolling: touch;
 }
 
+/* iOS Safari auto-zooms focused fields when font-size is below 16px */
+@supports (-webkit-touch-callout: none) {
+  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']):not(
+      [type='file']
+    ):not([type='button']):not([type='submit']):not([type='reset']):not([type='hidden']),
+  select,
+  textarea {
+    font-size: max(16px, 1em);
+  }
+}
+
 /* Dev — nasconde artefatti Captcha in locale */
 iframe[src*='challenges.cloudflare.com'],
 iframe[src*='cloudflare'],

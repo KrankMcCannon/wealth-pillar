@@ -85,7 +85,7 @@ export const formModalStyles = {
   categorySearchIcon:
     'pointer-events-none absolute left-3 top-1/2 z-[1] h-4 w-4 -translate-y-1/2 text-modal-fg-muted/65',
   categorySearchInput:
-    'h-11 w-full rounded-xl border border-modal-border/35 bg-modal-input-bg pl-10 pr-3 text-sm text-modal-fg placeholder:text-modal-fg-muted/45 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)] transition-colors focus-visible:border-modal-ring/55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-modal-ring/25',
+    'h-11 w-full rounded-xl border border-modal-border/35 bg-modal-input-bg pl-10 pr-3 text-base text-modal-fg placeholder:text-modal-fg-muted/45 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)] transition-colors focus-visible:border-modal-ring/55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-modal-ring/25',
   categoryQuickActions: 'flex shrink-0 items-center gap-2',
   categoryQuickBtn:
     'rounded-lg border border-modal-border/30 bg-modal-input-bg/50 px-3 py-2 text-[12px] font-semibold text-modal-fg-muted shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)] transition-colors hover:border-modal-ring/45 hover:bg-modal-elevated-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-modal-ring/35 disabled:pointer-events-none disabled:opacity-35',
@@ -115,7 +115,7 @@ export const formModalStyles = {
     searchIcon:
       'pointer-events-none absolute left-2 top-1/2 z-[1] h-4 w-4 -translate-y-1/2 text-modal-fg-muted/65',
     searchInput:
-      'h-10 w-full rounded-xl border border-modal-border/35 bg-modal-input-bg pl-8 pr-3 text-sm text-modal-fg placeholder:text-modal-fg-muted/45 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)] transition-colors focus-visible:border-modal-ring/55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-modal-ring/25',
+      'h-10 w-full rounded-xl border border-modal-border/35 bg-modal-input-bg pl-8 pr-3 text-base text-modal-fg placeholder:text-modal-fg-muted/45 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)] transition-colors focus-visible:border-modal-ring/55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-modal-ring/25',
     optionsWrap: 'px-2 py-1',
     empty: 'py-6 text-center text-sm text-modal-fg-muted',
     optionRow: 'flex items-center gap-2 text-modal-fg',
