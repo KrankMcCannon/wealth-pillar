@@ -1,79 +1,30 @@
-'use client';
-
 import React from 'react';
-import { Loader2 } from 'lucide-react';
-import { useAuth } from '@clerk/nextjs';
-import { useTranslations } from 'next-intl';
-import { AuthCard } from '@/features/auth';
-import { authStyles } from '@/features/auth/theme/auth-styles';
-import OnboardingModal from '@/features/onboarding/components/onboarding-modal';
-import { useOnboardingPage } from '@/features/auth/hooks/use-onboarding-page';
-import { Link } from '@/i18n/routing';
+import { redirect } from 'next/navigation';
+import { getAuth, getCurrentUser } from '@/lib/auth/cached-auth';
+import { isOnboardingComplete } from '@/lib/auth/clerk-session';
+import { OnboardingWizard } from '@/features/onboarding/components/onboarding-wizard';
+import { getAllCategoriesUseCase } from '@/server/use-cases/categories/category.use-cases';
 
-/**
- * Wizard onboarding dopo OAuth: separato da `/auth/sso-callback` per macchina a stati più semplice
- * e navigazione `refresh` + `replace` affidabile dopo `completeOnboardingAction`.
- */
-export default function OnboardingPage(): React.JSX.Element {
-  const t = useTranslations('Auth.ssoCallback');
-  const { userId } = useAuth();
-  const { phase, handleComplete } = useOnboardingPage();
+export default async function OnboardingPage({
+  params,
+}: Readonly<{ params: Promise<{ locale: string }> }>): Promise<React.JSX.Element> {
+  const { locale } = await params;
+  const { userId: clerkId } = await getAuth();
 
-  if (phase.type === 'error') {
-    return (
-      <>
-        <div className={authStyles.page.bgBlobTop} />
-        <div className={authStyles.page.bgBlobBottom} />
-        <AuthCard title={t('errorTitle')} subtitle={t('errorSubtitle')}>
-          <div className={authStyles.errorPage.container}>
-            <p className={authStyles.errorPage.description}>{phase.message}</p>
-            <Link href="/sign-in" className={authStyles.errorPage.backLink}>
-              {t('backToLogin')}
-            </Link>
-          </div>
-        </AuthCard>
-      </>
-    );
+  if (!clerkId) {
+    redirect(`/${locale}/sign-in`);
   }
 
-  if (phase.type === 'ready') {
-    return (
-      <OnboardingModal
-        userId={userId ?? null}
-        categories={phase.categories}
-        categoriesLoading={false}
-        loading={false}
-        error={null}
-        onComplete={handleComplete}
-      />
-    );
+  const currentUser = await getCurrentUser();
+  if (isOnboardingComplete(currentUser)) {
+    redirect(`/${locale}/home`);
   }
 
-  if (phase.type === 'submitting') {
-    return (
-      <>
-        <div className={authStyles.page.bgBlobTop} />
-        <div className={authStyles.page.bgBlobBottom} />
-        <AuthCard title={t('loadingTitle')} subtitle={t('verifying')}>
-          <div className={authStyles.loading.container}>
-            <Loader2 className={authStyles.loading.spinner} />
-            <p className={authStyles.loading.text}>{t('submitting')}</p>
-          </div>
-        </AuthCard>
-      </>
-    );
-  }
+  const categories = await getAllCategoriesUseCase();
 
   return (
-    <>
-      <div className={authStyles.page.bgBlobTop} />
-      <div className={authStyles.page.bgBlobBottom} />
-      <AuthCard title={t('loadingTitle')} subtitle={t('verifying')}>
-        <div className={authStyles.loading.container}>
-          <Loader2 className={authStyles.loading.spinner} />
-          <p className={authStyles.loading.text}>{t('checking')}</p>
-        </div>
-      </AuthCard>
-    </>
+    <div className="flex min-h-0 w-full flex-1 flex-col">
+      <OnboardingWizard categories={categories} />
+    </div>
   );
 }

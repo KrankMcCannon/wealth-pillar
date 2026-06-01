@@ -31,19 +31,21 @@ export default function AuthError({
     <>
       <div className={authStyles.page.bgBlobTop} />
       <div className={authStyles.page.bgBlobBottom} />
-      <AuthCard title="Si è verificato un errore" subtitle="Riprova o contatta il supporto">
-        <div className={authStyles.errorPage.container}>
-          <p className={authStyles.errorPage.description}>
-            {error.message || "Errore imprevisto durante l'autenticazione"}
-          </p>
-          <Button onClick={() => reset()} className="w-full" size="default">
-            Riprova
-          </Button>
-          <Button variant="ghost" asChild className="w-full">
-            <Link href="/sign-in">Torna alla pagina di accesso</Link>
-          </Button>
-        </div>
-      </AuthCard>
+      <div className={authStyles.page.wrapper}>
+        <AuthCard title="Si è verificato un errore" subtitle="Riprova o contatta il supporto">
+          <div className={authStyles.errorPage.container}>
+            <p className={authStyles.errorPage.description}>
+              {error.message || "Errore imprevisto durante l'autenticazione"}
+            </p>
+            <Button onClick={() => reset()} className="w-full" size="default">
+              Riprova
+            </Button>
+            <Button variant="ghost" asChild className="w-full">
+              <Link href="/sign-in">Torna alla pagina di accesso</Link>
+            </Button>
+          </div>
+        </AuthCard>
+      </div>
     </>
   );
 }

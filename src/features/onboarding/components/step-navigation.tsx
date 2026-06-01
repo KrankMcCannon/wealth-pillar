@@ -10,7 +10,6 @@ export type OnboardingStepNavigationProps = {
   steps: OnboardingWizardApi['steps'];
   currentStep: number;
   loading: boolean;
-  categoriesLoading: boolean;
   canProceed: boolean;
   handleBack: OnboardingWizardApi['handleBack'];
   handleNext: OnboardingWizardApi['handleNext'];
@@ -22,7 +21,6 @@ export function OnboardingStepNavigation({
   steps,
   currentStep,
   loading,
-  categoriesLoading,
   canProceed,
   handleBack,
   handleNext,
@@ -33,7 +31,7 @@ export function OnboardingStepNavigation({
       if (loading) {
         return (
           <>
-            <Loader2 className={onboardingStyles.budgets.loadingIcon} />
+            <Loader2 className={`${onboardingStyles.footer.buttonIcon} animate-spin`} />
             {t('buttons.saving')}
           </>
         );
@@ -71,7 +69,7 @@ export function OnboardingStepNavigation({
       <Button
         type="button"
         onClick={currentStep === steps.length - 1 ? handleSubmit : handleNext}
-        disabled={loading || !canProceed || (currentStep === steps.length - 1 && categoriesLoading)}
+        disabled={loading || !canProceed}
         className={onboardingStyles.nextButton}
       >
         {renderButtonContent()}

@@ -1,4 +1,4 @@
-export { default as OnboardingModal } from './onboarding-modal';
+export { OnboardingWizard } from './onboarding-wizard';
 export { OnboardingStepBudgets } from './step-budgets';
 export { OnboardingStepGroup } from './step-group';
 export { OnboardingStepNavigation } from './step-navigation';

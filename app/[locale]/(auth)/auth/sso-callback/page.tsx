@@ -17,17 +17,19 @@ export default function SSOCallbackPage(): React.JSX.Element {
       <>
         <div className={authStyles.page.bgBlobTop} />
         <div className={authStyles.page.bgBlobBottom} />
-        <AuthCard title={t('errorTitle')} subtitle={t('errorSubtitle')}>
-          <div className={authStyles.errorPage.container}>
-            <p className={authStyles.errorPage.description}>{viewState.message}</p>
-            <button type="button" className={authStyles.errorPage.retryButton} onClick={retry}>
-              {t('retry')}
-            </button>
-            <Link href="/sign-in" className={authStyles.errorPage.backLink}>
-              {t('backToLogin')}
-            </Link>
-          </div>
-        </AuthCard>
+        <div className={authStyles.page.wrapper}>
+          <AuthCard title={t('errorTitle')} subtitle={t('errorSubtitle')}>
+            <div className={authStyles.errorPage.container}>
+              <p className={authStyles.errorPage.description}>{viewState.message}</p>
+              <button type="button" className={authStyles.errorPage.retryButton} onClick={retry}>
+                {t('retry')}
+              </button>
+              <Link href="/sign-in" className={authStyles.errorPage.backLink}>
+                {t('backToLogin')}
+              </Link>
+            </div>
+          </AuthCard>
+        </div>
       </>
     );
   }
@@ -45,12 +47,14 @@ export default function SSOCallbackPage(): React.JSX.Element {
     <>
       <div className={authStyles.page.bgBlobTop} />
       <div className={authStyles.page.bgBlobBottom} />
-      <AuthCard title={title} subtitle={subtitle}>
-        <div className={authStyles.loading.container}>
-          <Loader2 className={authStyles.loading.spinner} />
-          <p className={authStyles.loading.text}>{loadingMessage}</p>
-        </div>
-      </AuthCard>
+      <div className={authStyles.page.wrapper}>
+        <AuthCard title={title} subtitle={subtitle}>
+          <div className={authStyles.loading.container}>
+            <Loader2 className={authStyles.loading.spinner} />
+            <p className={authStyles.loading.text}>{loadingMessage}</p>
+          </div>
+        </AuthCard>
+      </div>
     </>
   );
 }

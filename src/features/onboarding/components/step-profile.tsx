@@ -1,6 +1,6 @@
 'use client';
 
-import { HelpCircle, PlusCircle, Star, Trash2 } from 'lucide-react';
+import { PlusCircle, Star, Trash2 } from 'lucide-react';
 import {
   Button,
   Input,
@@ -12,14 +12,14 @@ import {
   SelectValue,
 } from '@/components/ui';
 import type { AccountType } from '@/lib/types';
-import type { OnboardingDraftAccount } from '@/features/onboarding/onboarding-draft-storage';
+import type { OnboardingFormAccount } from '@/features/onboarding/types';
 import { onboardingStyles } from '@/features/onboarding/styles';
 import type { OnboardingWizardApi } from './use-onboarding-wizard';
 
 export type OnboardingStepProfileProps = {
   t: OnboardingWizardApi['t'];
   loading: boolean;
-  accounts: OnboardingDraftAccount[];
+  accounts: OnboardingFormAccount[];
   accountTypeOptions: OnboardingWizardApi['accountTypeOptions'];
   accountTypeDescriptions: OnboardingWizardApi['accountTypeDescriptions'];
   updateAccountField: OnboardingWizardApi['updateAccountField'];
@@ -101,20 +101,7 @@ export function OnboardingStepProfile({
             />
           </div>
           <div className={onboardingStyles.form.field}>
-            <div className={onboardingStyles.accounts.labelRow}>
-              <Label className={onboardingStyles.label}>{t('fields.accounts.typeLabel')}</Label>
-              <div className={onboardingStyles.accounts.helpGroup}>
-                <HelpCircle className={onboardingStyles.accounts.helpIcon} />
-                <div className={onboardingStyles.accounts.helpPopover}>
-                  <p className={onboardingStyles.accounts.helpTitle}>
-                    {t(`accountTypes.${account.type}.label`)}
-                  </p>
-                  <p className={onboardingStyles.accounts.helpBody}>
-                    {accountTypeDescriptions[account.type]}
-                  </p>
-                </div>
-              </div>
-            </div>
+            <Label className={onboardingStyles.label}>{t('fields.accounts.typeLabel')}</Label>
             <Select
               value={account.type}
               onValueChange={(value) => updateAccountField(index, 'type', value as AccountType)}

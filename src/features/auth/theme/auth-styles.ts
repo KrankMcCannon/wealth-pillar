@@ -89,7 +89,7 @@ export const authStyles = {
   },
   layout: {
     container: 'h-screen w-screen bg-card flex flex-col relative overflow-hidden',
-    main: 'w-full flex-1 flex items-center justify-center px-4 py-6',
+    main: 'flex min-h-0 w-full flex-1 flex-col',
     footer: 'mt-auto w-full px-4 pb-[calc(theme(spacing.3)+env(safe-area-inset-bottom))] pt-2',
     footerText: `mx-auto max-w-6xl text-center ${typographyStyles.xs} text-primary/60`,
   },

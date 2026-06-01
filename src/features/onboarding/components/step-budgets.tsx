@@ -1,6 +1,6 @@
 'use client';
 
-import { HelpCircle, Loader2, PlusCircle, Trash2 } from 'lucide-react';
+import { HelpCircle, PlusCircle, Trash2 } from 'lucide-react';
 import {
   Button,
   Input,
@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from '@/components/ui';
 import type { BudgetType, Category } from '@/lib/types';
-import type { OnboardingDraftBudget } from '@/features/onboarding/onboarding-draft-storage';
+import type { OnboardingFormBudget } from '@/features/onboarding/types';
 import { onboardingStyles } from '@/features/onboarding/styles';
 import type { OnboardingWizardApi } from './use-onboarding-wizard';
 
@@ -20,8 +20,7 @@ export type OnboardingStepBudgetsProps = {
   t: OnboardingWizardApi['t'];
   loading: boolean;
   categories: Category[];
-  categoriesLoading: boolean;
-  budgets: OnboardingDraftBudget[];
+  budgets: OnboardingFormBudget[];
   budgetStartDay: number;
   setBudgetStartDay: (value: number) => void;
   budgetTypeOptions: OnboardingWizardApi['budgetTypeOptions'];
@@ -36,7 +35,6 @@ export function OnboardingStepBudgets({
   t,
   loading,
   categories,
-  categoriesLoading,
   budgets,
   budgetStartDay,
   setBudgetStartDay,
@@ -73,13 +71,7 @@ export function OnboardingStepBudgets({
         </div>
       </div>
 
-      {categoriesLoading && (
-        <div className={onboardingStyles.loadingInfo}>
-          <Loader2 className={onboardingStyles.budgets.loadingIcon} />
-          {t('categories.loading')}
-        </div>
-      )}
-      {!categoriesLoading && categories.length === 0 && (
+      {categories.length === 0 && (
         <div className={onboardingStyles.warningMessage}>{t('categories.noneAvailable')}</div>
       )}
       {budgets.map((budget, index) => (
@@ -148,7 +140,7 @@ export function OnboardingStepBudgets({
             <Select
               value={budget.categoryId}
               onValueChange={(value) => updateBudgetField(index, 'categoryId', value)}
-              disabled={loading || categoriesLoading}
+              disabled={loading}
             >
               <SelectTrigger className={onboardingStyles.select}>
                 <SelectValue

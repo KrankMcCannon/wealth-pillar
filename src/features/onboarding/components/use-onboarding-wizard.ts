@@ -1,23 +1,23 @@
 'use client';
 
-import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import { Building2, Target, Wallet } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import type { Category, BudgetType } from '@/lib/types';
-import type { OnboardingPayload } from '@/features/onboarding/types';
-import {
-  loadDraft,
-  saveDraft,
-  clearDraft,
-  flushDraft,
-  type OnboardingDraftShape,
-  type OnboardingDraftAccount,
-  type OnboardingDraftBudget,
-  type OnboardingDraftPersisted,
-} from '@/features/onboarding/onboarding-draft-storage';
-import { toast } from '@/hooks/use-toast';
+import type {
+  OnboardingPayload,
+  OnboardingFormAccount,
+  OnboardingFormBudget,
+} from '@/features/onboarding/types';
 
-function createInitialWizardState(): OnboardingDraftShape {
+function createInitialWizardState(): {
+  currentStep: number;
+  groupName: string;
+  groupDescription: string;
+  budgetStartDay: number;
+  accounts: OnboardingFormAccount[];
+  budgets: OnboardingFormBudget[];
+} {
   return {
     currentStep: 0,
     groupName: '',
@@ -31,16 +31,11 @@ function createInitialWizardState(): OnboardingDraftShape {
 }
 
 export type UseOnboardingWizardOptions = {
-  userId: string | null;
   categories: Category[];
   onComplete: (data: OnboardingPayload) => Promise<void>;
 };
 
-export function useOnboardingWizard({
-  userId,
-  categories,
-  onComplete,
-}: UseOnboardingWizardOptions) {
+export function useOnboardingWizard({ categories, onComplete }: UseOnboardingWizardOptions) {
   const t = useTranslations('OnboardingModal');
   const initial = useMemo(() => createInitialWizardState(), []);
 
@@ -48,118 +43,9 @@ export function useOnboardingWizard({
   const [groupName, setGroupName] = useState(initial.groupName);
   const [groupDescription, setGroupDescription] = useState(initial.groupDescription);
   const [budgetStartDay, setBudgetStartDay] = useState<number>(initial.budgetStartDay);
-  const [accounts, setAccounts] = useState<OnboardingDraftAccount[]>(initial.accounts);
-  const [budgets, setBudgets] = useState<OnboardingDraftBudget[]>(initial.budgets);
+  const [accounts, setAccounts] = useState<OnboardingFormAccount[]>(initial.accounts);
+  const [budgets, setBudgets] = useState<OnboardingFormBudget[]>(initial.budgets);
   const [localError, setLocalError] = useState<string | null>(null);
-  const [showDraftRestore, setShowDraftRestore] = useState(false);
-
-  const draftRef = useRef<OnboardingDraftShape | null>(null);
-  const showDraftRestoreRef = useRef(false);
-  useEffect(() => {
-    showDraftRestoreRef.current = showDraftRestore;
-  }, [showDraftRestore]);
-
-  const applyDraftShape = useCallback((draft: OnboardingDraftShape | OnboardingDraftPersisted) => {
-    const shape: OnboardingDraftShape =
-      'v' in draft
-        ? {
-            currentStep: draft.currentStep,
-            groupName: draft.groupName,
-            groupDescription: draft.groupDescription,
-            budgetStartDay: draft.budgetStartDay,
-            accounts: draft.accounts,
-            budgets: draft.budgets,
-          }
-        : draft;
-    setCurrentStep(Math.min(Math.max(shape.currentStep, 0), 2));
-    setGroupName(shape.groupName);
-    setGroupDescription(shape.groupDescription);
-    setBudgetStartDay(shape.budgetStartDay);
-    setAccounts(
-      shape.accounts.length > 0
-        ? shape.accounts
-        : [{ id: crypto.randomUUID(), name: '', type: 'payroll', isDefault: true }]
-    );
-    setBudgets(
-      shape.budgets.length > 0
-        ? shape.budgets
-        : shape.currentStep === 2
-          ? []
-          : [
-              {
-                id: crypto.randomUUID(),
-                description: '',
-                amount: '',
-                type: 'monthly',
-                categoryId: '',
-              },
-            ]
-    );
-  }, []);
-
-  const resetWizardState = useCallback(() => {
-    const next = createInitialWizardState();
-    applyDraftShape(next);
-    setLocalError(null);
-  }, [applyDraftShape]);
-
-  useEffect(() => {
-    const id = window.setTimeout(() => {
-      if (!userId) {
-        setShowDraftRestore(false);
-        return;
-      }
-      setShowDraftRestore(Boolean(loadDraft(userId)));
-    }, 0);
-    return () => clearTimeout(id);
-  }, [userId]);
-
-  useEffect(() => {
-    draftRef.current = {
-      currentStep,
-      groupName,
-      groupDescription,
-      budgetStartDay,
-      accounts,
-      budgets,
-    };
-  }, [currentStep, groupName, groupDescription, budgetStartDay, accounts, budgets]);
-
-  useEffect(() => {
-    if (!userId) return;
-
-    const flush = () => {
-      if (showDraftRestoreRef.current) return;
-      const d = draftRef.current;
-      if (d) flushDraft(userId, d);
-    };
-
-    window.addEventListener('pagehide', flush);
-    const onVisibility = () => {
-      if (document.visibilityState === 'hidden') flush();
-    };
-    document.addEventListener('visibilitychange', onVisibility);
-    return () => {
-      window.removeEventListener('pagehide', flush);
-      document.removeEventListener('visibilitychange', onVisibility);
-    };
-  }, [userId]);
-
-  useEffect(() => {
-    if (!userId) return;
-    const timeout = setTimeout(() => {
-      if (showDraftRestoreRef.current) return;
-      saveDraft(userId, {
-        currentStep,
-        groupName,
-        groupDescription,
-        budgetStartDay,
-        accounts,
-        budgets,
-      });
-    }, 1000);
-    return () => clearTimeout(timeout);
-  }, [userId, currentStep, groupName, groupDescription, budgetStartDay, accounts, budgets]);
 
   const steps = useMemo(
     () => [
@@ -220,31 +106,6 @@ export function useOnboardingWizard({
     ],
     [t]
   );
-
-  const restoreDraft = useCallback(() => {
-    if (!userId) return;
-    const draft = loadDraft(userId);
-    if (!draft) {
-      setShowDraftRestore(false);
-      return;
-    }
-    applyDraftShape(draft);
-    setShowDraftRestore(false);
-    toast({
-      title: t('draft.toastRestoredTitle'),
-      description: t('draft.toastRestoredDescription'),
-    });
-  }, [userId, applyDraftShape, t]);
-
-  const dismissDraftRestore = useCallback(() => {
-    if (userId) clearDraft(userId);
-    resetWizardState();
-    setShowDraftRestore(false);
-    toast({
-      title: t('draft.toastDismissedTitle'),
-      description: t('draft.toastDismissedDescription'),
-    });
-  }, [userId, resetWizardState, t]);
 
   const canProceed = useMemo(() => {
     if (currentStep === 0) {
@@ -320,26 +181,22 @@ export function useOnboardingWizard({
 
     try {
       await onComplete(buildOnboardingPayload());
-
-      if (userId) clearDraft(userId);
     } catch (err) {
       setLocalError(err instanceof Error ? err.message : t('errors.saveFailed'));
     }
-  }, [canProceed, onComplete, buildOnboardingPayload, userId, t]);
+  }, [canProceed, onComplete, buildOnboardingPayload, t]);
 
   const handleSkipBudgets = useCallback(async () => {
     setLocalError(null);
     try {
       await onComplete(buildOnboardingPayload({ emptyBudgets: true }));
-
-      if (userId) clearDraft(userId);
     } catch (err) {
       setLocalError(err instanceof Error ? err.message : t('errors.saveFailed'));
     }
-  }, [onComplete, buildOnboardingPayload, userId, t]);
+  }, [onComplete, buildOnboardingPayload, t]);
 
   const updateAccountField = useCallback(
-    (index: number, field: keyof OnboardingDraftAccount, value: string) => {
+    (index: number, field: keyof OnboardingFormAccount, value: string) => {
       setAccounts((prev) =>
         prev.map((account, idx) => (idx === index ? { ...account, [field]: value } : account))
       );
@@ -376,7 +233,7 @@ export function useOnboardingWizard({
   }, []);
 
   const updateBudgetField = useCallback(
-    (index: number, field: keyof OnboardingDraftBudget, value: string) => {
+    (index: number, field: keyof OnboardingFormBudget, value: string) => {
       setBudgets((prev) =>
         prev.map((budget, idx) => (idx === index ? { ...budget, [field]: value } : budget))
       );
@@ -412,10 +269,7 @@ export function useOnboardingWizard({
     accounts,
     budgets,
     localError,
-    showDraftRestore,
     canProceed,
-    restoreDraft,
-    dismissDraftRestore,
     handleNext,
     handleBack,
     handleSubmit,
@@ -427,6 +281,7 @@ export function useOnboardingWizard({
     updateBudgetField,
     addBudget,
     removeBudget,
+    buildOnboardingPayload,
   };
 }
 
