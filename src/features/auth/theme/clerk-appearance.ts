@@ -8,21 +8,16 @@ import type { Theme } from '@clerk/shared/types';
  */
 const wealthPillarAuthTheme = experimental_createTheme({
   name: 'wealth-pillar-auth',
-  layout: {
-    socialButtonsPlacement: 'top',
-    socialButtonsVariant: 'blockButton',
-    shimmer: false,
-  },
   elements: {
-    socialButtons: 'flex w-full flex-col gap-3',
+    socialButtons: 'grid w-full grid-cols-1 gap-3',
     socialButtonsBlockButton:
-      'flex h-12 w-full min-w-0 items-center justify-center gap-3 rounded-xl border border-border/30 bg-muted/35 px-4',
+      'flex h-12 w-full items-center justify-center gap-3 rounded-xl border border-border/30 bg-muted/35 px-4',
     socialButtonsIconButton:
-      'flex h-12 w-full min-w-0 items-center justify-center gap-3 rounded-xl border border-border/30 bg-muted/35 px-4',
-    socialButtonsBlockButtonText: 'text-sm font-semibold',
+      'flex h-12 w-full items-center justify-center gap-3 rounded-xl border border-border/30 bg-muted/35 px-4',
+    socialButtonsBlockButtonText: 'text-sm font-semibold whitespace-nowrap',
     socialButtonsProviderIcon: 'size-5 shrink-0',
-    rootBox: 'w-full max-w-md mx-auto px-4',
-    cardBox: 'w-full rounded-2xl shadow-lg',
+    rootBox: 'mx-auto w-full',
+    cardBox: 'mx-auto w-full rounded-2xl shadow-lg',
     headerTitle: 'text-xl font-semibold tracking-tight',
     headerSubtitle: 'text-sm',
     formButtonPrimary: 'h-12 w-full',
@@ -32,6 +27,11 @@ const wealthPillarAuthTheme = experimental_createTheme({
 
 export const clerkAppearance = {
   theme: [shadcn, wealthPillarAuthTheme],
+  layout: {
+    socialButtonsPlacement: 'top',
+    socialButtonsVariant: 'blockButton',
+    shimmer: false,
+  },
   variables: {
     borderRadius: '1rem',
     fontFamily: 'var(--font-spline-sans), system-ui, sans-serif',
