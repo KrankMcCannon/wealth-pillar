@@ -1,7 +1,6 @@
 'use server';
 
 import { getCurrentUser } from '@/lib/auth/cached-auth';
-import { revalidateTransactionRelatedPaths } from '@/lib/cache/revalidation-paths';
 import type { ServiceResult } from '@/lib/types/service-result';
 import { assertCanActOnUser } from '@/features/permissions/assert-can-act-on-user';
 import { createTransactionUseCase } from '@/server/use-cases/transactions/create-transaction.use-case';
@@ -40,10 +39,6 @@ export async function createTransactionAction(
     }
 
     const data = await createTransactionUseCase(parsed.data as CreateTransactionInput);
-
-    if (data) {
-      revalidateTransactionRelatedPaths();
-    }
 
     return { data, error: null };
   } catch (error) {
@@ -104,10 +99,6 @@ export async function updateTransactionAction(
     }
 
     const data = await updateTransactionUseCase(id, parsed.data as Partial<CreateTransactionInput>);
-
-    if (data) {
-      revalidateTransactionRelatedPaths();
-    }
 
     return { data, error: null };
   } catch (error) {
@@ -220,10 +211,7 @@ export async function deleteTransactionAction(id: string): Promise<ServiceResult
       return { data: null, error: 'Permesso negato' };
     }
 
-    // Call service
     await deleteTransactionUseCase(id);
-
-    revalidateTransactionRelatedPaths();
 
     return { data: { id }, error: null };
   } catch (error) {

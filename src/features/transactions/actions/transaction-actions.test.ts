@@ -8,10 +8,6 @@ import type { Transaction, User } from '@/lib/types';
 import type { CreateTransactionInput } from '@/server/use-cases/transactions/types';
 
 // Mock dependencies
-vi.mock('@/lib/cache/revalidation-paths', () => ({
-  revalidateTransactionRelatedPaths: vi.fn(),
-}));
-
 vi.mock('@/lib/auth/cached-auth', () => ({
   getCurrentUser: vi.fn(),
 }));
@@ -37,7 +33,6 @@ vi.mock('@/lib/utils', () => ({
   isMember: vi.fn(),
 }));
 
-import { revalidateTransactionRelatedPaths } from '@/lib/cache/revalidation-paths';
 import { getCurrentUser } from '@/lib/auth/cached-auth';
 import { createTransactionUseCase } from '@/server/use-cases/transactions/create-transaction.use-case';
 import { getTransactionByIdUseCase } from '@/server/use-cases/transactions/get-transactions.use-case';
@@ -141,7 +136,7 @@ describe('transaction-actions', () => {
       expect(result).toEqual({ data: null, error: 'Permesso negato' });
     });
 
-    it('should create transaction successfully and revalidate paths', async () => {
+    it('should create transaction successfully', async () => {
       const mockUser = createMockUser();
       const mockTransaction = createMockTransaction();
       const input = createMockInput();
@@ -153,17 +148,15 @@ describe('transaction-actions', () => {
 
       expect(result).toEqual({ data: mockTransaction, error: null });
       expect(createTransactionUseCase).toHaveBeenCalledWith(input);
-      expect(revalidateTransactionRelatedPaths).toHaveBeenCalledTimes(1);
     });
 
-    it('should not revalidate paths when service returns null', async () => {
+    it('should return null data when service returns null', async () => {
       vi.mocked(getCurrentUser).mockResolvedValue(createMockUser());
       vi.mocked(createTransactionUseCase).mockResolvedValue(null as unknown as Transaction);
 
       const result = await createTransactionAction(createMockInput());
 
       expect(result).toEqual({ data: null, error: null });
-      expect(revalidateTransactionRelatedPaths).not.toHaveBeenCalled();
     });
 
     it('should handle service errors gracefully', async () => {
@@ -283,7 +276,7 @@ describe('transaction-actions', () => {
       });
     });
 
-    it('should update transaction successfully and revalidate paths', async () => {
+    it('should update transaction successfully', async () => {
       const mockUser = createMockUser();
       const existingTx = createMockTransaction();
       const updatedTx = createMockTransaction({ description: 'Updated' });
@@ -298,7 +291,6 @@ describe('transaction-actions', () => {
       expect(updateTransactionUseCase).toHaveBeenCalledWith('tx-1', {
         description: 'Updated',
       });
-      expect(revalidateTransactionRelatedPaths).toHaveBeenCalledTimes(1);
     });
 
     it('should handle service errors gracefully', async () => {
@@ -311,7 +303,7 @@ describe('transaction-actions', () => {
       expect(result).toEqual({ data: null, error: 'Update failed' });
     });
 
-    it('should not revalidate paths when service returns null', async () => {
+    it('should return null data when update service returns null', async () => {
       vi.mocked(getCurrentUser).mockResolvedValue(createMockUser());
       vi.mocked(getTransactionByIdUseCase).mockResolvedValue(createMockTransaction());
       vi.mocked(updateTransactionUseCase).mockResolvedValue(null as unknown as Transaction);
@@ -319,7 +311,6 @@ describe('transaction-actions', () => {
       const result = await updateTransactionAction('tx-1', { description: 'Updated' });
 
       expect(result).toEqual({ data: null, error: null });
-      expect(revalidateTransactionRelatedPaths).not.toHaveBeenCalled();
     });
 
     it('should handle non-Error exceptions with fallback message', async () => {
@@ -380,7 +371,7 @@ describe('transaction-actions', () => {
       expect(result).toEqual({ data: null, error: 'Permesso negato' });
     });
 
-    it('should delete transaction successfully and revalidate paths', async () => {
+    it('should delete transaction successfully', async () => {
       const mockUser = createMockUser();
       const existingTx = createMockTransaction();
 
@@ -392,7 +383,6 @@ describe('transaction-actions', () => {
 
       expect(result).toEqual({ data: { id: 'tx-1' }, error: null });
       expect(deleteTransactionUseCase).toHaveBeenCalledWith('tx-1');
-      expect(revalidateTransactionRelatedPaths).toHaveBeenCalledTimes(1);
     });
 
     it('should handle service errors gracefully', async () => {
