@@ -4,6 +4,7 @@ import { revalidateTag } from 'next/cache';
 
 vi.mock('next/cache', () => ({
   revalidateTag: vi.fn(),
+  revalidatePath: vi.fn(),
 }));
 
 describe('invalidateTransactionCaches', () => {

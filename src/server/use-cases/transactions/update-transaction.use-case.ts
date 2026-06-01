@@ -1,16 +1,20 @@
+import { db } from '@/server/db/drizzle';
 import { TransactionsRepository } from '@/server/repositories/transactions.repository';
 import type { UpdateTransactionInput } from '@/server/use-cases/transactions/types';
 import type { Transaction } from '@/lib/types';
 import { serialize } from '@/lib/utils/serializer';
 import { invalidateTransactionUpdateCaches } from '@/lib/utils/cache-utils';
+import { applyTransactionBalanceAdjustments } from '@/server/use-cases/transactions/transaction-balance';
+import type { TransactionScope } from '@/server/repositories/transactions.repository';
 
 export async function updateTransactionUseCase(
   id: string,
-  data: UpdateTransactionInput
+  data: UpdateTransactionInput,
+  scope?: TransactionScope
 ): Promise<Transaction> {
   if (!id?.trim()) throw new Error('Transaction ID is required');
 
-  const existing = await TransactionsRepository.getById(id);
+  const existing = await TransactionsRepository.getById(id, scope);
   if (!existing) throw new Error('Transaction not found');
 
   if (data.type === 'transfer' || existing.type === 'transfer') {
@@ -31,52 +35,31 @@ export async function updateTransactionUseCase(
   if (data.category !== undefined) updateData.category = data.category;
   if (data.date !== undefined) {
     const d = typeof data.date === 'string' ? new Date(data.date) : data.date;
-    updateData.date = d.toISOString().split('T')[0];
+    updateData.date = d.toISOString().slice(0, 10);
   }
   if (data.user_id !== undefined) updateData.user_id = data.user_id;
   if (data.account_id !== undefined) updateData.account_id = data.account_id;
   if (data.to_account_id !== undefined) updateData.to_account_id = data.to_account_id;
   if (data.group_id !== undefined) updateData.group_id = data.group_id;
 
-  const updated = await TransactionsRepository.update(id, updateData);
-  if (!updated) throw new Error('Failed to update transaction');
-
-  // Re-adjust balances
-  type BalanceAdjustableTransaction = {
-    amount: string | number | null;
-    type: string | null;
-    account_id: string | null;
-    to_account_id: string | null;
-  };
-
-  async function adjustBalance(transaction: BalanceAdjustableTransaction, multiplier: number) {
-    if (!transaction.account_id) return;
-    const amt = Number(transaction.amount) * multiplier;
-    if (transaction.type === 'income') {
-      await TransactionsRepository.updateAccountBalance(transaction.account_id, amt);
-    } else if (transaction.type === 'expense') {
-      await TransactionsRepository.updateAccountBalance(transaction.account_id, -amt);
-    } else if (transaction.type === 'transfer' && transaction.to_account_id) {
-      await TransactionsRepository.updateAccountBalance(transaction.account_id, -amt);
-      await TransactionsRepository.updateAccountBalance(transaction.to_account_id, amt);
-    }
-  }
-
-  // Reverse old effect (-1)
-  await adjustBalance(existing, -1);
-  // Apply new effect (1)
-  await adjustBalance(updated, 1);
+  const updated = await db.transaction(async (tx) => {
+    const row = await TransactionsRepository.update(id, updateData, tx);
+    if (!row) throw new Error('Failed to update transaction');
+    await applyTransactionBalanceAdjustments(existing, -1, tx);
+    await applyTransactionBalanceAdjustments(row, 1, tx);
+    return row;
+  });
 
   invalidateTransactionUpdateCaches(
     {
       userId: existing.user_id,
-      accountId: existing.account_id!,
+      accountId: existing.account_id,
       toAccountId: existing.to_account_id ?? null,
       groupId: existing.group_id ?? null,
     },
     {
       userId: updated.user_id,
-      accountId: updated.account_id!,
+      accountId: updated.account_id,
       toAccountId: updated.to_account_id ?? null,
       groupId: updated.group_id!,
     }

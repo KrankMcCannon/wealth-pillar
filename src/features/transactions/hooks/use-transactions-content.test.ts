@@ -59,7 +59,7 @@ const baseProps = {
 
 describe('useTransactionsContent optimistic merge', () => {
   beforeEach(() => {
-    useOptimisticTransactionStore.setState({ pending: [] });
+    useOptimisticTransactionStore.getState().reset();
   });
 
   it('keeps optimistic rows when server transactions refresh', () => {

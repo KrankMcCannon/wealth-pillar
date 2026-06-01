@@ -11,7 +11,7 @@ import {
   useEntityFormRowReset,
   useEntityFormSubmit,
 } from '@/components/form';
-import { useAccounts, useCategories } from '@/stores/reference-data-store';
+import { useAccounts, useCategories, useReferenceDataStore } from '@/stores/reference-data-store';
 import {
   createTransactionAction,
   deleteTransactionAction,
@@ -19,15 +19,22 @@ import {
   updateTransactionAction,
 } from '@/features/transactions/actions/transaction-actions';
 import { getDefaultAccountIdForUser } from '@/features/accounts/utils/default-account-id';
-import { useRouter } from '@/i18n/routing';
 import { useToast } from '@/hooks';
 import { getTempId } from '@/lib/utils/temp-id';
 import type { Account, Category, Transaction, User } from '@/lib/types';
 import { useTransactionEditStore } from '../stores/transaction-edit-store';
 import {
   buildOptimisticTransaction,
+  buildOptimisticTransactionFromOriginal,
   useOptimisticTransactionStore,
 } from '../stores/optimistic-transactions';
+import {
+  applyBalanceSnapshotToStore,
+  patchStoreBalancesForEdit,
+  patchStoreBalancesFromTransaction,
+  snapshotAffectedBalances,
+  type AccountBalanceSnapshot,
+} from '../utils/transaction-balance-delta';
 import { mapTransactionToFormData } from '../utils/transaction-form-data';
 import { buildTransactionPayload } from '../utils/build-transaction-payload';
 import { TransactionFormFields, type TransactionFormData } from './transaction-form-fields';
@@ -170,13 +177,32 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
     useEntityFormPermissions();
   const accounts = useAccounts();
   const categories = useCategories();
-  const router = useRouter();
+  const storeAccounts = useReferenceDataStore((state) => state.accounts);
+  const updateAccount = useReferenceDataStore((state) => state.updateAccount);
   const { toast } = useToast();
   const seedTransaction = useTransactionEditStore((state) => state.seed);
   const clearSeed = useTransactionEditStore((state) => state.clearSeed);
   const addOptimistic = useOptimisticTransactionStore((state) => state.addOptimistic);
   const commitOptimistic = useOptimisticTransactionStore((state) => state.commitOptimistic);
   const rollbackOptimistic = useOptimisticTransactionStore((state) => state.rollbackOptimistic);
+  const applyUpdateOptimisticStore = useOptimisticTransactionStore(
+    (state) => state.applyUpdateOptimistic
+  );
+  const commitUpdateOptimisticStore = useOptimisticTransactionStore(
+    (state) => state.commitUpdateOptimistic
+  );
+  const rollbackUpdateOptimisticStore = useOptimisticTransactionStore(
+    (state) => state.rollbackUpdateOptimistic
+  );
+  const applyDeleteOptimisticStore = useOptimisticTransactionStore(
+    (state) => state.applyDeleteOptimistic
+  );
+  const commitDeleteOptimisticStore = useOptimisticTransactionStore(
+    (state) => state.commitDeleteOptimistic
+  );
+  const rollbackDeleteOptimisticStore = useOptimisticTransactionStore(
+    (state) => state.rollbackDeleteOptimistic
+  );
 
   const handleClose = useCallback(() => {
     clearSeed();
@@ -258,11 +284,23 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
     [t]
   );
 
+  type CreateMutationHandle = {
+    kind: 'create';
+    tempId: string;
+    balanceSnapshot: AccountBalanceSnapshot;
+  };
+  type UpdateMutationHandle = {
+    kind: 'update';
+    editId: string;
+    balanceSnapshot: AccountBalanceSnapshot;
+  };
+  type TransactionMutationHandle = CreateMutationHandle | UpdateMutationHandle;
+
   const handleSubmit = useEntityFormSubmit<
     TransactionFormData,
     ReturnType<typeof buildPayload>,
     Transaction,
-    string
+    TransactionMutationHandle
   >({
     isEditMode,
     editId,
@@ -272,18 +310,50 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
     updateAction: (id, payload) => updateTransactionAction(id, payload),
     applyCreateOptimistic: (payload) => {
       const tempId = getTempId('temp-tx');
-      addOptimistic(buildOptimisticTransaction(payload, tempId), tempId);
-      return tempId;
+      const optimistic = buildOptimisticTransaction(payload, tempId);
+      addOptimistic(optimistic, tempId);
+      const balanceSnapshot = snapshotAffectedBalances(storeAccounts, {
+        transaction: optimistic,
+        multiplier: 1,
+      });
+      patchStoreBalancesFromTransaction(storeAccounts, updateAccount, optimistic, 1);
+      return { kind: 'create', tempId, balanceSnapshot };
     },
-    commitCreate: (tempId, result) => {
-      commitOptimistic(tempId, result);
+    commitCreate: (handle, result) => {
+      if (handle.kind !== 'create') return;
+      commitOptimistic(handle.tempId, result);
     },
-    rollbackCreate: (tempId) => {
-      rollbackOptimistic(tempId);
+    rollbackCreate: (handle, _error) => {
+      if (handle.kind !== 'create') return;
+      rollbackOptimistic(handle.tempId);
+      applyBalanceSnapshotToStore(handle.balanceSnapshot, updateAccount);
+    },
+    applyUpdateOptimistic: (id, payload) => {
+      const original = seedTransaction?.id === id ? seedTransaction : null;
+      if (!original) {
+        throw new Error(t('errors.notFound'));
+      }
+      const optimistic = buildOptimisticTransactionFromOriginal(original, payload);
+      applyUpdateOptimisticStore(id, optimistic, original);
+      const balanceSnapshot = snapshotAffectedBalances(
+        storeAccounts,
+        { transaction: original, multiplier: -1 },
+        { transaction: optimistic, multiplier: 1 }
+      );
+      patchStoreBalancesForEdit(storeAccounts, updateAccount, original, optimistic);
+      return { kind: 'update', editId: id, balanceSnapshot };
+    },
+    commitUpdate: (handle, result) => {
+      if (handle.kind !== 'update') return;
+      commitUpdateOptimisticStore(handle.editId, result);
+    },
+    rollbackUpdate: (handle, _error) => {
+      if (handle.kind !== 'update') return;
+      rollbackUpdateOptimisticStore(handle.editId);
+      applyBalanceSnapshotToStore(handle.balanceSnapshot, updateAccount);
     },
     getSuccessToast,
     errorToast: { title: t('toast.errorTitle') },
-    refreshAfterSuccess: () => router.refresh(),
     unknownErrorMessage: t('errors.unknown'),
   });
 
@@ -292,8 +362,30 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
 
   const handleDelete = useCallback(async () => {
     if (!editId) return;
+    const original =
+      seedTransaction?.id === editId
+        ? seedTransaction
+        : useOptimisticTransactionStore.getState().updated[editId]?.original;
+    if (!original) {
+      toast({
+        title: tPage('errors.title'),
+        description: t('errors.notFound'),
+        variant: 'destructive',
+      });
+      throw new Error(t('errors.notFound'));
+    }
+
+    const balanceSnapshot = snapshotAffectedBalances(storeAccounts, {
+      transaction: original,
+      multiplier: -1,
+    });
+    applyDeleteOptimisticStore(editId, original);
+    patchStoreBalancesFromTransaction(storeAccounts, updateAccount, original, -1);
+
     const result = await deleteTransactionAction(editId);
     if (result.error) {
+      rollbackDeleteOptimisticStore(editId);
+      applyBalanceSnapshotToStore(balanceSnapshot, updateAccount);
       toast({
         title: tPage('errors.title'),
         description: `${tPage('errors.deleteTransactionFailed')} ${tPage('errors.retryHint')}`,
@@ -301,8 +393,19 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
       });
       throw new Error(result.error);
     }
-    router.refresh();
-  }, [editId, router, tPage, toast]);
+    commitDeleteOptimisticStore(editId);
+  }, [
+    applyDeleteOptimisticStore,
+    commitDeleteOptimisticStore,
+    editId,
+    rollbackDeleteOptimisticStore,
+    seedTransaction,
+    storeAccounts,
+    t,
+    tPage,
+    toast,
+    updateAccount,
+  ]);
 
   return (
     <EntityFormModal<TransactionFormData>

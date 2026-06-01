@@ -7,6 +7,10 @@ import {
   getGroupUsersByGroupIdDeduped,
 } from '@/server/request-cache/services';
 import { getTransactionsByGroupUseCase } from '../transactions/get-transactions.use-case';
+import {
+  DASHBOARD_TRANSACTIONS_LIMIT,
+  dashboardTransactionStartDate,
+} from '@/server/db/query-limits';
 import { getBudgetsByGroupUseCase } from '../budgets/get-budgets.use-case';
 import { buildBudgetsByUserPure } from '../budgets/budget.logic';
 import {
@@ -120,7 +124,11 @@ async function getCachedDashboardPageData(groupId: string): Promise<DashboardPag
     await Promise.all([
       safeFetch(getAccountsByGroupDeduped(groupId), [] as Account[], 'Failed to fetch accounts'),
       safeFetch(
-        getTransactionsByGroupUseCase(groupId),
+        getTransactionsByGroupUseCase(groupId, {
+          startDate: dashboardTransactionStartDate(),
+          limit: DASHBOARD_TRANSACTIONS_LIMIT,
+          countTotal: false,
+        }),
         { data: [] as Transaction[], total: 0, hasMore: false },
         'Failed to fetch transactions'
       ),

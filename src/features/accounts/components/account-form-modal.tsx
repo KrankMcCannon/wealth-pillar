@@ -15,7 +15,6 @@ import {
   useEntityFormSubmit,
 } from '@/components/form';
 import { useAccounts, useReferenceDataStore } from '@/stores/reference-data-store';
-import { useRouter } from '@/i18n/routing';
 import { toast } from '@/hooks/use-toast';
 import { AccountFormFields, type AccountFormData } from './account-form-fields';
 
@@ -37,8 +36,6 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
   const t = useTranslations('Accounts.FormModal');
   const tContent = useTranslations('Accounts.Content');
   const locale = useLocale();
-  const router = useRouter();
-
   const { currentUser, groupUsers, groupId, shouldDisableUserField, defaultFormUserId } =
     useEntityFormPermissions();
 
@@ -243,7 +240,6 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
     getSuccessToast,
     errorToast: { title: t('toast.errorTitle') },
     formatErrorDescription,
-    refreshAfterSuccess: () => router.refresh(),
     unknownErrorMessage: t('errors.unknown'),
   });
 
@@ -271,7 +267,6 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
         description: t('toast.deletedDescription'),
         variant: 'success',
       });
-      router.refresh();
     } catch {
       if (!restored) {
         addAccount(account);
@@ -283,7 +278,7 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
       }
       throw new Error('delete failed');
     }
-  }, [addAccount, editId, locale, removeAccount, router, storeAccounts, t]);
+  }, [addAccount, editId, locale, removeAccount, storeAccounts, t]);
 
   return (
     <EntityFormModal<AccountFormData>

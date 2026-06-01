@@ -1,3 +1,4 @@
+import { REPORTS_TRANSACTIONS_LIMIT } from '@/server/db/query-limits';
 import { TransactionsRepository } from '@/server/repositories/transactions.repository';
 import { AccountsRepository } from '@/server/repositories/accounts.repository';
 import { CategoriesRepository } from '@/server/repositories/categories.repository';
@@ -166,7 +167,10 @@ export async function getReportsDataUseCase(groupId: string, groupUserIds?: stri
     UsersRepository.findByGroupId(groupId),
     AccountsRepository.findByGroup(groupId),
     CategoriesRepository.findByGroup(groupId),
-    TransactionsRepository.getByGroup(groupId),
+    TransactionsRepository.getByGroup(groupId, {
+      limit: REPORTS_TRANSACTIONS_LIMIT,
+      countTotal: false,
+    }),
   ]);
 
   // Drizzle returns numeric() columns as strings from Postgres — coerce to numbers here

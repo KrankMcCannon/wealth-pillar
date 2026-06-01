@@ -7,6 +7,7 @@
 
 import { revalidateTag } from 'next/cache';
 import { CACHE_TAGS } from '@/lib/cache/config';
+import { revalidateTransactionRelatedPaths } from '@/lib/cache/revalidation-paths';
 
 /**
  * Options for transaction cache invalidation
@@ -67,6 +68,7 @@ export function invalidateTransactionCaches(opts: TransactionCacheInvalidationOp
   }
 
   invalidateTags(tags);
+  revalidateTransactionRelatedPaths();
 }
 
 /**
@@ -235,6 +237,7 @@ export function invalidateTransactionUpdateCaches(
   }
 
   invalidateTags(tags);
+  revalidateTransactionRelatedPaths();
 }
 
 /**

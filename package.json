@@ -19,7 +19,11 @@
     "test:e2e": "npx playwright test",
     "test:e2e:ui": "npx playwright test --ui",
     "test:e2e:headed": "npx playwright test --headed",
-    "test:e2e:coverage": "E2E_COVERAGE=true npx playwright test"
+    "test:e2e:coverage": "E2E_COVERAGE=true npx playwright test",
+    "db:pull": "drizzle-kit pull",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.36.5",
@@ -50,7 +54,6 @@
     "next-intl": "^4.8.2",
     "next-themes": "^0.4.6",
     "nuqs": "^2.8.6",
-    "pg": "^8.17.1",
     "postgres": "^3.4.8",
     "radix-ui": "^1.4.3",
     "react": "^19.2.3",
@@ -76,7 +79,6 @@
     "@testing-library/user-event": "^14.6.1",
     "@types/luxon": "^3.7.1",
     "@types/node": "^22",
-    "@types/pg": "^8.16.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^5.1.3",

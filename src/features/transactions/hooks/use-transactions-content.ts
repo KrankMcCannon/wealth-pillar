@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useTransition, useEffect, useRef } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { useSearchParams } from 'next/navigation';
 import { useIdNameMap } from '@/hooks';
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
@@ -96,7 +97,13 @@ export function useTransactionsContent({
   const queryKey = useMemo(() => buildQueryKey(appliedQuery), [appliedQuery]);
   const prevQueryKeyRef = useRef(queryKey);
 
-  const pending = useOptimisticTransactionStore((state) => state.pending);
+  const optimisticOverlay = useOptimisticTransactionStore(
+    useShallow((state) => ({
+      pending: state.pending,
+      updated: state.updated,
+      deleted: state.deleted,
+    }))
+  );
   const pruneCommitted = useOptimisticTransactionStore((state) => state.pruneCommitted);
 
   const { openModal } = useModalState();
@@ -134,10 +141,10 @@ export function useTransactionsContent({
 
   const listItems = useMemo(
     () =>
-      mergeOptimisticTransactions(serverList, pending, (transaction) =>
+      mergeOptimisticTransactions(serverList, optimisticOverlay, (transaction) =>
         matchesAppliedQuery(transaction, appliedQuery, searchDraft)
       ),
-    [serverList, pending, appliedQuery, searchDraft]
+    [serverList, optimisticOverlay, appliedQuery, searchDraft]
   );
 
   const debouncedSearch = useDebouncedValue(searchDraft, 300);

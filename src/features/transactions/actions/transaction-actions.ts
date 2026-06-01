@@ -66,7 +66,9 @@ export async function updateTransactionAction(
     }
 
     // Get existing transaction to verify ownership
-    const existingTransaction = await getTransactionByIdUseCase(id);
+    const groupId = currentUser.group_id?.trim();
+    const repoScope = groupId ? { groupId } : undefined;
+    const existingTransaction = await getTransactionByIdUseCase(id, repoScope);
     if (!existingTransaction) {
       return { data: null, error: 'Transazione non trovata' };
     }
@@ -98,7 +100,11 @@ export async function updateTransactionAction(
       return { data: null, error: parsed.error.issues[0]?.message ?? 'Invalid input' };
     }
 
-    const data = await updateTransactionUseCase(id, parsed.data as Partial<CreateTransactionInput>);
+    const data = await updateTransactionUseCase(
+      id,
+      parsed.data as Partial<CreateTransactionInput>,
+      repoScope
+    );
 
     return { data, error: null };
   } catch (error) {
@@ -121,7 +127,8 @@ export async function getTransactionByIdAction(id: string): Promise<ServiceResul
       return { data: null, error: 'Non autenticato. Effettua il login per continuare.' };
     }
 
-    const transaction = await getTransactionByIdUseCase(id);
+    const groupId = currentUser.group_id?.trim();
+    const transaction = await getTransactionByIdUseCase(id, groupId ? { groupId } : undefined);
     if (!transaction) {
       return { data: null, error: 'Transazione non trovata' };
     }
@@ -194,7 +201,9 @@ export async function deleteTransactionAction(id: string): Promise<ServiceResult
     }
 
     // Get existing transaction to verify ownership
-    const existingTransaction = await getTransactionByIdUseCase(id);
+    const groupId = currentUser.group_id?.trim();
+    const repoScope = groupId ? { groupId } : undefined;
+    const existingTransaction = await getTransactionByIdUseCase(id, repoScope);
     if (!existingTransaction) {
       return { data: null, error: 'Transazione non trovata' };
     }
@@ -211,7 +220,7 @@ export async function deleteTransactionAction(id: string): Promise<ServiceResult
       return { data: null, error: 'Permesso negato' };
     }
 
-    await deleteTransactionUseCase(id);
+    await deleteTransactionUseCase(id, repoScope);
 
     return { data: { id }, error: null };
   } catch (error) {

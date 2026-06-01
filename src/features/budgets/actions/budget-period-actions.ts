@@ -67,7 +67,7 @@ export async function startPeriodAction(
     const denied = denyUnlessCanViewUser(
       currentUser as unknown as User,
       userId,
-      t('errors.noPermissionUserData')
+      t('errors.noPermissionManageOthers')
     );
     if (denied) return denied;
 
@@ -116,7 +116,7 @@ export async function closePeriodAction(
     const deniedClose = denyUnlessCanViewUser(
       currentUser as unknown as User,
       userId,
-      t('errors.noPermissionUserData')
+      t('errors.noPermissionClose')
     );
     if (deniedClose) return deniedClose;
 
@@ -166,7 +166,7 @@ export async function editClosingDateAction(
     const deniedEdit = denyUnlessCanViewUser(
       currentUser as unknown as User,
       userId,
-      t('errors.noPermissionUserData')
+      t('errors.noPermissionEditClosingDate')
     );
     if (deniedEdit) return deniedEdit;
 
@@ -269,7 +269,7 @@ export async function deletePeriodAction(
     const deniedDelete = denyUnlessCanViewUser(
       currentUser as unknown as User,
       userId,
-      t('errors.noPermissionUserData')
+      t('errors.noPermissionDelete')
     );
     if (deniedDelete) return deniedDelete;
 
@@ -315,7 +315,7 @@ export async function getUserPeriodsAction(
     const deniedPeriods = denyUnlessCanViewUser(
       currentUser as unknown as User,
       userId,
-      t('errors.noPermissionUserData')
+      t('errors.noPermissionViewOthers')
     );
     if (deniedPeriods) return deniedPeriods;
 
@@ -359,7 +359,7 @@ export async function getActivePeriodAction(
     const deniedActive = denyUnlessCanViewUser(
       currentUser as unknown as User,
       userId,
-      t('errors.noPermissionUserData')
+      t('errors.noPermissionViewActiveOthers')
     );
     if (deniedActive) return deniedActive;
 

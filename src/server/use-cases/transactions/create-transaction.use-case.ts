@@ -1,3 +1,4 @@
+import { db } from '@/server/db/drizzle';
 import { TransactionsRepository } from '@/server/repositories/transactions.repository';
 import type { CreateTransactionInput } from '@/server/use-cases/transactions/types';
 import type { Transaction } from '@/lib/types';
@@ -9,6 +10,7 @@ import {
   validateEnum,
 } from '@/lib/utils/validation-utils';
 import { invalidateTransactionCaches } from '@/lib/utils/cache-utils';
+import { applyTransactionBalanceAdjustments } from '@/server/use-cases/transactions/transaction-balance';
 
 export async function createTransactionUseCase(data: CreateTransactionInput): Promise<Transaction> {
   const description = validateRequiredString(data.description, 'Description');
@@ -33,7 +35,7 @@ export async function createTransactionUseCase(data: CreateTransactionInput): Pr
     amount: data.amount.toString(),
     type: data.type,
     category: data.category,
-    date: transactionDate.toISOString().split('T')[0], // YYYY-MM-DD
+    date: transactionDate.toISOString().slice(0, 10),
     user_id: data.user_id || null,
     account_id: data.account_id,
     to_account_id: data.to_account_id || null,
@@ -41,34 +43,13 @@ export async function createTransactionUseCase(data: CreateTransactionInput): Pr
     group_id: data.group_id,
   };
 
-  const transaction = await TransactionsRepository.create(insertData);
-  if (!transaction) throw new Error('Failed to create transaction');
+  const transaction = await db.transaction(async (tx) => {
+    const created = await TransactionsRepository.create(insertData, tx);
+    if (!created) throw new Error('Failed to create transaction');
+    await applyTransactionBalanceAdjustments(created, 1, tx);
+    return created;
+  });
 
-  // Update balances
-  const direction = 1;
-  const amountNum = Number(transaction.amount);
-  if (transaction.type === 'income') {
-    await TransactionsRepository.updateAccountBalance(
-      transaction.account_id!,
-      amountNum * direction
-    );
-  } else if (transaction.type === 'expense') {
-    await TransactionsRepository.updateAccountBalance(
-      transaction.account_id!,
-      -amountNum * direction
-    );
-  } else if (transaction.type === 'transfer' && transaction.to_account_id) {
-    await TransactionsRepository.updateAccountBalance(
-      transaction.account_id!,
-      -amountNum * direction
-    );
-    await TransactionsRepository.updateAccountBalance(
-      transaction.to_account_id,
-      amountNum * direction
-    );
-  }
-
-  // Cache invalidation
   invalidateTransactionCaches({
     groupId: data.group_id,
     accountId: data.account_id,

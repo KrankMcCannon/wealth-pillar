@@ -1,6 +1,12 @@
 import { db } from '@/server/db/drizzle';
 import { transactions } from '@/server/db/schema';
 import { and, desc, eq, or, sql, count, inArray, ilike, lt } from 'drizzle-orm';
+import { resolveDb, type DbExecutor } from '@/server/repositories/db-executor';
+
+export interface TransactionScope {
+  groupId?: string;
+  userId?: string;
+}
 
 /** Exclusive lower bound for keyset pagination (same ordering as list: date desc, created_at desc, id desc). */
 export interface TransactionCursorAfter {
@@ -33,7 +39,12 @@ export class TransactionsRepository {
   /**
    * Get transactions by group with filtering
    */
-  static async getByGroup(groupId: string, options?: TransactionFilterOptions) {
+  static async getByGroup(
+    groupId: string,
+    options?: TransactionFilterOptions,
+    executor?: DbExecutor
+  ) {
+    const dbConn = resolveDb(executor);
     const filterConditions = [eq(transactions.group_id, groupId)];
 
     if (options?.startDate) {
@@ -88,7 +99,7 @@ export class TransactionsRepository {
 
     let total = 0;
     if (countTotal) {
-      const countResult = await db
+      const countResult = await dbConn
         .select({ total: count() })
         .from(transactions)
         .where(and(...filterConditions));
@@ -99,7 +110,7 @@ export class TransactionsRepository {
       pageLimit > 0 && !countTotal ? pageLimit + 1 : pageLimit > 0 ? pageLimit : undefined;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let query: any = db
+    let query: any = dbConn
       .select()
       .from(transactions)
       .where(listWhere)
@@ -197,24 +208,38 @@ export class TransactionsRepository {
   /**
    * Get transaction by ID
    */
-  static async getById(id: string) {
-    const [row] = await db.select().from(transactions).where(eq(transactions.id, id)).limit(1);
+  static async getById(id: string, scope?: TransactionScope, executor?: DbExecutor) {
+    const dbConn = resolveDb(executor);
+    const conditions = [eq(transactions.id, id)];
+    if (scope?.groupId) {
+      conditions.push(eq(transactions.group_id, scope.groupId));
+    }
+    if (scope?.userId) {
+      conditions.push(eq(transactions.user_id, scope.userId));
+    }
+    const [row] = await dbConn
+      .select()
+      .from(transactions)
+      .where(and(...conditions))
+      .limit(1);
     return row || null;
   }
 
   /**
    * Create a transaction
    */
-  static async create(data: InsertTransaction) {
-    const [row] = await db.insert(transactions).values(data).returning();
+  static async create(data: InsertTransaction, executor?: DbExecutor) {
+    const dbConn = resolveDb(executor);
+    const [row] = await dbConn.insert(transactions).values(data).returning();
     return row;
   }
 
   /**
    * Update a transaction
    */
-  static async update(id: string, data: Partial<UpdateTransaction>) {
-    const [row] = await db
+  static async update(id: string, data: Partial<UpdateTransaction>, executor?: DbExecutor) {
+    const dbConn = resolveDb(executor);
+    const [row] = await dbConn
       .update(transactions)
       // updated_at will be handled or we manually pass it here
       .set({ ...data, updated_at: new Date() })
@@ -226,8 +251,9 @@ export class TransactionsRepository {
   /**
    * Delete a transaction
    */
-  static async delete(id: string) {
-    const [row] = await db.delete(transactions).where(eq(transactions.id, id)).returning();
+  static async delete(id: string, executor?: DbExecutor) {
+    const dbConn = resolveDb(executor);
+    const [row] = await dbConn.delete(transactions).where(eq(transactions.id, id)).returning();
     return row;
   }
 
@@ -264,10 +290,9 @@ export class TransactionsRepository {
   /**
    * Apply balance delta to an account
    */
-  static async updateAccountBalance(accountId: string, deltaAmount: number) {
-    // Numeric types come as string from Drizzle normally but Postgres allows basic arithmetic
-    // deltaAmount is a number
-    await db.execute(
+  static async updateAccountBalance(accountId: string, deltaAmount: number, executor?: DbExecutor) {
+    const dbConn = resolveDb(executor);
+    await dbConn.execute(
       sql`UPDATE accounts SET balance = balance + ${deltaAmount} WHERE id = ${accountId}`
     );
   }

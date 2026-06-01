@@ -4,7 +4,6 @@ import { useCallback, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { z } from 'zod';
 import { useLocale, useTranslations } from 'next-intl';
-import { useRouter } from 'next/navigation';
 import { toast } from '@/hooks/use-toast';
 import {
   createBudgetAction,
@@ -62,8 +61,6 @@ function BudgetFormModalBody({
 function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalProps>) {
   const t = useTranslations('Budgets.FormModal');
   const locale = useLocale();
-  const router = useRouter();
-
   const { groupUsers, groupId, shouldDisableUserField, defaultFormUserId, userFieldHelperText } =
     useEntityFormPermissions();
   const categories = useCategories();
@@ -214,23 +211,45 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
     },
     getSuccessToast,
     errorToast: { title: t('toast.errorTitle') },
-    refreshAfterSuccess: () => router.refresh(),
     unknownErrorMessage: t('errors.unknown'),
   });
 
   const handleDelete = useCallback(async () => {
     if (!editId) return;
-    const result = await deleteBudgetAction(editId, locale);
-    if (result.error) {
-      throw new Error(result.error);
+    const budget = storeBudgets.find((item) => item.id === editId);
+    if (!budget) return;
+
+    removeBudget(editId);
+    let restored = false;
+    try {
+      const result = await deleteBudgetAction(editId, locale);
+      if (result.error) {
+        addBudget(budget);
+        restored = true;
+        toast({
+          title: t('toast.errorTitle'),
+          description: result.error,
+          variant: 'destructive',
+        });
+        throw new Error(result.error);
+      }
+      toast({
+        title: t('toast.deletedTitle'),
+        description: t('toast.deletedDescription'),
+        variant: 'success',
+      });
+    } catch {
+      if (!restored) {
+        addBudget(budget);
+        toast({
+          title: t('toast.errorTitle'),
+          description: t('errors.unknown'),
+          variant: 'destructive',
+        });
+      }
+      throw new Error('delete failed');
     }
-    toast({
-      title: t('toast.deletedTitle'),
-      description: t('toast.deletedDescription'),
-      variant: 'success',
-    });
-    router.refresh();
-  }, [editId, locale, router, t]);
+  }, [addBudget, editId, locale, removeBudget, storeBudgets, t]);
 
   return (
     <EntityFormModal<BudgetFormData>

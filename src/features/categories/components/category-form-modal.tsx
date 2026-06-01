@@ -3,7 +3,6 @@
 import { useCallback, useMemo } from 'react';
 import { z } from 'zod';
 import { useLocale, useTranslations } from 'next-intl';
-import { useRouter } from '@/i18n/routing';
 import type { Category } from '@/lib';
 import { getTempId } from '@/lib/utils/temp-id';
 import { getDefaultColor, isValidColor } from '@/server/use-cases/categories/category.logic';
@@ -38,7 +37,6 @@ interface CategoryFormModalProps {
 function CategoryFormModal({ isOpen, onClose, editId }: Readonly<CategoryFormModalProps>) {
   const t = useTranslations('Categories.FormModal');
   const locale = useLocale();
-  const router = useRouter();
   const groupId = useRequiredGroupId();
 
   const storeCategories = useCategories();
@@ -223,22 +221,44 @@ function CategoryFormModal({ isOpen, onClose, editId }: Readonly<CategoryFormMod
     errorToast: { title: t('toast.errorTitle') },
     formatErrorDescription,
     unknownErrorMessage: t('errors.unknown'),
-    refreshAfterSuccess: () => router.refresh(),
   });
 
   const handleDelete = useCallback(async () => {
     if (!editId) return;
-    const result = await deleteCategoryAction(editId, locale);
-    if (result.error) {
-      throw new Error(result.error);
+    const category = storeCategories.find((c) => c.id === editId);
+    if (!category) return;
+
+    removeCategory(editId);
+    let restored = false;
+    try {
+      const result = await deleteCategoryAction(editId, locale);
+      if (result.error) {
+        addCategory(category);
+        restored = true;
+        toast({
+          title: t('toast.errorTitle'),
+          description: result.error,
+          variant: 'destructive',
+        });
+        throw new Error(result.error);
+      }
+      toast({
+        title: t('toast.deletedTitle'),
+        description: t('toast.deletedDescription'),
+        variant: 'success',
+      });
+    } catch {
+      if (!restored) {
+        addCategory(category);
+        toast({
+          title: t('toast.errorTitle'),
+          description: t('errors.unknown'),
+          variant: 'destructive',
+        });
+      }
+      throw new Error('delete failed');
     }
-    toast({
-      title: t('toast.deletedTitle'),
-      description: t('toast.deletedDescription'),
-      variant: 'success',
-    });
-    router.refresh();
-  }, [editId, locale, router, t]);
+  }, [addCategory, editId, locale, removeCategory, storeCategories, t]);
 
   return (
     <EntityFormModal<CategoryFormData>

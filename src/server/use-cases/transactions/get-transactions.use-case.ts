@@ -3,7 +3,10 @@ import { CACHE_TAGS, cacheOptions, CACHE_TTL } from '@/lib/cache/config';
 import { transactionCacheKeys } from '@/lib/cache/keys';
 import { cacheLife, cacheTag } from 'next/cache';
 import { serialize } from '@/lib/utils/serializer';
-import { TransactionsRepository } from '@/server/repositories/transactions.repository';
+import {
+  TransactionsRepository,
+  type TransactionScope,
+} from '@/server/repositories/transactions.repository';
 import type { TransactionFilterOptions } from '@/server/repositories/transactions.repository';
 import type { Transaction } from '@/lib/types';
 import { db } from '@/server/db/drizzle';
@@ -100,16 +103,23 @@ export async function getUsedCategoryKeysByGroupUseCase(groupId: string): Promis
   return getCachedKeys();
 }
 
-export async function getTransactionByIdUseCase(transactionId: string): Promise<Transaction> {
+export async function getTransactionByIdUseCase(
+  transactionId: string,
+  scope?: TransactionScope
+): Promise<Transaction> {
   if (!transactionId?.trim()) throw new Error('Transaction ID is required');
+
+  const cacheKey = scope?.groupId
+    ? ['transaction', 'id', transactionId, 'group', scope.groupId]
+    : ['transaction', 'id', transactionId];
 
   const getCachedTransaction = cached(
     async () => {
-      const transaction = await TransactionsRepository.getById(transactionId);
+      const transaction = await TransactionsRepository.getById(transactionId, scope);
       if (!transaction) throw new Error('Transaction not found');
       return serialize({ ...transaction, amount: Number(transaction.amount) }) as Transaction;
     },
-    ['transaction', 'id', transactionId],
+    cacheKey,
     { revalidate: 120, tags: [CACHE_TAGS.TRANSACTIONS, `transaction:${transactionId}`] }
   );
 

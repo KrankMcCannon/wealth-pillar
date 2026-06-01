@@ -93,6 +93,8 @@ function createMockInput(overrides: Partial<CreateTransactionInput> = {}): Creat
   };
 }
 
+const repoScope = { groupId: 'group-1' };
+
 describe('transaction-actions', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -111,7 +113,7 @@ describe('transaction-actions', () => {
     });
 
     it('should return error when member tries to create transaction for another user', async () => {
-      vi.mocked(getCurrentUser).mockResolvedValue(createMockUser({ id: 'user-1' }));
+      vi.mocked(getCurrentUser).mockResolvedValue(createMockUser({ id: 'user-1', role: 'member' }));
       vi.mocked(isMember).mockReturnValue(true);
 
       const result = await createTransactionAction(createMockInput({ user_id: 'user-2' }));
@@ -128,8 +130,8 @@ describe('transaction-actions', () => {
     });
 
     it('should return error when user cannot access target user data', async () => {
-      vi.mocked(getCurrentUser).mockResolvedValue(createMockUser());
-      vi.mocked(canAccessUserData).mockReturnValue(false);
+      vi.mocked(getCurrentUser).mockResolvedValue(createMockUser({ id: 'user-1', role: 'member' }));
+      vi.mocked(isMember).mockReturnValue(true);
 
       const result = await createTransactionAction(createMockInput({ user_id: 'user-2' }));
 
@@ -214,11 +216,11 @@ describe('transaction-actions', () => {
     });
 
     it('should return error when user cannot access existing transaction', async () => {
-      vi.mocked(getCurrentUser).mockResolvedValue(createMockUser({ id: 'user-1' }));
+      vi.mocked(getCurrentUser).mockResolvedValue(createMockUser({ id: 'user-1', role: 'member' }));
+      vi.mocked(isMember).mockReturnValue(true);
       vi.mocked(getTransactionByIdUseCase).mockResolvedValue(
         createMockTransaction({ user_id: 'user-2' })
       );
-      vi.mocked(canAccessUserData).mockReturnValue(false);
 
       const result = await updateTransactionAction('tx-1', { description: 'Updated' });
 
@@ -226,7 +228,7 @@ describe('transaction-actions', () => {
     });
 
     it('should return error when member tries to reassign transaction to another user', async () => {
-      vi.mocked(getCurrentUser).mockResolvedValue(createMockUser({ id: 'user-1' }));
+      vi.mocked(getCurrentUser).mockResolvedValue(createMockUser({ id: 'user-1', role: 'member' }));
       vi.mocked(getTransactionByIdUseCase).mockResolvedValue(
         createMockTransaction({ user_id: 'user-1' })
       );
@@ -240,21 +242,6 @@ describe('transaction-actions', () => {
       });
     });
 
-    it('should return error when admin cannot access new user for reassignment', async () => {
-      vi.mocked(getCurrentUser).mockResolvedValue(createMockUser({ id: 'admin-1', role: 'admin' }));
-      vi.mocked(getTransactionByIdUseCase).mockResolvedValue(
-        createMockTransaction({ user_id: 'user-1' })
-      );
-      vi.mocked(isMember).mockReturnValue(false); // Not a member (is admin)
-      vi.mocked(canAccessUserData)
-        .mockReturnValueOnce(true) // Can access existing transaction
-        .mockReturnValueOnce(false); // Cannot access new user
-
-      const result = await updateTransactionAction('tx-1', { user_id: 'user-restricted' });
-
-      expect(result).toEqual({ data: null, error: 'Permesso negato' });
-    });
-
     it('should allow admin to reassign transaction to accessible user', async () => {
       const mockUser = createMockUser({ id: 'admin-1', role: 'admin' });
       const existingTx = createMockTransaction({ user_id: 'user-1' });
@@ -263,17 +250,17 @@ describe('transaction-actions', () => {
       vi.mocked(getCurrentUser).mockResolvedValue(mockUser);
       vi.mocked(getTransactionByIdUseCase).mockResolvedValue(existingTx);
       vi.mocked(updateTransactionUseCase).mockResolvedValue(updatedTx);
-      vi.mocked(isMember).mockReturnValue(false); // Not a member (is admin)
-      vi.mocked(canAccessUserData)
-        .mockReturnValueOnce(true) // Can access existing transaction
-        .mockReturnValueOnce(true); // Can access new user
+      vi.mocked(isMember).mockReturnValue(false);
 
       const result = await updateTransactionAction('tx-1', { user_id: 'user-2' });
 
       expect(result).toEqual({ data: updatedTx, error: null });
-      expect(updateTransactionUseCase).toHaveBeenCalledWith('tx-1', {
-        user_id: 'user-2',
-      });
+      expect(updateTransactionUseCase).toHaveBeenCalledWith(
+        'tx-1',
+        { user_id: 'user-2' },
+        repoScope
+      );
+      expect(getTransactionByIdUseCase).toHaveBeenCalledWith('tx-1', repoScope);
     });
 
     it('should update transaction successfully', async () => {
@@ -288,9 +275,11 @@ describe('transaction-actions', () => {
       const result = await updateTransactionAction('tx-1', { description: 'Updated' });
 
       expect(result).toEqual({ data: updatedTx, error: null });
-      expect(updateTransactionUseCase).toHaveBeenCalledWith('tx-1', {
-        description: 'Updated',
-      });
+      expect(updateTransactionUseCase).toHaveBeenCalledWith(
+        'tx-1',
+        { description: 'Updated' },
+        repoScope
+      );
     });
 
     it('should handle service errors gracefully', async () => {
@@ -360,11 +349,11 @@ describe('transaction-actions', () => {
     });
 
     it('should return error when user cannot access transaction', async () => {
-      vi.mocked(getCurrentUser).mockResolvedValue(createMockUser({ id: 'user-1' }));
+      vi.mocked(getCurrentUser).mockResolvedValue(createMockUser({ id: 'user-1', role: 'member' }));
+      vi.mocked(isMember).mockReturnValue(true);
       vi.mocked(getTransactionByIdUseCase).mockResolvedValue(
         createMockTransaction({ user_id: 'user-2' })
       );
-      vi.mocked(canAccessUserData).mockReturnValue(false);
 
       const result = await deleteTransactionAction('tx-1');
 
@@ -382,7 +371,7 @@ describe('transaction-actions', () => {
       const result = await deleteTransactionAction('tx-1');
 
       expect(result).toEqual({ data: { id: 'tx-1' }, error: null });
-      expect(deleteTransactionUseCase).toHaveBeenCalledWith('tx-1');
+      expect(deleteTransactionUseCase).toHaveBeenCalledWith('tx-1', repoScope);
     });
 
     it('should handle service errors gracefully', async () => {

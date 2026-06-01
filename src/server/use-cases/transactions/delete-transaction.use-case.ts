@@ -1,25 +1,23 @@
+import { db } from '@/server/db/drizzle';
 import { TransactionsRepository } from '@/server/repositories/transactions.repository';
 import { validateId } from '@/lib/utils/validation-utils';
 import { invalidateTransactionCaches } from '@/lib/utils/cache-utils';
+import { applyTransactionBalanceAdjustments } from '@/server/use-cases/transactions/transaction-balance';
+import type { TransactionScope } from '@/server/repositories/transactions.repository';
 
-export async function deleteTransactionUseCase(id: string): Promise<{ id: string }> {
+export async function deleteTransactionUseCase(
+  id: string,
+  scope?: TransactionScope
+): Promise<{ id: string }> {
   validateId(id, 'Transaction ID');
 
-  const existing = await TransactionsRepository.getById(id);
+  const existing = await TransactionsRepository.getById(id, scope);
   if (!existing) throw new Error('Transaction not found');
 
-  await TransactionsRepository.delete(id);
-
-  // Reverse balances (-1 direction)
-  const amt = Number(existing.amount);
-  if (existing.type === 'income') {
-    await TransactionsRepository.updateAccountBalance(existing.account_id!, -amt);
-  } else if (existing.type === 'expense') {
-    await TransactionsRepository.updateAccountBalance(existing.account_id!, amt);
-  } else if (existing.type === 'transfer' && existing.to_account_id) {
-    await TransactionsRepository.updateAccountBalance(existing.account_id!, amt);
-    await TransactionsRepository.updateAccountBalance(existing.to_account_id, -amt);
-  }
+  await db.transaction(async (tx) => {
+    await TransactionsRepository.delete(id, tx);
+    await applyTransactionBalanceAdjustments(existing, -1, tx);
+  });
 
   invalidateTransactionCaches({
     groupId: existing.group_id!,
