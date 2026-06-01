@@ -14,6 +14,17 @@ import {
 
 export type ReportsTimePreset = 'monthly' | 'weekly' | 'ytd' | 'yearly' | 'custom';
 
+export const REPORTS_PRESET_OPTIONS = ['yearly', 'ytd', 'monthly', 'weekly', 'custom'] as const;
+
+export const DEFAULT_REPORTS_PRESET: ReportsTimePreset = 'yearly';
+
+export function resolveReportsPreset(raw?: string): ReportsTimePreset {
+  if (raw && (REPORTS_PRESET_OPTIONS as readonly string[]).includes(raw)) {
+    return raw as ReportsTimePreset;
+  }
+  return DEFAULT_REPORTS_PRESET;
+}
+
 export interface DateWindow {
   start: Date;
   end: Date;

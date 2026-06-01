@@ -1,8 +1,47 @@
 import type { TransactionFiltersState } from '@/server/use-cases/transactions/transaction.logic';
+import { filterTransactions } from '@/server/use-cases/transactions/transaction.logic';
+import type { Transaction } from '@/lib/types';
 import type {
   AppliedTransactionsQuery,
   TransactionsListQuery,
 } from '@/server/use-cases/pages/transactions-page.use-case';
+import { defaultFiltersState } from '../components/filters/filter-helpers';
+
+export function appliedQueryToFiltersState(
+  applied: AppliedTransactionsQuery,
+  searchQuery: string
+): TransactionFiltersState {
+  const resolvedType = applied.type === 'transfer' ? 'all' : applied.type;
+  const keysFromCsv = applied.categories
+    ? applied.categories
+        .split(',')
+        .map((key) => key.trim())
+        .filter(Boolean)
+    : [];
+
+  return {
+    ...defaultFiltersState,
+    searchQuery,
+    type: resolvedType,
+    dateRange: applied.dateRange,
+    categoryKey: keysFromCsv.length > 0 ? 'all' : (applied.category ?? 'all'),
+    accountId: applied.account ?? 'all',
+    ...(keysFromCsv.length > 0 ? { categoryKeys: keysFromCsv } : {}),
+    ...(applied.startDate ? { startDate: applied.startDate } : {}),
+    ...(applied.endDate ? { endDate: applied.endDate } : {}),
+  };
+}
+
+export function matchesAppliedQuery(
+  transaction: Transaction,
+  applied: AppliedTransactionsQuery,
+  searchQuery: string
+): boolean {
+  if (applied.user && transaction.user_id !== applied.user) return false;
+
+  const filters = appliedQueryToFiltersState(applied, searchQuery);
+  return filterTransactions([transaction], filters).length > 0;
+}
 
 export function appliedQueryToListQuery(
   applied: AppliedTransactionsQuery,

@@ -9,6 +9,11 @@ import { deleteBudgetPeriodUseCase } from '@/server/use-cases/budget-periods/del
 import { getBudgetsPeriodsByUserUseCase } from '@/server/use-cases/budget-periods/get-budget-periods-by-user.use-case';
 import { getActiveBudgetPeriodUseCase } from '@/server/use-cases/budget-periods/get-active-budget-period.use-case';
 import { calculatePeriodTotalsUseCase } from '@/server/use-cases/budget-periods/calculate-period-totals.use-case';
+import {
+  editBudgetPeriodClosingDateUseCase,
+  EditClosingDateError,
+  getLatestClosedBudgetPeriodUseCase,
+} from '@/server/use-cases/budget-periods/edit-closing-date.use-case';
 import { getTransactionsByUserUseCase } from '@/server/use-cases/transactions/get-transactions.use-case';
 import { getBudgetsByUserUseCase } from '@/server/use-cases/budgets/get-budgets.use-case';
 import { AccountsRepository } from '@/server/repositories/accounts.repository';
@@ -138,6 +143,122 @@ export async function closePeriodAction(
         error instanceof Error
           ? error.message
           : (t?.('errors.closeFailed') ?? 'Failed to close budget period'),
+    };
+  }
+}
+
+/**
+ * Server Action: Edit Closing Date of Latest Closed Budget Period
+ * Adjusts end_date of the most recently closed period and shifts the active period start_date.
+ *
+ * Permissions: members can only edit their own periods
+ */
+export async function editClosingDateAction(
+  userId: string,
+  periodId: string,
+  newEndDate: string,
+  locale?: string
+): Promise<ServiceResult<BudgetPeriod>> {
+  let t: Awaited<ReturnType<typeof getTranslations>> | null = null;
+  try {
+    t = await getBudgetPeriodActionTranslator(locale);
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return {
+        data: null,
+        error: t('errors.unauthenticated'),
+      };
+    }
+
+    if (isMember(currentUser as unknown as User) && userId !== currentUser.id) {
+      return {
+        data: null,
+        error: t('errors.noPermissionEditClosingDate'),
+      };
+    }
+
+    if (!canAccessUserData(currentUser as unknown as User, userId)) {
+      return {
+        data: null,
+        error: t('errors.noPermissionUserData'),
+      };
+    }
+
+    const result = await editBudgetPeriodClosingDateUseCase(userId, periodId, newEndDate);
+
+    revalidateBudgetPeriodRelatedPaths();
+
+    return { data: result.closedPeriod, error: null };
+  } catch (error) {
+    if (error instanceof EditClosingDateError && t) {
+      const errorMessages: Record<string, string> = {
+        invalidDate: t('errors.invalidDate'),
+        periodNotFound: t('errors.periodNotFound'),
+        periodMustBeClosed: t('errors.periodMustBeClosed'),
+        noActivePeriod: t('errors.noActivePeriod'),
+        notLatestPeriod: t('errors.notLatestPeriod'),
+        endBeforeStart: t('errors.endBeforeStart'),
+        futureActiveStart: t('errors.futureActiveStart'),
+      };
+      const mapped = errorMessages[error.code];
+      if (mapped) {
+        return { data: null, error: mapped };
+      }
+    }
+
+    return {
+      data: null,
+      error:
+        error instanceof Error
+          ? error.message
+          : (t?.('errors.editFailed') ?? 'Failed to edit closing date'),
+    };
+  }
+}
+
+/**
+ * Server Action: Get Latest Closed Budget Period
+ * Returns the most recently closed period (adjacent to the active period), if any.
+ */
+export async function getLatestClosedPeriodAction(
+  userId: string,
+  locale?: string
+): Promise<ServiceResult<BudgetPeriod | null>> {
+  let t: Awaited<ReturnType<typeof getTranslations>> | null = null;
+  try {
+    t = await getBudgetPeriodActionTranslator(locale);
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return {
+        data: null,
+        error: t('errors.unauthenticated'),
+      };
+    }
+
+    if (isMember(currentUser as unknown as User) && userId !== currentUser.id) {
+      return {
+        data: null,
+        error: t('errors.noPermissionViewOthers'),
+      };
+    }
+
+    if (!canAccessUserData(currentUser as unknown as User, userId)) {
+      return {
+        data: null,
+        error: t('errors.noPermissionUserData'),
+      };
+    }
+
+    const period = await getLatestClosedBudgetPeriodUseCase(userId);
+
+    return { data: period, error: null };
+  } catch (error) {
+    return {
+      data: null,
+      error:
+        error instanceof Error
+          ? error.message
+          : (t?.('errors.fetchPeriodsFailed') ?? 'Failed to fetch budget periods'),
     };
   }
 }

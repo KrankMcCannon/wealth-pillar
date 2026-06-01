@@ -15,9 +15,11 @@ export {
 export {
   startPeriodAction,
   closePeriodAction,
+  editClosingDateAction,
   deletePeriodAction,
   getUserPeriodsAction,
   getActivePeriodAction,
+  getLatestClosedPeriodAction,
   getPeriodPreviewAction,
 } from './actions/budget-period-actions';
 

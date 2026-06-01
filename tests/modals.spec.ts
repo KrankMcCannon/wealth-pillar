@@ -61,6 +61,26 @@ test.describe('entity modals (mobile)', () => {
     await expect(page.locator('[data-vaul-drawer]')).toBeVisible();
   });
 
+  test('budget-edit-closing-date opens drawer when latest closed period exists', async ({
+    page,
+  }) => {
+    await page.goto('/budgets');
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForTimeout(2000);
+
+    const editClosingDateButton = page.getByRole('button', {
+      name: /modifica ultima chiusura|adjust last closing date/i,
+    });
+    if (!(await editClosingDateButton.isVisible({ timeout: 5000 }))) {
+      test.skip();
+      return;
+    }
+
+    await editClosingDateButton.click();
+    await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('[data-vaul-drawer]')).toBeVisible();
+  });
+
   test('transaction-create drawer exposes drag handle', async ({ page }) => {
     await page.goto('/transactions');
     await page.waitForLoadState('domcontentloaded');

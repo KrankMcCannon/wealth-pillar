@@ -26,7 +26,7 @@ import type { Account, Category, Transaction, User } from '@/lib/types';
 import { useTransactionEditStore } from '../stores/transaction-edit-store';
 import {
   buildOptimisticTransaction,
-  optimisticTransactionBus,
+  useOptimisticTransactionStore,
 } from '../stores/optimistic-transactions';
 import { mapTransactionToFormData } from '../utils/transaction-form-data';
 import { buildTransactionPayload } from '../utils/build-transaction-payload';
@@ -174,6 +174,9 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
   const { toast } = useToast();
   const seedTransaction = useTransactionEditStore((state) => state.seed);
   const clearSeed = useTransactionEditStore((state) => state.clearSeed);
+  const addOptimistic = useOptimisticTransactionStore((state) => state.addOptimistic);
+  const commitOptimistic = useOptimisticTransactionStore((state) => state.commitOptimistic);
+  const rollbackOptimistic = useOptimisticTransactionStore((state) => state.rollbackOptimistic);
 
   const handleClose = useCallback(() => {
     clearSeed();
@@ -269,14 +272,14 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
     updateAction: (id, payload) => updateTransactionAction(id, payload),
     applyCreateOptimistic: (payload) => {
       const tempId = getTempId('temp-tx');
-      optimisticTransactionBus.emitAdd(buildOptimisticTransaction(payload, tempId));
+      addOptimistic(buildOptimisticTransaction(payload, tempId), tempId);
       return tempId;
     },
     commitCreate: (tempId, result) => {
-      optimisticTransactionBus.emitReplace(tempId, result);
+      commitOptimistic(tempId, result);
     },
     rollbackCreate: (tempId) => {
-      optimisticTransactionBus.emitRemove(tempId);
+      rollbackOptimistic(tempId);
     },
     getSuccessToast,
     errorToast: { title: t('toast.errorTitle') },

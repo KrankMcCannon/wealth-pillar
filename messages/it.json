@@ -1337,8 +1337,12 @@
       },
       "noActivePeriodAlert": "Nessun periodo attivo. Inizia un nuovo periodo per tracciare le spese del budget.",
       "closePeriodSalaryHint": "Scegli come data di fine il giorno precedente all'accredito dello stipendio: così il periodo budget resta allineato al flusso di cassa e il nuovo periodo può iniziare dal giorno della busta paga.",
+      "editClosingDateHint": "Modifica la data di chiusura dell'ultimo periodo budget. La data di inizio del periodo attivo verrà aggiornata di conseguenza.",
+      "noClosedPeriodAlert": "Nessun periodo chiuso disponibile da modificare.",
       "buttons": {
         "closePeriod": "Chiudi periodo",
+        "editClosingDate": "Modifica ultima chiusura",
+        "saveClosingDate": "Salva data di chiusura",
         "startNewPeriod": "Inizia nuovo periodo",
         "cancel": "Annulla"
       }
@@ -1359,6 +1363,7 @@
         "reserveSaved": "Accantonato (riserva)"
       },
       "closePeriod": "Chiudi periodo",
+      "editClosingDate": "Modifica ultima chiusura",
       "fabAddBudget": "Aggiungi budget",
       "categoryCard": {
         "ariaOpenDetail": "Open budget details: {name}",
@@ -1558,6 +1563,16 @@
         "startFailed": "Impossibile avviare il periodo budget",
         "noPermissionClose": "Non hai i permessi per chiudere questo periodo.",
         "closeFailed": "Impossibile chiudere il periodo budget",
+        "noPermissionEditClosingDate": "Non hai i permessi per modificare la data di chiusura di questo periodo.",
+        "editFailed": "Impossibile modificare la data di chiusura",
+        "invalidDate": "Data non valida",
+        "periodNotFound": "Periodo non trovato",
+        "periodMustBeClosed": "Solo i periodi chiusi possono essere modificati",
+        "noActivePeriod": "Nessun periodo attivo trovato",
+        "notLatestPeriod": "Solo l'ultimo periodo chiuso può essere modificato",
+        "endBeforeStart": "La data di fine deve essere uguale o successiva alla data di inizio del periodo",
+        "futureActiveStart": "Il periodo successivo non può iniziare nel futuro",
+        "noClosedPeriod": "Nessun periodo chiuso disponibile da modificare",
         "noPermissionDelete": "Non hai i permessi per eliminare questo periodo.",
         "deleteFailed": "Impossibile eliminare il periodo budget",
         "noPermissionViewOthers": "Non hai i permessi per visualizzare i periodi di altri utenti.",

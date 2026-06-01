@@ -15,6 +15,7 @@ import {
 import {
   getComparisonReportingWindow,
   getCurrentReportingWindow,
+  DEFAULT_REPORTS_PRESET,
   type ReportsTimePreset,
 } from '@/features/reports/utils/reporting-window';
 
@@ -46,7 +47,7 @@ export async function getReportsPageDataUseCase(
   cacheTag(`group:${groupId}:accounts`);
   cacheTag('categories');
 
-  const preset = params.preset ?? 'monthly';
+  const preset = params.preset ?? DEFAULT_REPORTS_PRESET;
   const customRange =
     params.customStart && params.customEnd
       ? { start: params.customStart, end: params.customEnd }

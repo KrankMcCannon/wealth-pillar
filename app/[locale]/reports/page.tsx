@@ -7,15 +7,13 @@ import {
 } from '@/server/use-cases/pages/reports-page.use-case';
 import { ReportsSkeleton } from '@/components/reports/reports-skeleton';
 import ReportsContent from './reports-content';
-import type { ReportsTimePreset } from '@/features/reports/utils/reporting-window';
+import { resolveReportsPreset } from '@/features/reports/utils/reporting-window';
 
 function parseReportsParams(
   searchParams: Record<string, string | string[] | undefined>
 ): ReportsPageParams {
-  const presetRaw = typeof searchParams.preset === 'string' ? searchParams.preset : 'monthly';
-  const preset = (
-    ['monthly', 'weekly', 'ytd', 'yearly', 'custom'].includes(presetRaw) ? presetRaw : 'monthly'
-  ) as ReportsTimePreset;
+  const presetRaw = typeof searchParams.preset === 'string' ? searchParams.preset : undefined;
+  const preset = resolveReportsPreset(presetRaw);
 
   return {
     preset,
@@ -55,7 +53,7 @@ export default async function ReportsPage({
         currentUser={currentUser}
         groupUsers={groupUsers}
         reportsBundlePromise={reportsBundlePromise}
-        initialPreset={reportParams.preset ?? 'monthly'}
+        initialPreset={reportParams.preset ?? resolveReportsPreset()}
         initialCustomStart={reportParams.customStart}
         initialCustomEnd={reportParams.customEnd}
         initialScope={

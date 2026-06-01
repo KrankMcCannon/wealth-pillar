@@ -1,34 +1,86 @@
+import { create } from 'zustand';
+import { devtools } from 'zustand/middleware';
 import type { Transaction } from '@/lib/types';
 import type { CreateTransactionInput } from '@/server/use-cases/transactions/types';
 import { getTempId } from '@/lib/utils/temp-id';
 
-export type OptimisticTransactionAction = 'add' | 'replace' | 'remove';
+export type OptimisticEntryStatus = 'pending' | 'committed';
 
-type OptimisticListener = (
-  transaction: Transaction,
-  action: OptimisticTransactionAction,
-  tempId?: string
-) => void;
+export interface OptimisticEntry {
+  tempId: string;
+  id: string;
+  transaction: Transaction;
+  status: OptimisticEntryStatus;
+}
 
-const listeners = new Set<OptimisticListener>();
+interface OptimisticTransactionState {
+  pending: OptimisticEntry[];
+  addOptimistic: (transaction: Transaction, tempId: string) => void;
+  commitOptimistic: (tempId: string, transaction: Transaction) => void;
+  rollbackOptimistic: (tempId: string) => void;
+  pruneCommitted: (serverIds: Set<string>) => void;
+}
 
-export const optimisticTransactionBus = {
-  subscribe(listener: OptimisticListener) {
-    listeners.add(listener);
-    return () => {
-      listeners.delete(listener);
-    };
-  },
-  emitAdd(transaction: Transaction) {
-    listeners.forEach((listener) => listener(transaction, 'add'));
-  },
-  emitReplace(tempId: string, transaction: Transaction) {
-    listeners.forEach((listener) => listener(transaction, 'replace', tempId));
-  },
-  emitRemove(tempId: string) {
-    listeners.forEach((listener) => listener({ id: tempId } as Transaction, 'remove', tempId));
-  },
-};
+export const useOptimisticTransactionStore = create<OptimisticTransactionState>()(
+  devtools(
+    (set) => ({
+      pending: [],
+      addOptimistic: (transaction, tempId) =>
+        set(
+          (state) => ({
+            pending: [...state.pending, { tempId, id: tempId, transaction, status: 'pending' }],
+          }),
+          false,
+          'optimistic/add'
+        ),
+      commitOptimistic: (tempId, transaction) =>
+        set(
+          (state) => ({
+            pending: state.pending.map((entry) =>
+              entry.tempId === tempId
+                ? { ...entry, id: transaction.id, transaction, status: 'committed' as const }
+                : entry
+            ),
+          }),
+          false,
+          'optimistic/commit'
+        ),
+      rollbackOptimistic: (tempId) =>
+        set(
+          (state) => ({
+            pending: state.pending.filter((entry) => entry.tempId !== tempId),
+          }),
+          false,
+          'optimistic/rollback'
+        ),
+      pruneCommitted: (serverIds) =>
+        set(
+          (state) => ({
+            pending: state.pending.filter(
+              (entry) => entry.status === 'pending' || !serverIds.has(entry.id)
+            ),
+          }),
+          false,
+          'optimistic/prune'
+        ),
+    }),
+    { name: 'OptimisticTransactions' }
+  )
+);
+
+export function mergeOptimisticTransactions(
+  serverList: Transaction[],
+  pending: OptimisticEntry[],
+  matchesFilters: (tx: Transaction) => boolean
+): Transaction[] {
+  const serverIds = new Set(serverList.map((transaction) => transaction.id));
+  const optimisticToAdd = pending
+    .filter((entry) => matchesFilters(entry.transaction) && !serverIds.has(entry.id))
+    .map((entry) => entry.transaction);
+
+  if (optimisticToAdd.length === 0) return serverList;
+  return [...optimisticToAdd, ...serverList];
+}
 
 export function buildOptimisticTransaction(
   payload: CreateTransactionInput,

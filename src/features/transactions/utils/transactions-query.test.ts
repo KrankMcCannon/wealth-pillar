@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { appliedQueryToListQuery, buildTransactionsQueryString } from './transactions-query';
+import {
+  appliedQueryToListQuery,
+  buildTransactionsQueryString,
+  matchesAppliedQuery,
+} from './transactions-query';
 import type { AppliedTransactionsQuery } from '@/server/use-cases/pages/transactions-page.use-case';
+import type { Transaction } from '@/lib/types';
 
 describe('appliedQueryToListQuery', () => {
   it('maps applied filters and debounced search to list query', () => {
@@ -43,5 +48,34 @@ describe('buildTransactionsQueryString', () => {
     expect(qs).toMatch(/q=caff/);
     expect(qs).not.toContain('page=');
     expect(qs).not.toContain('pageSize=');
+  });
+});
+
+describe('matchesAppliedQuery', () => {
+  const transaction: Transaction = {
+    id: 'tx-1',
+    description: 'Pizza night',
+    amount: 20,
+    type: 'expense',
+    category: 'food',
+    date: '2024-06-01',
+    user_id: 'u1',
+    account_id: 'acc-1',
+    created_at: '2024-06-01T10:00:00Z',
+    updated_at: '2024-06-01T10:00:00Z',
+  };
+
+  it('matches user, type, and account filters', () => {
+    const applied: AppliedTransactionsQuery = {
+      user: 'u1',
+      type: 'expense',
+      dateRange: 'all',
+      account: 'acc-1',
+    };
+
+    expect(matchesAppliedQuery(transaction, applied, '')).toBe(true);
+    expect(matchesAppliedQuery(transaction, applied, 'pizza')).toBe(true);
+    expect(matchesAppliedQuery({ ...transaction, user_id: 'u2' }, applied, '')).toBe(false);
+    expect(matchesAppliedQuery({ ...transaction, type: 'income' }, applied, '')).toBe(false);
   });
 });

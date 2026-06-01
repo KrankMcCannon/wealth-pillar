@@ -122,13 +122,13 @@ test.describe('Transaction Flows', () => {
         await fab.click();
         await expect(page.locator('text=Nuova transazione')).toBeVisible({ timeout: 5000 });
 
-        await page
-          .locator("input[placeholder='Es. Spesa supermercato']")
-          .fill('Test E2E Transaction');
+        const uniqueDescription = `Test E2E Transaction ${Date.now()}`;
+        await page.locator("input[placeholder='Es. Spesa supermercato']").fill(uniqueDescription);
         await page.locator('input[placeholder="0,00"]').fill('100');
 
         await page.locator('button:has-text("Crea")').click();
         await expect(page.locator('text=Nuova transazione')).not.toBeVisible({ timeout: 5000 });
+        await expect(page.getByText(uniqueDescription)).toBeVisible({ timeout: 5000 });
       }
     });
   });

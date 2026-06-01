@@ -30,10 +30,10 @@ export function ReportsTimeFilter({
   const [draftEnd, setDraftEnd] = useState(customRange?.end ?? '');
 
   const presets: { id: ReportsTimePreset; labelKey: 'weekly' | 'monthly' | 'ytd' | 'yearly' }[] = [
-    { id: 'weekly', labelKey: 'weekly' },
-    { id: 'monthly', labelKey: 'monthly' },
-    { id: 'ytd', labelKey: 'ytd' },
     { id: 'yearly', labelKey: 'yearly' },
+    { id: 'ytd', labelKey: 'ytd' },
+    { id: 'monthly', labelKey: 'monthly' },
+    { id: 'weekly', labelKey: 'weekly' },
   ];
 
   const openCustom = () => {

@@ -6,7 +6,7 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { useShallow } from 'zustand/react/shallow';
-import type { Account, Budget, Category, Transaction } from '@/lib/types';
+import type { Account, Budget, Category } from '@/lib/types';
 
 // ============================================================================
 // Types
@@ -17,7 +17,6 @@ interface ReferenceDataState {
   accounts: Account[];
   categories: Category[];
   usedCategoryKeys: string[];
-  transactions: Transaction[];
   budgets: Budget[];
   isInitialized: boolean;
 
@@ -41,12 +40,6 @@ interface ReferenceDataState {
   removeCategory: (id: string) => void;
   refreshCategories: (categories: Category[]) => void;
 
-  // Transaction optimistic update actions
-  addTransaction: (transaction: Transaction) => void;
-  updateTransaction: (id: string, updates: Partial<Transaction>) => void;
-  removeTransaction: (id: string) => void;
-  refreshTransactions: (transactions: Transaction[]) => void;
-
   // Budget optimistic update actions
   addBudget: (budget: Budget) => void;
   updateBudget: (id: string, updates: Partial<Budget>) => void;
@@ -62,7 +55,6 @@ const initialState = {
   accounts: [],
   categories: [],
   usedCategoryKeys: [] as string[],
-  transactions: [],
   budgets: [],
   isInitialized: false,
 };
@@ -169,43 +161,6 @@ export const useReferenceDataStore = create<ReferenceDataState>()(
         set({ categories }, false, 'reference-data/refreshCategories');
       },
 
-      // Transaction actions
-      addTransaction: (transaction) => {
-        set(
-          (state) => ({
-            transactions: [transaction, ...state.transactions],
-          }),
-          false,
-          'reference-data/addTransaction'
-        );
-      },
-
-      updateTransaction: (id, updates) => {
-        set(
-          (state) => ({
-            transactions: state.transactions.map((transaction) =>
-              transaction.id === id ? { ...transaction, ...updates } : transaction
-            ),
-          }),
-          false,
-          'reference-data/updateTransaction'
-        );
-      },
-
-      removeTransaction: (id) => {
-        set(
-          (state) => ({
-            transactions: state.transactions.filter((transaction) => transaction.id !== id),
-          }),
-          false,
-          'reference-data/removeTransaction'
-        );
-      },
-
-      refreshTransactions: (transactions) => {
-        set({ transactions }, false, 'reference-data/refreshTransactions');
-      },
-
       // Budget actions
       addBudget: (budget) => {
         set(
@@ -267,12 +222,6 @@ export const useCategories = () => useReferenceDataStore((state) => state.catego
  * Get category keys in use by transactions within the current group
  */
 export const useUsedCategoryKeys = () => useReferenceDataStore((state) => state.usedCategoryKeys);
-
-/**
- * Get transactions
- * Subscribes only to transactions changes
- */
-export const useTransactions = () => useReferenceDataStore((state) => state.transactions);
 
 /**
  * Get budgets

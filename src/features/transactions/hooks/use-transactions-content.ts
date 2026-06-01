@@ -9,12 +9,16 @@ import { useModalState, useTabState, type ModalType } from '@/lib/navigation/url
 import { useRouter } from '@/i18n/routing';
 import { useTransactionEditStore } from '../stores/transaction-edit-store';
 import {
-  optimisticTransactionBus,
-  type OptimisticTransactionAction,
+  mergeOptimisticTransactions,
+  useOptimisticTransactionStore,
 } from '../stores/optimistic-transactions';
 import { loadMoreTransactionsAction } from '../actions/transaction-actions';
 import type { AppliedTransactionsQuery } from '@/server/use-cases/pages/transactions-page.use-case';
-import { appliedQueryToListQuery, buildTransactionsQueryString } from '../utils/transactions-query';
+import {
+  appliedQueryToListQuery,
+  buildTransactionsQueryString,
+  matchesAppliedQuery,
+} from '../utils/transactions-query';
 
 export { appliedQueryToListQuery } from '../utils/transactions-query';
 
@@ -69,22 +73,8 @@ function toFiltersFromQuery(props: AppliedTransactionsQuery): TransactionFilters
   };
 }
 
-function applyOptimisticAction(
-  state: Transaction[],
-  transaction: Transaction,
-  action: OptimisticTransactionAction,
-  tempId?: string
-): Transaction[] {
-  switch (action) {
-    case 'add':
-      return [transaction, ...state];
-    case 'replace':
-      return state.map((item) => (item.id === tempId ? transaction : item));
-    case 'remove':
-      return state.filter((item) => item.id !== tempId);
-    default:
-      return state;
-  }
+function buildQueryKey(appliedQuery: AppliedTransactionsQuery): string {
+  return JSON.stringify(appliedQuery);
 }
 
 export function useTransactionsContent({
@@ -99,10 +89,15 @@ export function useTransactionsContent({
   const searchParams = useSearchParams();
   const [isNavigating, startNavigation] = useTransition();
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [listItems, setListItems] = useState(serverTransactions);
+  const [extraPages, setExtraPages] = useState<Transaction[]>([]);
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [nextCursor, setNextCursor] = useState<string | undefined>(initialNextCursor);
   const loadMoreLock = useRef(false);
+  const queryKey = useMemo(() => buildQueryKey(appliedQuery), [appliedQuery]);
+  const prevQueryKeyRef = useRef(queryKey);
+
+  const pending = useOptimisticTransactionStore((state) => state.pending);
+  const pruneCommitted = useOptimisticTransactionStore((state) => state.pruneCommitted);
 
   const { openModal } = useModalState();
   const { activeTab, setActiveTab } = useTabState('Transactions');
@@ -115,20 +110,34 @@ export function useTransactionsContent({
   }, [urlFilters.searchQuery]);
 
   useEffect(() => {
-    setListItems(serverTransactions);
-    setHasMore(initialHasMore);
-    setNextCursor(initialNextCursor);
-  }, [serverTransactions, initialHasMore, initialNextCursor]);
+    if (prevQueryKeyRef.current !== queryKey) {
+      prevQueryKeyRef.current = queryKey;
+      setExtraPages([]);
+      setHasMore(initialHasMore);
+      setNextCursor(initialNextCursor);
+    }
+  }, [queryKey, initialHasMore, initialNextCursor]);
+
+  const serverList = useMemo(
+    () => [...serverTransactions, ...extraPages],
+    [serverTransactions, extraPages]
+  );
 
   useEffect(() => {
-    return optimisticTransactionBus.subscribe((transaction, action, tempId) => {
-      setListItems((prev) => applyOptimisticAction(prev, transaction, action, tempId));
-    });
-  }, []);
+    pruneCommitted(new Set(serverList.map((transaction) => transaction.id)));
+  }, [serverList, pruneCommitted]);
 
   const filters = useMemo(
     () => ({ ...urlFilters, searchQuery: searchDraft }),
     [urlFilters, searchDraft]
+  );
+
+  const listItems = useMemo(
+    () =>
+      mergeOptimisticTransactions(serverList, pending, (transaction) =>
+        matchesAppliedQuery(transaction, appliedQuery, searchDraft)
+      ),
+    [serverList, pending, appliedQuery, searchDraft]
   );
 
   const debouncedSearch = useDebouncedValue(searchDraft, 300);
@@ -200,7 +209,7 @@ export function useTransactionsContent({
         cursor: nextCursor,
       });
       if (result.error || !result.data) return;
-      setListItems((prev) => [...prev, ...result.data!.transactions]);
+      setExtraPages((prev) => [...prev, ...result.data!.transactions]);
       setHasMore(result.data.hasMore);
       setNextCursor(result.data.nextCursor);
     } finally {

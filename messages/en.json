@@ -1337,8 +1337,12 @@
       },
       "noActivePeriodAlert": "No active period. Start a new period to track budget spending.",
       "closePeriodSalaryHint": "Pick an end date on the day before your salary is credited: that keeps the budget period aligned with your cash flow so the next period can start on payday.",
+      "editClosingDateHint": "Adjust the closing date of your most recent budget period. The active period start date will shift accordingly.",
+      "noClosedPeriodAlert": "No closed period available to edit.",
       "buttons": {
         "closePeriod": "Close period",
+        "editClosingDate": "Adjust last closing date",
+        "saveClosingDate": "Save closing date",
         "startNewPeriod": "Start new period",
         "cancel": "Cancel"
       }
@@ -1359,6 +1363,7 @@
         "reserveSaved": "Set aside (reserve)"
       },
       "closePeriod": "Close period",
+      "editClosingDate": "Adjust last closing date",
       "fabAddBudget": "Add budget",
       "categoryCard": {
         "ariaOpenDetail": "Open budget details: {name}",
@@ -1558,6 +1563,16 @@
         "startFailed": "Failed to start budget period",
         "noPermissionClose": "You do not have permission to close this period.",
         "closeFailed": "Failed to close budget period",
+        "noPermissionEditClosingDate": "You do not have permission to edit this period's closing date.",
+        "editFailed": "Failed to edit closing date",
+        "invalidDate": "Invalid date",
+        "periodNotFound": "Period not found",
+        "periodMustBeClosed": "Only closed periods can be edited",
+        "noActivePeriod": "No active period found",
+        "notLatestPeriod": "Only the most recently closed period can be edited",
+        "endBeforeStart": "End date must be on or after the period start date",
+        "futureActiveStart": "The next period cannot start in the future",
+        "noClosedPeriod": "No closed period available to edit",
         "noPermissionDelete": "You do not have permission to delete this period.",
         "deleteFailed": "Failed to delete budget period",
         "noPermissionViewOthers": "You do not have permission to view other users' periods.",

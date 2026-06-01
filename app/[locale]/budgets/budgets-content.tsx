@@ -5,8 +5,8 @@
  */
 
 import { use, useEffect, useState } from 'react';
-import { useTranslations } from 'next-intl';
-import { CheckCircle2, ShoppingCart } from 'lucide-react';
+import { useTranslations, useLocale } from 'next-intl';
+import { CalendarClock, CheckCircle2, ShoppingCart } from 'lucide-react';
 import { AppPage, PageFab } from '@/components/layout';
 import { EmptyState } from '@/components/shared';
 import UserSelector from '@/components/shared/user-selector';
@@ -15,7 +15,10 @@ import {
   BudgetsSummaryHero,
   BudgetCategoryCard,
   CloseBudgetPeriodModal,
+  EditClosingDateModal,
 } from '@/features/budgets/components';
+import { getLatestClosedPeriodAction } from '@/features/budgets';
+import type { BudgetPeriod } from '@/lib/types';
 import { useBudgetsContent, type UseBudgetsContentProps } from '@/features/budgets';
 import type { User, UserBudgetSummary } from '@/lib/types';
 import type { BudgetsPageData } from '@/server/use-cases/pages/budgets-page.use-case';
@@ -60,6 +63,7 @@ export default function BudgetsContent({
   };
 
   const t = useTranslations('Budgets.Page');
+  const locale = useLocale();
   const {
     budgetContextUserId,
     userBudgetSummary,
@@ -71,6 +75,26 @@ export default function BudgetsContent({
     handleOpenBudgetDetail,
   } = useBudgetsContent(props);
   const [isClosePeriodModalOpen, setIsClosePeriodModalOpen] = useState(false);
+  const [isEditClosingDateModalOpen, setIsEditClosingDateModalOpen] = useState(false);
+  const [latestClosedPeriod, setLatestClosedPeriod] = useState<BudgetPeriod | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    getLatestClosedPeriodAction(budgetContextUserId, locale)
+      .then((result) => {
+        if (cancelled) return;
+        setLatestClosedPeriod(result.data ?? null);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setLatestClosedPeriod(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [budgetContextUserId, locale, isClosePeriodModalOpen, isEditClosingDateModalOpen]);
 
   return (
     <AppPage
@@ -119,7 +143,7 @@ export default function BudgetsContent({
               }}
             />
 
-            <div className="flex justify-center">
+            <div className="flex flex-col items-center gap-2">
               <button
                 type="button"
                 className={stitchBudgets.closePeriodButton}
@@ -128,12 +152,30 @@ export default function BudgetsContent({
                 <CheckCircle2 className="h-5 w-5 shrink-0" aria-hidden />
                 {t('closePeriod')}
               </button>
+
+              {latestClosedPeriod ? (
+                <button
+                  type="button"
+                  className={stitchBudgets.closePeriodButton}
+                  onClick={() => setIsEditClosingDateModalOpen(true)}
+                >
+                  <CalendarClock className="h-5 w-5 shrink-0" aria-hidden />
+                  {t('editClosingDate')}
+                </button>
+              ) : null}
             </div>
 
             <CloseBudgetPeriodModal
               key={isClosePeriodModalOpen ? budgetContextUserId : 'closed'}
               isOpen={isClosePeriodModalOpen}
               onClose={() => setIsClosePeriodModalOpen(false)}
+              userId={budgetContextUserId}
+            />
+
+            <EditClosingDateModal
+              key={isEditClosingDateModalOpen ? `${budgetContextUserId}-edit` : 'edit-closed'}
+              isOpen={isEditClosingDateModalOpen}
+              onClose={() => setIsEditClosingDateModalOpen(false)}
               userId={budgetContextUserId}
             />
 
