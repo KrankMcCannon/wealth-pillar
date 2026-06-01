@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import type { UseFormReturn } from 'react-hook-form';
+import { Controller, useWatch, type UseFormReturn } from 'react-hook-form';
 import { useTranslations } from 'next-intl';
 import { cn } from '@/lib';
 import { getColorPalette } from '@/server/use-cases/categories/category.logic';
@@ -30,12 +30,14 @@ interface CategoryFormFieldsProps {
 
 export function CategoryFormFields({ form, isEditMode }: CategoryFormFieldsProps) {
   const t = useTranslations('Categories.FormModal');
-  const { control, register, setValue, watch, formState } = form;
+  const { control, setValue, formState } = form;
   const { errors, isSubmitting } = formState;
 
-  const watchedLabel = watch('label');
-  const watchedColor = watch('color');
+  const watchedLabel = useWatch({ control, name: 'label' });
+  const selectedColor = useWatch({ control, name: 'color' });
   const colorPalette = getColorPalette();
+
+  const normalizedSelectedColor = selectedColor?.trim().toUpperCase() ?? '';
 
   useEffect(() => {
     if (!isEditMode && watchedLabel) {
@@ -58,7 +60,6 @@ export function CategoryFormFields({ form, isEditMode }: CategoryFormFieldsProps
         label={t('fields.label.label')}
         placeholder={t('fields.label.placeholder')}
         disabled={isSubmitting}
-        {...(!isEditMode ? { hint: t('fields.label.helper') } : {})}
       />
 
       <ModalIconField
@@ -72,43 +73,59 @@ export function CategoryFormFields({ form, isEditMode }: CategoryFormFieldsProps
         <p className={s.noteLabel}>{t('fields.color.label')}</p>
         <div className={categoryStyles.formModal.colorSection}>
           <div className={categoryStyles.formModal.palette}>
-            {colorPalette.map((color) => (
-              <button
-                key={color.value}
-                type="button"
-                onClick={() => setValue('color', color.value)}
-                disabled={isSubmitting}
-                className={cn(
-                  categoryStyles.formModal.colorButton,
-                  watchedColor.toUpperCase() === color.value.toUpperCase()
-                    ? categoryStyles.formModal.colorActive
-                    : categoryStyles.formModal.colorIdle,
-                  isSubmitting && categoryStyles.formModal.colorDisabled
-                )}
-                style={getCategoryColorStyle(color.value)}
-                title={color.name}
-              >
-                {watchedColor.toUpperCase() === color.value.toUpperCase() && (
-                  <div className={categoryStyles.formModal.checkWrap}>
-                    <svg
-                      className={categoryStyles.formModal.checkIcon}
-                      fill="none"
-                      strokeWidth="3"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                )}
-              </button>
-            ))}
+            {colorPalette.map((color) => {
+              const isSelected = normalizedSelectedColor === color.value.toUpperCase();
+
+              return (
+                <button
+                  key={color.value}
+                  type="button"
+                  onClick={() =>
+                    setValue('color', color.value, { shouldDirty: true, shouldTouch: true })
+                  }
+                  disabled={isSubmitting}
+                  aria-pressed={isSelected}
+                  aria-label={color.name}
+                  className={cn(
+                    categoryStyles.formModal.colorButton,
+                    isSelected
+                      ? categoryStyles.formModal.colorActive
+                      : categoryStyles.formModal.colorIdle,
+                    isSubmitting && categoryStyles.formModal.colorDisabled
+                  )}
+                  style={getCategoryColorStyle(color.value)}
+                  title={color.name}
+                >
+                  {isSelected ? (
+                    <div className={categoryStyles.formModal.checkWrap}>
+                      <svg
+                        className={categoryStyles.formModal.checkIcon}
+                        fill="none"
+                        strokeWidth="3"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        aria-hidden
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  ) : null}
+                </button>
+              );
+            })}
           </div>
-          <Input
-            {...register('color')}
-            placeholder={t('fields.color.placeholder')}
-            disabled={isSubmitting}
-            className={s.noteInput}
+          <Controller
+            control={control}
+            name="color"
+            render={({ field }) => (
+              <Input
+                {...field}
+                value={field.value ?? ''}
+                placeholder={t('fields.color.placeholder')}
+                disabled={isSubmitting}
+                className={s.noteInput}
+              />
+            )}
           />
         </div>
         {errors.color?.message ? <ModalFieldError message={errors.color.message} /> : null}

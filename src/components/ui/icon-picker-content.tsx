@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import { useVirtualizer } from '@/lib/react-virtual';
 import { useTranslations } from 'next-intl';
 import { Clock, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -14,33 +13,19 @@ import { CATEGORIES, ICON_METADATA, getIconByName } from '@/features/categories'
 import { iconPickerStyles as styles } from './icon-picker-styles';
 
 const DEBOUNCE_DELAY = 300;
-const MOBILE_COLS = 5;
-const DESKTOP_COLS = 6;
-const MOBILE_ICON_SIZE = 48;
-const DESKTOP_ICON_SIZE = 40;
-const GAP = 8;
 
 interface IconPickerContentProps {
   value: string;
   recent: string[];
   onSelect: (iconName: string) => void;
-  isMobile: boolean;
 }
 
-export function IconPickerContent({
-  value,
-  recent,
-  onSelect,
-  isMobile,
-}: Readonly<IconPickerContentProps>) {
+export function IconPickerContent({ value, recent, onSelect }: Readonly<IconPickerContentProps>) {
   const t = useTranslations('Forms.IconPicker');
   const [searchQuery, setSearchQuery] = React.useState('');
   const [debouncedQuery, setDebouncedQuery] = React.useState('');
   const [selectedCategory, setSelectedCategory] = React.useState<IconCategory>('all');
 
-  const parentRef = React.useRef<HTMLDivElement>(null);
-
-  // Debounce search query
   React.useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedQuery(searchQuery);
@@ -48,11 +33,9 @@ export function IconPickerContent({
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Filter icons based on search and category
   const filteredIcons = React.useMemo(() => {
     if (debouncedQuery.trim()) {
-      const results = searchIcons(debouncedQuery, selectedCategory);
-      return results.map((r) => r.icon);
+      return searchIcons(debouncedQuery, selectedCategory).map((result) => result.icon);
     }
 
     if (selectedCategory === 'all') {
@@ -62,36 +45,16 @@ export function IconPickerContent({
     return ICON_METADATA.filter((icon) => icon.category === selectedCategory);
   }, [debouncedQuery, selectedCategory]);
 
-  // Grid configuration
-  const cols = isMobile ? MOBILE_COLS : DESKTOP_COLS;
-  const iconSize = isMobile ? MOBILE_ICON_SIZE : DESKTOP_ICON_SIZE;
-  const rows = Math.ceil(filteredIcons.length / cols);
-
-  const rowVirtualizer = useVirtualizer({
-    count: rows,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => iconSize + GAP,
-    overscan: 5,
-  });
-
-  // Clear search
   const clearSearch = () => {
     setSearchQuery('');
     setDebouncedQuery('');
   };
 
-  // Keyboard navigation
   const handleKeyDown = (e: React.KeyboardEvent, iconName: string) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       onSelect(iconName);
     }
-  };
-
-  // Get icon at grid position
-  const getIconAtPosition = (rowIndex: number, colIndex: number) => {
-    const iconIndex = rowIndex * cols + colIndex;
-    return filteredIcons[iconIndex];
   };
 
   const resultCountMessage = debouncedQuery
@@ -100,11 +63,7 @@ export function IconPickerContent({
 
   return (
     <div className={styles.container}>
-      {/* Header: Search + Favorites Toggle */}
-      <div
-        className={cn(styles.header.base, isMobile ? styles.header.mobile : styles.header.desktop)}
-      >
-        {/* Search Input */}
+      <div className={cn(styles.header.base, styles.header.mobile)}>
         <div className={styles.searchWrapper}>
           <ModalSearchInput
             placeholder={t('searchPlaceholder')}
@@ -112,7 +71,7 @@ export function IconPickerContent({
             onChange={setSearchQuery}
             aria-label={t('searchAria')}
           />
-          {searchQuery && (
+          {searchQuery ? (
             <button
               onClick={clearSearch}
               className={styles.searchClearButton}
@@ -121,11 +80,10 @@ export function IconPickerContent({
             >
               <X className={styles.searchClearIcon} />
             </button>
-          )}
+          ) : null}
         </div>
 
-        {/* Recent Icons */}
-        {recent.length > 0 && (
+        {recent.length > 0 ? (
           <div className={styles.recentContainer}>
             <Clock className={styles.recentIcon} />
             <span className={styles.recentLabel}>{t('recentLabel')}</span>
@@ -149,10 +107,9 @@ export function IconPickerContent({
               })}
             </div>
           </div>
-        )}
+        ) : null}
       </div>
 
-      {/* Category Tabs */}
       <Tabs
         value={selectedCategory}
         onValueChange={(v) => setSelectedCategory(v as IconCategory)}
@@ -175,97 +132,44 @@ export function IconPickerContent({
         </div>
       </Tabs>
 
-      {/* Results Count */}
-      <div
-        className={cn(
-          styles.resultsCount.base,
-          isMobile ? styles.resultsCount.mobile : styles.resultsCount.desktop
-        )}
-        aria-live="polite"
-      >
+      <div className={cn(styles.resultsCount.base, styles.resultsCount.mobile)} aria-live="polite">
         {resultCountMessage}
       </div>
 
-      {/* Virtualized Icon Grid */}
-      <div ref={parentRef} className={styles.gridContainer} aria-label={t('iconListAria')}>
+      <div className={styles.gridContainer} aria-label={t('iconListAria')}>
         {filteredIcons.length === 0 ? (
           <div className={styles.emptyState}>
             <p className={styles.emptyStateText}>{t('empty')}</p>
-            {debouncedQuery && (
+            {debouncedQuery ? (
               <Button variant="ghost" size="sm" onClick={clearSearch}>
                 {t('clearSearch')}
               </Button>
-            )}
+            ) : null}
           </div>
         ) : (
-          <div
-            style={{
-              height: `${rowVirtualizer.getTotalSize()}px`,
-              width: '100%',
-              position: 'relative',
-            }}
-          >
-            {rowVirtualizer.getVirtualItems().map((virtualRow) => (
-              <div
-                key={virtualRow.index}
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                  height: `${virtualRow.size}px`,
-                  transform: `translateY(${virtualRow.start}px)`,
-                }}
-              >
-                <div
+          <div className={styles.iconGridSimple}>
+            {filteredIcons.map((icon) => {
+              const IconComponent = icon.component;
+              const isSelected = value === icon.name;
+
+              return (
+                <button
+                  key={icon.name}
+                  onClick={() => onSelect(icon.name)}
+                  onKeyDown={(e) => handleKeyDown(e, icon.name)}
                   className={cn(
-                    styles.iconGrid.base,
-                    isMobile ? styles.iconGrid.mobile : styles.iconGrid.desktop
+                    styles.iconButton.base,
+                    isSelected ? styles.iconButton.selected : styles.iconButton.unselected
                   )}
-                  style={{
-                    gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
-                  }}
+                  title={icon.name}
+                  aria-label={t('selectIconAria', { iconName: icon.name })}
+                  aria-pressed={isSelected}
+                  type="button"
                 >
-                  {Array.from({ length: cols }).map((_, colIndex) => {
-                    const icon = getIconAtPosition(virtualRow.index, colIndex);
-                    // Use a unique key based on row and column to avoid array index warning
-                    const cellKey = `cell-${virtualRow.index}-${colIndex}`;
-
-                    if (!icon) return <div key={cellKey} />;
-
-                    const IconComponent = icon.component;
-                    const isSelected = value === icon.name;
-
-                    return (
-                      <div key={icon.name} className={styles.iconItemWrapper}>
-                        <button
-                          onClick={() => onSelect(icon.name)}
-                          onKeyDown={(e) => handleKeyDown(e, icon.name)}
-                          className={cn(
-                            styles.iconButton.base,
-                            isSelected && styles.iconButton.selected,
-                            !isSelected && styles.iconButton.unselected
-                          )}
-                          style={{
-                            width: `${iconSize}px`,
-                            height: `${iconSize}px`,
-                          }}
-                          title={icon.name}
-                          aria-label={t('selectIconAria', { iconName: icon.name })}
-                          aria-pressed={isSelected}
-                          type="button"
-                          tabIndex={0}
-                        >
-                          <IconComponent
-                            className={isMobile ? styles.iconSize.mobile : styles.iconSize.desktop}
-                          />
-                        </button>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
+                  <IconComponent className={styles.iconSize.mobile} />
+                </button>
+              );
+            })}
           </div>
         )}
       </div>

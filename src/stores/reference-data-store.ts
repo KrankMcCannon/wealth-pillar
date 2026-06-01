@@ -139,7 +139,7 @@ export const useReferenceDataStore = create<ReferenceDataState>()(
         set(
           (state) => ({
             categories: state.categories.map((category) =>
-              category.key === id ? { ...category, ...updates } : category
+              category.id === id ? { ...category, ...updates } : category
             ),
           }),
           false,
@@ -150,7 +150,7 @@ export const useReferenceDataStore = create<ReferenceDataState>()(
       removeCategory: (id) => {
         set(
           (state) => ({
-            categories: state.categories.filter((category) => category.key !== id),
+            categories: state.categories.filter((category) => category.id !== id),
           }),
           false,
           'reference-data/removeCategory'

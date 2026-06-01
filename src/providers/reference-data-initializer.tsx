@@ -35,15 +35,6 @@ interface ReferenceDataInitializerProps {
  *
  * Initializes the reference data store with server data on mount.
  * Prevents re-initialization on re-renders.
- *
- * Usage in layout.tsx:
- * ```tsx
- * <ReferenceDataInitializer data={{ currentUser, groupUsers, accounts, categories }}>
- *   <ModalProvider>
- *     {children}
- *   </ModalProvider>
- * </ReferenceDataInitializer>
- * ```
  */
 export function ReferenceDataInitializer({
   children,
@@ -52,8 +43,6 @@ export function ReferenceDataInitializer({
   const initialize = useReferenceDataStore((state) => state.initialize);
   const isInitialized = useReferenceDataStore((state) => state.isInitialized);
 
-  // Initialize synchronously using useMemo to ensure store is ready before children render
-  // This prevents the "currentUser is null" error when child components try to access the store
   const isReady = useMemo(() => {
     if (!isInitialized && data) {
       initialize(data);
@@ -62,7 +51,6 @@ export function ReferenceDataInitializer({
     return isInitialized;
   }, [data, initialize, isInitialized]);
 
-  // Don't render children until store is initialized
   if (!isReady) {
     return null;
   }

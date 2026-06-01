@@ -1584,15 +1584,10 @@
         "create": "New Category",
         "edit": "Edit Category"
       },
-      "description": {
-        "create": "Create a new custom category",
-        "edit": "Update category details"
-      },
       "fields": {
         "label": {
           "label": "Name",
-          "placeholder": "e.g. Groceries",
-          "helper": "An internal key is generated from the name automatically; it links transactions in the system."
+          "placeholder": "e.g. Groceries"
         },
         "icon": {
           "label": "Icon"

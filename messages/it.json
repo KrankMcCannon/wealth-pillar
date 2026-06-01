@@ -1584,15 +1584,10 @@
         "create": "Nuova Categoria",
         "edit": "Modifica Categoria"
       },
-      "description": {
-        "create": "Crea una nuova categoria personalizzata",
-        "edit": "Aggiorna i dettagli della categoria"
-      },
       "fields": {
         "label": {
           "label": "Nome",
-          "placeholder": "es. Spesa",
-          "helper": "Il codice interno (chiave) viene generato automaticamente dal nome; serve al sistema per collegare le transazioni."
+          "placeholder": "es. Spesa"
         },
         "icon": {
           "label": "Icona"

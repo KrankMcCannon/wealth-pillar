@@ -88,6 +88,17 @@ export const getCategoryByKeyUseCase = async (key: string): Promise<Category> =>
   return category as unknown as Category;
 };
 
+async function ensureUniqueCategoryKey(baseKey: string): Promise<string> {
+  let candidate = baseKey;
+  let suffix = 2;
+  while (await CategoriesRepository.findByKey(candidate)) {
+    candidate = `${baseKey}_${suffix}`;
+    suffix += 1;
+    if (suffix > 100) return `${baseKey}_${Date.now().toString(36)}`;
+  }
+  return candidate;
+}
+
 export const createCategoryUseCase = async (data: CreateCategoryInput): Promise<Category> => {
   const label = validateRequiredString(data.label, 'Label');
   const key = validateRequiredString(data.key, 'Key');
@@ -99,9 +110,12 @@ export const createCategoryUseCase = async (data: CreateCategoryInput): Promise<
     throw new Error('Invalid color format. Use hex format (e.g., #FF0000)');
   }
 
+  const normalizedKey = key.toLowerCase();
+  const uniqueKey = await ensureUniqueCategoryKey(normalizedKey);
+
   const category = await CategoriesRepository.create({
     label,
-    key: key.toLowerCase(),
+    key: uniqueKey,
     icon,
     color: color.toUpperCase(),
     group_id: data.group_id,

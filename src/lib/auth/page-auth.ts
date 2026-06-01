@@ -10,6 +10,7 @@ import { getTranslations } from 'next-intl/server';
 import { getCurrentUser, getGroupUsers, getAuth } from './cached-auth';
 import { isOnboardingComplete } from './clerk-session';
 import { getSelectableUsers } from '@/lib/utils/permissions';
+import { withTimeout } from '@/lib/utils/with-timeout';
 import type { User } from '@/lib/types';
 
 export interface PageAuthResult {
@@ -47,7 +48,7 @@ export async function requirePageAuth(
     redirect(`/${locale}/onboarding`);
   }
 
-  const allGroupUsers = await getGroupUsers();
+  const allGroupUsers = await withTimeout(getGroupUsers(), 1500, [currentUser]);
   const groupUsers = getSelectableUsers(currentUser, allGroupUsers);
 
   return { locale, currentUser, groupUsers };

@@ -33,21 +33,15 @@ export const iconPickerStyles = {
     desktop: 'px-3',
   },
 
-  gridContainer: 'min-h-0 flex-1 overflow-y-auto overflow-x-hidden',
+  gridContainer: 'min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pb-3',
 
   emptyState: 'flex h-full flex-col items-center justify-center py-8 text-center',
   emptyStateText: 'mb-2 text-sm text-modal-fg-muted',
 
-  iconGrid: {
-    base: 'grid py-1',
-    mobile: 'gap-3 px-3',
-    desktop: 'gap-2 px-3',
-  },
-
-  iconItemWrapper: 'group relative flex items-center justify-center',
+  iconGridSimple: 'grid grid-cols-5 gap-3 sm:grid-cols-6',
 
   iconButton: {
-    base: 'relative flex items-center justify-center rounded-lg transition-all duration-200 hover:scale-105 hover:bg-modal-elevated-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-modal-ring/45 focus-visible:ring-offset-2 focus-visible:ring-offset-modal-surface',
+    base: 'relative flex size-12 items-center justify-center rounded-lg transition-all duration-200 hover:scale-105 hover:bg-modal-elevated-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-modal-ring/45 focus-visible:ring-offset-2 focus-visible:ring-offset-modal-surface',
     selected: 'scale-105 bg-modal-ring text-modal-fg shadow-md',
     unselected: 'text-modal-fg hover:text-modal-fg',
   },

@@ -56,7 +56,6 @@ function CategoryFormModal({ isOpen, onClose, editId }: Readonly<CategoryFormMod
   const isCategoryInUse = editingCategory ? usedCategoryKeys.includes(editingCategory.key) : false;
   const canDelete = isEditMode && isCustomCategory && !isCategoryInUse;
   const title = isEditMode ? t('title.edit') : t('title.create');
-  const description = isEditMode ? t('description.edit') : t('description.create');
 
   const categorySchema = useMemo(
     () =>
@@ -224,6 +223,7 @@ function CategoryFormModal({ isOpen, onClose, editId }: Readonly<CategoryFormMod
     errorToast: { title: t('toast.errorTitle') },
     formatErrorDescription,
     unknownErrorMessage: t('errors.unknown'),
+    refreshAfterSuccess: () => router.refresh(),
   });
 
   const handleDelete = useCallback(async () => {
@@ -245,7 +245,6 @@ function CategoryFormModal({ isOpen, onClose, editId }: Readonly<CategoryFormMod
       isOpen={isOpen}
       onClose={onClose}
       title={title}
-      description={description}
       schema={categorySchema}
       defaultValues={createDefaults}
       resetValues={resetValues ?? createDefaults}
