@@ -21,7 +21,7 @@ export async function deleteTransactionUseCase(
 
   invalidateTransactionCaches({
     groupId: existing.group_id!,
-    accountId: existing.account_id!,
+    accountId: existing.account_id,
     userId: existing.user_id,
     toAccountId: existing.to_account_id,
   });

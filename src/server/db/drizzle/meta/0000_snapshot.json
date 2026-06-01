@@ -193,12 +193,8 @@
           "tableFrom": "investments",
           "tableTo": "users",
           "schemaTo": "public",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -211,34 +207,26 @@
           "name": "Users can view their own investments",
           "as": "PERMISSIVE",
           "for": "SELECT",
-          "to": [
-            "public"
-          ],
+          "to": ["public"],
           "using": "((auth.uid())::text = ( SELECT users.clerk_id\n   FROM users\n  WHERE (users.id = investments.user_id)))"
         },
         "Users can insert their own investments": {
           "name": "Users can insert their own investments",
           "as": "PERMISSIVE",
           "for": "INSERT",
-          "to": [
-            "public"
-          ]
+          "to": ["public"]
         },
         "Users can update their own investments": {
           "name": "Users can update their own investments",
           "as": "PERMISSIVE",
           "for": "UPDATE",
-          "to": [
-            "public"
-          ]
+          "to": ["public"]
         },
         "Users can delete their own investments": {
           "name": "Users can delete their own investments",
           "as": "PERMISSIVE",
           "for": "DELETE",
-          "to": [
-            "public"
-          ]
+          "to": ["public"]
         }
       },
       "isRLSEnabled": true
@@ -341,12 +329,8 @@
           "tableFrom": "user_preferences",
           "tableTo": "users",
           "schemaTo": "public",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -359,26 +343,20 @@
           "name": "Users can view their own preferences",
           "as": "PERMISSIVE",
           "for": "SELECT",
-          "to": [
-            "public"
-          ],
+          "to": ["public"],
           "using": "((auth.uid())::text IN ( SELECT users.clerk_id\n   FROM users\n  WHERE (users.id = user_preferences.user_id)))"
         },
         "Users can update their own preferences": {
           "name": "Users can update their own preferences",
           "as": "PERMISSIVE",
           "for": "UPDATE",
-          "to": [
-            "public"
-          ]
+          "to": ["public"]
         },
         "Users can insert their own preferences": {
           "name": "Users can insert their own preferences",
           "as": "PERMISSIVE",
           "for": "INSERT",
-          "to": [
-            "public"
-          ]
+          "to": ["public"]
         }
       },
       "isRLSEnabled": true
@@ -879,12 +857,8 @@
           "tableFrom": "transactions",
           "tableTo": "groups",
           "schemaTo": "public",
-          "columnsFrom": [
-            "group_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["group_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -893,12 +867,8 @@
           "tableFrom": "transactions",
           "tableTo": "recurring_transactions",
           "schemaTo": "public",
-          "columnsFrom": [
-            "recurring_series_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["recurring_series_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -907,12 +877,8 @@
           "tableFrom": "transactions",
           "tableTo": "users",
           "schemaTo": "public",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -934,42 +900,32 @@
           "name": "Allow all operations on transactions",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": [
-            "public"
-          ],
+          "to": ["public"],
           "using": "true"
         },
         "Users can view their own transactions and group transactions": {
           "name": "Users can view their own transactions and group transactions",
           "as": "PERMISSIVE",
           "for": "SELECT",
-          "to": [
-            "public"
-          ]
+          "to": ["public"]
         },
         "Users can create their own transactions": {
           "name": "Users can create their own transactions",
           "as": "PERMISSIVE",
           "for": "INSERT",
-          "to": [
-            "public"
-          ]
+          "to": ["public"]
         },
         "Users can update their own transactions": {
           "name": "Users can update their own transactions",
           "as": "PERMISSIVE",
           "for": "UPDATE",
-          "to": [
-            "public"
-          ]
+          "to": ["public"]
         },
         "Users can delete their own transactions": {
           "name": "Users can delete their own transactions",
           "as": "PERMISSIVE",
           "for": "DELETE",
-          "to": [
-            "public"
-          ]
+          "to": ["public"]
         }
       },
       "isRLSEnabled": true
@@ -1130,12 +1086,8 @@
           "tableFrom": "users",
           "tableTo": "accounts",
           "schemaTo": "public",
-          "columnsFrom": [
-            "default_account_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["default_account_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -1157,34 +1109,26 @@
           "name": "Users can view users in their group",
           "as": "PERMISSIVE",
           "for": "SELECT",
-          "to": [
-            "public"
-          ],
+          "to": ["public"],
           "using": "(group_id IN ( SELECT users_1.group_id\n   FROM users users_1\n  WHERE (users_1.clerk_id = (auth.jwt() ->> 'sub'::text))))"
         },
         "Users can update their own record": {
           "name": "Users can update their own record",
           "as": "PERMISSIVE",
           "for": "UPDATE",
-          "to": [
-            "public"
-          ]
+          "to": ["public"]
         },
         "Superadmins can insert users": {
           "name": "Superadmins can insert users",
           "as": "PERMISSIVE",
           "for": "INSERT",
-          "to": [
-            "public"
-          ]
+          "to": ["public"]
         },
         "Superadmins can delete users": {
           "name": "Superadmins can delete users",
           "as": "PERMISSIVE",
           "for": "DELETE",
-          "to": [
-            "public"
-          ]
+          "to": ["public"]
         }
       },
       "isRLSEnabled": true
@@ -1317,34 +1261,26 @@
           "name": "Users can view their accounts",
           "as": "PERMISSIVE",
           "for": "SELECT",
-          "to": [
-            "public"
-          ],
+          "to": ["public"],
           "using": "(EXISTS ( SELECT 1\n   FROM users u\n  WHERE ((u.clerk_id = (auth.jwt() ->> 'sub'::text)) AND ((u.id = ANY (accounts.user_ids)) OR (u.group_id = accounts.group_id)))))"
         },
         "Users can update their accounts": {
           "name": "Users can update their accounts",
           "as": "PERMISSIVE",
           "for": "UPDATE",
-          "to": [
-            "public"
-          ]
+          "to": ["public"]
         },
         "Users can create accounts in their group": {
           "name": "Users can create accounts in their group",
           "as": "PERMISSIVE",
           "for": "INSERT",
-          "to": [
-            "public"
-          ]
+          "to": ["public"]
         },
         "Users can delete their accounts": {
           "name": "Users can delete their accounts",
           "as": "PERMISSIVE",
           "for": "DELETE",
-          "to": [
-            "public"
-          ]
+          "to": ["public"]
         }
       },
       "isRLSEnabled": true
@@ -1503,34 +1439,26 @@
           "name": "Users can view their own budgets",
           "as": "PERMISSIVE",
           "for": "SELECT",
-          "to": [
-            "public"
-          ],
+          "to": ["public"],
           "using": "(user_id IN ( SELECT users.id\n   FROM users\n  WHERE (users.clerk_id = (auth.jwt() ->> 'sub'::text))))"
         },
         "Users can update their own budgets": {
           "name": "Users can update their own budgets",
           "as": "PERMISSIVE",
           "for": "UPDATE",
-          "to": [
-            "public"
-          ]
+          "to": ["public"]
         },
         "Users can create their own budgets": {
           "name": "Users can create their own budgets",
           "as": "PERMISSIVE",
           "for": "INSERT",
-          "to": [
-            "public"
-          ]
+          "to": ["public"]
         },
         "Users can delete their own budgets": {
           "name": "Users can delete their own budgets",
           "as": "PERMISSIVE",
           "for": "DELETE",
-          "to": [
-            "public"
-          ]
+          "to": ["public"]
         }
       },
       "isRLSEnabled": true
@@ -1663,12 +1591,8 @@
           "tableFrom": "categories",
           "tableTo": "groups",
           "schemaTo": "public",
-          "columnsFrom": [
-            "group_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["group_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1681,18 +1605,14 @@
           "name": "Categories are readable by all authenticated users",
           "as": "PERMISSIVE",
           "for": "SELECT",
-          "to": [
-            "authenticated"
-          ],
+          "to": ["authenticated"],
           "using": "true"
         },
         "Only admins can modify categories": {
           "name": "Only admins can modify categories",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": [
-            "public"
-          ]
+          "to": ["public"]
         }
       },
       "isRLSEnabled": true
@@ -1868,12 +1788,8 @@
           "tableFrom": "group_invitations",
           "tableTo": "groups",
           "schemaTo": "public",
-          "columnsFrom": [
-            "group_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["group_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1882,12 +1798,8 @@
           "tableFrom": "group_invitations",
           "tableTo": "users",
           "schemaTo": "public",
-          "columnsFrom": [
-            "invited_by_user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["invited_by_user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1909,34 +1821,26 @@
           "name": "Group members can view their group invitations",
           "as": "PERMISSIVE",
           "for": "SELECT",
-          "to": [
-            "public"
-          ],
+          "to": ["public"],
           "using": "(group_id IN ( SELECT users.group_id\n   FROM users\n  WHERE (users.clerk_id = (auth.uid())::text)))"
         },
         "Group admins can create invitations": {
           "name": "Group admins can create invitations",
           "as": "PERMISSIVE",
           "for": "INSERT",
-          "to": [
-            "public"
-          ]
+          "to": ["public"]
         },
         "Group admins can update invitations": {
           "name": "Group admins can update invitations",
           "as": "PERMISSIVE",
           "for": "UPDATE",
-          "to": [
-            "public"
-          ]
+          "to": ["public"]
         },
         "Group admins can delete invitations": {
           "name": "Group admins can delete invitations",
           "as": "PERMISSIVE",
           "for": "DELETE",
-          "to": [
-            "public"
-          ]
+          "to": ["public"]
         }
       },
       "isRLSEnabled": true
@@ -2171,12 +2075,8 @@
           "tableFrom": "recurring_transactions",
           "tableTo": "accounts",
           "schemaTo": "public",
-          "columnsFrom": [
-            "account_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["account_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -2202,34 +2102,26 @@
           "name": "Users can view their associated recurring transactions",
           "as": "PERMISSIVE",
           "for": "SELECT",
-          "to": [
-            "public"
-          ],
+          "to": ["public"],
           "using": "((auth.uid())::text = ANY (user_ids))"
         },
         "Users can create recurring transactions for themselves": {
           "name": "Users can create recurring transactions for themselves",
           "as": "PERMISSIVE",
           "for": "INSERT",
-          "to": [
-            "public"
-          ]
+          "to": ["public"]
         },
         "Users can update their associated recurring transactions": {
           "name": "Users can update their associated recurring transactions",
           "as": "PERMISSIVE",
           "for": "UPDATE",
-          "to": [
-            "public"
-          ]
+          "to": ["public"]
         },
         "Users can delete their associated recurring transactions": {
           "name": "Users can delete their associated recurring transactions",
           "as": "PERMISSIVE",
           "for": "DELETE",
-          "to": [
-            "public"
-          ]
+          "to": ["public"]
         }
       },
       "isRLSEnabled": true
@@ -2432,34 +2324,26 @@
           "name": "Users can view their groups",
           "as": "PERMISSIVE",
           "for": "SELECT",
-          "to": [
-            "public"
-          ],
+          "to": ["public"],
           "using": "(EXISTS ( SELECT 1\n   FROM users u\n  WHERE ((u.clerk_id = (auth.jwt() ->> 'sub'::text)) AND (u.id = ANY (groups.user_ids)))))"
         },
         "Admins can update their groups": {
           "name": "Admins can update their groups",
           "as": "PERMISSIVE",
           "for": "UPDATE",
-          "to": [
-            "public"
-          ]
+          "to": ["public"]
         },
         "Superadmins can create groups": {
           "name": "Superadmins can create groups",
           "as": "PERMISSIVE",
           "for": "INSERT",
-          "to": [
-            "public"
-          ]
+          "to": ["public"]
         },
         "Superadmins can delete groups": {
           "name": "Superadmins can delete groups",
           "as": "PERMISSIVE",
           "for": "DELETE",
-          "to": [
-            "public"
-          ]
+          "to": ["public"]
         }
       },
       "isRLSEnabled": true
@@ -2809,12 +2693,8 @@
           "tableFrom": "budget_periods",
           "tableTo": "users",
           "schemaTo": "public",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
