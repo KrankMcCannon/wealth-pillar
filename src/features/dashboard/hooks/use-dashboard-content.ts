@@ -40,18 +40,20 @@ export function useDashboardContent({
   const { openModal } = useModalState();
 
   const spendableBalance = useMemo(() => {
-    if (selectedUserId) {
-      return balanceViewModel.spendableByUserId[selectedUserId] ?? 0;
+    const balanceUserId = isMember ? currentUser.id : selectedUserId;
+    if (balanceUserId) {
+      return balanceViewModel.spendableByUserId[balanceUserId] ?? 0;
     }
     return balanceViewModel.spendableBalanceAll;
-  }, [selectedUserId, balanceViewModel]);
+  }, [isMember, currentUser.id, selectedUserId, balanceViewModel]);
 
   const reserveBalance = useMemo(() => {
-    if (selectedUserId) {
-      return balanceViewModel.reserveByUserId[selectedUserId] ?? 0;
+    const balanceUserId = isMember ? currentUser.id : selectedUserId;
+    if (balanceUserId) {
+      return balanceViewModel.reserveByUserId[balanceUserId] ?? 0;
     }
     return balanceViewModel.reserveBalanceAll;
-  }, [selectedUserId, balanceViewModel]);
+  }, [isMember, currentUser.id, selectedUserId, balanceViewModel]);
 
   const handleCreateRecurringSeries = useCallback(() => {
     openModal('recurring');

@@ -18,6 +18,8 @@ import {
   DEFAULT_REPORTS_PRESET,
   type ReportsTimePreset,
 } from '@/features/reports/utils/reporting-window';
+import type { User } from '@/lib/types';
+import { scopeReportsPageData } from '@/server/permissions/scope-page-data';
 
 export type ReportsScope = 'all' | string;
 
@@ -36,7 +38,7 @@ export interface ReportsPageData {
   comparisonLabelKey: 'vsLastMonth' | 'vsLastWeek' | 'vsLastYear' | 'vsPreviousRange';
 }
 
-export async function getReportsPageDataUseCase(
+async function getCachedReportsPageData(
   groupId: string,
   groupUserIds: string[],
   params: ReportsPageParams = {}
@@ -120,4 +122,14 @@ export async function getReportsPageDataUseCase(
     preset,
     comparisonLabelKey,
   };
+}
+
+export async function getReportsPageDataUseCase(
+  groupId: string,
+  groupUserIds: string[],
+  currentUser: User,
+  params: ReportsPageParams = {}
+): Promise<ReportsPageData> {
+  const data = await getCachedReportsPageData(groupId, groupUserIds, params);
+  return scopeReportsPageData(data, currentUser);
 }

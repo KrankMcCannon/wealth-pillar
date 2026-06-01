@@ -9,6 +9,7 @@ import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { getCurrentUser, getGroupUsers, getAuth } from './cached-auth';
 import { isOnboardingComplete } from './clerk-session';
+import { getSelectableUsers } from '@/lib/utils/permissions';
 import type { User } from '@/lib/types';
 
 export interface PageAuthResult {
@@ -46,7 +47,8 @@ export async function requirePageAuth(
     redirect(`/${locale}/onboarding`);
   }
 
-  const groupUsers = await getGroupUsers();
+  const allGroupUsers = await getGroupUsers();
+  const groupUsers = getSelectableUsers(currentUser, allGroupUsers);
 
   return { locale, currentUser, groupUsers };
 }

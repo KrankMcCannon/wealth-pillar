@@ -21,6 +21,7 @@ import type {
   Transaction,
   UserBudgetSummary,
 } from '@/lib/types';
+import { scopeBudgetsPageData } from '@/server/permissions/scope-page-data';
 import { toDateTime } from '@/lib/utils/date-utils';
 import { parsePeriodDates, resolveChartPeriodEnd } from '../shared/period.logic';
 import { resolvePeriodAmounts } from '../budget-periods/period-amounts.logic';
@@ -44,7 +45,7 @@ async function safeFetch<T>(promise: Promise<T>, fallback: T): Promise<T> {
   }
 }
 
-export async function getBudgetsPageData(groupId: string): Promise<BudgetsPageData> {
+async function getCachedBudgetsPageData(groupId: string): Promise<BudgetsPageData> {
   'use cache';
   cacheLife('minutes');
   cacheTag(`group:${groupId}:budgets`);
@@ -149,4 +150,12 @@ export async function getBudgetsPageData(groupId: string): Promise<BudgetsPageDa
     budgetsByUser,
     chartViewModelsByUser,
   };
+}
+
+export async function getBudgetsPageData(
+  groupId: string,
+  currentUser: User
+): Promise<BudgetsPageData> {
+  const data = await getCachedBudgetsPageData(groupId);
+  return scopeBudgetsPageData(data, currentUser);
 }

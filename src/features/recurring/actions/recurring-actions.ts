@@ -8,7 +8,8 @@
  */
 
 import { getCurrentUser } from '@/lib/auth/cached-auth';
-import { canAccessUserData, isMember } from '@/lib/utils/permissions';
+import { AccessScope } from '@/lib/permissions/access-scope';
+import { isMember } from '@/lib/utils/permissions';
 import { RecurringTransactionSeries, User } from '@/lib/types';
 import {
   createSeriesUseCase,
@@ -79,9 +80,9 @@ function validateCreatePermissions(currentUser: User, userIds: string[]): string
     }
   }
 
-  // Admins can create for anyone, but verify all target users exist and are accessible
+  const scope = AccessScope.for(currentUser);
   for (const userId of userIds) {
-    if (!canAccessUserData(currentUser, userId)) {
+    if (!scope.canViewUser(userId)) {
       return 'Non hai i permessi per accedere ai dati di uno o più utenti selezionati';
     }
   }
@@ -153,8 +154,9 @@ function validateNewUserAssignments(currentUser: User, newUserIds: string[]): st
     }
   } else {
     // Admins can assign to anyone they have access to
+    const scope = AccessScope.for(currentUser);
     for (const userId of newUserIds) {
-      if (!canAccessUserData(currentUser, userId)) {
+      if (!scope.canViewUser(userId)) {
         return 'Non hai i permessi per uno o più utenti selezionati';
       }
     }
@@ -169,18 +171,13 @@ function validateUpdatePermission(
   newUserIds?: string[]
 ): string | null {
   // 1. Verify access to existing series
-  const user = currentUser as unknown as User;
-  const hasAccess = isMember(user)
-    ? oldSeries.user_ids.includes(currentUser.id)
-    : oldSeries.user_ids.some((userId: string) => canAccessUserData(user, userId));
-
-  if (!hasAccess) {
+  if (!AccessScope.for(currentUser).canViewShared(oldSeries)) {
     return 'Non hai i permessi per modificare questa serie ricorrente';
   }
 
   // 2. If changing user_ids, validate new assignment permissions
   if (newUserIds) {
-    return validateNewUserAssignments(user, newUserIds);
+    return validateNewUserAssignments(currentUser, newUserIds);
   }
 
   return null;
@@ -291,13 +288,20 @@ export async function deleteRecurringSeriesAction(
       return { data: null, error: 'ID serie obbligatorio' };
     }
 
-    // Authentication check (cached per request)
     const currentUser = await getCurrentUser();
     if (!currentUser) {
       return { data: null, error: 'Non autenticato. Effettua il login per continuare.' };
     }
 
-    // First get the series
+    const series = await getSeriesByIdUseCase(seriesId);
+    if (!series) {
+      return { data: null, error: 'Serie ricorrente non trovata' };
+    }
+
+    if (!AccessScope.for(currentUser as unknown as User).canViewShared(series)) {
+      return { data: null, error: 'Permesso negato' };
+    }
+
     await deleteSeriesUseCase(seriesId);
 
     return { data: { success: true }, error: null };
@@ -331,10 +335,7 @@ export async function getRecurringSeriesByIdAction(
       return { data: null, error: 'Serie non trovata' };
     }
 
-    const canAccess = series.user_ids.some((uid) =>
-      canAccessUserData(currentUser as unknown as User, uid)
-    );
-    if (!canAccess) {
+    if (!AccessScope.for(currentUser as unknown as User).canViewShared(series)) {
       return { data: null, error: 'Permesso negato' };
     }
 

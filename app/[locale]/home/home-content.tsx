@@ -117,7 +117,10 @@ export default function HomeContent({
         selectedUserId={selectedUserId}
       />
 
-      <BudgetSection budgetsByUser={budgetsByUser} selectedViewUserId={selectedUserId} />
+      <BudgetSection
+        budgetsByUser={budgetsByUser}
+        selectedViewUserId={isMember ? currentUser.id : selectedUserId}
+      />
 
       <RecurringSeriesSection
         series={recurringSeries}

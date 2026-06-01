@@ -17,7 +17,7 @@ export default async function BudgetsPage({
   const { currentUser, groupUsers } = await requirePageAuth(params);
   const groupId = await requireGroupId(currentUser);
 
-  const pageDataPromise = getBudgetsPageData(groupId).catch(async (err) => {
+  const pageDataPromise = getBudgetsPageData(groupId, currentUser).catch(async (err) => {
     const t = await getTranslations('Errors');
     throw new Error(t('loadFailedBudgets'), { cause: err });
   });

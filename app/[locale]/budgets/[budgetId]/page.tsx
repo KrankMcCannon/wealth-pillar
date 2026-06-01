@@ -16,13 +16,15 @@ export default async function BudgetDetailPage({
   const { budgetId } = await params;
   const groupId = await requireGroupId(currentUser);
 
-  const pageDataPromise = getBudgetDetailPageData(groupId, budgetId).catch(async (err) => {
-    if (err instanceof Error && err.message === 'NOT_FOUND') {
-      throw err;
+  const pageDataPromise = getBudgetDetailPageData(groupId, budgetId, currentUser).catch(
+    async (err) => {
+      if (err instanceof Error && err.message === 'NOT_FOUND') {
+        throw err;
+      }
+      const t = await getTranslations('Errors');
+      throw new Error(t('loadFailedBudgets'), { cause: err });
     }
-    const t = await getTranslations('Errors');
-    throw new Error(t('loadFailedBudgets'), { cause: err });
-  });
+  );
 
   return (
     <Suspense fallback={<BudgetDetailLoading />}>

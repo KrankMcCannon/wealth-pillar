@@ -1,7 +1,8 @@
 import { cacheLife, cacheTag } from 'next/cache';
 import { getAccountsByGroupDeduped } from '@/server/request-cache/services';
 import { computeAccountsStatsViewModel, type AccountStats } from '../accounts/account.logic';
-import type { Account, Transaction } from '@/lib/types';
+import type { Account, Transaction, User } from '@/lib/types';
+import { scopeAccountsPageData } from '@/server/permissions/scope-page-data';
 
 export interface AccountsPageData {
   accounts: Account[];
@@ -11,7 +12,7 @@ export interface AccountsPageData {
   statsByUserId: Record<string, AccountStats>;
 }
 
-export async function getAccountsPageData(
+async function getCachedAccountsPageData(
   groupId: string,
   groupUserIds: string[] = []
 ): Promise<AccountsPageData> {
@@ -43,4 +44,13 @@ export async function getAccountsPageData(
     statsAll,
     statsByUserId,
   };
+}
+
+export async function getAccountsPageData(
+  groupId: string,
+  groupUserIds: string[] = [],
+  currentUser: User
+): Promise<AccountsPageData> {
+  const data = await getCachedAccountsPageData(groupId, groupUserIds);
+  return scopeAccountsPageData(data, currentUser);
 }

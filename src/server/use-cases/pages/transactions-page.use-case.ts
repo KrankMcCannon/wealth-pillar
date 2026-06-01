@@ -5,8 +5,8 @@ import {
   getAllCategoriesDeduped,
 } from '@/server/request-cache/services';
 import { getBudgetsByGroupUseCase } from '../budgets/get-budgets.use-case';
-import type { Transaction, Category, Account, Budget } from '@/lib/types';
-import type { User } from '@/lib/types';
+import type { Transaction, Category, Account, Budget, User } from '@/lib/types';
+import { scopeTransactionsListData } from '@/server/permissions/scope-page-data';
 import type { TransactionFilterOptions } from '@/server/repositories/transactions.repository';
 import { decodeTransactionCursor, encodeTransactionCursor } from '@/lib/utils/transaction-cursor';
 
@@ -29,9 +29,6 @@ export interface TransactionsListQuery {
   /** Opaque keyset cursor for load-more (server actions / internal). */
   cursor?: string;
 }
-
-/** @deprecated Use TransactionsListQuery — kept for transitional imports. */
-export type TransactionsPageQuery = TransactionsListQuery;
 
 export interface ResolvedTransactionFilters {
   userId?: string;
@@ -65,15 +62,6 @@ export type AppliedTransactionsQuery = {
   account?: string;
   category?: string;
   categories?: string;
-};
-
-/** @deprecated Use TransactionsListData */
-export type TransactionsPageData = TransactionsListData & {
-  total: number;
-  currentPage: number;
-  totalPages: number;
-  pageSize: number;
-  recurringSeries: never[];
 };
 
 async function safeFetch<T>(promise: Promise<T>, fallback: T): Promise<T> {
@@ -233,7 +221,13 @@ export async function getTransactionsListData(
   query: TransactionsListQuery,
   currentUser: User
 ): Promise<TransactionsListData> {
-  return getCachedTransactionsListData(groupId, query, currentUser.id, currentUser.role);
+  const data = await getCachedTransactionsListData(
+    groupId,
+    query,
+    currentUser.id,
+    currentUser.role
+  );
+  return scopeTransactionsListData(data, currentUser);
 }
 
 async function getCachedTransactionsListData(
@@ -305,13 +299,4 @@ export async function fetchTransactionsWindow(
     hasMore: result.hasMore,
     ...(nextCursor ? { nextCursor } : {}),
   };
-}
-
-/** @deprecated Use getTransactionsListData */
-export async function getTransactionsPageData(
-  groupId: string,
-  query: TransactionsListQuery,
-  currentUser: User
-): Promise<TransactionsListData> {
-  return getTransactionsListData(groupId, query, currentUser);
 }

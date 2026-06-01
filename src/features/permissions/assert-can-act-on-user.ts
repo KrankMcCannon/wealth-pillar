@@ -1,10 +1,10 @@
 import type { User } from '@/lib/types';
-import { canAccessUserData, isMember } from '@/lib/utils';
+import { AccessScope } from '@/lib/permissions/access-scope';
 
 export type AssertCanActResult = { ok: true } | { ok: false; error: string };
 
 /**
- * Shared guard for server actions: auth + member self-only + group access rules.
+ * Shared guard for server actions: auth + visibility for target user.
  */
 export function assertCanActOnUser(
   currentUser: User | null,
@@ -16,10 +16,7 @@ export function assertCanActOnUser(
   if (!targetUserId) {
     return { ok: false, error: 'User ID richiesto' };
   }
-  if (isMember(currentUser) && targetUserId !== currentUser.id) {
-    return { ok: false, error: 'Permesso negato' };
-  }
-  if (!canAccessUserData(currentUser, targetUserId)) {
+  if (!AccessScope.for(currentUser).canViewUser(targetUserId)) {
     return { ok: false, error: 'Permesso negato' };
   }
   return { ok: true };

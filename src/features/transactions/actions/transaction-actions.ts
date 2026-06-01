@@ -9,7 +9,8 @@ import { updateTransactionUseCase } from '@/server/use-cases/transactions/update
 import { deleteTransactionUseCase } from '@/server/use-cases/transactions/delete-transaction.use-case';
 import { getTransactionByIdUseCase } from '@/server/use-cases/transactions/get-transactions.use-case';
 import type { CreateTransactionInput } from '@/server/use-cases/transactions/types';
-import { canAccessUserData, isMember } from '@/lib/utils';
+import { AccessScope } from '@/lib/permissions/access-scope';
+import { isMember } from '@/lib/utils';
 import type { User, Transaction } from '@/lib/types';
 import {
   createTransactionSchema,
@@ -83,17 +84,16 @@ export async function updateTransactionAction(
       };
     }
 
-    // Permission validation: verify access to existing transaction
-    if (!canAccessUserData(currentUser as unknown as User, existingTransaction.user_id)) {
+    const scope = AccessScope.for(currentUser as unknown as User);
+    if (!scope.canViewOwned(existingTransaction)) {
       return { data: null, error: 'Permesso negato' };
     }
 
-    // If changing user_id, verify permission for new user
     if (input.user_id && input.user_id !== existingTransaction.user_id) {
       if (isMember(currentUser as unknown as User)) {
         return { data: null, error: 'Non puoi assegnare la transazione a un altro utente' };
       }
-      if (!canAccessUserData(currentUser as unknown as User, input.user_id)) {
+      if (!scope.canViewUser(input.user_id)) {
         return { data: null, error: 'Permesso negato' };
       }
     }
@@ -137,7 +137,7 @@ export async function getTransactionByIdAction(id: string): Promise<ServiceResul
 
     if (
       transaction.user_id &&
-      !canAccessUserData(currentUser as unknown as User, transaction.user_id)
+      !AccessScope.for(currentUser as unknown as User).canViewUser(transaction.user_id)
     ) {
       return { data: null, error: 'Permesso negato' };
     }
@@ -216,8 +216,7 @@ export async function deleteTransactionAction(id: string): Promise<ServiceResult
       };
     }
 
-    // Permission validation: verify access to transaction
-    if (!canAccessUserData(currentUser as unknown as User, existingTransaction.user_id)) {
+    if (!AccessScope.for(currentUser as unknown as User).canViewOwned(existingTransaction)) {
       return { data: null, error: 'Permesso negato' };
     }
 

@@ -24,6 +24,7 @@ import type {
   UserBudgetSummary,
   User,
 } from '@/lib/types';
+import { scopeDashboardPageData } from '@/server/permissions/scope-page-data';
 
 /**
  * Check if an error is a request abort error (specific to Next.js/Supabase)
@@ -87,10 +88,14 @@ function enrichBudgetSummariesWithPeriodAmounts(
 }
 
 /**
- * Fetch all data for the dashboard page
+ * Fetch dashboard data scoped to the current user's role.
  */
-export async function getDashboardPageData(groupId: string): Promise<DashboardPageData> {
-  return getCachedDashboardPageData(groupId);
+export async function getDashboardPageData(
+  groupId: string,
+  currentUser: User
+): Promise<DashboardPageData> {
+  const data = await getCachedDashboardPageData(groupId);
+  return scopeDashboardPageData(data, currentUser);
 }
 
 async function getCachedDashboardPageData(groupId: string): Promise<DashboardPageData> {

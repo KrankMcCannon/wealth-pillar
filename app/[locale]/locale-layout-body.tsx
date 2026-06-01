@@ -9,6 +9,8 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { routing } from '@/i18n/routing';
 import { getCurrentUser, getGroupUsers } from '@/lib/auth/cached-auth';
 import { withTimeout } from '@/lib/utils/with-timeout';
+import { AccessScope } from '@/lib/permissions/access-scope';
+import { getSelectableUsers } from '@/lib/utils/permissions';
 import {
   getAccountsByGroupDeduped,
   getAllCategoriesDeduped,
@@ -61,18 +63,21 @@ export async function LocaleLayoutBody({
       type GroupAccounts = Awaited<ReturnType<typeof getAccountsByGroupDeduped>>;
       type AllCategories = Awaited<ReturnType<typeof getAllCategoriesDeduped>>;
 
-      const [groupUsers, accounts, categories, usedCategoryKeys] = await Promise.all([
+      const [allGroupUsers, accounts, categories, usedCategoryKeys] = await Promise.all([
         withTimeout(getGroupUsers(), 1500, [currentUser] as GroupUsers),
         withTimeout(getAccountsByGroupDeduped(currentUser.group_id), 1500, [] as GroupAccounts),
         withTimeout(getAllCategoriesDeduped(), 1200, [] as AllCategories),
         withTimeout(getUsedCategoryKeysByGroupUseCase(currentUser.group_id), 1500, [] as string[]),
       ]);
 
+      const groupUsers = getSelectableUsers(currentUser, allGroupUsers);
+      const scopedAccounts = AccessScope.for(currentUser).filterShared(accounts || []);
+
       appContent = (
         <UserProvider currentUser={currentUser} groupUsers={groupUsers}>
           <ReferenceDataInitializer
             data={{
-              accounts: accounts || [],
+              accounts: scopedAccounts,
               categories: categories || [],
               usedCategoryKeys: usedCategoryKeys || [],
             }}

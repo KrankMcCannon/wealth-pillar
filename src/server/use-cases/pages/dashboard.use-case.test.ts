@@ -80,7 +80,7 @@ describe('getDashboardPageData', () => {
   });
 
   it('returns dashboard data without investments field', async () => {
-    const result = await getDashboardPageData('g1');
+    const result = await getDashboardPageData('g1', groupUsers[0]);
 
     expect(result.accounts).toEqual(accounts);
     expect(result.recurringSeries).toEqual([]);

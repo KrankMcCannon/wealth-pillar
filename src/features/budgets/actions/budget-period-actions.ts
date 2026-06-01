@@ -17,7 +17,7 @@ import {
 import { getTransactionsByUserUseCase } from '@/server/use-cases/transactions/get-transactions.use-case';
 import { getBudgetsByUserUseCase } from '@/server/use-cases/budgets/get-budgets.use-case';
 import { AccountsRepository } from '@/server/repositories/accounts.repository';
-import { canAccessUserData, isMember } from '@/lib/utils';
+import { AccessScope } from '@/lib/permissions/access-scope';
 import type { BudgetPeriod, User } from '@/lib/types';
 import type { ServiceResult } from '@/lib/types/service-result';
 import { DateTime } from 'luxon';
@@ -27,6 +27,17 @@ async function getBudgetPeriodActionTranslator(locale?: string) {
     return getTranslations({ locale, namespace: 'Budgets.PeriodActions' });
   }
   return getTranslations('Budgets.PeriodActions');
+}
+
+function denyUnlessCanViewUser(
+  currentUser: User,
+  userId: string,
+  error: string
+): { data: null; error: string } | null {
+  if (!AccessScope.for(currentUser).canViewUser(userId)) {
+    return { data: null, error };
+  }
+  return null;
 }
 
 /**
@@ -53,21 +64,12 @@ export async function startPeriodAction(
       };
     }
 
-    // Permission validation: members can only start periods for themselves
-    if (isMember(currentUser as unknown as User) && userId !== currentUser.id) {
-      return {
-        data: null,
-        error: t('errors.noPermissionManageOthers'),
-      };
-    }
-
-    // Admins can start for anyone, but verify target user exists
-    if (!canAccessUserData(currentUser as unknown as User, userId)) {
-      return {
-        data: null,
-        error: t('errors.noPermissionUserData'),
-      };
-    }
+    const denied = denyUnlessCanViewUser(
+      currentUser as unknown as User,
+      userId,
+      t('errors.noPermissionUserData')
+    );
+    if (denied) return denied;
 
     // Create new period
     const result = await createBudgetPeriodUseCase(userId, startDate);
@@ -111,21 +113,12 @@ export async function closePeriodAction(
       };
     }
 
-    // Permission validation
-    if (isMember(currentUser as unknown as User) && userId !== currentUser.id) {
-      return {
-        data: null,
-        error: t('errors.noPermissionClose'),
-      };
-    }
-
-    // Admins can close for anyone
-    if (!canAccessUserData(currentUser as unknown as User, userId)) {
-      return {
-        data: null,
-        error: t('errors.noPermissionUserData'),
-      };
-    }
+    const deniedClose = denyUnlessCanViewUser(
+      currentUser as unknown as User,
+      userId,
+      t('errors.noPermissionUserData')
+    );
+    if (deniedClose) return deniedClose;
 
     // Close period with calculations or pre-calculated totals
     const result = await closeBudgetPeriodUseCase(userId, periodId, endDate);
@@ -170,19 +163,12 @@ export async function editClosingDateAction(
       };
     }
 
-    if (isMember(currentUser as unknown as User) && userId !== currentUser.id) {
-      return {
-        data: null,
-        error: t('errors.noPermissionEditClosingDate'),
-      };
-    }
-
-    if (!canAccessUserData(currentUser as unknown as User, userId)) {
-      return {
-        data: null,
-        error: t('errors.noPermissionUserData'),
-      };
-    }
+    const deniedEdit = denyUnlessCanViewUser(
+      currentUser as unknown as User,
+      userId,
+      t('errors.noPermissionUserData')
+    );
+    if (deniedEdit) return deniedEdit;
 
     const result = await editBudgetPeriodClosingDateUseCase(userId, periodId, newEndDate);
 
@@ -235,19 +221,12 @@ export async function getLatestClosedPeriodAction(
       };
     }
 
-    if (isMember(currentUser as unknown as User) && userId !== currentUser.id) {
-      return {
-        data: null,
-        error: t('errors.noPermissionViewOthers'),
-      };
-    }
-
-    if (!canAccessUserData(currentUser as unknown as User, userId)) {
-      return {
-        data: null,
-        error: t('errors.noPermissionUserData'),
-      };
-    }
+    const deniedLatest = denyUnlessCanViewUser(
+      currentUser as unknown as User,
+      userId,
+      t('errors.noPermissionUserData')
+    );
+    if (deniedLatest) return deniedLatest;
 
     const period = await getLatestClosedBudgetPeriodUseCase(userId);
 
@@ -287,21 +266,12 @@ export async function deletePeriodAction(
       };
     }
 
-    // Permission validation
-    if (isMember(currentUser as unknown as User) && userId !== currentUser.id) {
-      return {
-        data: null,
-        error: t('errors.noPermissionDelete'),
-      };
-    }
-
-    // Admins can delete for anyone
-    if (!canAccessUserData(currentUser as unknown as User, userId)) {
-      return {
-        data: null,
-        error: t('errors.noPermissionUserData'),
-      };
-    }
+    const deniedDelete = denyUnlessCanViewUser(
+      currentUser as unknown as User,
+      userId,
+      t('errors.noPermissionUserData')
+    );
+    if (deniedDelete) return deniedDelete;
 
     // Delete period
     await deleteBudgetPeriodUseCase(userId, periodId);
@@ -342,20 +312,12 @@ export async function getUserPeriodsAction(
       };
     }
 
-    // Permission validation
-    if (isMember(currentUser as unknown as User) && userId !== currentUser.id) {
-      return {
-        data: null,
-        error: t('errors.noPermissionViewOthers'),
-      };
-    }
-
-    if (!canAccessUserData(currentUser as unknown as User, userId)) {
-      return {
-        data: null,
-        error: t('errors.noPermissionUserData'),
-      };
-    }
+    const deniedPeriods = denyUnlessCanViewUser(
+      currentUser as unknown as User,
+      userId,
+      t('errors.noPermissionUserData')
+    );
+    if (deniedPeriods) return deniedPeriods;
 
     // Fetch periods
     const periods = await getBudgetsPeriodsByUserUseCase(userId);
@@ -394,20 +356,12 @@ export async function getActivePeriodAction(
       };
     }
 
-    // Permission validation
-    if (isMember(currentUser as unknown as User) && userId !== currentUser.id) {
-      return {
-        data: null,
-        error: t('errors.noPermissionViewActiveOthers'),
-      };
-    }
-
-    if (!canAccessUserData(currentUser as unknown as User, userId)) {
-      return {
-        data: null,
-        error: t('errors.noPermissionUserData'),
-      };
-    }
+    const deniedActive = denyUnlessCanViewUser(
+      currentUser as unknown as User,
+      userId,
+      t('errors.noPermissionUserData')
+    );
+    if (deniedActive) return deniedActive;
 
     // Fetch active period
     const period = await getActiveBudgetPeriodUseCase(userId);
@@ -454,13 +408,12 @@ export async function getPeriodPreviewAction(
       return { data: null, error: t('errors.unauthenticatedShort') };
     }
 
-    // Permission check
-    if (isMember(currentUser as unknown as User) && userId !== currentUser.id) {
-      return { data: null, error: t('errors.permissionDenied') };
-    }
-    if (!canAccessUserData(currentUser as unknown as User, userId)) {
-      return { data: null, error: t('errors.permissionDenied') };
-    }
+    const deniedPreview = denyUnlessCanViewUser(
+      currentUser as unknown as User,
+      userId,
+      t('errors.permissionDenied')
+    );
+    if (deniedPreview) return deniedPreview;
 
     // Fetch necessary data on server
     // We fetch all transactions for the user to ensure accurate calculations

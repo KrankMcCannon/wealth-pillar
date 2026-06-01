@@ -15,8 +15,9 @@ import {
 import type { GroupedBudgetTransaction } from '../budgets/budget-chart.logic';
 import { toDateTime } from '@/lib/utils/date-utils';
 import { parsePeriodDates } from '../shared/period.logic';
-import type { Account, Budget, Category, Transaction } from '@/lib/types';
+import type { Account, Budget, Category, Transaction, User } from '@/lib/types';
 import type { BudgetDetailPageData } from './budget-detail-page.types';
+import { scopeBudgetDetailPageData } from '@/server/permissions/scope-page-data';
 
 export type { BudgetDetailPageData } from './budget-detail-page.types';
 
@@ -49,7 +50,7 @@ function groupTransactionsByDay(transactions: Transaction[]): GroupedBudgetTrans
     }));
 }
 
-export async function getBudgetDetailPageData(
+async function getCachedBudgetDetailPageData(
   groupId: string,
   budgetId: string
 ): Promise<BudgetDetailPageData> {
@@ -108,4 +109,20 @@ export async function getBudgetDetailPageData(
     accounts,
     categories,
   };
+}
+
+export async function getBudgetDetailPageData(
+  groupId: string,
+  budgetId: string,
+  currentUser: User
+): Promise<BudgetDetailPageData> {
+  try {
+    const data = await getCachedBudgetDetailPageData(groupId, budgetId);
+    return scopeBudgetDetailPageData(data, currentUser);
+  } catch (error) {
+    if (error instanceof Error && error.message === 'NOT_FOUND') {
+      notFound();
+    }
+    throw error;
+  }
 }

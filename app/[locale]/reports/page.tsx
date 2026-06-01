@@ -40,7 +40,7 @@ export default async function ReportsPage({
 
   const reportsBundlePromise = (async () => {
     try {
-      return await getReportsPageDataUseCase(groupId, groupUserIds, reportParams);
+      return await getReportsPageDataUseCase(groupId, groupUserIds, currentUser, reportParams);
     } catch (err) {
       const t = await getTranslations('Errors');
       throw new Error(t('loadFailedReports'), { cause: err });

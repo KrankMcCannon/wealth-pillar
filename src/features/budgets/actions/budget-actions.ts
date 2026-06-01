@@ -5,7 +5,8 @@ import { getTranslations } from 'next-intl/server';
 
 import { getCurrentUser } from '@/lib/auth/cached-auth';
 import type { CreateBudgetInput } from '@/server/use-cases/budgets/types';
-import { canAccessUserData, isMember } from '@/lib/utils';
+import { AccessScope } from '@/lib/permissions/access-scope';
+import { isMember } from '@/lib/utils';
 import type { Budget, User } from '@/lib/types';
 import { createBudgetUseCase } from '@/server/use-cases/budgets/create-budget.use-case';
 import { updateBudgetUseCase } from '@/server/use-cases/budgets/update-budget.use-case';
@@ -54,8 +55,7 @@ export async function createBudgetAction(
       };
     }
 
-    // Admins can create for anyone, but verify target user exists
-    if (!canAccessUserData(currentUser as unknown as User, input.user_id)) {
+    if (!AccessScope.for(currentUser as unknown as User).canViewUser(input.user_id)) {
       return {
         data: null,
         error: t('errors.noPermissionUserData'),
@@ -117,15 +117,14 @@ export async function updateBudgetAction(
       };
     }
 
-    // Permission validation: verify access to existing budget
-    if (!canAccessUserData(currentUser as unknown as User, existingBudget.user_id)) {
+    const scope = AccessScope.for(currentUser as unknown as User);
+    if (!scope.canViewOwned(existingBudget)) {
       return {
         data: null,
         error: t('errors.noPermissionUpdate'),
       };
     }
 
-    // If changing user_id, verify permission for new user
     if (input.user_id && input.user_id !== existingBudget.user_id) {
       if (isMember(currentUser as unknown as User)) {
         return {
@@ -134,7 +133,7 @@ export async function updateBudgetAction(
         };
       }
 
-      if (!canAccessUserData(currentUser as unknown as User, input.user_id)) {
+      if (!scope.canViewUser(input.user_id)) {
         return {
           data: null,
           error: t('errors.noPermissionAssignUser'),
@@ -174,7 +173,7 @@ export async function getBudgetByIdAction(id: string): Promise<ServiceResult<Bud
       return { data: null, error: 'Budget non trovato' };
     }
 
-    if (!canAccessUserData(currentUser as unknown as User, budget.user_id)) {
+    if (!AccessScope.for(currentUser as unknown as User).canViewOwned(budget)) {
       return { data: null, error: 'Permesso negato' };
     }
 
@@ -214,8 +213,7 @@ export async function deleteBudgetAction(
       };
     }
 
-    // Permission validation: verify access to budget
-    if (!canAccessUserData(currentUser as unknown as User, existingBudget.user_id)) {
+    if (!AccessScope.for(currentUser as unknown as User).canViewOwned(existingBudget)) {
       return {
         data: null,
         error: t('errors.noPermissionDelete'),

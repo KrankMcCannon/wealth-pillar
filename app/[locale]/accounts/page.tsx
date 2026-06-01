@@ -26,7 +26,8 @@ async function AccountsPageData({
   try {
     pageData = await getAccountsPageData(
       groupId,
-      groupUsers.map((u) => u.id)
+      groupUsers.map((u) => u.id),
+      currentUser
     );
   } catch (err) {
     const t = await getTranslations('Errors');

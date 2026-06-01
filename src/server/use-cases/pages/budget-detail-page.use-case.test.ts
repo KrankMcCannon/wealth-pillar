@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { Budget, Transaction, Category, Account } from '@/lib/types';
+import type { Budget, Transaction, Category, Account, User } from '@/lib/types';
 import { today as luxonToday } from '@/lib/utils/date-utils';
 
 vi.mock('next/cache', () => ({
@@ -98,6 +98,26 @@ function tx(overrides: Partial<Transaction> = {}): Transaction {
   };
 }
 
+const owner = {
+  id: 'user-1',
+  name: 'Owner',
+  email: 'owner@example.com',
+  role: 'admin',
+  group_id: 'group-1',
+  created_at: '2024-01-01',
+  updated_at: '2024-01-01',
+} as User;
+
+const otherMember = {
+  id: 'user-2',
+  name: 'Other',
+  email: 'other@example.com',
+  role: 'member',
+  group_id: 'group-1',
+  created_at: '2024-01-01',
+  updated_at: '2024-01-01',
+} as User;
+
 describe('getBudgetDetailPageData', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -109,9 +129,9 @@ describe('getBudgetDetailPageData', () => {
   });
 
   it('returns budget detail with progress and category breakdown', async () => {
-    const txDate = luxonToday().minus({ days: 2 }).toISODate() ?? '';
+    const txDate = luxonToday().toISODate() ?? '';
     vi.mocked(getTransactionsByUserUseCase).mockResolvedValue([tx({ date: txDate })]);
-    const data = await getBudgetDetailPageData('group-1', 'b-1');
+    const data = await getBudgetDetailPageData('group-1', 'b-1', owner);
     expect(data.budget.id).toBe('b-1');
     expect(data.progress.spent).toBe(100);
     expect(data.categoryBreakdown).toHaveLength(1);
@@ -122,13 +142,20 @@ describe('getBudgetDetailPageData', () => {
 
   it('calls notFound when budget belongs to another group', async () => {
     vi.mocked(getBudgetByIdUseCase).mockResolvedValue({ ...budget, group_id: 'other-group' });
-    await expect(getBudgetDetailPageData('group-1', 'b-1')).rejects.toThrow('NOT_FOUND');
+    await expect(getBudgetDetailPageData('group-1', 'b-1', owner)).rejects.toThrow('NOT_FOUND');
     expect(notFound).toHaveBeenCalled();
   });
 
   it('calls notFound when budget is missing', async () => {
     vi.mocked(getBudgetByIdUseCase).mockRejectedValue(new Error('Budget not found'));
-    await expect(getBudgetDetailPageData('group-1', 'b-1')).rejects.toThrow('NOT_FOUND');
+    await expect(getBudgetDetailPageData('group-1', 'b-1', owner)).rejects.toThrow('NOT_FOUND');
+    expect(notFound).toHaveBeenCalled();
+  });
+
+  it('calls notFound when member accesses another user budget', async () => {
+    await expect(getBudgetDetailPageData('group-1', 'b-1', otherMember)).rejects.toThrow(
+      'NOT_FOUND'
+    );
     expect(notFound).toHaveBeenCalled();
   });
 });

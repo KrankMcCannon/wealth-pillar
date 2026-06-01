@@ -14,7 +14,7 @@ import {
 import { setUserDefaultAccountUseCase } from '@/server/use-cases/users/user.use-cases';
 import type { ServiceResult } from '@/lib/types/service-result';
 import { Account, User } from '@/lib/types';
-import { canAccessUserData } from '@/lib/utils/permissions';
+import { AccessScope } from '@/lib/permissions/access-scope';
 
 export type { ServiceResult } from '@/lib/types/service-result';
 
@@ -41,8 +41,9 @@ export async function createAccountAction(
       return { data: null, error: t('errors.unauthenticated') };
     }
 
+    const scope = AccessScope.for(currentUser as unknown as User);
     for (const userId of input.user_ids) {
-      if (!canAccessUserData(currentUser as unknown as User, userId)) {
+      if (!scope.canViewUser(userId)) {
         return { data: null, error: t('errors.noPermissionCreate') };
       }
     }
@@ -96,6 +97,19 @@ export async function updateAccountAction(
       return { data: null, error: t('errors.noPermissionUpdate') };
     }
 
+    const scope = AccessScope.for(currentUser as unknown as User);
+    if (!scope.canViewShared(existingAccount)) {
+      return { data: null, error: t('errors.noPermissionUpdate') };
+    }
+
+    if (input.user_ids) {
+      for (const userId of input.user_ids) {
+        if (!scope.canViewUser(userId)) {
+          return { data: null, error: t('errors.noPermissionUpdate') };
+        }
+      }
+    }
+
     if (input.name !== undefined && input.name.trim() === '')
       return { data: null, error: t('errors.nameEmpty') };
     if (input.user_ids?.length === 0) return { data: null, error: t('errors.userRequired') };
@@ -144,6 +158,10 @@ export async function deleteAccountAction(
     const existingAccount = await getAccountByIdUseCase(accountId);
 
     if (currentUser.group_id !== existingAccount.group_id) {
+      return { data: null, error: t('errors.noPermissionDelete') };
+    }
+
+    if (!AccessScope.for(currentUser as unknown as User).canViewShared(existingAccount)) {
       return { data: null, error: t('errors.noPermissionDelete') };
     }
 
