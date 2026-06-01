@@ -28,7 +28,7 @@ export function MobileCalendarDrawer({
       isOpen={isOpen}
       onOpenChange={(open) => !open && onClose()}
       title={t('drawerTitle')}
-      description={t('drawerAriaLabel')}
+      nested
       repositionInputs
     >
       <CalendarPanel value={value} onChange={onChange} onClose={onClose} />

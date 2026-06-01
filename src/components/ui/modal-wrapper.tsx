@@ -6,6 +6,7 @@ import { stitchSurface } from '@/styles/home-design-foundation';
 import * as React from 'react';
 import {
   Drawer,
+  DrawerNested,
   DrawerClose,
   DrawerContent,
   DrawerDescription,
@@ -30,6 +31,8 @@ export interface ModalWrapperProps {
   isLoading?: boolean;
   disableOutsideClose?: boolean;
   repositionInputs?: boolean;
+  /** When true, renders as Vaul NestedRoot (required when opening over another drawer). */
+  nested?: boolean;
   handleClassName?: string;
   drawerHeaderClassName?: string;
   drawerCloseClassName?: string;
@@ -48,11 +51,13 @@ export function ModalWrapper({
   isLoading = false,
   disableOutsideClose = false,
   repositionInputs = false,
+  nested = false,
   handleClassName,
   drawerHeaderClassName,
   drawerCloseClassName,
 }: Readonly<ModalWrapperProps>) {
   const tCommon = useTranslations('Common');
+  const DrawerRoot = nested ? DrawerNested : Drawer;
 
   const handleOpenChange = React.useCallback(
     (open: boolean) => {
@@ -65,7 +70,7 @@ export function ModalWrapper({
   );
 
   return (
-    <Drawer
+    <DrawerRoot
       open={isOpen}
       onOpenChange={handleOpenChange}
       dismissible={!disableOutsideClose}
@@ -101,7 +106,7 @@ export function ModalWrapper({
           <div className={modalS.shell.body}>{children}</div>
         )}
       </DrawerContent>
-    </Drawer>
+    </DrawerRoot>
   );
 }
 

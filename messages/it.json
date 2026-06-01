@@ -1799,30 +1799,17 @@
     "DateField": {
       "label": "Data",
       "placeholder": "GG/MM/AAAA",
+      "today": "Oggi",
       "clearDateAria": "Cancella data",
       "openCalendarSr": "Apri calendario"
     },
     "DateDrawer": {
-      "drawerAriaLabel": "Selettore data",
       "drawerTitle": "Seleziona una data",
-      "presetsAria": "Scorciatoie data",
-      "presetsTitle": "Scorciatoie",
-      "presetAria": "{label}: {date}",
-      "presets": {
-        "today": "Oggi",
-        "yesterday": "Ieri",
-        "daysAgo7": "7 giorni fa",
-        "daysAgo30": "30 giorni fa",
-        "weekStart": "Inizio settimana",
-        "monthStart": "Inizio mese",
-        "yearStart": "Inizio anno"
-      },
       "monthHeader": {
         "previousMonth": "Mese precedente",
         "nextMonth": "Mese successivo",
-        "closeSelectors": "Chiudi selettori",
-        "close": "Chiudi",
-        "selectMonthAndYear": "Seleziona mese e anno"
+        "selectMonth": "Seleziona mese",
+        "selectYear": "Seleziona anno"
       },
       "dayCell": {
         "selectDate": "Seleziona {date}"

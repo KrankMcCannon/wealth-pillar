@@ -4,7 +4,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { addMonths, format, isValid, startOfYear, subMonths } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { calendarDrawerStyles } from '@/lib/styles/calendar-drawer.styles';
-import { MonthGrid, MonthHeader, QuickPresets, WeekdayLabels } from './primitives/date-drawer';
+import { MonthGrid, MonthHeader, WeekdayLabels } from './primitives/date-drawer';
 
 export interface CalendarPanelProps {
   value: string;
@@ -46,14 +46,6 @@ export function CalendarPanel({
     [onChange, onClose]
   );
 
-  const handlePresetSelect = useCallback(
-    (date: Date) => {
-      setCurrentMonth(date);
-      handleDateSelect(date);
-    },
-    [handleDateSelect]
-  );
-
   return (
     <div className={cn(calendarDrawerStyles.panel.container, className)}>
       <MonthHeader
@@ -68,7 +60,6 @@ export function CalendarPanel({
         selectedDate={selectedDate}
         onDateSelect={handleDateSelect}
       />
-      <QuickPresets selectedDate={selectedDate} onSelect={handlePresetSelect} />
     </div>
   );
 }

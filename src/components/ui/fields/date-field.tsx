@@ -24,7 +24,6 @@ export interface DateFieldProps {
 
 export function DateField({ value, onChange, error, label }: Readonly<DateFieldProps>) {
   const t = useTranslations('Forms.DateField');
-  const tDrawer = useTranslations('Forms.DateDrawer');
   const resolvedLabel = label ?? t('label');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
@@ -33,9 +32,16 @@ export function DateField({ value, onChange, error, label }: Readonly<DateFieldP
     const d = new Date(value);
     if (!isValid(d)) return '';
     return isSameDay(startOfDay(d), startOfDay(new Date()))
-      ? tDrawer('presets.today')
+      ? t('today')
       : format(d, 'dd/MM/yyyy', { locale: it });
-  }, [value, tDrawer]);
+  }, [value, t]);
+
+  const openCalendar = () => {
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+    setIsDrawerOpen(true);
+  };
 
   return (
     <div className="space-y-1">
@@ -44,7 +50,7 @@ export function DateField({ value, onChange, error, label }: Readonly<DateFieldP
         value={displayText || t('placeholder')}
         valueMuted={!displayText}
         icon={<CalendarIcon className={s.selectorIcon} aria-hidden />}
-        onClick={() => setIsDrawerOpen(true)}
+        onClick={openCalendar}
       />
       <MobileCalendarDrawer
         value={value}

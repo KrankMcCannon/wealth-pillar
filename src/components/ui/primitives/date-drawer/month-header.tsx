@@ -1,15 +1,9 @@
-/**
- * Month Header Component
- *
- * Navigation header for calendar with month/year display
- */
-
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { setMonth, setYear, getYear, getMonth } from 'date-fns';
 import { useLocale, useTranslations } from 'next-intl';
-import { ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { calendarDrawerStyles } from '@/lib/styles/calendar-drawer.styles';
 import { monthNavButtonVariants } from '@/lib/utils/date-drawer-variants';
 import { cn } from '@/lib/utils';
@@ -38,42 +32,33 @@ export function MonthHeader({
 }: Readonly<MonthHeaderProps>) {
   const t = useTranslations('Forms.DateDrawer');
   const locale = useLocale();
-  const [showDropdowns, setShowDropdowns] = useState(false);
 
   const currentMonthNum = getMonth(currentMonth);
   const currentYearNum = getYear(currentMonth);
 
   const yearOptions = useMemo(() => {
+    const thisYear = getYear(new Date());
     const years: number[] = [];
-    for (let i = 2000; i <= 2100; i++) {
-      years.push(i);
+    for (let year = thisYear - 60; year <= thisYear + 10; year++) {
+      years.push(year);
     }
     return years;
   }, []);
 
   const monthNames = useMemo(
-    () => [
-      ...Array.from({ length: 12 }, (_, index) =>
+    () =>
+      Array.from({ length: 12 }, (_, index) =>
         new Intl.DateTimeFormat(locale, { month: 'long' }).format(new Date(2024, index, 1))
       ),
-    ],
     [locale]
   );
 
-  const monthYearText = new Intl.DateTimeFormat(locale, {
-    month: 'long',
-    year: 'numeric',
-  }).format(currentMonth);
-  const capitalizedText = monthYearText.charAt(0).toUpperCase() + monthYearText.slice(1);
-
   const handleMonthSelect = (monthIndex: string) => {
-    const newDate = setMonth(currentMonth, Number.parseInt(monthIndex, 10));
-    onMonthChange?.(newDate);
+    onMonthChange?.(setMonth(currentMonth, Number.parseInt(monthIndex, 10)));
   };
 
   const handleYearSelect = (year: string) => {
-    const newDate = setYear(currentMonth, Number.parseInt(year, 10));
-    onMonthChange?.(newDate);
+    onMonthChange?.(setYear(currentMonth, Number.parseInt(year, 10)));
   };
 
   return (
@@ -87,76 +72,52 @@ export function MonthHeader({
         <ChevronLeft className={calendarDrawerStyles.header.navButton.icon} />
       </button>
 
-      <div className={calendarDrawerStyles.header.center}>
-        {showDropdowns ? (
-          <div className={calendarDrawerStyles.header.dropdowns}>
-            <Select value={currentMonthNum.toString()} onValueChange={handleMonthSelect}>
-              <SelectTrigger
-                className={cn(
-                  calendarDrawerStyles.header.selectTrigger,
-                  calendarDrawerStyles.header.selectTriggerMonth
-                )}
-              >
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className={calendarDrawerStyles.header.selectContent}>
-                {monthNames.map((month, index) => (
-                  <SelectItem
-                    key={month}
-                    value={index.toString()}
-                    className={calendarDrawerStyles.header.selectItem}
-                  >
-                    {month}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={currentYearNum.toString()} onValueChange={handleYearSelect}>
-              <SelectTrigger
-                className={cn(
-                  calendarDrawerStyles.header.selectTrigger,
-                  calendarDrawerStyles.header.selectTriggerYear
-                )}
-              >
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className={calendarDrawerStyles.header.selectContent}>
-                {yearOptions.map((year) => (
-                  <SelectItem
-                    key={year}
-                    value={year.toString()}
-                    className={calendarDrawerStyles.header.selectItemYear}
-                  >
-                    {year}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <button
-              type="button"
-              onClick={() => setShowDropdowns(false)}
-              className={calendarDrawerStyles.header.closeButton}
-              aria-label={t('monthHeader.closeSelectors')}
-            >
-              {t('monthHeader.close')}
-            </button>
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={() => setShowDropdowns(true)}
+      <div className={calendarDrawerStyles.header.pickerRow}>
+        <Select value={currentMonthNum.toString()} onValueChange={handleMonthSelect}>
+          <SelectTrigger
             className={cn(
-              calendarDrawerStyles.header.monthYear,
-              calendarDrawerStyles.header.monthYearButton
+              calendarDrawerStyles.header.selectTrigger,
+              calendarDrawerStyles.header.selectTriggerMonth
             )}
-            aria-label={t('monthHeader.selectMonthAndYear')}
+            aria-label={t('monthHeader.selectMonth')}
           >
-            <span>{capitalizedText}</span>
-            <ChevronDown className={calendarDrawerStyles.header.chevronIcon} />
-          </button>
-        )}
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent className={calendarDrawerStyles.header.selectContent}>
+            {monthNames.map((month, index) => (
+              <SelectItem
+                key={month}
+                value={index.toString()}
+                className={calendarDrawerStyles.header.selectItem}
+              >
+                {month}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select value={currentYearNum.toString()} onValueChange={handleYearSelect}>
+          <SelectTrigger
+            className={cn(
+              calendarDrawerStyles.header.selectTrigger,
+              calendarDrawerStyles.header.selectTriggerYear
+            )}
+            aria-label={t('monthHeader.selectYear')}
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent className={calendarDrawerStyles.header.selectContent}>
+            {yearOptions.map((year) => (
+              <SelectItem
+                key={year}
+                value={year.toString()}
+                className={calendarDrawerStyles.header.selectItemYear}
+              >
+                {year}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <button

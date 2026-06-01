@@ -19,6 +19,20 @@ const Drawer = ({
 );
 Drawer.displayName = 'Drawer';
 
+/** Use inside an open drawer (e.g. calendar over a form modal) to avoid aria-hidden/focus conflicts. */
+const DrawerNested = ({
+  shouldScaleBackground = false,
+  setBackgroundColorOnScale = false,
+  ...props
+}: React.ComponentProps<typeof DrawerPrimitive.NestedRoot>) => (
+  <DrawerPrimitive.NestedRoot
+    shouldScaleBackground={shouldScaleBackground}
+    setBackgroundColorOnScale={setBackgroundColorOnScale}
+    {...props}
+  />
+);
+DrawerNested.displayName = 'DrawerNested';
+
 const DrawerTrigger = DrawerPrimitive.Trigger;
 const DrawerPortal = DrawerPrimitive.Portal;
 const DrawerClose = DrawerPrimitive.Close;
@@ -95,6 +109,7 @@ DrawerDescription.displayName = DrawerPrimitive.Description.displayName;
 
 export {
   Drawer,
+  DrawerNested,
   DrawerTrigger,
   DrawerPortal,
   DrawerClose,

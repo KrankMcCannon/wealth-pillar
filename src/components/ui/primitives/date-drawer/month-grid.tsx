@@ -1,10 +1,3 @@
-/**
- * Month Grid Component
- *
- * Renders a calendar month grid with date calculations
- * 7-column grid (Monday-Sunday, European convention)
- */
-
 'use client';
 
 import { useMemo } from 'react';
@@ -19,6 +12,7 @@ import {
   isWeekend as checkIsWeekend,
   format,
 } from 'date-fns';
+import { useLocale, useTranslations } from 'next-intl';
 import { calendarDrawerStyles } from '@/lib/styles/calendar-drawer.styles';
 import { cn } from '@/lib/utils';
 import { DayCell } from './day-cell';
@@ -36,33 +30,42 @@ export function MonthGrid({
   onDateSelect,
   className,
 }: Readonly<MonthGridProps>) {
-  const monthDays = useMemo(() => {
-    return calculateMonthDays(currentMonth);
-  }, [currentMonth]);
+  const locale = useLocale();
+  const t = useTranslations('Forms.DateDrawer.dayCell');
 
+  const monthDays = useMemo(() => calculateMonthDays(currentMonth), [currentMonth]);
   const today = useMemo(() => new Date(), []);
+
+  const dateFormatter = useMemo(
+    () =>
+      new Intl.DateTimeFormat(locale, {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      }),
+    [locale]
+  );
+
+  const ariaLabels = useMemo(
+    () => monthDays.map((date) => t('selectDate', { date: dateFormatter.format(date) })),
+    [monthDays, dateFormatter, t]
+  );
 
   return (
     <div className={cn(calendarDrawerStyles.grid.container, className)} role="grid">
-      {monthDays.map((date, index) => {
-        const isSelected = selectedDate ? isSameDay(date, selectedDate) : false;
-        const isToday = isSameDay(date, today);
-        const isWeekend = checkIsWeekend(date);
-        const isOtherMonth = !isSameMonth(date, currentMonth);
-
-        return (
-          <DayCell
-            key={`${format(date, 'yyyy-MM-dd')}-${index}`}
-            date={date}
-            isSelected={isSelected}
-            isToday={isToday}
-            isDisabled={false}
-            isWeekend={isWeekend}
-            isOtherMonth={isOtherMonth}
-            onClick={onDateSelect}
-          />
-        );
-      })}
+      {monthDays.map((date, index) => (
+        <DayCell
+          key={`${format(date, 'yyyy-MM-dd')}-${index}`}
+          date={date}
+          ariaLabel={ariaLabels[index] ?? ''}
+          isSelected={selectedDate ? isSameDay(date, selectedDate) : false}
+          isToday={isSameDay(date, today)}
+          isDisabled={false}
+          isWeekend={checkIsWeekend(date)}
+          isOtherMonth={!isSameMonth(date, currentMonth)}
+          onClick={onDateSelect}
+        />
+      ))}
     </div>
   );
 }
@@ -73,8 +76,5 @@ function calculateMonthDays(month: Date): Date[] {
   const calendarStart = startOfWeek(monthStart, { weekStartsOn: 1 });
   const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
 
-  return eachDayOfInterval({
-    start: calendarStart,
-    end: calendarEnd,
-  });
+  return eachDayOfInterval({ start: calendarStart, end: calendarEnd });
 }

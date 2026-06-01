@@ -92,17 +92,11 @@ export {
 // Date Drawer Variants
 export {
   dayButtonVariants,
-  drawerContentVariants,
   monthNavButtonVariants,
-  presetButtonVariants,
-  calendarTriggerVariants,
   weekdayLabelVariants,
   getDayState,
   type DayButtonVariants,
-  type DrawerContentVariants,
   type MonthNavButtonVariants,
-  type PresetButtonVariants,
-  type CalendarTriggerVariants,
   type WeekdayLabelVariants,
   type DayState,
 } from './date-drawer-variants';

@@ -1,10 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   dayButtonVariants,
-  drawerContentVariants,
   monthNavButtonVariants,
-  presetButtonVariants,
-  calendarTriggerVariants,
   weekdayLabelVariants,
   getDayState,
 } from './date-drawer-variants';
@@ -108,28 +105,6 @@ describe('CVA Variants', () => {
     });
   });
 
-  describe('drawerContentVariants', () => {
-    it('should return valid classes for bottom position', () => {
-      const className = drawerContentVariants({ position: 'bottom' });
-      expect(className).toContain('bottom-0');
-    });
-
-    it('should return valid classes for center position', () => {
-      const className = drawerContentVariants({ position: 'center' });
-      expect(className).toContain('-translate-x-1/2');
-    });
-
-    it('should handle compact size', () => {
-      const className = drawerContentVariants({ size: 'compact' });
-      expect(className).toContain('max-h-[60vh]');
-    });
-
-    it('should handle full size', () => {
-      const className = drawerContentVariants({ size: 'full' });
-      expect(className).toContain('max-h-[90vh]');
-    });
-  });
-
   describe('monthNavButtonVariants', () => {
     it('should return valid classes when enabled', () => {
       const className = monthNavButtonVariants({ disabled: false });
@@ -139,30 +114,6 @@ describe('CVA Variants', () => {
     it('should return valid classes when disabled', () => {
       const className = monthNavButtonVariants({ disabled: true });
       expect(className).toContain('cursor-not-allowed');
-    });
-  });
-
-  describe('presetButtonVariants', () => {
-    it('should return valid classes when active', () => {
-      const className = presetButtonVariants({ active: true });
-      expect(className).toContain('bg-primary');
-    });
-
-    it('should return valid classes when inactive', () => {
-      const className = presetButtonVariants({ active: false });
-      expect(className).toContain('bg-card');
-    });
-  });
-
-  describe('calendarTriggerVariants', () => {
-    it('should return valid classes when active', () => {
-      const className = calendarTriggerVariants({ active: true });
-      expect(className).toContain('bg-primary');
-    });
-
-    it('should return valid classes when inactive', () => {
-      const className = calendarTriggerVariants({ active: false });
-      expect(className).toContain('border-2');
     });
   });
 
