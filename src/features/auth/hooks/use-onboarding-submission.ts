@@ -38,8 +38,7 @@ export type OnboardingSubmitResult =
   | { ok: false; error: string; categories: Category[]; isOrphanMessage?: boolean };
 
 /**
- * Logica condivisa tra `/auth/sso-callback` (se usato) e `/onboarding`:
- * completa onboarding, invalida cache client e naviga alla home.
+ * Completa onboarding, invalida cache client e naviga alla home.
  */
 export function useOnboardingSubmission(): {
   submit: (payload: OnboardingPayload) => Promise<OnboardingSubmitResult>;

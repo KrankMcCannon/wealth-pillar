@@ -37,8 +37,8 @@ export function getBaseUrl(): string {
  * @returns Absolute URL
  *
  * @example
- * getAbsoluteUrl('/auth/sso-callback')
- * // => 'https://app.netlify.app/auth/sso-callback'
+ * getAbsoluteUrl('/it/home')
+ * // => 'https://app.netlify.app/it/home'
  */
 export function getAbsoluteUrl(path: string): string {
   if (!path.startsWith('/')) {

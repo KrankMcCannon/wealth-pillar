@@ -1,6 +1,6 @@
 /**
  * Auth Theme - Centralized exports
- * Design tokens and style utilities
  */
 
-export { authStyles, getInputStyles, getButtonLoadingState } from './auth-styles';
+export { authStyles } from './auth-styles';
+export { clerkAppearance } from './clerk-appearance';

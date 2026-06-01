@@ -1,5 +1,6 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
+@import '@clerk/themes/shadcn.css';
 
 /* =============================================================================
    Wealth Pillar — design system (Tailwind v4 + OKLCH)
@@ -199,6 +200,37 @@
       --color-modal-error-fg: oklch(0.8 0.09 22);
     }
   }
+}
+
+/* -----------------------------------------------------------------------------
+   Shadcn variable bridge (Clerk shadcn theme + Tailwind v4 --color-* tokens)
+   ----------------------------------------------------------------------------- */
+
+:root,
+.dark {
+  --background: var(--color-background);
+  --foreground: var(--color-foreground);
+  --card: var(--color-card);
+  --card-foreground: var(--color-card-foreground);
+  --popover: var(--color-popover);
+  --popover-foreground: var(--color-popover-foreground);
+  --primary: var(--color-primary);
+  --primary-foreground: var(--color-primary-foreground);
+  --secondary: var(--color-secondary);
+  --secondary-foreground: var(--color-secondary-foreground);
+  --muted: var(--color-muted);
+  --muted-foreground: var(--color-muted-foreground);
+  --accent: var(--color-accent);
+  --accent-foreground: var(--color-accent-foreground);
+  --destructive: var(--color-destructive);
+  --destructive-foreground: var(--color-destructive-foreground);
+  --border: var(--color-border);
+  --input: var(--color-input);
+  --ring: var(--color-ring);
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --color-black: oklch(0.141 0.036 271);
 }
 
 /* -----------------------------------------------------------------------------

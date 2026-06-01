@@ -5,18 +5,7 @@ type AuthPageWrapperProps = {
   children: ReactNode;
 };
 
-/**
- * AuthPageWrapper - Shared layout wrapper for sign-in and sign-up pages.
- * Renders decorative background blobs and centers the auth content.
- */
+/** Centers Clerk sign-in/sign-up on mobile full-screen auth routes. */
 export function AuthPageWrapper({ children }: Readonly<AuthPageWrapperProps>) {
-  return (
-    <>
-      <div className={authStyles.page.bgBlobTop} />
-      <div className={authStyles.page.bgBlobBottom} />
-      <div className={authStyles.page.wrapper}>{children}</div>
-    </>
-  );
+  return <div className={`auth-clerk-shell ${authStyles.page.wrapper}`}>{children}</div>;
 }
-
-export default AuthPageWrapper;

@@ -1,25 +1,17 @@
 {
   "Auth": {
+    "error": {
+      "title": "Something went wrong",
+      "subtitle": "Try again or contact support",
+      "fallbackMessage": "An unexpected error occurred during sign in",
+      "retry": "Try again",
+      "backToSignIn": "Back to sign in"
+    },
     "ssoCallback": {
-      "errorTitle": "Error",
-      "errorSubtitle": "Something went wrong",
-      "retry": "Retry",
-      "backToLogin": "Back to login",
-      "loadingTitle": "Verifying",
-      "titleRedirecting": "Redirecting",
-      "subtitleRedirecting": "Taking you to your dashboard",
-      "checking": "Verifying account...",
-      "submitting": "Setting up account...",
-      "redirecting": "Redirecting...",
-      "verifying": "Completing sign in",
       "orphanSupportMessage": "Something went wrong. Contact support@wealthpillar.com with your email address.",
       "errorUserNotIdentified": "We couldn't identify your account. Please try again.",
-      "errorVerifyUserFailed": "Could not verify your account.",
-      "errorVerifyGeneric": "Verification failed.",
       "errorOperationTimeout": "This is taking too long. Check your connection and try again.",
-      "errorUnexpected": "Something went wrong. Please try again.",
-      "errorWithRetry": "{error}. Please try again.",
-      "errorTransferFailed": "Account transfer failed."
+      "errorUnexpected": "Something went wrong. Please try again."
     }
   },
   "Onboarding": {
@@ -40,11 +32,6 @@
       },
       "registerOrphan": {
         "failed": "Registration failed. Please contact support."
-      },
-      "checkUser": {
-        "missingClerkId": "Missing Clerk ID.",
-        "timeout": "Temporary error. Please try again in a moment.",
-        "verificationFailed": "Could not verify your account. Try again or return to login."
       }
     }
   },

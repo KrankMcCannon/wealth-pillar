@@ -1,59 +1,40 @@
+// eslint-disable-next-line camelcase
+import { experimental_createTheme, shadcn } from '@clerk/themes';
 import type { Theme } from '@clerk/shared/types';
 
-export const clerkAppearance: Theme = {
+/**
+ * Overrides on top of shadcn theme.
+ * Clerk defaults to iconButton when 3+ OAuth providers are enabled; we force blockButton for readable labels.
+ */
+const wealthPillarAuthTheme = experimental_createTheme({
+  name: 'wealth-pillar-auth',
   layout: {
     socialButtonsPlacement: 'top',
     socialButtonsVariant: 'blockButton',
-    shimmer: true,
+    shimmer: false,
   },
+  elements: {
+    socialButtons: 'flex w-full flex-col gap-3',
+    socialButtonsBlockButton:
+      'flex h-12 w-full min-w-0 items-center justify-center gap-3 rounded-xl border border-border/30 bg-muted/35 px-4',
+    socialButtonsIconButton:
+      'flex h-12 w-full min-w-0 items-center justify-center gap-3 rounded-xl border border-border/30 bg-muted/35 px-4',
+    socialButtonsBlockButtonText: 'text-sm font-semibold',
+    socialButtonsProviderIcon: 'size-5 shrink-0',
+    rootBox: 'w-full max-w-md mx-auto px-4',
+    cardBox: 'w-full rounded-2xl shadow-lg',
+    headerTitle: 'text-xl font-semibold tracking-tight',
+    headerSubtitle: 'text-sm',
+    formButtonPrimary: 'h-12 w-full',
+    formFieldInput: 'h-11',
+  },
+});
+
+export const clerkAppearance = {
+  theme: [shadcn, wealthPillarAuthTheme],
   variables: {
     borderRadius: '1rem',
     fontFamily: 'var(--font-spline-sans), system-ui, sans-serif',
     fontSize: '0.95rem',
   },
-  elements: {
-    // Card Container - Glassmorphism
-    card: 'rounded-3xl border border-border/25 bg-card/90 p-2 shadow-[0_16px_36px_rgba(0,7,30,0.28)] sm:p-4',
-    rootBox: 'w-full max-w-sm mx-auto',
-
-    // Header -> Changed to text-primary
-    headerTitle: 'text-2xl font-bold tracking-tight text-primary font-sans',
-    headerSubtitle: '!text-primary text-sm font-medium mt-1.5',
-
-    // Social Buttons -> Changed to text-primary
-    socialButtonsBlockButton:
-      'relative h-12 bg-card hover:bg-muted/20 border border-border hover:border-primary/30 text-primary transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 rounded-xl group',
-    socialButtonsBlockButtonText: 'font-semibold text-sm !text-primary',
-    socialButtonsProviderIcon:
-      'mr-2 h-5 w-5 opacity-80 group-hover:opacity-100 transition-opacity !text-primary',
-
-    // Dividers
-    dividerLine: 'bg-border h-[1px]',
-    dividerText: '!text-primary text-xs font-semibold uppercase tracking-wider bg-transparent px-3',
-
-    // Inputs -> Changed to text-primary
-    formFieldLabel: '!text-primary text-xs font-bold uppercase tracking-wide mb-1.5 ml-1',
-    formFieldInput:
-      'h-11 bg-card border-border focus:border-primary/50 focus:ring-4 focus:ring-primary/10 rounded-xl transition-all duration-300 !text-primary placeholder:!text-primary/50 font-medium',
-
-    // Primary Button
-    formButtonPrimary:
-      'h-11 bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/25 hover:shadow-primary/40 active:scale-[0.98] transition-all duration-300 rounded-xl text-sm font-bold uppercase tracking-wide',
-
-    // Footer / Links
-    footerAction: 'mt-4 text-center',
-    footerActionText: '!text-primary font-medium',
-    footerActionLink: 'text-primary font-bold hover:text-primary/80 transition-colors ml-1',
-
-    // Alerts / Errors -> Changed to semantic destructive colors
-    alert: 'bg-destructive/10 border-destructive/20 text-destructive rounded-xl',
-    alertText: 'text-sm font-medium',
-
-    // Identity Preview
-    identityPreview: 'bg-muted/30 border-border rounded-xl p-3',
-    identityPreviewEditButton: 'text-primary hover:text-primary/80 font-semibold',
-
-    // Phone Input details
-    formFieldInputShowPasswordButton: '!text-primary hover:!text-primary/80 transition-colors',
-  },
-};
+} as Theme;

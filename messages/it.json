@@ -1,25 +1,17 @@
 {
   "Auth": {
-    "ssoCallback": {
-      "errorTitle": "Errore",
-      "errorSubtitle": "Si è verificato un problema",
+    "error": {
+      "title": "Si è verificato un errore",
+      "subtitle": "Riprova o contatta il supporto",
+      "fallbackMessage": "Errore imprevisto durante l'autenticazione",
       "retry": "Riprova",
-      "backToLogin": "Torna al login",
-      "loadingTitle": "Verifica in corso",
-      "titleRedirecting": "Reindirizzamento",
-      "subtitleRedirecting": "Stiamo portandoti alla dashboard",
-      "checking": "Verifica account in corso...",
-      "submitting": "Configurazione account...",
-      "redirecting": "Reindirizzamento...",
-      "verifying": "Completamento autenticazione",
+      "backToSignIn": "Torna alla pagina di accesso"
+    },
+    "ssoCallback": {
       "orphanSupportMessage": "Si è verificato un errore. Contatta support@wealthpillar.com con il tuo indirizzo email.",
       "errorUserNotIdentified": "Impossibile identificare l'utente. Riprova.",
-      "errorVerifyUserFailed": "Errore verifica utente.",
-      "errorVerifyGeneric": "Errore verifica.",
       "errorOperationTimeout": "Operazione troppo lunga. Controlla la connessione e riprova.",
-      "errorUnexpected": "Errore imprevisto. Riprova.",
-      "errorWithRetry": "{error}. Riprova.",
-      "errorTransferFailed": "Errore trasferimento account."
+      "errorUnexpected": "Errore imprevisto. Riprova."
     }
   },
   "Onboarding": {
@@ -40,11 +32,6 @@
       },
       "registerOrphan": {
         "failed": "Registrazione non riuscita. Contatta il supporto."
-      },
-      "checkUser": {
-        "missingClerkId": "ID Clerk mancante.",
-        "timeout": "Errore temporaneo. Riprova tra poco.",
-        "verificationFailed": "Errore di verifica account. Riprova o torna al login."
       }
     }
   },
