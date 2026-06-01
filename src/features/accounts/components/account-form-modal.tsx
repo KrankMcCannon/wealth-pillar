@@ -243,6 +243,7 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
     getSuccessToast,
     errorToast: { title: t('toast.errorTitle') },
     formatErrorDescription,
+    refreshAfterSuccess: () => router.refresh(),
     unknownErrorMessage: t('errors.unknown'),
   });
 

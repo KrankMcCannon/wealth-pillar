@@ -22,7 +22,13 @@ export const TRANSACTION_MUTATION_PATHS = [
 ] as const;
 
 /** Dopo creazione/aggiornamento/cancellazione account. */
-export const ACCOUNT_MUTATION_PATHS = [APP_ROUTE.accounts, APP_ROUTE.home] as const;
+export const ACCOUNT_MUTATION_PATHS = [
+  APP_ROUTE.accounts,
+  APP_ROUTE.home,
+  APP_ROUTE.transactions,
+  APP_ROUTE.budgets,
+  APP_ROUTE.reports,
+] as const;
 
 /** Dopo mutazioni sui budget (card, importi, ecc.). */
 export const BUDGET_MUTATION_PATHS = [APP_ROUTE.budgets, APP_ROUTE.home] as const;

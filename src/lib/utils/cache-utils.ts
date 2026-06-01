@@ -51,8 +51,10 @@ export function invalidateTransactionCaches(opts: TransactionCacheInvalidationOp
   const tags: string[] = [
     CACHE_TAGS.TRANSACTIONS,
     CACHE_TAGS.ACCOUNTS,
+    CACHE_TAGS.ACCOUNT(opts.accountId),
     `account:${opts.accountId}:transactions`,
     `group:${opts.groupId}:transactions`,
+    `group:${opts.groupId}:accounts`,
     `group:${opts.groupId}:budgets`,
   ];
 
@@ -61,7 +63,7 @@ export function invalidateTransactionCaches(opts: TransactionCacheInvalidationOp
   }
 
   if (opts.toAccountId) {
-    tags.push(`account:${opts.toAccountId}:transactions`);
+    tags.push(CACHE_TAGS.ACCOUNT(opts.toAccountId), `account:${opts.toAccountId}:transactions`);
   }
 
   invalidateTags(tags);
@@ -202,20 +204,34 @@ export function invalidateTransactionUpdateCaches(
   }
 
   // Account tags
-  tags.push(`account:${existing.accountId}:transactions`);
-  if (existing.toAccountId) tags.push(`account:${existing.toAccountId}:transactions`);
+  tags.push(CACHE_TAGS.ACCOUNT(existing.accountId), `account:${existing.accountId}:transactions`);
+  if (existing.toAccountId) {
+    tags.push(
+      CACHE_TAGS.ACCOUNT(existing.toAccountId),
+      `account:${existing.toAccountId}:transactions`
+    );
+  }
   if (update.accountId && update.accountId !== existing.accountId) {
-    tags.push(`account:${update.accountId}:transactions`);
+    tags.push(CACHE_TAGS.ACCOUNT(update.accountId), `account:${update.accountId}:transactions`);
   }
   if (update.toAccountId && update.toAccountId !== existing.toAccountId) {
-    tags.push(`account:${update.toAccountId}:transactions`);
+    tags.push(CACHE_TAGS.ACCOUNT(update.toAccountId), `account:${update.toAccountId}:transactions`);
   }
 
   // Group tags
-  if (existing.groupId)
-    tags.push(`group:${existing.groupId}:transactions`, `group:${existing.groupId}:budgets`);
+  if (existing.groupId) {
+    tags.push(
+      `group:${existing.groupId}:transactions`,
+      `group:${existing.groupId}:accounts`,
+      `group:${existing.groupId}:budgets`
+    );
+  }
   if (update.groupId && update.groupId !== existing.groupId) {
-    tags.push(`group:${update.groupId}:transactions`, `group:${update.groupId}:budgets`);
+    tags.push(
+      `group:${update.groupId}:transactions`,
+      `group:${update.groupId}:accounts`,
+      `group:${update.groupId}:budgets`
+    );
   }
 
   invalidateTags(tags);

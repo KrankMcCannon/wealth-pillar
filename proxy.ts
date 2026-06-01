@@ -13,8 +13,6 @@ const isPublicRoute = createRouteMatcher([
   '/:locale/auth(.*)',
   '/auth(.*)',
   '/api/webhooks(.*)',
-  '/:locale/terms',
-  '/:locale/privacy',
   // Allow root path for redirection
   '/',
 ]);

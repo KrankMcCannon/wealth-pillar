@@ -2,6 +2,7 @@ import { useEffect, useReducer, useRef, useCallback } from 'react';
 import { useAuth, useSignUp, useSignIn } from '@clerk/nextjs';
 import { useLocale, useTranslations } from 'next-intl';
 import { checkUserExistsAction } from '@/features/onboarding/actions';
+import { CLERK_LOAD_TIMEOUT_MS, SESSION_WAIT_TIMEOUT_MS } from '@/lib/auth/clerk-timeouts';
 import type { SignUpResource, SignInResource, SetActive } from '@clerk/shared/types';
 import type { AppLocale } from '@/i18n/routing';
 import { useRouter } from '@/i18n/routing';
@@ -42,8 +43,6 @@ export interface UseSSOCallbackReturn {
 // HELPERS
 // ============================================================================
 
-const CLERK_LOAD_TIMEOUT_MS = 5000;
-const SESSION_WAIT_TIMEOUT_MS = 12000;
 const CHECK_USER_EXISTS_TIMEOUT_MS = 45_000;
 
 function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
@@ -146,10 +145,7 @@ export function useSSOCallback(): UseSSOCallbackReturn {
       try {
         let result: Awaited<ReturnType<typeof checkUserExistsAction>>;
         try {
-          result = await withTimeout(
-            checkUserExistsAction(userId, locale),
-            CHECK_USER_EXISTS_TIMEOUT_MS
-          );
+          result = await withTimeout(checkUserExistsAction(locale), CHECK_USER_EXISTS_TIMEOUT_MS);
         } catch (err) {
           const isTimeout = err instanceof Error && err.message === 'timeout';
           if (isTimeout) {

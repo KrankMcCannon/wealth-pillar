@@ -8,21 +8,35 @@ import { updateGroupUseCase } from '@/server/use-cases/groups/groups.use-cases';
 import type { UserPreferences, GroupInvitation } from '@/lib/types';
 import type { UserPreferencesUpdate } from '@/lib/types';
 import type { ServiceResult } from '@/lib/types/service-result';
+import type { User } from '@/lib/types';
+
+/** Members may update self only. */
+function assertSelfOrDenied(currentUser: User, targetUserId: string): string | null {
+  if (currentUser.id !== targetUserId) {
+    return 'Permission denied';
+  }
+  return null;
+}
 
 /**
  * Updates user profile (name and/or email)
  * Server action for EditProfileModal
- *
- * @param userId - User ID
- * @param updates - Profile updates
- * @returns Updated user or error
  */
 export async function updateUserProfileAction(
   userId: string,
   updates: { name?: string | undefined; email?: string | undefined }
 ): Promise<ServiceResult<{ id: string; name: string; email: string }>> {
   try {
-    // Input validation
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return { data: null, error: 'Not authenticated' };
+    }
+
+    const permissionError = assertSelfOrDenied(currentUser as unknown as User, userId);
+    if (permissionError) {
+      return { data: null, error: permissionError };
+    }
+
     if (!userId || userId.trim() === '') {
       return {
         data: null,
@@ -37,10 +51,8 @@ export async function updateUserProfileAction(
       };
     }
 
-    // Update user profile via use case
     const data = await updateUserProfileUseCase(userId, updates);
 
-    // Return minimal user data (avoid sending sensitive fields)
     return {
       data: {
         id: data.id,
@@ -59,14 +71,22 @@ export async function updateUserProfileAction(
 
 /**
  * Updates user preferences (currency, language, timezone, notifications)
- * Server action for PreferenceSelectModal and notification toggles
  */
 export async function updateUserPreferencesAction(
   userId: string,
   updates: UserPreferencesUpdate
 ): Promise<ServiceResult<UserPreferences>> {
   try {
-    // Input validation
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return { data: null, error: 'Not authenticated' };
+    }
+
+    const permissionError = assertSelfOrDenied(currentUser as unknown as User, userId);
+    if (permissionError) {
+      return { data: null, error: permissionError };
+    }
+
     if (!userId || userId.trim() === '') {
       return {
         data: null,
@@ -81,7 +101,6 @@ export async function updateUserPreferencesAction(
       };
     }
 
-    // Update preferences via use case
     const data = await updateUserPreferencesUseCase(
       userId,
       updates as Parameters<typeof updateUserPreferencesUseCase>[1]
@@ -101,12 +120,6 @@ export async function updateUserPreferencesAction(
 
 /**
  * Sends a group invitation email
- * Server action for InviteMemberModal
- *
- * @param groupId - Group ID
- * @param invitedByUserId - User ID of the inviter
- * @param email - Email address to invite
- * @returns Created invitation or error
  */
 export async function sendGroupInvitationAction(
   groupId: string,
@@ -114,7 +127,20 @@ export async function sendGroupInvitationAction(
   email: string
 ): Promise<ServiceResult<GroupInvitation>> {
   try {
-    // Input validation
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return { data: null, error: 'Not authenticated' };
+    }
+
+    const isAdmin = currentUser.role === 'admin' || currentUser.role === 'superadmin';
+    if (!isAdmin) {
+      return { data: null, error: 'Permission denied' };
+    }
+
+    if (currentUser.id !== invitedByUserId) {
+      return { data: null, error: 'Permission denied' };
+    }
+
     if (!groupId || groupId.trim() === '') {
       return {
         data: null,
@@ -122,11 +148,8 @@ export async function sendGroupInvitationAction(
       };
     }
 
-    if (!invitedByUserId || invitedByUserId.trim() === '') {
-      return {
-        data: null,
-        error: 'Inviter user ID is required',
-      };
+    if (currentUser.group_id !== groupId) {
+      return { data: null, error: 'Permission denied' };
     }
 
     if (!email || email.trim() === '') {
@@ -136,7 +159,6 @@ export async function sendGroupInvitationAction(
       };
     }
 
-    // Create invitation via use case
     const data = await createGroupInvitationUseCase({
       groupId,
       invitedByUserId,
@@ -157,7 +179,6 @@ export async function sendGroupInvitationAction(
 
 /**
  * Updates group name (admin only)
- * Server action for ManageGroupModal
  */
 export async function updateGroupAction(
   groupId: string,

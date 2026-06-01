@@ -6,12 +6,10 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/routing';
 import { getAllCategoriesAction } from '@/features/categories/actions/category-actions';
 import { checkUserExistsAction } from '@/features/onboarding/actions';
+import { CLERK_LOAD_TIMEOUT_MS, SESSION_WAIT_TIMEOUT_MS } from '@/lib/auth/clerk-timeouts';
 import type { Category } from '@/lib/types';
 import type { OnboardingPayload } from '@/features/onboarding/types';
 import { useOnboardingSubmission } from './use-onboarding-submission';
-
-const CLERK_LOAD_TIMEOUT_MS = 5000;
-const SESSION_WAIT_TIMEOUT_MS = 12000;
 
 export type OnboardingPagePhase =
   | { type: 'loading' }
@@ -39,7 +37,7 @@ export function useOnboardingPage(): {
 
     (async () => {
       try {
-        const result = await checkUserExistsAction(userId, locale);
+        const result = await checkUserExistsAction(locale);
         if (cancelled) return;
 
         if (result.error || !result.data) {

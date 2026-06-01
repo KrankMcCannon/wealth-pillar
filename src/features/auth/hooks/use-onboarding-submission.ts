@@ -91,9 +91,9 @@ export function useOnboardingSubmission(): {
             categories: categoriesResult.data || [],
           };
         }
-        const deleteResult = await deleteClerkUserAction(userId, locale);
+        const deleteResult = await deleteClerkUserAction(locale);
         if (deleteResult.error) {
-          await registerOrphanUserAction(userId, locale);
+          await registerOrphanUserAction(locale);
           const categoriesResult = await getAllCategoriesAction();
           return {
             ok: false,
@@ -112,9 +112,9 @@ export function useOnboardingSubmission(): {
 
       if (result.error) {
         if (result.errorCode !== 'already_configured') {
-          const deleteResult = await deleteClerkUserAction(userId, locale);
+          const deleteResult = await deleteClerkUserAction(locale);
           if (deleteResult.error) {
-            await registerOrphanUserAction(userId, locale);
+            await registerOrphanUserAction(locale);
             const categoriesResult = await getAllCategoriesAction();
             return {
               ok: false,

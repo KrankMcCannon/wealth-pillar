@@ -283,7 +283,7 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
     },
     getSuccessToast,
     errorToast: { title: t('toast.errorTitle') },
-    ...(isEditMode ? { refreshAfterSuccess: () => router.refresh() } : {}),
+    refreshAfterSuccess: () => router.refresh(),
     unknownErrorMessage: t('errors.unknown'),
   });
 

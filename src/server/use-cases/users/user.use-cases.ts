@@ -30,6 +30,66 @@ export async function getUserByClerkIdUseCase(clerkId: string): Promise<User | n
   return user ? (serialize(user) as unknown as User) : null;
 }
 
+function initialsFromName(name: string): string {
+  const parts = name.trim().split(' ').filter(Boolean);
+  if (parts.length === 0) return 'WP';
+  const first = parts[0];
+  if (parts.length === 1) return first?.[0]?.toUpperCase() ?? 'W';
+  const lastPart = parts.at(-1);
+  return `${first?.[0] ?? ''}${lastPart?.[0] ?? ''}`.toUpperCase();
+}
+
+/**
+ * Idempotent identity stub for Clerk user.created webhook (group_id remains null until onboarding).
+ */
+export async function ensureClerkIdentityStubUseCase(params: {
+  clerkId: string;
+  email: string;
+  name: string;
+}): Promise<User | null> {
+  const clerkId = params.clerkId.trim();
+  const email = params.email.trim().toLowerCase();
+  const name = params.name.trim() || email;
+
+  if (!clerkId || !email) {
+    return null;
+  }
+
+  const existing = await UsersRepository.findByClerkId(clerkId);
+  if (existing) {
+    return serialize(existing) as unknown as User;
+  }
+
+  const emailOwner = await UsersRepository.findByEmail(email);
+  if (emailOwner) {
+    console.warn('[ensureClerkIdentityStub] Email already registered for another user', {
+      clerkId,
+      email,
+    });
+    return null;
+  }
+
+  const user = await UsersRepository.create({
+    id: crypto.randomUUID(),
+    clerk_id: clerkId,
+    email,
+    name,
+    avatar: initialsFromName(name),
+    theme_color: '#6366F1',
+    role: 'member',
+  });
+
+  if (!user) {
+    return null;
+  }
+
+  revalidateTag(CACHE_TAGS.USERS, 'max');
+  revalidateTag(CACHE_TAGS.USER(user.id), 'max');
+  revalidateTag(CACHE_TAGS.USER_BY_CLERK(clerkId), 'max');
+
+  return serialize(user) as unknown as User;
+}
+
 export async function createUserUseCase(data: UserInsert): Promise<User> {
   const userInsert = {
     ...data,

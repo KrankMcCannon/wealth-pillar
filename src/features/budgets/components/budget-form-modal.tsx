@@ -214,6 +214,7 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
     },
     getSuccessToast,
     errorToast: { title: t('toast.errorTitle') },
+    refreshAfterSuccess: () => router.refresh(),
     unknownErrorMessage: t('errors.unknown'),
   });
 
