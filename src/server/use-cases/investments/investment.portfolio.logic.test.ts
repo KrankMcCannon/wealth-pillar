@@ -53,6 +53,17 @@ describe('enrichPortfolioFromInvestments', () => {
     );
     expect(summary.totalReturnPercent).toBe(0);
   });
+
+  it('uses precomputed SQL totals when provided', () => {
+    const { summary } = enrichPortfolioFromInvestments([row()], seriesIndex, {
+      totalInvested: 5000,
+      totalTaxPaid: 50,
+    });
+
+    expect(summary.totalInvested).toBe(5000);
+    expect(summary.totalTaxPaid).toBe(50);
+    expect(summary.totalPaid).toBe(5050);
+  });
 });
 
 describe('buildPortfolioHistory', () => {

@@ -1,14 +1,55 @@
 'use server';
 
 import { revalidateInvestmentRelatedPaths } from '@/lib/cache/revalidation-paths';
-import { getCurrentUser } from '@/lib/auth/cached-auth';
+import { invalidateInvestmentCaches } from '@/lib/utils/cache-utils';
+import { getCurrentUser, getGroupUsers } from '@/lib/auth/cached-auth';
 import * as useCases from '@/server/use-cases';
+import { fetchInvestmentsPageWindow } from '@/server/use-cases/pages/investments-page.use-case';
+import { resolveInvestmentsTargetUserIds } from '@/server/use-cases/investments/investment.use-cases';
 import { investments } from '@/server/db/schema';
 import type { Database } from '@/lib/types/database.types';
 import type { ServiceResult } from '@/lib/types/service-result';
+import type { InvestmentListItem } from '@/server/use-cases/investments/investment.types';
 
 type InvestmentInsert = Database['public']['Tables']['investments']['Insert'];
 type InvestmentRow = typeof investments.$inferSelect;
+
+function invalidateAfterInvestmentMutation(groupId: string | null | undefined, userId: string) {
+  if (groupId) {
+    invalidateInvestmentCaches({ groupId, userId });
+  } else {
+    revalidateInvestmentRelatedPaths();
+  }
+}
+
+export async function loadMoreInvestmentsAction(input: {
+  userScope: string;
+  cursor: string;
+}): Promise<
+  ServiceResult<{ holdings: InvestmentListItem[]; hasMore: boolean; nextCursor?: string }>
+> {
+  try {
+    const currentUser = await getCurrentUser();
+    if (!currentUser) return { data: null, error: 'UNAUTHENTICATED' };
+
+    const groupUsers = await getGroupUsers();
+    const groupUserIds = groupUsers.map((u) => u.id);
+    const targetUserIds = resolveInvestmentsTargetUserIds(
+      currentUser,
+      groupUserIds,
+      input.userScope
+    );
+
+    const window = await fetchInvestmentsPageWindow(targetUserIds, input.cursor);
+    return { data: window, error: null };
+  } catch (error) {
+    console.error('Error loading more investments:', error);
+    return {
+      data: null,
+      error: error instanceof Error ? error.message : 'Failed to load more investments',
+    };
+  }
+}
 
 export async function getInvestmentByIdAction(id: string): Promise<ServiceResult<InvestmentRow>> {
   try {
@@ -57,7 +98,7 @@ export async function updateInvestmentAction(input: {
 
     if (!updated) return { data: null, error: 'NOT_FOUND' };
 
-    revalidateInvestmentRelatedPaths();
+    invalidateAfterInvestmentMutation(currentUser.group_id, currentUser.id);
     return { data: updated, error: null };
   } catch (error) {
     console.error('Error updating investment:', error);
@@ -101,7 +142,7 @@ export async function createInvestmentAction(
 
     if (!data) return { data: null, error: 'Failed to create investment' };
 
-    revalidateInvestmentRelatedPaths();
+    invalidateAfterInvestmentMutation(currentUser.group_id, currentUser.id);
 
     return { data, error: null };
   } catch (error) {

@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getInvestmentsOverviewUseCase } from './investment.use-cases';
+import {
+  getInvestmentsOverviewUseCase,
+  resolveInvestmentsTargetUserIds,
+} from './investment.use-cases';
 import { InvestmentRepository } from '@/server/repositories/investment.repository';
 import { getBatchMarketDataUseCase } from '../market-data/market-data.use-cases';
 
@@ -7,6 +10,14 @@ vi.mock('@/server/repositories/investment.repository', () => ({
   InvestmentRepository: {
     findByUser: vi.fn(),
     findByUsers: vi.fn(),
+    getTotalsByUsers: vi.fn(),
+  },
+}));
+
+vi.mock('@/server/repositories/portfolio-snapshot.repository', () => ({
+  PortfolioSnapshotRepository: {
+    findByUserIds: vi.fn().mockResolvedValue([]),
+    upsertMany: vi.fn(),
   },
 }));
 
@@ -14,9 +25,36 @@ vi.mock('../market-data/market-data.use-cases', () => ({
   getBatchMarketDataUseCase: vi.fn(),
 }));
 
+describe('resolveInvestmentsTargetUserIds', () => {
+  const groupUserIds = ['user-a', 'user-b'];
+
+  it('scopes members to their own id', () => {
+    expect(
+      resolveInvestmentsTargetUserIds({ id: 'user-a', role: 'member' }, groupUserIds, 'all')
+    ).toEqual(['user-a']);
+  });
+
+  it('allows admins to filter to one group member', () => {
+    expect(
+      resolveInvestmentsTargetUserIds({ id: 'admin-1', role: 'admin' }, groupUserIds, 'user-b')
+    ).toEqual(['user-b']);
+  });
+
+  it('returns all group users for admin all scope', () => {
+    expect(
+      resolveInvestmentsTargetUserIds({ id: 'admin-1', role: 'admin' }, groupUserIds, 'all')
+    ).toEqual(groupUserIds);
+  });
+});
+
 describe('getInvestmentsOverviewUseCase', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(InvestmentRepository.getTotalsByUsers).mockResolvedValue({
+      totalInvested: 100,
+      totalTaxPaid: 0,
+      count: 1,
+    });
   });
 
   it('deduplicates repository and market fetches', async () => {
@@ -47,6 +85,7 @@ describe('getInvestmentsOverviewUseCase', () => {
     const result = await getInvestmentsOverviewUseCase('user-1');
 
     expect(InvestmentRepository.findByUser).toHaveBeenCalledTimes(1);
+    expect(InvestmentRepository.getTotalsByUsers).toHaveBeenCalledWith(['user-1']);
     expect(getBatchMarketDataUseCase).toHaveBeenCalledTimes(1);
     expect(getBatchMarketDataUseCase).toHaveBeenCalledWith(['AAA']);
     expect(result.investments).toHaveLength(1);

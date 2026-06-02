@@ -1,69 +1,70 @@
-import { TrendingUp, TrendingDown } from 'lucide-react';
-import { useFormatter, useTranslations } from 'next-intl';
-import { investmentsStyles } from '@/features/investments';
+'use client';
+
+import { TrendingDown, TrendingUp } from 'lucide-react';
+import { useLocale, useTranslations } from 'next-intl';
+import { stitchInvestments } from '@/styles/home-design-foundation';
+import { formatCurrencyLocale } from '@/lib/utils/currency-formatter';
+import { cn } from '@/lib/utils';
 
 interface WealthHeaderProps {
   totalValue: number;
   trendAmount?: number;
   trendPercentage?: number;
-  currency?: string;
+}
+
+function splitCurrencyParts(formatted: string): { main: string; rest: string } {
+  const trimmed = formatted.trim();
+  const match = /^([\s\S]*?)([,.]\d{2})\s*(\S*)$/.exec(trimmed);
+  if (!match) return { main: trimmed, rest: '' };
+  return { main: (match[1] ?? '').trim(), rest: `${match[2]} ${match[3] ?? ''}`.trim() };
 }
 
 export function WealthHeader({
   totalValue,
   trendAmount = 0,
   trendPercentage = 0,
-  currency = 'EUR',
-}: WealthHeaderProps) {
-  const format = useFormatter();
+}: Readonly<WealthHeaderProps>) {
+  const locale = useLocale();
   const t = useTranslations('Investments.PersonalTab');
 
   const isPositive = trendAmount >= 0;
   const TrendIcon = isPositive ? TrendingUp : TrendingDown;
 
-  const formattedTotal = format.number(totalValue, {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-
-  const formattedTrendAmount = format.number(Math.abs(trendAmount), {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-
-  const formattedTrendPercentage = format.number(Math.abs(trendPercentage) / 100, {
-    style: 'percent',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  const totalFormatted = formatCurrencyLocale(totalValue, locale);
+  const returnFormatted = formatCurrencyLocale(Math.abs(trendAmount), locale);
+  const { main, rest } = splitCurrencyParts(totalFormatted);
+  const percentLabel = `${Math.abs(trendPercentage).toFixed(2)}%`;
+  const returnWithPercent = `${isPositive ? '+' : '-'}${returnFormatted} (${percentLabel})`;
 
   return (
-    <section
-      className={`${investmentsStyles.card.root} ${investmentsStyles.card.content} flex flex-col items-center justify-center text-center`}
-    >
-      <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-        {t('totalPortfolioValue')}
-      </p>
-      <h1 className="mb-4 text-4xl font-bold tabular-nums tracking-[-0.02em] text-primary">
-        {formattedTotal}
-      </h1>
+    <section className={stitchInvestments.heroSection} aria-label={t('totalPortfolioValue')}>
+      <div className={stitchInvestments.heroInner}>
+        <div className={stitchInvestments.heroPrimaryColumn}>
+          <span className={stitchInvestments.heroEyebrow}>{t('totalPortfolioValue')}</span>
+          <div className={stitchInvestments.heroAmountRow}>
+            <span className={stitchInvestments.heroAmount}>{main}</span>
+            {rest ? <span className={stitchInvestments.heroAmountCents}>{rest}</span> : null}
+          </div>
+        </div>
 
-      <div
-        className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-[12px] font-bold ring-1 ring-inset ${
-          isPositive
-            ? 'bg-income/10 text-income ring-income/20'
-            : 'bg-expense/10 text-expense ring-expense/20'
-        }`}
-      >
-        <TrendIcon className="size-3.5" />
-        <span>
-          {isPositive ? '+' : ''}
-          {formattedTrendAmount} ({formattedTrendPercentage}) {t('today')}
-        </span>
+        <div className={stitchInvestments.heroReturnColumn}>
+          <span className={stitchInvestments.heroEyebrow}>{t('totalReturn')}</span>
+          <div className={stitchInvestments.heroReturnValueRow}>
+            <TrendIcon
+              className={cn('size-3.5 shrink-0', isPositive ? 'text-income' : 'text-expense')}
+              aria-hidden
+            />
+            <span
+              className={
+                isPositive
+                  ? stitchInvestments.heroReturnValue
+                  : stitchInvestments.heroReturnValueNegative
+              }
+            >
+              {returnWithPercent}
+            </span>
+          </div>
+        </div>
       </div>
     </section>
   );

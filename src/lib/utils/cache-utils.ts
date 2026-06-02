@@ -7,7 +7,10 @@
 
 import { revalidateTag } from 'next/cache';
 import { CACHE_TAGS } from '@/lib/cache/config';
-import { revalidateTransactionRelatedPaths } from '@/lib/cache/revalidation-paths';
+import {
+  revalidateInvestmentRelatedPaths,
+  revalidateTransactionRelatedPaths,
+} from '@/lib/cache/revalidation-paths';
 
 /**
  * Options for transaction cache invalidation
@@ -26,6 +29,11 @@ export interface BudgetCacheInvalidationOptions {
   budgetId?: string | undefined;
   userId: string;
   groupId?: string | undefined;
+}
+
+export interface InvestmentCacheInvalidationOptions {
+  groupId: string;
+  userId: string;
 }
 
 /**
@@ -87,6 +95,14 @@ export function invalidateBudgetCaches(opts: BudgetCacheInvalidationOptions): vo
   }
 
   invalidateTags(tags);
+}
+
+/**
+ * Invalidates investments page caches after holdings mutations.
+ */
+export function invalidateInvestmentCaches(opts: InvestmentCacheInvalidationOptions): void {
+  invalidateTags([`group:${opts.groupId}:investments`, `user:${opts.userId}:investments`]);
+  revalidateInvestmentRelatedPaths();
 }
 
 /**

@@ -37,4 +37,19 @@ test.describe('Investments Page', () => {
       await expect(fab).toBeVisible();
     }
   });
+
+  test('shows holdings list or empty state on personal tab', async ({ page }) => {
+    await page.goto('/investments');
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForTimeout(2000);
+
+    const listHeading = page.getByRole('heading', {
+      name: /Holdings|Investimenti|Posizioni/i,
+    });
+    const emptyState = page.getByText(/No investments|Nessun investimento/i);
+
+    const hasList = await listHeading.isVisible({ timeout: 5000 }).catch(() => false);
+    const hasEmpty = await emptyState.isVisible({ timeout: 2000 }).catch(() => false);
+    expect(hasList || hasEmpty).toBeTruthy();
+  });
 });

@@ -106,6 +106,51 @@ export const investments = pgTable(
   ]
 );
 
+export const portfolioValueSnapshots = pgTable(
+  'portfolio_value_snapshots',
+  {
+    id: uuid().defaultRandom().notNull(),
+    user_id: uuid('user_id').notNull(),
+    snapshot_date: date('snapshot_date').notNull(),
+    value: numeric({ precision: 15, scale: 2 }).notNull(),
+    created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('portfolio_value_snapshots_user_date_unique').using(
+      'btree',
+      table.user_id.asc().nullsLast().op('uuid_ops'),
+      table.snapshot_date.asc().nullsLast().op('date_ops')
+    ),
+    index('idx_portfolio_snapshots_user_id').using(
+      'btree',
+      table.user_id.asc().nullsLast().op('uuid_ops')
+    ),
+    foreignKey({
+      columns: [table.user_id],
+      foreignColumns: [users.id],
+      name: 'portfolio_value_snapshots_user_id_fkey',
+    }).onDelete('cascade'),
+    pgPolicy('Users can view their own portfolio snapshots', {
+      as: 'permissive',
+      for: 'select',
+      to: ['public'],
+      using: sql`((auth.uid())::text = ( SELECT users.clerk_id
+   FROM users
+  WHERE (users.id = portfolio_value_snapshots.user_id)))`,
+    }),
+    pgPolicy('Users can insert their own portfolio snapshots', {
+      as: 'permissive',
+      for: 'insert',
+      to: ['public'],
+    }),
+    pgPolicy('Users can update their own portfolio snapshots', {
+      as: 'permissive',
+      for: 'update',
+      to: ['public'],
+    }),
+  ]
+).enableRLS();
+
 export const userPreferences = pgTable(
   'user_preferences',
   {

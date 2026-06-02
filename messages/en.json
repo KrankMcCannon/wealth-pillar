@@ -467,7 +467,8 @@
     "watchlist": "Watchlist",
     "emptyWatchlist": "No assets in watchlist.",
     "PersonalTab": {
-      "totalPortfolioValue": "Total Portfolio Value",
+      "totalPortfolioValue": "Portfolio Value",
+      "totalReturn": "Total Return",
       "today": "Today",
       "assetAllocation": "Asset Allocation",
       "assetsLabel": "Assets",

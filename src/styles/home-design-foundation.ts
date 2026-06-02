@@ -175,6 +175,41 @@ export const stitchBudgetsChartSvg = {
 } as const;
 
 /**
+ * Pagina Investimenti — mobile-only, single column, no md/lg breakpoints.
+ */
+export const stitchInvestments = {
+  mainStack: 'flex flex-col gap-5 pt-1',
+  heroSection: 'relative overflow-hidden rounded-xl border border-border/25 bg-card/90 p-4',
+  heroInner: 'relative z-[1] flex gap-3',
+  heroPrimaryColumn: 'flex min-w-0 flex-1 flex-col justify-between gap-1',
+  heroReturnColumn:
+    'flex shrink-0 flex-col items-start justify-between gap-1 border-l border-border/25 pl-3 text-left',
+  heroEyebrow: 'text-[11px] font-semibold uppercase tracking-wider text-muted-foreground',
+  heroAmountRow: 'flex flex-wrap items-baseline gap-x-1 gap-y-0.5',
+  heroAmount: 'text-[28px] font-semibold tabular-nums leading-none tracking-[-0.02em] text-primary',
+  heroAmountCents: 'text-sm font-medium tabular-nums text-primary/80',
+  heroReturnValueRow: 'flex items-center justify-start gap-1',
+  heroReturnValue: 'text-[15px] font-semibold tabular-nums leading-tight text-income',
+  heroReturnValueNegative: 'text-[15px] font-semibold tabular-nums leading-tight text-expense',
+  chartCard: stitchSurface.card,
+  chartCardHeader: 'border-b border-border/25 px-4 pb-3 pt-4',
+  chartCardTitle: 'text-[11px] font-semibold uppercase tracking-wide text-muted-foreground',
+  chartCardContent: 'p-4',
+  listSection: stitchSurface.card,
+  listSectionHeader: 'px-4 pt-4 pb-1',
+  listSectionTitle: 'text-base font-semibold text-foreground',
+  listStack: 'flex flex-col gap-2 px-1 py-2',
+  holdingIconWrap:
+    'flex size-10 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary',
+  emptyState:
+    'rounded-xl border border-border/25 bg-card/90 p-6 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]',
+  emptyTitle: 'text-base font-medium text-foreground',
+  emptyDescription: 'mt-2 text-sm text-muted-foreground',
+  emptyActions: 'mt-6 flex flex-col gap-2',
+  emptyCtaPrimary: stitchSurface.primaryCta,
+} as const;
+
+/**
  * Pagina Transazioni (dark, continuità con stitchHome) — chip, gruppi giorno, FAB.
  */
 export const stitchTransactions = {

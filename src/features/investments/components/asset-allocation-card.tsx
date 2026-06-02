@@ -33,7 +33,7 @@ export function AssetAllocationCard({ data, className }: AssetAllocationCardProp
         </div>
         <div>
           <h2 className={investmentsStyles.card.title}>{t('assetAllocation')}</h2>
-          <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
+          <p className="text-[11px] tracking-wider text-muted-foreground">
             {t('portfolioHeroHint')}
           </p>
         </div>

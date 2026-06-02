@@ -4,34 +4,18 @@ import { useSearchParams } from 'next/navigation';
 import { usePathname, useRouter } from '@/i18n/routing';
 import { InvestmentHistoryChart } from './investment-history-chart';
 import { BenchmarkChart } from './benchmark-chart';
-import { InvestmentList } from './investment-list';
-import { investmentsStyles } from '@/features/investments/theme/investments-styles';
+import { InvestmentsScreenList } from './investments-screen-list';
+import { stitchInvestments } from '@/styles/home-design-foundation';
 import { WealthHeader } from './wealth-header';
 import { AssetAllocationCard } from './asset-allocation-card';
 import { useTranslations } from 'next-intl';
 import type { AssetAllocationSlice } from '@/server/use-cases/investments/investment.use-cases';
+import type { InvestmentListItem } from '@/server/use-cases/investments/investment.types';
 import { buildAllocationChartData } from '@/features/investments/utils/allocation-chart-data';
 
-export interface Investment {
-  id: string;
-  name: string;
-  symbol: string;
-  amount: number;
-  shares_acquired: number;
-  currentPrice?: number;
-  currentValue?: number;
-  initialValue?: number;
-  currency: string;
-  tax_paid?: number;
-  totalPaid?: number;
-  totalCost?: number;
-  totalGain?: number;
-  net_earn?: number;
-  created_at: Date | string | null;
-}
+export type Investment = InvestmentListItem;
 
 interface PersonalInvestmentTabProps {
-  investments: Investment[];
   summary: {
     totalInvested: number;
     totalTaxPaid?: number;
@@ -52,15 +36,22 @@ interface PersonalInvestmentTabProps {
       }>
     | undefined;
   currentIndex?: string | undefined;
+  holdings: InvestmentListItem[];
+  hasMore: boolean;
+  isLoadingMore: boolean;
+  onLoadMore: () => void;
 }
 
 export function PersonalInvestmentTab({
-  investments,
   summary,
   assetAllocation,
   portfolioHistory,
   indexData,
   currentIndex = 'IVV',
+  holdings,
+  hasMore,
+  isLoadingMore,
+  onLoadMore,
 }: Readonly<PersonalInvestmentTabProps>) {
   const benchmarkAnchorId = 'benchmark-chart';
   const router = useRouter();
@@ -80,17 +71,16 @@ export function PersonalInvestmentTab({
   const allocationData = buildAllocationChartData(assetAllocation, t('fallback.others'));
 
   return (
-    <div className={investmentsStyles.container}>
+    <div className={stitchInvestments.mainStack}>
       <WealthHeader
         totalValue={summary.totalCurrentValue}
         trendAmount={summary.totalReturn}
         trendPercentage={summary.totalReturnPercent}
-        currency="EUR"
       />
 
       <AssetAllocationCard data={allocationData} />
 
-      <div className={investmentsStyles.charts.stack}>
+      <div className="flex min-w-0 flex-col gap-4">
         <InvestmentHistoryChart data={portfolioHistory} />
 
         <BenchmarkChart
@@ -101,7 +91,12 @@ export function PersonalInvestmentTab({
         />
       </div>
 
-      <InvestmentList investments={investments} />
+      <InvestmentsScreenList
+        holdings={holdings}
+        hasMore={hasMore}
+        isLoadingMore={isLoadingMore}
+        onLoadMore={onLoadMore}
+      />
     </div>
   );
 }

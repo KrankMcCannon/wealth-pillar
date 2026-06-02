@@ -9,10 +9,11 @@ import { AppPage, HomeDashboardMain, PageFab } from '@/components/layout';
 import UserSelector from '@/components/shared/user-selector';
 import { User } from '@/lib';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui';
-import type { Investment } from '@/features/investments/components/personal-investment-tab';
 import { PersonalInvestmentTab } from '@/features/investments/components/personal-investment-tab';
-import { stitchTransactions } from '@/styles/home-design-foundation';
+import { useInvestmentsList } from '@/features/investments/hooks/use-investments-list';
+import { stitchInvestments, stitchTransactions } from '@/styles/home-design-foundation';
 import { useModalState, useTabState } from '@/lib/navigation/url-state';
+import type { InvestmentsPageData } from '@/server/use-cases/pages/investments-page.use-case';
 
 const SandboxForecastTab = dynamic(
   () =>
@@ -25,36 +26,34 @@ const SandboxForecastTab = dynamic(
 interface InvestmentsContentProps {
   currentUser: User;
   groupUsers: User[];
-  investmentsDataPromise: Promise<{
-    investments: Investment[];
-    summary: {
-      totalInvested: number;
-      totalTaxPaid?: number;
-      totalPaid?: number;
-      totalCurrentValue: number;
-      totalInitialValue?: number;
-      totalReturn: number;
-      totalReturnPercent: number;
-    };
-    assetAllocation: { symbol: string; value: number }[];
-    portfolioHistory: { date: string; value: number }[];
-    indexData: Array<{
-      datetime?: string | undefined;
-      time?: string | undefined;
-      date?: string | undefined;
-      close: string | number;
-    }>;
-    currentIndex: string;
-  }>;
+  pageDataPromise: Promise<InvestmentsPageData>;
 }
 
 export default function InvestmentsContent({
   currentUser,
   groupUsers,
-  investmentsDataPromise,
+  pageDataPromise,
 }: InvestmentsContentProps) {
-  const { investments, summary, assetAllocation, portfolioHistory, indexData, currentIndex } =
-    use(investmentsDataPromise);
+  const pageData = use(pageDataPromise);
+  const {
+    summary,
+    assetAllocation,
+    portfolioHistory,
+    indexData,
+    currentIndex,
+    holdings: initialHoldings,
+    hasMore: initialHasMore,
+    nextCursor: initialNextCursor,
+    userScope,
+  } = pageData;
+
+  const { holdings, hasMore, isLoadingMore, loadMore } = useInvestmentsList({
+    initialHoldings,
+    initialHasMore,
+    initialNextCursor,
+    userScope,
+  });
+
   const t = useTranslations('InvestmentsContent');
   const tActionMenu = useTranslations('Header.ActionMenu');
   const { openModal } = useModalState();
@@ -89,6 +88,8 @@ export default function InvestmentsContent({
       showBack
       skipToMainHref="#main-investments"
       skipToMainLabel={t('mainLandmark')}
+      dashboardMain
+      mainId="main-investments"
       betweenHeaderAndMain={
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex min-h-0 flex-col">
           <div className={stitchTransactions.tabsStickyBar}>
@@ -113,20 +114,23 @@ export default function InvestmentsContent({
 
           <HomeDashboardMain id="main-investments" aria-label={t('mainLandmark')}>
             <TabsContent value="personal" className="mt-0">
-              <div className={stitchTransactions.mainStack}>
+              <div className={stitchInvestments.mainStack}>
                 <PersonalInvestmentTab
-                  investments={investments}
                   summary={summary}
                   assetAllocation={assetAllocation}
                   portfolioHistory={portfolioHistory}
                   indexData={indexData}
                   currentIndex={currentIndex}
+                  holdings={holdings}
+                  hasMore={hasMore}
+                  isLoadingMore={isLoadingMore}
+                  onLoadMore={loadMore}
                 />
               </div>
             </TabsContent>
 
             <TabsContent value="sandbox" className="mt-0">
-              <div className={stitchTransactions.mainStack}>
+              <div className={stitchInvestments.mainStack}>
                 <Suspense fallback={null}>
                   <SandboxForecastTab />
                 </Suspense>

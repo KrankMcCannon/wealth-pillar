@@ -1,11 +1,12 @@
 'use client';
 
-import { memo, useMemo, useEffect, useRef, useCallback } from 'react';
+import { memo, useMemo, useRef } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { cn } from '@/lib/utils';
 import type { Transaction, Category } from '@/lib/types';
 import { stitchTransactions } from '@/styles/home-design-foundation';
 import { TransactionDayGroupSkeleton } from '@/components/ui/primitives/skeletons';
+import { useInfiniteScrollSentinel } from '@/hooks/use-infinite-scroll-sentinel';
 import { groupByDay } from '../utils/group-by-day';
 import { TransactionDayList } from './transaction-day-list';
 import { Button, Spinner } from '@/components/ui';
@@ -61,28 +62,12 @@ function TransactionsScreenListInner({
 
   const sentinelRef = useRef<HTMLDivElement>(null);
 
-  const handleIntersect = useCallback(
-    (entries: IntersectionObserverEntry[]) => {
-      const entry = entries[0];
-      if (entry?.isIntersecting && hasMore && !isLoadingMore) {
-        onLoadMore();
-      }
-    },
-    [hasMore, isLoadingMore, onLoadMore]
-  );
-
-  useEffect(() => {
-    const node = sentinelRef.current;
-    if (!node || !showLoadMore) return;
-
-    const observer = new IntersectionObserver(handleIntersect, {
-      root: null,
-      rootMargin: '120px',
-      threshold: 0,
-    });
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, [handleIntersect, showLoadMore]);
+  useInfiniteScrollSentinel(sentinelRef, {
+    enabled: showLoadMore,
+    hasMore,
+    isLoading: isLoadingMore,
+    onLoadMore,
+  });
 
   return (
     <div className={cn('relative', className)}>

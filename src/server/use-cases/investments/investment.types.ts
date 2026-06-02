@@ -45,3 +45,16 @@ export interface InvestmentsOverviewResult extends PortfolioResult {
 }
 
 export type InvestmentInsert = Database['public']['Tables']['investments']['Insert'];
+
+export interface InvestmentListItem {
+  id: string;
+  name: string;
+  symbol: string;
+  amount: number;
+  shares_acquired: number;
+  currency: string;
+  tax_paid?: number;
+  totalPaid?: number;
+  net_earn?: number;
+  created_at: Date | string | null;
+}

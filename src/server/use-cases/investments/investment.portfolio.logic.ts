@@ -5,6 +5,7 @@ import {
   type MarketDataCacheRow,
   type ParsedSeriesPoint,
 } from '@/lib/types/market-data.types';
+import { PortfolioSnapshotRepository } from '@/server/repositories/portfolio-snapshot.repository';
 import type { investments } from '@/server/db/schema';
 import type {
   AssetAllocationSlice,
@@ -18,6 +19,11 @@ const MAX_GAP_FILL_DAYS = 3;
 
 export type SeriesIndex = Record<string, ParsedSeriesPoint[]>;
 
+export type PrecomputedPortfolioTotals = {
+  totalInvested: number;
+  totalTaxPaid: number;
+};
+
 export function batchResultsToSeriesIndex(
   batch: Array<{ symbol: string; data: MarketDataCacheRow['data'] }>
 ): SeriesIndex {
@@ -30,16 +36,18 @@ export function batchResultsToSeriesIndex(
 
 export function enrichPortfolioFromInvestments(
   rows: InvestmentRow[],
-  seriesIndex: SeriesIndex
+  seriesIndex: SeriesIndex,
+  precomputedTotals?: PrecomputedPortfolioTotals
 ): {
   investments: EnrichedInvestment[];
   summary: PortfolioSummary;
   assetAllocation: AssetAllocationSlice[];
 } {
-  let totalInvested = 0;
-  let totalTaxPaid = 0;
+  let totalInvested = precomputedTotals?.totalInvested ?? 0;
+  let totalTaxPaid = precomputedTotals?.totalTaxPaid ?? 0;
   let totalCurrentValue = 0;
   let totalInitialValue = 0;
+  const trackTotalsInLoop = !precomputedTotals;
 
   const enrichedInvestments: EnrichedInvestment[] = rows.map((inv) => {
     const symbolKey = inv.symbol.toUpperCase();
@@ -59,8 +67,10 @@ export function enrichPortfolioFromInvestments(
     const totalPaid = investmentAmount + taxPaid;
     const totalGain = currentValue - totalPaid;
 
-    totalInvested += investmentAmount;
-    totalTaxPaid += taxPaid;
+    if (trackTotalsInLoop) {
+      totalInvested += investmentAmount;
+      totalTaxPaid += taxPaid;
+    }
     totalCurrentValue += currentValue;
     totalInitialValue += initialValue;
 
@@ -197,4 +207,97 @@ export function buildPortfolioHistory(
   }
 
   return portfolioHistory;
+}
+
+function todayDateKey(): string {
+  return new Date().toISOString().split('T')[0] ?? '';
+}
+
+function yesterdayDateKey(): string {
+  const d = new Date();
+  d.setUTCDate(d.getUTCDate() - 1);
+  return d.toISOString().split('T')[0] ?? '';
+}
+
+function mergeSnapshotsByDate(
+  snapshots: Array<{ snapshot_date: string; value: string | number }>
+): Map<string, number> {
+  const merged = new Map<string, number>();
+  for (const row of snapshots) {
+    const dateKey = row.snapshot_date;
+    const value = Number(row.value);
+    merged.set(dateKey, (merged.get(dateKey) ?? 0) + value);
+  }
+  return merged;
+}
+
+export async function buildPortfolioHistoryWithSnapshots(
+  userIds: string[],
+  rows: InvestmentRow[],
+  seriesIndex: SeriesIndex
+): Promise<{ date: string; value: number }[]> {
+  if (rows.length === 0) return [];
+
+  const todayKey = todayDateKey();
+  const yesterdayKey = yesterdayDateKey();
+  const rowsByUser = new Map<string, InvestmentRow[]>();
+
+  for (const row of rows) {
+    const list = rowsByUser.get(row.user_id) ?? [];
+    list.push(row);
+    rowsByUser.set(row.user_id, list);
+  }
+
+  const existingSnapshots = await PortfolioSnapshotRepository.findByUserIds(userIds);
+  const snapshotsToPersist: Array<{ user_id: string; snapshot_date: string; value: string }> = [];
+
+  for (const userId of userIds) {
+    const userRows = rowsByUser.get(userId) ?? [];
+    if (userRows.length === 0) continue;
+
+    const userSnapshots = existingSnapshots.filter((s) => s.user_id === userId);
+    const latestSnapshotDate = userSnapshots.reduce<string | null>((max, snap) => {
+      if (!max || snap.snapshot_date > max) return snap.snapshot_date;
+      return max;
+    }, null);
+
+    const fullHistory = buildPortfolioHistory(userRows, seriesIndex);
+    const closedHistory = fullHistory.filter(
+      (point) => point.date <= yesterdayKey && point.date > (latestSnapshotDate ?? '')
+    );
+
+    for (const point of closedHistory) {
+      snapshotsToPersist.push({
+        user_id: userId,
+        snapshot_date: point.date,
+        value: point.value.toFixed(2),
+      });
+    }
+  }
+
+  if (snapshotsToPersist.length > 0) {
+    await PortfolioSnapshotRepository.upsertMany(snapshotsToPersist);
+  }
+
+  const allSnapshots = await PortfolioSnapshotRepository.findByUserIds(userIds);
+  const merged = mergeSnapshotsByDate([
+    ...allSnapshots,
+    ...snapshotsToPersist.map((snap) => ({
+      snapshot_date: snap.snapshot_date,
+      value: snap.value,
+    })),
+  ]);
+
+  if (merged.size === 0) {
+    return buildPortfolioHistory(rows, seriesIndex);
+  }
+
+  const liveToday = buildPortfolioHistory(rows, seriesIndex).find((p) => p.date === todayKey);
+  if (liveToday && liveToday.value > 0) {
+    merged.set(todayKey, liveToday.value);
+  }
+
+  return [...merged.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([date, value]) => ({ date, value }));
 }

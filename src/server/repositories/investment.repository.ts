@@ -1,6 +1,6 @@
 import { db } from '@/server/db/drizzle';
 import { investments } from '@/server/db/schema';
-import { eq, and, inArray } from 'drizzle-orm';
+import { eq, and, inArray, or, lt, desc, sql } from 'drizzle-orm';
 
 export class InvestmentRepository {
   static async findByUser(userId: string) {
@@ -18,6 +18,61 @@ export class InvestmentRepository {
       .from(investments)
       .where(inArray(investments.user_id, userIds))
       .orderBy(investments.created_at);
+  }
+
+  static async findByUsersKeyset(options: {
+    userIds: string[];
+    cursorAfter?: { createdAt: Date; id: string };
+    limit: number;
+  }) {
+    const { userIds, cursorAfter, limit } = options;
+    if (userIds.length === 0) {
+      return { data: [] as (typeof investments.$inferSelect)[], hasMore: false };
+    }
+
+    const conditions = [inArray(investments.user_id, userIds)];
+
+    if (cursorAfter) {
+      conditions.push(
+        or(
+          lt(investments.created_at, cursorAfter.createdAt),
+          and(eq(investments.created_at, cursorAfter.createdAt), lt(investments.id, cursorAfter.id))
+        )!
+      );
+    }
+
+    const fetchLimit = limit + 1;
+    const rawData = await db
+      .select()
+      .from(investments)
+      .where(and(...conditions))
+      .orderBy(desc(investments.created_at), desc(investments.id))
+      .limit(fetchLimit);
+
+    const hasMore = rawData.length > limit;
+    const data = hasMore ? rawData.slice(0, limit) : rawData;
+    return { data, hasMore };
+  }
+
+  static async getTotalsByUsers(userIds: string[]) {
+    if (userIds.length === 0) {
+      return { totalInvested: 0, totalTaxPaid: 0, count: 0 };
+    }
+
+    const [result] = await db
+      .select({
+        totalInvested: sql<string>`coalesce(sum(${investments.amount}), 0)`,
+        totalTaxPaid: sql<string>`coalesce(sum(${investments.tax_paid}), 0)`,
+        count: sql<number>`count(*)::int`,
+      })
+      .from(investments)
+      .where(inArray(investments.user_id, userIds));
+
+    return {
+      totalInvested: Number(result?.totalInvested ?? 0),
+      totalTaxPaid: Number(result?.totalTaxPaid ?? 0),
+      count: result?.count ?? 0,
+    };
   }
 
   static async findById(id: string) {

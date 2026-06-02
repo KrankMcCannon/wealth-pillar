@@ -1,18 +1,13 @@
 import { InvestmentRepository } from '@/server/repositories/investment.repository';
-import { MarketDataRepository } from '@/server/repositories/market-data.repository';
 import { investments } from '@/server/db/schema';
-import { buildSeriesIndex } from '@/lib/types/market-data.types';
 import { getBatchMarketDataUseCase } from '../market-data/market-data.use-cases';
 import {
   batchResultsToSeriesIndex,
-  buildPortfolioHistory,
+  buildPortfolioHistoryWithSnapshots,
   enrichPortfolioFromInvestments,
 } from './investment.portfolio.logic';
-import type {
-  InvestmentInsert,
-  InvestmentsOverviewResult,
-  PortfolioResult,
-} from './investment.types';
+import { decodeInvestmentCursor, encodeInvestmentCursor } from '@/lib/utils/investment-cursor';
+import type { InvestmentInsert, InvestmentsOverviewResult } from './investment.types';
 
 export type {
   EnrichedInvestment,
@@ -23,6 +18,10 @@ export type {
   InvestmentInsert,
 } from './investment.types';
 
+export const INVESTMENTS_LIST_PAGE_SIZE = 30;
+
+type InvestmentRow = typeof investments.$inferSelect;
+
 export async function getInvestmentsOverviewUseCase(
   userIds: string | string[]
 ): Promise<InvestmentsOverviewResult> {
@@ -31,6 +30,7 @@ export async function getInvestmentsOverviewUseCase(
     ids.length === 1 && ids[0]
       ? await InvestmentRepository.findByUser(ids[0])
       : await InvestmentRepository.findByUsers(ids);
+
   if (rows.length === 0) {
     return {
       investments: [],
@@ -48,12 +48,16 @@ export async function getInvestmentsOverviewUseCase(
     };
   }
 
+  const sqlTotals = await InvestmentRepository.getTotalsByUsers(ids);
   const symbols = [...new Set(rows.map((inv) => inv.symbol.toUpperCase()))];
   const batch = await getBatchMarketDataUseCase(symbols);
   const seriesIndex = batchResultsToSeriesIndex(batch);
 
-  const portfolio = enrichPortfolioFromInvestments(rows, seriesIndex);
-  const portfolioHistory = buildPortfolioHistory(rows, seriesIndex);
+  const portfolio = enrichPortfolioFromInvestments(rows, seriesIndex, {
+    totalInvested: sqlTotals.totalInvested,
+    totalTaxPaid: sqlTotals.totalTaxPaid,
+  });
+  const portfolioHistory = await buildPortfolioHistoryWithSnapshots(ids, rows, seriesIndex);
 
   return {
     ...portfolio,
@@ -61,14 +65,30 @@ export async function getInvestmentsOverviewUseCase(
   };
 }
 
-export async function getPortfolioUseCase(userId: string): Promise<PortfolioResult> {
-  const rows = await InvestmentRepository.findByUser(userId);
-  const symbols = [...new Set(rows.map((inv) => inv.symbol.toUpperCase()))];
+export async function fetchInvestmentsHoldingsWindow(
+  userIds: string[],
+  cursor?: string
+): Promise<{ holdings: InvestmentRow[]; hasMore: boolean; nextCursor?: string }> {
+  const decodedCursor = cursor?.trim() ? decodeInvestmentCursor(cursor.trim()) : undefined;
+  const result = await InvestmentRepository.findByUsersKeyset({
+    userIds,
+    limit: INVESTMENTS_LIST_PAGE_SIZE,
+    ...(decodedCursor
+      ? { cursorAfter: { createdAt: decodedCursor.createdAt, id: decodedCursor.id } }
+      : {}),
+  });
 
-  const seriesRows = await MarketDataRepository.findBySymbols(symbols);
-  const seriesIndex = buildSeriesIndex(seriesRows);
+  const last = result.data[result.data.length - 1];
+  const nextCursor =
+    result.hasMore && last
+      ? encodeInvestmentCursor({ created_at: last.created_at, id: last.id })
+      : undefined;
 
-  return enrichPortfolioFromInvestments(rows, seriesIndex);
+  return {
+    holdings: result.data,
+    hasMore: result.hasMore,
+    ...(nextCursor ? { nextCursor } : {}),
+  };
 }
 
 export async function addInvestmentUseCase(data: InvestmentInsert) {
@@ -110,4 +130,19 @@ export async function updateInvestmentUseCase(
 
 export async function getInvestmentByIdForUserUseCase(id: string, userId: string) {
   return await InvestmentRepository.findByIdAndUser(id, userId);
+}
+
+export function resolveInvestmentsTargetUserIds(
+  currentUser: { id: string; role: string | null },
+  groupUserIds: string[],
+  selectedUser: string
+): string[] {
+  const isAdmin = currentUser.role === 'admin' || currentUser.role === 'superadmin';
+  if (!isAdmin) return [currentUser.id];
+
+  if (selectedUser !== 'all' && groupUserIds.includes(selectedUser)) {
+    return [selectedUser];
+  }
+
+  return groupUserIds.length > 0 ? groupUserIds : [currentUser.id];
 }

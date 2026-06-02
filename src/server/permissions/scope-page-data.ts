@@ -142,3 +142,17 @@ export function scopeTransactionsListData(
     budgets: scope.filterOwned(data.budgets),
   };
 }
+
+/** Restrict investments page payload for members (single-user scope). */
+export function scopeInvestmentsPageData<T extends { userScope: string }>(
+  data: T,
+  currentUser: User
+): T {
+  const scope = AccessScope.for(currentUser);
+  if (scope.isAdmin) return data;
+
+  return {
+    ...data,
+    userScope: scope.viewerId,
+  };
+}
