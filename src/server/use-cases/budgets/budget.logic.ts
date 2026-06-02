@@ -167,8 +167,6 @@ function buildBudgetSummary(
     totalSpent,
     totalRemaining,
     overallPercentage,
-    periodSpendableSpent: 0,
-    periodReserveSaved: 0,
   };
 }
 

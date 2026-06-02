@@ -17,8 +17,6 @@ import { stitchHome } from '@/styles/home-design-foundation';
 import { transactionStyles } from '@/features/transactions/theme/transaction-styles';
 import { formatCurrency } from '@/lib/utils';
 import { useCategories } from '@/stores/reference-data-store';
-import { SwipeableCard } from '@/components/ui/interactions/swipeable-card';
-import { useCloseAllCards } from '@/stores/swipe-state-store';
 
 interface SeriesCardProps {
   readonly series: RecurringTransactionSeries;
@@ -64,7 +62,6 @@ function SeriesCardInner({
   onPause,
 }: SeriesCardProps) {
   const t = useTranslations('Recurring.SeriesCard');
-  const closeAllCards = useCloseAllCards();
   const categories = useCategories();
   const categoryColor = useMemo(() => {
     return getCategoryColor(categories, series.category);
@@ -74,8 +71,8 @@ function SeriesCardInner({
   const isOverdue = daysUntilDue < 0;
   const isDueToday = daysUntilDue === 0;
   const isDueSoon = daysUntilDue <= 3;
-  const canSwipeDelete = Boolean(onDelete) && showDelete;
-  const canSwipePause = Boolean(onPause);
+  const canDelete = Boolean(onDelete) && showDelete;
+  const canPause = Boolean(onPause);
 
   const handleCardClick = () => {
     if (onCardClick) {
@@ -85,13 +82,11 @@ function SeriesCardInner({
     }
   };
 
-  const handleSwipeDelete = () => {
-    closeAllCards();
+  const handleDelete = () => {
     onDelete?.(series);
   };
 
-  const handleSwipePause = () => {
-    closeAllCards();
+  const handlePause = () => {
     onPause?.(series);
   };
 
@@ -131,28 +126,28 @@ function SeriesCardInner({
   );
 
   const pauseDeleteActions =
-    canSwipePause || canSwipeDelete ? (
+    canPause || canDelete ? (
       <div className="flex shrink-0 items-center gap-0.5" onClick={(e) => e.stopPropagation()}>
-        {canSwipePause ? (
+        {canPause ? (
           <Button
             type="button"
             variant="ghost"
             size="sm"
             className="size-11 min-h-11 min-w-11 rounded-md p-0 hover:bg-primary/10"
-            onClick={handleSwipePause}
+            onClick={handlePause}
             aria-label={series.is_active ? t('actions.pauseAria') : t('actions.resumeAria')}
             title={series.is_active ? t('actions.pause') : t('actions.resume')}
           >
             {series.is_active ? <Pause aria-hidden /> : <Play aria-hidden />}
           </Button>
         ) : null}
-        {canSwipeDelete ? (
+        {canDelete ? (
           <Button
             type="button"
             variant="ghost"
             size="sm"
             className="size-11 min-h-11 min-w-11 rounded-md p-0 hover:bg-expense/12"
-            onClick={handleSwipeDelete}
+            onClick={handleDelete}
             aria-label={t('actions.deleteAria')}
             title={t('actions.delete')}
           >
@@ -162,7 +157,7 @@ function SeriesCardInner({
       </div>
     ) : null;
 
-  const row = (
+  return (
     <RowCard
       icon={<CategoryBadge categoryKey={series.category} color={categoryColor} size="md" />}
       iconSize="sm"
@@ -179,7 +174,7 @@ function SeriesCardInner({
       actions={pauseDeleteActions}
       rightLayout={pauseDeleteActions ? 'row' : 'stack'}
       variant="regular"
-      onClick={canSwipeDelete || canSwipePause ? undefined : handleCardClick}
+      onClick={handleCardClick}
       className={cn(
         stitchHome.listRowInteractive,
         'w-full',
@@ -190,37 +185,6 @@ function SeriesCardInner({
       testId={`recurring-series-row-${series.id}`}
     />
   );
-
-  if (canSwipeDelete || canSwipePause) {
-    return (
-      <SwipeableCard
-        id={`series-${series.id}`}
-        leftAction={
-          canSwipePause
-            ? {
-                label: series.is_active ? t('actions.pause') : t('actions.resume'),
-                variant: series.is_active ? 'pause' : 'resume',
-                onAction: handleSwipePause,
-              }
-            : undefined
-        }
-        rightAction={
-          canSwipeDelete
-            ? {
-                label: t('actions.delete'),
-                variant: 'delete',
-                onAction: handleSwipeDelete,
-              }
-            : undefined
-        }
-        onCardClick={handleCardClick}
-      >
-        {row}
-      </SwipeableCard>
-    );
-  }
-
-  return row;
 }
 
 export const SeriesCard = memo(SeriesCardInner);

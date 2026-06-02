@@ -47,10 +47,6 @@
     "PageLoader": {
       "message": "Loading...",
       "submessage": "Please wait"
-    },
-    "Swipe": {
-      "closeAction": "Close action",
-      "rowSwipeHint": "Swipe the row left to reveal quick actions."
     }
   },
   "Settings": {
@@ -1344,10 +1340,8 @@
       "sectionDetailsSubtitle": "Progress, trend, and linked transactions",
       "hero": {
         "totalAvailable": "Total available to spend",
-        "totalBudgeted": "Total budgeted",
         "totalSpent": "Total spent",
-        "spendableSpent": "Spent (spendable)",
-        "reserveSaved": "Set aside (reserve)"
+        "outOf": "of {total}"
       },
       "closePeriod": "Close period",
       "editClosingDate": "Adjust last closing date",

@@ -5,7 +5,7 @@
  */
 
 import { use, useEffect, useState } from 'react';
-import { useTranslations, useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { CalendarClock, CheckCircle2, ShoppingCart } from 'lucide-react';
 import { AppPage, PageFab } from '@/components/layout';
 import { EmptyState } from '@/components/shared';
@@ -17,8 +17,6 @@ import {
   CloseBudgetPeriodModal,
   EditClosingDateModal,
 } from '@/features/budgets/components';
-import { getLatestClosedPeriodAction } from '@/features/budgets';
-import type { BudgetPeriod } from '@/lib/types';
 import { useBudgetsContent, type UseBudgetsContentProps } from '@/features/budgets';
 import type { User, UserBudgetSummary } from '@/lib/types';
 import type { BudgetsPageData } from '@/server/use-cases/pages/budgets-page.use-case';
@@ -63,7 +61,6 @@ export default function BudgetsContent({
   };
 
   const t = useTranslations('Budgets.Page');
-  const locale = useLocale();
   const {
     budgetContextUserId,
     userBudgetSummary,
@@ -76,25 +73,6 @@ export default function BudgetsContent({
   } = useBudgetsContent(props);
   const [isClosePeriodModalOpen, setIsClosePeriodModalOpen] = useState(false);
   const [isEditClosingDateModalOpen, setIsEditClosingDateModalOpen] = useState(false);
-  const [latestClosedPeriod, setLatestClosedPeriod] = useState<BudgetPeriod | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    getLatestClosedPeriodAction(budgetContextUserId, locale)
-      .then((result) => {
-        if (cancelled) return;
-        setLatestClosedPeriod(result.data ?? null);
-      })
-      .catch(() => {
-        if (cancelled) return;
-        setLatestClosedPeriod(null);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [budgetContextUserId, locale, isClosePeriodModalOpen, isEditClosingDateModalOpen]);
 
   return (
     <AppPage
@@ -136,10 +114,8 @@ export default function BudgetsContent({
               summary={userBudgetSummary}
               labels={{
                 totalAvailable: t('hero.totalAvailable'),
-                totalBudgeted: t('hero.totalBudgeted'),
                 totalSpent: t('hero.totalSpent'),
-                spendableSpent: t('hero.spendableSpent'),
-                reserveSaved: t('hero.reserveSaved'),
+                outOf: (total) => t('hero.outOf', { total }),
               }}
             />
 
@@ -153,16 +129,14 @@ export default function BudgetsContent({
                 {t('closePeriod')}
               </button>
 
-              {latestClosedPeriod ? (
-                <button
-                  type="button"
-                  className={stitchBudgets.closePeriodButton}
-                  onClick={() => setIsEditClosingDateModalOpen(true)}
-                >
-                  <CalendarClock className="h-5 w-5 shrink-0" aria-hidden />
-                  {t('editClosingDate')}
-                </button>
-              ) : null}
+              <button
+                type="button"
+                className={stitchBudgets.closePeriodButton}
+                onClick={() => setIsEditClosingDateModalOpen(true)}
+              >
+                <CalendarClock className="h-5 w-5 shrink-0" aria-hidden />
+                {t('editClosingDate')}
+              </button>
             </div>
 
             <CloseBudgetPeriodModal

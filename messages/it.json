@@ -47,10 +47,6 @@
     "PageLoader": {
       "message": "Caricamento...",
       "submessage": "Attendere prego"
-    },
-    "Swipe": {
-      "closeAction": "Chiudi azione",
-      "rowSwipeHint": "Scorri la riga verso sinistra per le azioni rapide."
     }
   },
   "Settings": {
@@ -1344,10 +1340,8 @@
       "sectionDetailsSubtitle": "Progressi, andamento e transazioni collegate",
       "hero": {
         "totalAvailable": "Totale disponibile da spendere",
-        "totalBudgeted": "Totale in budget",
         "totalSpent": "Totale speso",
-        "spendableSpent": "Speso (spendibile)",
-        "reserveSaved": "Accantonato (riserva)"
+        "outOf": "su {total}"
       },
       "closePeriod": "Chiudi periodo",
       "editClosingDate": "Modifica ultima chiusura",

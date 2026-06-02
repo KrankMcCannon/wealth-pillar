@@ -17,7 +17,6 @@ import {
   computeDashboardBalanceViewModel,
   type DashboardBalanceViewModel,
 } from '../accounts/account.logic';
-import { resolvePeriodAmounts } from '../budget-periods/period-amounts.logic';
 import type {
   Account,
   Transaction,
@@ -67,28 +66,6 @@ export interface DashboardPageData {
   accountBalances: Record<string, number>;
   budgetsByUser: Record<string, UserBudgetSummary>;
   balanceViewModel: DashboardBalanceViewModel;
-}
-
-function enrichBudgetSummariesWithPeriodAmounts(
-  budgetsByUser: Record<string, UserBudgetSummary>,
-  groupUsers: User[],
-  transactions: Transaction[],
-  accounts: Account[],
-  budgetPeriods: Record<string, BudgetPeriod | null>
-): Record<string, UserBudgetSummary> {
-  const result = { ...budgetsByUser };
-  for (const user of groupUsers) {
-    const period = budgetPeriods[user.id];
-    const summary = result[user.id];
-    if (!period || !summary) continue;
-    const amounts = resolvePeriodAmounts(period, transactions, accounts);
-    result[user.id] = {
-      ...summary,
-      periodSpendableSpent: amounts.spendableSpent,
-      periodReserveSaved: amounts.reserveSaved,
-    };
-  }
-  return result;
 }
 
 /**
@@ -151,11 +128,10 @@ async function getCachedDashboardPageData(groupId: string): Promise<DashboardPag
     budgetPeriods[userId] = periodMap?.[userId] ?? null;
   });
 
-  const budgetsByUser = enrichBudgetSummariesWithPeriodAmounts(
-    buildBudgetsByUserPure(groupUsers, budgets, transactionResult.data, budgetPeriods),
+  const budgetsByUser = buildBudgetsByUserPure(
     groupUsers,
+    budgets,
     transactionResult.data,
-    accounts,
     budgetPeriods
   );
 

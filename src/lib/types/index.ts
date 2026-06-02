@@ -257,10 +257,6 @@ export interface UserBudgetSummary {
   totalSpent: number;
   totalRemaining: number;
   overallPercentage: number;
-  /** Real spend from spendable accounts in the period (transaction-driven). */
-  periodSpendableSpent: number;
-  /** Real net moved to reserve in the period (transfer-driven). */
-  periodReserveSaved: number;
 }
 
 /** Row shape: Drizzle returns Date timestamps; Supabase types use string — accept both. */

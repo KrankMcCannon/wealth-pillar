@@ -24,7 +24,6 @@ import type {
 import { scopeBudgetsPageData } from '@/server/permissions/scope-page-data';
 import { toDateTime } from '@/lib/utils/date-utils';
 import { parsePeriodDates, resolveChartPeriodEnd } from '../shared/period.logic';
-import { resolvePeriodAmounts } from '../budget-periods/period-amounts.logic';
 
 export interface BudgetsPageData {
   budgets: Budget[];
@@ -113,18 +112,6 @@ async function getCachedBudgetsPageData(groupId: string): Promise<BudgetsPageDat
     transactionResult.data,
     budgetPeriods
   );
-
-  for (const user of groupUsers) {
-    const period = budgetPeriods[user.id];
-    const summary = budgetsByUser[user.id];
-    if (!period || !summary) continue;
-    const amounts = resolvePeriodAmounts(period, transactionResult.data, accounts);
-    budgetsByUser[user.id] = {
-      ...summary,
-      periodSpendableSpent: amounts.spendableSpent,
-      periodReserveSaved: amounts.reserveSaved,
-    };
-  }
 
   const chartViewModelsByUser: Record<string, BudgetChartViewModel> = {};
   for (const user of groupUsers) {

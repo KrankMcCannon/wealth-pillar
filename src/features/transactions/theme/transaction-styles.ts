@@ -109,23 +109,6 @@ export const transactionTokens = {
       color: 'bg-muted',
     },
   },
-  interaction: {
-    swipe: {
-      actionWidth: 88,
-      threshold: 44,
-      velocityThreshold: -120,
-    },
-    spring: {
-      stiffness: 450,
-      damping: 32,
-    },
-    drag: {
-      elastic: 0.08,
-    },
-    tap: {
-      threshold: 10,
-    },
-  },
   groupedCard: {
     spacing: {
       cardPadding: 'py-0',

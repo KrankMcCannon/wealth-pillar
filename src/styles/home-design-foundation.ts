@@ -94,12 +94,17 @@ export const stitchBudgets = {
   /** Spaziatura come Stitch (hero → CTA → lista). */
   mainStack: 'flex flex-col gap-5 pt-1',
   heroSection: 'relative overflow-hidden rounded-xl border border-border/25 bg-card/90 p-4',
-  heroInner: 'relative z-[1] flex flex-col gap-4',
+  heroInner: 'relative z-[1]',
+  heroTopRow: 'flex items-end justify-between gap-3',
+  heroPrimaryBlock: 'min-w-0 flex-1 flex flex-col gap-1',
   heroEyebrow: 'text-[11px] font-semibold uppercase tracking-wider text-muted-foreground',
-  heroAmountRow: 'mt-0.5 flex items-baseline gap-1',
-  /** Importo hero: colore primary come Stitch `text-primary` sul numero principale. */
-  heroAmount: 'text-[32px] font-semibold tabular-nums leading-none tracking-[-0.02em] text-primary',
-  heroAmountCents: 'text-base font-medium text-muted-foreground',
+  heroAmountRow: 'mt-0.5 flex flex-wrap items-baseline gap-x-1 gap-y-0.5',
+  heroAmount: 'text-[28px] font-semibold tabular-nums leading-none tracking-[-0.02em] text-income',
+  heroAmountCents: 'text-sm font-medium tabular-nums text-income/80',
+  heroAmountBudget: 'text-sm font-medium tabular-nums text-primary',
+  heroSpentBlock:
+    'flex shrink-0 flex-col items-end gap-0.5 border-l border-border/25 pl-3 text-right',
+  heroSpentValue: 'text-[15px] font-semibold tabular-nums leading-tight text-expense',
   heroMetricsRow: 'flex w-full gap-8 border-t border-border/25 pt-4 [&>div]:min-w-0 [&>div]:flex-1',
   heroMetricLabel: 'text-[11px] font-medium uppercase tracking-wide text-muted-foreground',
   heroMetricValue: 'mt-1 text-[17px] font-semibold leading-tight tabular-nums text-foreground',

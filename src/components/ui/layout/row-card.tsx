@@ -6,7 +6,6 @@
  * A flexible, reusable row-based card component that supports:
  * - Icon + Title + Subtitle/Metadata layout
  * - Primary value + Secondary value + Actions on the right
- * - Optional swipe-to-delete gesture (Framer Motion)
  * - Multiple variants (regular, interactive, highlighted, muted)
  * - Full accessibility (keyboard nav, ARIA labels)
  *
@@ -15,12 +14,8 @@
 
 import { memo, type CSSProperties } from 'react';
 import { cn } from '@/lib/utils';
-import { SwipeableCard, type SwipeAction } from '@/components/ui/interactions/swipeable-card';
 
 const rowCardStyles = {
-  // Wrapper container (for swipe layers)
-  wrapper: 'relative w-full overflow-hidden',
-
   // Base card styles
   base: 'relative z-10 flex items-center justify-between first:pb-2 last:pt-2',
 
@@ -73,17 +68,6 @@ const rowCardStyles = {
   secondaryValue: 'text-xs text-primary/60',
 };
 
-export interface RowCardSwipeConfig {
-  /** Unique ID for swipe state tracking */
-  id: string;
-
-  /** Delete action configuration */
-  deleteAction?: SwipeAction | undefined;
-
-  /** Optional callback when card is clicked */
-  onCardClick?: (() => void) | undefined;
-}
-
 export interface RowCardProps {
   // Layout - Left Section
   icon?: React.ReactNode;
@@ -106,12 +90,6 @@ export interface RowCardProps {
   variant?: 'regular' | 'interactive' | 'highlighted' | 'muted';
   onClick?: (() => void) | undefined;
 
-  // Swipe configuration (new unified system)
-  swipeConfig?: RowCardSwipeConfig | undefined;
-
-  /** Hint linked to the swipe surface for assistive technology */
-  swipeDragHint?: string | undefined;
-
   // State
   isDisabled?: boolean;
   className?: string;
@@ -130,7 +108,7 @@ export interface RowCardProps {
 /**
  * RowCard Component
  *
- * Provides a unified row card pattern with optional swipe-to-delete.
+ * Provides a unified row card pattern.
  * Extracted from TransactionRow to be reusable across the app.
  */
 export const RowCard = memo(
@@ -148,8 +126,6 @@ export const RowCard = memo(
     rightLayout = 'stack',
     variant = 'regular',
     onClick,
-    swipeConfig,
-    swipeDragHint,
     isDisabled = false,
     iconStyle,
     iconClassName,
@@ -265,31 +241,6 @@ export const RowCard = memo(
         )}
       </div>
     );
-
-    // ========================================================================
-    // Render with Swipe Support (New Unified System)
-    // ========================================================================
-
-    if (swipeConfig) {
-      const cardClick = swipeConfig.onCardClick ?? onClick;
-      return (
-        <SwipeableCard
-          id={swipeConfig.id}
-          rightAction={swipeConfig.deleteAction}
-          {...(cardClick !== undefined && { onCardClick: cardClick })}
-          {...(swipeDragHint !== undefined && { dragHint: swipeDragHint })}
-          disabled={isDisabled}
-        >
-          <div className={cardClasses} data-testid={testId}>
-            {renderCardContent()}
-          </div>
-        </SwipeableCard>
-      );
-    }
-
-    // ========================================================================
-    // Regular Card (No Swipe)
-    // ========================================================================
 
     const isClickable = Boolean(onClick) && !isDisabled;
     const handleKeyDown = (e: React.KeyboardEvent) => {
