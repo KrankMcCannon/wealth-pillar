@@ -2,7 +2,6 @@
 
 import { use, useCallback, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { AppPage } from '@/components/layout';
 import {
   Drawer,
   DrawerContent,
@@ -10,6 +9,8 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from '@/components/ui';
+import { HomeDashboardMain } from '@/components/layout';
+import { usePageHeader } from '@/hooks/use-page-header';
 import { useDashboardContent } from '@/features/dashboard';
 import UserSelector from '@/components/shared/user-selector';
 import { BalanceSection } from '@/features/accounts';
@@ -71,6 +72,11 @@ export default function HomeContent({
   const showUserPicker =
     (currentUser.role === 'admin' || currentUser.role === 'superadmin') && groupUsers.length > 1;
 
+  usePageHeader({
+    isDashboard: true,
+    ...(showUserPicker ? { onAvatarClick: openUserPicker } : {}),
+  });
+
   const recurringSeriesUserId = selectedGroupFilter === 'all' ? undefined : effectiveUserId;
   const recurringFilterUserId = isMember ? currentUser.id : recurringSeriesUserId;
 
@@ -88,51 +94,44 @@ export default function HomeContent({
   }, [transactions, recentActivityUserId]);
 
   return (
-    <AppPage
-      currentUser={currentUser}
-      isDashboard
-      skipToMainHref="#main-dashboard"
-      skipToMainLabel={t('skipToContent')}
-      {...(showUserPicker ? { onAvatarClick: openUserPicker } : {})}
-      dashboardMain
-      beforeMain={
-        showUserPicker ? (
-          <Drawer open={userPickerOpen} onOpenChange={setUserPickerOpen}>
-            <DrawerContent>
-              <DrawerHeader>
-                <DrawerTitle>{t('userPickerTitle')}</DrawerTitle>
-                <DrawerDescription className="sr-only">
-                  {t('userPickerDescription')}
-                </DrawerDescription>
-              </DrawerHeader>
-              <UserSelector currentUser={currentUser} users={groupUsers} hideTitle />
-            </DrawerContent>
-          </Drawer>
-        ) : undefined
-      }
-    >
-      <BalanceSection
-        spendableBalance={spendableBalance}
-        reserveBalance={reserveBalance}
-        selectedUserId={selectedUserId}
-      />
+    <>
+      {showUserPicker ? (
+        <Drawer open={userPickerOpen} onOpenChange={setUserPickerOpen}>
+          <DrawerContent>
+            <DrawerHeader>
+              <DrawerTitle>{t('userPickerTitle')}</DrawerTitle>
+              <DrawerDescription className="sr-only">
+                {t('userPickerDescription')}
+              </DrawerDescription>
+            </DrawerHeader>
+            <UserSelector currentUser={currentUser} users={groupUsers} hideTitle />
+          </DrawerContent>
+        </Drawer>
+      ) : null}
+      <HomeDashboardMain>
+        <BalanceSection
+          spendableBalance={spendableBalance}
+          reserveBalance={reserveBalance}
+          selectedUserId={selectedUserId}
+        />
 
-      <BudgetSection
-        budgetsByUser={budgetsByUser}
-        selectedViewUserId={isMember ? currentUser.id : selectedUserId}
-      />
+        <BudgetSection
+          budgetsByUser={budgetsByUser}
+          selectedViewUserId={isMember ? currentUser.id : selectedUserId}
+        />
 
-      <RecurringSeriesSection
-        series={recurringSeries}
-        selectedUserId={recurringFilterUserId}
-        showStats={false}
-        onCreateRecurringSeries={handleCreateRecurringSeries}
-        onCardClick={handleOpenRecurringTab}
-        homeDashboardListLayout
-        maxItems={RECURRING_MAX_ITEMS}
-      />
+        <RecurringSeriesSection
+          series={recurringSeries}
+          selectedUserId={recurringFilterUserId}
+          showStats={false}
+          onCreateRecurringSeries={handleCreateRecurringSeries}
+          onCardClick={handleOpenRecurringTab}
+          homeDashboardListLayout
+          maxItems={RECURRING_MAX_ITEMS}
+        />
 
-      <RecentActivitySection transactions={recentTransactions} categories={categories} />
-    </AppPage>
+        <RecentActivitySection transactions={recentTransactions} categories={categories} />
+      </HomeDashboardMain>
+    </>
   );
 }

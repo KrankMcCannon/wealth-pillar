@@ -3,7 +3,8 @@
 import { use, useCallback, useMemo, useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter, usePathname } from '@/i18n/routing';
-import { AppPage, HomeDashboardMain } from '@/components/layout';
+import { HomeDashboardMain } from '@/components/layout';
+import { usePageHeader } from '@/hooks/use-page-header';
 import type { ReportsPageData, ReportsScope } from '@/server/use-cases/pages/reports-page.use-case';
 import type { User } from '@/lib/types';
 import { stitchReports } from '@/styles/home-design-foundation';
@@ -129,62 +130,59 @@ export default function ReportsContent({
 
   const userSelectorValue = selectedScope === 'all' ? 'all' : selectedScope;
 
+  usePageHeader({
+    title: t('headerTitle'),
+    showBack: true,
+    isDashboard: false,
+  });
+
   return (
-    <AppPage
-      currentUser={currentUser}
-      title={t('headerTitle')}
-      showBack
-      skipToMainHref="#main-reports"
-      skipToMainLabel={t('skipToMain')}
-      betweenHeaderAndMain={
-        <div className="flex min-h-0 w-full flex-col">
-          <ReportsTimeFilter
-            value={preset}
-            onChange={handlePresetChange}
-            customRange={customRange}
-            onCustomApply={(start, end) => {
-              setCustomRange({ start, end });
-              pushTimeParams({ preset: 'custom', customStart: start, customEnd: end });
-            }}
+    <div className="flex min-h-0 w-full flex-col">
+      <ReportsTimeFilter
+        value={preset}
+        onChange={handlePresetChange}
+        customRange={customRange}
+        onCustomApply={(start, end) => {
+          setCustomRange({ start, end });
+          pushTimeParams({ preset: 'custom', customStart: start, customEnd: end });
+        }}
+      />
+
+      <HomeDashboardMain
+        id="main-reports"
+        {...(isPending ? { className: 'opacity-70 transition-opacity' } : {})}
+      >
+        <div className={stitchReports.sectionStack}>
+          <UserSelector
+            hideTitle
+            currentUser={currentUser}
+            users={groupUsers}
+            value={userSelectorValue}
+            onChange={handleScopeChange}
+            showAllOption
           />
 
-          <HomeDashboardMain
-            id="main-reports"
-            {...(isPending ? { className: 'opacity-70 transition-opacity' } : {})}
-          >
-            <div className={stitchReports.sectionStack}>
-              <UserSelector
-                hideTitle
-                currentUser={currentUser}
-                users={groupUsers}
-                value={userSelectorValue}
-                onChange={handleScopeChange}
-                showAllOption
-              />
+          <ReportsHero
+            netFlow={section.netFlow}
+            income={section.income}
+            expenses={section.expenses}
+            totalSpendable={section.totalSpendable}
+            totalReserve={section.totalReserve}
+            netSavings={section.netSavings}
+            comparisonPercent={section.comparisonPercent}
+            comparisonLabel={comparisonLabel}
+          />
 
-              <ReportsHero
-                netFlow={section.netFlow}
-                income={section.income}
-                expenses={section.expenses}
-                totalSpendable={section.totalSpendable}
-                totalReserve={section.totalReserve}
-                netSavings={section.netSavings}
-                comparisonPercent={section.comparisonPercent}
-                comparisonLabel={comparisonLabel}
-              />
+          <TopExpensesRanking items={section.topExpenses} />
 
-              <TopExpensesRanking items={section.topExpenses} />
+          <AccountBreakdownSection
+            rows={section.accountBreakdown}
+            totalWealth={section.totalWealth}
+          />
 
-              <AccountBreakdownSection
-                rows={section.accountBreakdown}
-                totalWealth={section.totalWealth}
-              />
-
-              <BudgetPeriodSection periods={scopedPeriods} />
-            </div>
-          </HomeDashboardMain>
+          <BudgetPeriodSection periods={scopedPeriods} />
         </div>
-      }
-    />
+      </HomeDashboardMain>
+    </div>
   );
 }

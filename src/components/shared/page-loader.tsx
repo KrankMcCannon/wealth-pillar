@@ -1,18 +1,11 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import {
-  BottomNavigation,
-  HomeDashboardMain,
-  PageContainer,
-  SkipToMainLink,
-} from '@/components/layout';
-import { headerStyles } from '@/components/layout/theme/header-styles';
 import { Skeleton } from '@/components/ui/skeleton';
 import { TransactionListSkeleton } from '@/components/ui/primitives/skeletons';
 import { HomePageSectionsSkeleton } from '@/components/ui/primitives/skeletons/dashboard-skeletons';
 import { cn } from '@/lib/utils';
-import { STICKY_HEADER_BASE } from '@/lib/utils/ui-constants';
+import { HomeDashboardMain } from '@/components/layout';
 import { stitchTransactions, stitchTransactionPageSearch } from '@/styles/home-design-foundation';
 
 const pageLoaderStyles = {
@@ -26,73 +19,42 @@ const pageLoaderStyles = {
   submessage: 'text-xs text-primary/70 mt-1',
 } as const;
 
-function HeaderSkeleton() {
-  return (
-    <header className={cn(STICKY_HEADER_BASE, headerStyles.container)}>
-      <div className={headerStyles.inner}>
-        <div className={headerStyles.slotLeft}>
-          <Skeleton className="size-11 rounded-full" />
-        </div>
-        <div className={headerStyles.slotCenter}>
-          <Skeleton className="h-5 w-36" />
-        </div>
-        <div className={headerStyles.slotRight}>
-          <Skeleton className="size-11 rounded-full" />
-        </div>
-      </div>
-    </header>
-  );
-}
-
 interface HomePageSkeletonProps {
   skipLabel: string;
 }
 
 function HomePageSkeleton({ skipLabel }: HomePageSkeletonProps) {
   return (
-    <PageContainer>
-      <SkipToMainLink href="#main-dashboard">{skipLabel}</SkipToMainLink>
-      <HeaderSkeleton />
-      <HomeDashboardMain ariaBusy>
-        <HomePageSectionsSkeleton />
-      </HomeDashboardMain>
-      <BottomNavigation />
-    </PageContainer>
+    <HomeDashboardMain ariaBusy aria-label={skipLabel}>
+      <HomePageSectionsSkeleton />
+    </HomeDashboardMain>
   );
 }
 
 function ListPageSkeleton() {
   return (
-    <PageContainer>
-      <HeaderSkeleton />
-      <div className="px-3 pt-2 pb-24" aria-busy="true">
-        <TransactionListSkeleton />
-      </div>
-      <BottomNavigation />
-    </PageContainer>
+    <div className="px-3 pt-2 pb-24" aria-busy="true">
+      <TransactionListSkeleton />
+    </div>
   );
 }
 
 function TransactionsPageSkeleton() {
   return (
-    <PageContainer>
-      <HeaderSkeleton />
-      <div className="px-4 pt-1 pb-24" aria-busy="true">
-        <div className={stitchTransactions.tabsStickyBar}>
-          <Skeleton className={cn(stitchTransactions.tabsList, 'h-12')} />
-        </div>
-        <div className={cn(stitchTransactions.mainStack, 'mt-3')}>
-          <Skeleton className={cn(stitchTransactionPageSearch.input, 'h-11')} />
-          <div className={stitchTransactions.chipRow}>
-            <Skeleton className="h-9 w-16 shrink-0 rounded-full" />
-            <Skeleton className="h-9 w-20 shrink-0 rounded-full" />
-            <Skeleton className="h-9 w-24 shrink-0 rounded-full" />
-          </div>
-          <TransactionListSkeleton />
-        </div>
+    <div className="px-4 pt-1 pb-24" aria-busy="true">
+      <div className={stitchTransactions.tabsStickyBar}>
+        <Skeleton className={cn(stitchTransactions.tabsList, 'h-12')} />
       </div>
-      <BottomNavigation />
-    </PageContainer>
+      <div className={cn(stitchTransactions.mainStack, 'mt-3')}>
+        <Skeleton className={cn(stitchTransactionPageSearch.input, 'h-11')} />
+        <div className={stitchTransactions.chipRow}>
+          <Skeleton className="h-9 w-16 shrink-0 rounded-full" />
+          <Skeleton className="h-9 w-20 shrink-0 rounded-full" />
+          <Skeleton className="h-9 w-24 shrink-0 rounded-full" />
+        </div>
+        <TransactionListSkeleton />
+      </div>
+    </div>
   );
 }
 

@@ -2,16 +2,16 @@
  * Settings Page - Server Component
  */
 
+import { Suspense } from 'react';
 import { requireUserAuth } from '@/lib/auth/page-auth';
 import { getUserPreferencesUseCase } from '@/server/use-cases/users/get-user-preferences.use-case';
 import { getGroupByIdUseCase } from '@/server/use-cases/groups/groups.use-cases';
 import SettingsContent from './settings-content';
+import SettingsLoading from './loading';
 import { withTimeout } from '@/lib/utils/with-timeout';
 import type { UserPreferences } from '@/lib/types';
 
-export default async function SettingsPage({
-  params,
-}: Readonly<{ params: Promise<{ locale: string }> }>) {
+async function SettingsPageData({ params }: Readonly<{ params: Promise<{ locale: string }> }>) {
   const { currentUser } = await requireUserAuth(params);
 
   const now = new Date();
@@ -56,5 +56,15 @@ export default async function SettingsPage({
       initialPreferences={initialPreferences}
       initialGroupName={initialGroupName}
     />
+  );
+}
+
+export default function SettingsPage({
+  params,
+}: Readonly<{ params: Promise<{ locale: string }> }>) {
+  return (
+    <Suspense fallback={<SettingsLoading />}>
+      <SettingsPageData params={params} />
+    </Suspense>
   );
 }

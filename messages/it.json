@@ -388,8 +388,7 @@
     "home": "Torna alla home"
   },
   "ReportsContent": {
-    "headerTitle": "Rapporti",
-    "skipToMain": "Vai al contenuto dei rapporti"
+    "headerTitle": "Rapporti"
   },
   "Reports": {
     "TimeFilter": {
@@ -612,7 +611,6 @@
   },
   "TransactionsContent": {
     "headerTitle": "Transazioni",
-    "skipToMain": "Vai al contenuto transazioni",
     "tabs": {
       "transactions": "Transazioni",
       "recurrent": "Ricorrenti"
@@ -1333,8 +1331,6 @@
     },
     "Page": {
       "title": "Budget",
-      "pageSubtitle": "Tieni sotto controllo i limiti di spesa mensili.",
-      "skipToMain": "Vai al contenuto budget",
       "sectionContextTitle": "Membro",
       "sectionContextSubtitle": "Scegli per chi visualizzare i budget del gruppo",
       "sectionDetailsTitle": "Budget e periodo",
@@ -1374,7 +1370,6 @@
       }
     },
     "Detail": {
-      "skipToMain": "Vai al dettaglio budget",
       "editBudget": "Modifica budget",
       "summaryAria": "Riepilogo budget",
       "badgeOnTrack": "In linea",

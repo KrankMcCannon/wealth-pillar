@@ -1,7 +1,8 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { AppPage, toAppPageHeaderUser } from '@/components/layout';
+import { toAppPageHeaderUser } from '@/components/layout';
+import { usePageHeader } from '@/hooks/use-page-header';
 import { useRouter } from '@/i18n/routing';
 import { stitchSettings } from '@/styles/home-design-foundation';
 import {
@@ -45,15 +46,23 @@ export default function SettingsContent({
 
   const router = useRouter();
 
-  if (!displayUser) return null;
-
   const settingsHeaderUser = {
-    ...toAppPageHeaderUser(displayUser),
+    ...toAppPageHeaderUser(currentUser),
     role:
-      displayUser.role === 'superadmin' || displayUser.role === 'admin'
+      currentUser.role === 'superadmin' || currentUser.role === 'admin'
         ? 'admin'
-        : ((displayUser.role || 'member') as 'admin' | 'member'),
+        : ((currentUser.role || 'member') as 'admin' | 'member'),
   };
+
+  usePageHeader({
+    headerUser: settingsHeaderUser,
+    title: t('headerTitle'),
+    showBack: true,
+    isDashboard: false,
+    onBack: () => router.push('/home'),
+  });
+
+  if (!displayUser) return null;
 
   return (
     <SettingsModalsProvider
@@ -67,39 +76,31 @@ export default function SettingsContent({
         onGroupUpdate: handleGroupUpdate,
       }}
     >
-      <AppPage
-        currentUser={displayUser}
-        headerUser={settingsHeaderUser}
-        title={t('headerTitle')}
-        showBack
-        onBack={() => router.push('/home')}
-      >
-        <main className={stitchSettings.pageMain}>
-          <ProfileSection
-            currentUser={displayUser}
-            userInitials={userInitials}
-            onEditProfile={() => openSettingsModal('profile')}
-          />
+      <main className={stitchSettings.pageMain}>
+        <ProfileSection
+          currentUser={displayUser}
+          userInitials={userInitials}
+          onEditProfile={() => openSettingsModal('profile')}
+        />
 
-          <GroupSection
-            isAdmin={isAdmin}
-            groupName={displayGroupName}
-            onInviteMember={() => openSettingsModal('invite')}
-            onManageGroup={() => openSettingsModal('group')}
-          />
+        <GroupSection
+          isAdmin={isAdmin}
+          groupName={displayGroupName}
+          onInviteMember={() => openSettingsModal('invite')}
+          onManageGroup={() => openSettingsModal('group')}
+        />
 
-          <CategoriesSection onManageCategories={() => openSettingsModal('categories')} />
+        <CategoriesSection onManageCategories={() => openSettingsModal('categories')} />
 
-          <PreferencesSection
-            preferences={preferences}
-            onOpenCurrency={() => openSettingsModal('currency')}
-            onOpenLanguage={() => openSettingsModal('language')}
-            onOpenTimezone={() => openSettingsModal('timezone')}
-          />
+        <PreferencesSection
+          preferences={preferences}
+          onOpenCurrency={() => openSettingsModal('currency')}
+          onOpenLanguage={() => openSettingsModal('language')}
+          onOpenTimezone={() => openSettingsModal('timezone')}
+        />
 
-          <SupportSection isSigningOut={isSigningOut} onSignOut={handleSignOut} />
-        </main>
-      </AppPage>
+        <SupportSection isSigningOut={isSigningOut} onSignOut={handleSignOut} />
+      </main>
       <SettingsModalRenderer />
     </SettingsModalsProvider>
   );

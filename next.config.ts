@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   experimental: {
     staleTimes: {
-      dynamic: 30,
+      dynamic: 180,
       static: 180,
     },
     optimizePackageImports: [

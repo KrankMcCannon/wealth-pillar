@@ -1,12 +1,12 @@
 import { Suspense } from 'react';
 import { getTranslations } from 'next-intl/server';
-import { requireGroupId, requirePageAuth } from '@/lib/auth/page-auth';
+import { resolvePageContext } from '@/lib/auth/page-auth';
 import {
   getReportsPageDataUseCase,
   type ReportsPageParams,
 } from '@/server/use-cases/pages/reports-page.use-case';
-import { ReportsSkeleton } from '@/components/reports/reports-skeleton';
 import ReportsContent from './reports-content';
+import ReportsLoading from './loading';
 import { resolveReportsPreset } from '@/features/reports/utils/reporting-window';
 
 function parseReportsParams(
@@ -24,18 +24,19 @@ function parseReportsParams(
   };
 }
 
-export default async function ReportsPage({
+async function ReportsPageData({
   params,
   searchParams,
 }: Readonly<{
   params: Promise<{ locale: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }>) {
-  const { currentUser, groupUsers } = await requirePageAuth(params);
-  const sp = await searchParams;
+  const [{ currentUser, groupUsers, groupId }, sp] = await Promise.all([
+    resolvePageContext(params),
+    searchParams,
+  ]);
 
   const groupUserIds = groupUsers.map((u) => u.id);
-  const groupId = await requireGroupId(currentUser);
   const reportParams = parseReportsParams(sp);
 
   const reportsBundlePromise = (async () => {
@@ -48,20 +49,32 @@ export default async function ReportsPage({
   })();
 
   return (
-    <Suspense fallback={<ReportsSkeleton />}>
-      <ReportsContent
-        currentUser={currentUser}
-        groupUsers={groupUsers}
-        reportsBundlePromise={reportsBundlePromise}
-        initialPreset={reportParams.preset ?? resolveReportsPreset()}
-        initialCustomStart={reportParams.customStart}
-        initialCustomEnd={reportParams.customEnd}
-        initialScope={
-          reportParams.memberUserId && groupUserIds.includes(reportParams.memberUserId)
-            ? reportParams.memberUserId
-            : 'all'
-        }
-      />
+    <ReportsContent
+      currentUser={currentUser}
+      groupUsers={groupUsers}
+      reportsBundlePromise={reportsBundlePromise}
+      initialPreset={reportParams.preset ?? resolveReportsPreset()}
+      initialCustomStart={reportParams.customStart}
+      initialCustomEnd={reportParams.customEnd}
+      initialScope={
+        reportParams.memberUserId && groupUserIds.includes(reportParams.memberUserId)
+          ? reportParams.memberUserId
+          : 'all'
+      }
+    />
+  );
+}
+
+export default function ReportsPage({
+  params,
+  searchParams,
+}: Readonly<{
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}>) {
+  return (
+    <Suspense fallback={<ReportsLoading />}>
+      <ReportsPageData params={params} searchParams={searchParams} />
     </Suspense>
   );
 }

@@ -5,7 +5,8 @@ import { Suspense, use, useCallback, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
 import { useSearchParams } from 'next/navigation';
 import { usePathname, useRouter } from '@/i18n/routing';
-import { AppPage, HomeDashboardMain, PageFab } from '@/components/layout';
+import { HomeDashboardMain, PageFab } from '@/components/layout';
+import { usePageHeader } from '@/hooks/use-page-header';
 import UserSelector from '@/components/shared/user-selector';
 import { User } from '@/lib';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui';
@@ -81,71 +82,66 @@ export default function InvestmentsContent({
     [pathname, router, searchParams]
   );
 
+  usePageHeader({
+    title: t('headerTitle'),
+    showBack: true,
+    isDashboard: false,
+  });
+
   return (
-    <AppPage
-      currentUser={currentUser}
-      title={t('headerTitle')}
-      showBack
-      skipToMainHref="#main-investments"
-      skipToMainLabel={t('mainLandmark')}
-      dashboardMain
-      mainId="main-investments"
-      betweenHeaderAndMain={
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex min-h-0 flex-col">
-          <div className={stitchTransactions.tabsStickyBar}>
-            <div className="flex flex-col gap-3 px-4 pt-1">
-              <UserSelector
-                hideTitle
-                currentUser={currentUser}
-                users={groupUsers}
-                value={selectedUser}
-                onChange={handleUserChange}
-              />
-              <TabsList className={stitchTransactions.tabsList} aria-label={t('mainLandmark')}>
-                <TabsTrigger className={stitchTransactions.tabsTrigger} value="personal">
-                  {t('tabs.personal')}
-                </TabsTrigger>
-                <TabsTrigger className={stitchTransactions.tabsTrigger} value="sandbox">
-                  {t('tabs.sandbox')}
-                </TabsTrigger>
-              </TabsList>
-            </div>
+    <>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex min-h-0 flex-col">
+        <div className={stitchTransactions.tabsStickyBar}>
+          <div className="flex flex-col gap-3 px-4 pt-1">
+            <UserSelector
+              hideTitle
+              currentUser={currentUser}
+              users={groupUsers}
+              value={selectedUser}
+              onChange={handleUserChange}
+            />
+            <TabsList className={stitchTransactions.tabsList} aria-label={t('mainLandmark')}>
+              <TabsTrigger className={stitchTransactions.tabsTrigger} value="personal">
+                {t('tabs.personal')}
+              </TabsTrigger>
+              <TabsTrigger className={stitchTransactions.tabsTrigger} value="sandbox">
+                {t('tabs.sandbox')}
+              </TabsTrigger>
+            </TabsList>
           </div>
+        </div>
 
-          <HomeDashboardMain id="main-investments" aria-label={t('mainLandmark')}>
-            <TabsContent value="personal" className="mt-0">
-              <div className={stitchInvestments.mainStack}>
-                <PersonalInvestmentTab
-                  summary={summary}
-                  assetAllocation={assetAllocation}
-                  portfolioHistory={portfolioHistory}
-                  indexData={indexData}
-                  currentIndex={currentIndex}
-                  holdings={holdings}
-                  hasMore={hasMore}
-                  isLoadingMore={isLoadingMore}
-                  onLoadMore={loadMore}
-                />
-              </div>
-            </TabsContent>
+        <HomeDashboardMain id="main-investments" aria-label={t('mainLandmark')}>
+          <TabsContent value="personal" className="mt-0">
+            <div className={stitchInvestments.mainStack}>
+              <PersonalInvestmentTab
+                summary={summary}
+                assetAllocation={assetAllocation}
+                portfolioHistory={portfolioHistory}
+                indexData={indexData}
+                currentIndex={currentIndex}
+                holdings={holdings}
+                hasMore={hasMore}
+                isLoadingMore={isLoadingMore}
+                onLoadMore={loadMore}
+              />
+            </div>
+          </TabsContent>
 
-            <TabsContent value="sandbox" className="mt-0">
-              <div className={stitchInvestments.mainStack}>
-                <Suspense fallback={null}>
-                  <SandboxForecastTab />
-                </Suspense>
-              </div>
-            </TabsContent>
-          </HomeDashboardMain>
-        </Tabs>
-      }
-      afterMain={
-        <PageFab
-          onClick={() => openModal('investment')}
-          ariaLabel={tActionMenu('newInvestment')}
-          testId="investments-fab-add"
-        />
-      }
-    />
+          <TabsContent value="sandbox" className="mt-0">
+            <div className={stitchInvestments.mainStack}>
+              <Suspense fallback={null}>
+                <SandboxForecastTab />
+              </Suspense>
+            </div>
+          </TabsContent>
+        </HomeDashboardMain>
+      </Tabs>
+      <PageFab
+        onClick={() => openModal('investment')}
+        ariaLabel={tActionMenu('newInvestment')}
+        testId="investments-fab-add"
+      />
+    </>
   );
 }

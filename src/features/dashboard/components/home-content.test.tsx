@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { Suspense } from 'react';
 import { render, screen, act } from '@testing-library/react';
-import HomeContent from '../../../../app/[locale]/home/home-content';
+import HomeContent from '../../../../app/[locale]/(dashboard)/home/home-content';
 import type { DashboardPageData } from '@/server/use-cases/pages/dashboard.use-case';
 
 vi.mock('next-intl', () => ({
@@ -21,9 +21,13 @@ vi.mock('@/lib/navigation/url-state', () => ({
   useModalState: () => ({ openModal: vi.fn() }),
 }));
 
+vi.mock('@/hooks/use-page-header', () => ({
+  usePageHeader: vi.fn(),
+}));
+
 vi.mock('@/components/layout', () => ({
-  AppPage: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="app-page">{children}</div>
+  HomeDashboardMain: ({ children }: { children: React.ReactNode }) => (
+    <main data-testid="home-main">{children}</main>
   ),
 }));
 
@@ -112,7 +116,7 @@ describe('HomeContent', () => {
       );
     });
 
-    expect(await screen.findByTestId('app-page')).toBeInTheDocument();
+    expect(await screen.findByTestId('home-main')).toBeInTheDocument();
     expect(screen.getByTestId('balance-section')).toBeInTheDocument();
     expect(screen.getByTestId('budget-section')).toBeInTheDocument();
     expect(screen.getByTestId('recurring-section')).toBeInTheDocument();

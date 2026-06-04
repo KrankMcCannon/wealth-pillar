@@ -9,7 +9,6 @@ import { headerStyles } from './theme/header-styles';
 
 interface HeaderProps {
   title?: string;
-  subtitle?: string;
   showBack?: boolean;
   isDashboard?: boolean;
   className?: string;
@@ -20,7 +19,6 @@ interface HeaderProps {
 
 export function Header({
   title,
-  subtitle,
   showBack = false,
   isDashboard = false,
   className,
@@ -78,7 +76,6 @@ export function Header({
             <h1 className={isDashboard ? headerStyles.appName : headerStyles.pageTitle}>
               {isDashboard ? t('appName') : title}
             </h1>
-            {subtitle && !isDashboard && <p className={headerStyles.subtitle}>{subtitle}</p>}
           </div>
         </div>
 

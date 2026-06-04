@@ -68,6 +68,18 @@ export async function requireGroupId(currentUser: User): Promise<string> {
 }
 
 /**
+ * Resolves auth + group id for dashboard pages inside a Suspense boundary.
+ * Uses request-scoped cached auth from the locale layout when available.
+ */
+export async function resolvePageContext(
+  params: Promise<{ locale: string }>
+): Promise<PageAuthResult & { groupId: string }> {
+  const auth = await requirePageAuth(params);
+  const groupId = await requireGroupId(auth.currentUser);
+  return { ...auth, groupId };
+}
+
+/**
  * Variant that only resolves auth without fetching group users.
  */
 export async function requireUserAuth(

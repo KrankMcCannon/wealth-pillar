@@ -388,8 +388,7 @@
     "home": "Back to home"
   },
   "ReportsContent": {
-    "headerTitle": "Reports",
-    "skipToMain": "Skip to reports"
+    "headerTitle": "Reports"
   },
   "Reports": {
     "TimeFilter": {
@@ -612,7 +611,6 @@
   },
   "TransactionsContent": {
     "headerTitle": "Transactions",
-    "skipToMain": "Skip to transactions list",
     "tabs": {
       "transactions": "Transactions",
       "recurrent": "Recurring"
@@ -1333,8 +1331,6 @@
     },
     "Page": {
       "title": "Budgets",
-      "pageSubtitle": "Track your monthly spending limits.",
-      "skipToMain": "Skip to budgets content",
       "sectionContextTitle": "Member",
       "sectionContextSubtitle": "Choose whose group budgets you are viewing",
       "sectionDetailsTitle": "Budget and period",
@@ -1374,7 +1370,6 @@
       }
     },
     "Detail": {
-      "skipToMain": "Skip to budget detail content",
       "editBudget": "Edit budget",
       "summaryAria": "Budget summary",
       "badgeOnTrack": "On track",

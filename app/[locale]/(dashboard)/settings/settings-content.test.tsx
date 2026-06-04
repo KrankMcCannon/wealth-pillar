@@ -34,13 +34,11 @@ vi.mock('@/lib/navigation/url-state', () => ({
   }),
 }));
 
+vi.mock('@/hooks/use-page-header', () => ({
+  usePageHeader: vi.fn(),
+}));
+
 vi.mock('@/components/layout', () => ({
-  AppPage: ({ children, title }: { children: React.ReactNode; title?: string }) => (
-    <div data-testid="app-page">
-      {title ? <h1>{title}</h1> : null}
-      {children}
-    </div>
-  ),
   toAppPageHeaderUser: (user: { name?: string; role?: string }) => ({
     name: user.name,
     role: user.role,
@@ -107,8 +105,6 @@ describe('SettingsContent', () => {
       />
     );
 
-    expect(screen.getByTestId('app-page')).toBeInTheDocument();
-    expect(screen.getByText('headerTitle')).toBeInTheDocument();
     expect(screen.getByText('Alex Mercer')).toBeInTheDocument();
     expect(screen.getByText('alex@example.com')).toBeInTheDocument();
     expect(screen.getByText('manageTitle')).toBeInTheDocument();

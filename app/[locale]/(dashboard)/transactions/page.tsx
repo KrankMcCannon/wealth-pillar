@@ -5,7 +5,7 @@
  */
 
 import { Suspense } from 'react';
-import { requireGroupId, requirePageAuth } from '@/lib/auth/page-auth';
+import { resolvePageContext } from '@/lib/auth/page-auth';
 import { getTransactionsListData } from '@/server/use-cases';
 import { isAdmin } from '@/lib/utils/permissions';
 import {
@@ -16,16 +16,18 @@ import type { TransactionsListQuery } from '@/server/use-cases/pages/transaction
 import TransactionsContent from './transactions-content';
 import TransactionPageLoading from './loading';
 
-export default async function TransactionsPage({
+async function TransactionsPageData({
   params,
   searchParams,
 }: Readonly<{
   params: Promise<{ locale: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }>) {
-  const { currentUser, groupUsers } = await requirePageAuth(params);
-  const groupId = await requireGroupId(currentUser);
-  const resolvedSearchParams = await searchParams;
+  const [{ currentUser, groupUsers, groupId }, resolvedSearchParams] = await Promise.all([
+    resolvePageContext(params),
+    searchParams,
+  ]);
+
   const typeRaw =
     typeof resolvedSearchParams.type === 'string' ? resolvedSearchParams.type : undefined;
   const typeParam: TransactionsListQuery['type'] =
@@ -84,13 +86,25 @@ export default async function TransactionsPage({
   });
 
   return (
+    <TransactionsContent
+      currentUser={currentUser}
+      groupUsers={groupUsers}
+      pageDataPromise={pageDataPromise}
+      recurringSeriesPromise={recurringSeriesPromise}
+    />
+  );
+}
+
+export default function TransactionsPage({
+  params,
+  searchParams,
+}: Readonly<{
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}>) {
+  return (
     <Suspense fallback={<TransactionPageLoading />}>
-      <TransactionsContent
-        currentUser={currentUser}
-        groupUsers={groupUsers}
-        pageDataPromise={pageDataPromise}
-        recurringSeriesPromise={recurringSeriesPromise}
-      />
+      <TransactionsPageData params={params} searchParams={searchParams} />
     </Suspense>
   );
 }
