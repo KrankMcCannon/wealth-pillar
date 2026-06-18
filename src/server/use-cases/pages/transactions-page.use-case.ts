@@ -9,6 +9,7 @@ import type { Transaction, Category, Account, Budget, User } from '@/lib/types';
 import { scopeTransactionsListData } from '@/server/permissions/scope-page-data';
 import type { TransactionFilterOptions } from '@/server/repositories/transactions.repository';
 import { decodeTransactionCursor, encodeTransactionCursor } from '@/lib/utils/transaction-cursor';
+import { resolveTransactionDateRangeBounds } from '@/lib/utils/transaction-date-range';
 
 /** Fixed window size for transactions list (keyset infinite scroll). */
 export const TRANSACTIONS_LIST_PAGE_SIZE = 30;
@@ -73,58 +74,14 @@ async function safeFetch<T>(promise: Promise<T>, fallback: T): Promise<T> {
   }
 }
 
-function parseDate(value?: string): Date | undefined {
-  if (!value) return undefined;
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? undefined : date;
-}
-
-function startOfDay(date: Date): Date {
-  const next = new Date(date);
-  next.setHours(0, 0, 0, 0);
-  return next;
-}
-
-function endOfDay(date: Date): Date {
-  const next = new Date(date);
-  next.setHours(23, 59, 59, 999);
-  return next;
-}
-
 export function resolveDateRange(query: TransactionsListQuery): {
   startDate?: Date;
   endDate?: Date;
 } {
-  const now = new Date();
-  switch (query.dateRange) {
-    case 'today':
-      return { startDate: startOfDay(now), endDate: endOfDay(now) };
-    case 'week': {
-      const start = startOfDay(now);
-      start.setDate(start.getDate() - 7);
-      return { startDate: start, endDate: endOfDay(now) };
-    }
-    case 'month': {
-      const start = startOfDay(now);
-      start.setDate(start.getDate() - 30);
-      return { startDate: start, endDate: endOfDay(now) };
-    }
-    case 'year': {
-      const start = startOfDay(now);
-      start.setDate(start.getDate() - 365);
-      return { startDate: start, endDate: endOfDay(now) };
-    }
-    case 'custom': {
-      const customStartDate = parseDate(query.startDate);
-      const customEndDate = parseDate(query.endDate);
-      return {
-        ...(customStartDate ? { startDate: customStartDate } : {}),
-        ...(customEndDate ? { endDate: customEndDate } : {}),
-      };
-    }
-    default:
-      return {};
-  }
+  return resolveTransactionDateRangeBounds(query.dateRange ?? 'all', {
+    ...(query.startDate ? { startDate: query.startDate } : {}),
+    ...(query.endDate ? { endDate: query.endDate } : {}),
+  });
 }
 
 export function resolveTransactionsFilters(

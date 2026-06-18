@@ -5,6 +5,7 @@ import { userCacheKeys } from '@/lib/cache/keys';
 import { revalidateTag } from 'next/cache';
 import { serialize } from '@/lib/utils/serializer';
 import { isValidEmail } from '@/lib/utils/validation-utils';
+import { initialsFromName } from '@/lib/utils/string-formatter';
 import type { Database } from '@/lib/types/database.types';
 
 type User = Database['public']['Tables']['users']['Row'];
@@ -28,15 +29,6 @@ export async function getUserByClerkIdUseCase(clerkId: string): Promise<User | n
   );
   const user = await getCachedUser();
   return user ? (serialize(user) as unknown as User) : null;
-}
-
-function initialsFromName(name: string): string {
-  const parts = name.trim().split(' ').filter(Boolean);
-  if (parts.length === 0) return 'WP';
-  const first = parts[0];
-  if (parts.length === 1) return first?.[0]?.toUpperCase() ?? 'W';
-  const lastPart = parts.at(-1);
-  return `${first?.[0] ?? ''}${lastPart?.[0] ?? ''}`.toUpperCase();
 }
 
 /**

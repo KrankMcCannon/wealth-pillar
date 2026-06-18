@@ -22,15 +22,7 @@ import {
   getOnboardingActionTranslations,
   type OnboardingActionTranslator,
 } from '@/features/onboarding/onboarding-action-i18n';
-
-function getInitials(name: string) {
-  const parts = name.trim().split(' ').filter(Boolean);
-  if (parts.length === 0) return 'WP';
-  const first = parts[0];
-  if (parts.length === 1) return first?.[0]?.toUpperCase() ?? 'W';
-  const lastPart = parts.at(-1);
-  return `${first?.[0] ?? ''}${lastPart?.[0] ?? ''}`.toUpperCase();
-}
+import { initialsFromName } from '@/lib/utils/string-formatter';
 
 // Helper: Validate onboarding input (messaggi tramite namespace Onboarding.Actions)
 function validateOnboardingInput(
@@ -194,7 +186,7 @@ export async function completeOnboardingAction(
     const profilePayload = {
       name: user.name.trim(),
       email: user.email.trim().toLowerCase(),
-      avatar: getInitials(user.name),
+      avatar: initialsFromName(user.name),
       theme_color: '#6366F1',
       budget_start_date: budgetStartDay,
       group_id: groupId,

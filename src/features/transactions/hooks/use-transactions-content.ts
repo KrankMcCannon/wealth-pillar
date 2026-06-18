@@ -16,6 +16,7 @@ import {
 import { loadMoreTransactionsAction } from '../actions/transaction-actions';
 import type { AppliedTransactionsQuery } from '@/server/use-cases/pages/transactions-page.use-case';
 import {
+  appliedQueryToFiltersState,
   appliedQueryToListQuery,
   buildTransactionsQueryString,
   matchesAppliedQuery,
@@ -50,28 +51,6 @@ export interface UseTransactionsContentReturn {
   handleEditTransaction: (transaction: Transaction) => void;
   openModal: (type: ModalType, id?: string) => void;
   isNavigatingFilters: boolean;
-}
-
-function toFiltersFromQuery(props: AppliedTransactionsQuery): TransactionFiltersState {
-  const resolvedType = props.type === 'transfer' ? 'all' : props.type;
-  const keysFromCsv = props.categories
-    ? props.categories
-        .split(',')
-        .map((k) => k.trim())
-        .filter(Boolean)
-    : [];
-
-  return {
-    ...defaultFiltersState,
-    searchQuery: props.q ?? '',
-    type: resolvedType,
-    dateRange: props.dateRange,
-    categoryKey: keysFromCsv.length > 0 ? 'all' : (props.category ?? 'all'),
-    accountId: props.account ?? 'all',
-    ...(keysFromCsv.length > 0 ? { categoryKeys: keysFromCsv } : {}),
-    ...(props.startDate ? { startDate: props.startDate } : {}),
-    ...(props.endDate ? { endDate: props.endDate } : {}),
-  };
 }
 
 function buildQueryKey(appliedQuery: AppliedTransactionsQuery): string {
@@ -109,7 +88,10 @@ export function useTransactionsContent({
   const { openModal } = useModalState();
   const { activeTab, setActiveTab } = useTabState('Transactions');
 
-  const urlFilters = useMemo(() => toFiltersFromQuery(appliedQuery), [appliedQuery]);
+  const urlFilters = useMemo(
+    () => appliedQueryToFiltersState(appliedQuery, appliedQuery.q ?? ''),
+    [appliedQuery]
+  );
   const [searchDraft, setSearchDraft] = useState(urlFilters.searchQuery);
 
   useEffect(() => {

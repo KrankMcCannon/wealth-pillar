@@ -1,4 +1,5 @@
 import type { Account, Transaction } from '@/lib/types';
+import { computeBalanceDeltas } from '@/server/use-cases/transactions/transaction-balance-delta.core';
 
 export type BalanceAdjustableTransaction = Pick<
   Transaction,
@@ -10,20 +11,7 @@ export function getTransactionBalanceDeltas(
   transaction: BalanceAdjustableTransaction,
   multiplier: number
 ): Map<string, number> {
-  const deltas = new Map<string, number>();
-  if (!transaction.account_id) return deltas;
-
-  const amt = Number(transaction.amount) * multiplier;
-  if (transaction.type === 'income') {
-    deltas.set(transaction.account_id, amt);
-  } else if (transaction.type === 'expense') {
-    deltas.set(transaction.account_id, -amt);
-  } else if (transaction.type === 'transfer' && transaction.to_account_id) {
-    deltas.set(transaction.account_id, -amt);
-    deltas.set(transaction.to_account_id, amt);
-  }
-
-  return deltas;
+  return computeBalanceDeltas(transaction, multiplier);
 }
 
 export function applyTransactionBalanceDelta(

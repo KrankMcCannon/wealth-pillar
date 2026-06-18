@@ -2,6 +2,7 @@
 
 import { revalidateBudgetRelatedPaths } from '@/lib/cache/revalidation-paths';
 import { getTranslations } from 'next-intl/server';
+import { runAuthorizedMutation } from '@/lib/server-action/run-authorized-mutation';
 
 import { getCurrentUser } from '@/lib/auth/cached-auth';
 import type { CreateBudgetInput } from '@/server/use-cases/budgets/types';
@@ -193,49 +194,27 @@ export async function deleteBudgetAction(
   id: string,
   locale?: string
 ): Promise<ServiceResult<{ id: string }>> {
-  let t: Awaited<ReturnType<typeof getTranslations>> | null = null;
-  try {
-    t = await getBudgetsActionTranslator(locale);
-    // Authentication check (cached per request)
-    const currentUser = await getCurrentUser();
-    if (!currentUser) {
-      return { data: null, error: t('errors.unauthenticated') };
-    }
-
-    // Get existing budget to verify ownership
-    const existingBudget = await getBudgetByIdUseCase(id);
-
-    // Verify budget has a user_id
-    if (!existingBudget || !existingBudget.user_id) {
-      return {
-        data: null,
-        error: t('errors.userMissing'),
-      };
-    }
-
-    if (!AccessScope.for(currentUser as unknown as User).canViewOwned(existingBudget)) {
-      return {
-        data: null,
-        error: t('errors.noPermissionDelete'),
-      };
-    }
-
-    const result = await deleteBudgetUseCase(id);
-
-    if (result) {
+  const t = await getBudgetsActionTranslator(locale);
+  return runAuthorizedMutation({
+    unauthenticatedError: t('errors.unauthenticated'),
+    authorize: async (currentUser) => {
+      const existingBudget = await getBudgetByIdUseCase(id);
+      if (!existingBudget?.user_id) {
+        return { data: null, error: t('errors.userMissing') };
+      }
+      if (!AccessScope.for(currentUser).canViewOwned(existingBudget)) {
+        return { data: null, error: t('errors.noPermissionDelete') };
+      }
+      return null;
+    },
+    mutate: async () => {
+      const result = await deleteBudgetUseCase(id);
+      if (!result) {
+        throw new Error(t('errors.deleteFailed'));
+      }
       revalidateBudgetRelatedPaths();
-
-      return { data: { id }, error: null };
-    }
-
-    return { data: null, error: t('errors.deleteFailed') };
-  } catch (error) {
-    return {
-      data: null,
-      error:
-        error instanceof Error
-          ? error.message
-          : (t?.('errors.deleteFailed') ?? 'Failed to delete budget'),
-    };
-  }
+      return { id };
+    },
+    formatError: (error) => (error instanceof Error ? error.message : t('errors.deleteFailed')),
+  });
 }

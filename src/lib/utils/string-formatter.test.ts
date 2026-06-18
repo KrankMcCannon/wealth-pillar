@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { truncateText, truncateMiddle } from './string-formatter';
+import { truncateText, truncateMiddle, initialsFromName } from './string-formatter';
 
 describe('truncateText', () => {
   describe('basic functionality', () => {
@@ -72,5 +72,26 @@ describe('truncateMiddle', () => {
       // Note: text.slice(-0) returns entire string since -0 === 0
       expect(truncateMiddle('Hello World', 5, 0)).toBe('Hello...Hello World');
     });
+  });
+});
+
+describe('initialsFromName', () => {
+  it('returns WP for empty names by default', () => {
+    expect(initialsFromName('')).toBe('WP');
+    expect(initialsFromName('   ')).toBe('WP');
+  });
+
+  it('returns first letter for single-word names by default', () => {
+    expect(initialsFromName('Alice')).toBe('A');
+  });
+
+  it('returns first and last initials for multi-word names', () => {
+    expect(initialsFromName('Alice Smith')).toBe('AS');
+  });
+
+  it('supports UI fallback and two-letter single-word style', () => {
+    expect(initialsFromName('', { emptyFallback: '?', singleWord: 'two' })).toBe('?');
+    expect(initialsFromName('Alice', { emptyFallback: '?', singleWord: 'two' })).toBe('AL');
+    expect(initialsFromName('Alice Smith', { emptyFallback: '?', singleWord: 'two' })).toBe('AS');
   });
 });

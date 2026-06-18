@@ -2,6 +2,7 @@
 
 import { revalidateAccountRelatedPaths } from '@/lib/cache/revalidation-paths';
 import { getTranslations } from 'next-intl/server';
+import { runAuthorizedMutation } from '@/lib/server-action/run-authorized-mutation';
 import { getCurrentUser } from '@/lib/auth/cached-auth';
 import {
   createAccountUseCase,
@@ -147,36 +148,24 @@ export async function deleteAccountAction(
   accountId: string,
   locale?: string
 ): Promise<ServiceResult<boolean>> {
-  let t: Awaited<ReturnType<typeof getTranslations>> | null = null;
-  try {
-    t = await getAccountsActionTranslator(locale);
-    const currentUser = await getCurrentUser();
-    if (!currentUser) {
-      return { data: null, error: t('errors.unauthenticated') };
-    }
-
-    const existingAccount = await getAccountByIdUseCase(accountId);
-
-    if (currentUser.group_id !== existingAccount.group_id) {
-      return { data: null, error: t('errors.noPermissionDelete') };
-    }
-
-    if (!AccessScope.for(currentUser as unknown as User).canViewShared(existingAccount)) {
-      return { data: null, error: t('errors.noPermissionDelete') };
-    }
-
-    await deleteAccountUseCase(accountId);
-
-    revalidateAccountRelatedPaths();
-
-    return { data: true, error: null };
-  } catch (error) {
-    return {
-      data: null,
-      error:
-        error instanceof Error
-          ? error.message
-          : (t?.('errors.deleteFailed') ?? 'Failed to delete account'),
-    };
-  }
+  const t = await getAccountsActionTranslator(locale);
+  return runAuthorizedMutation({
+    unauthenticatedError: t('errors.unauthenticated'),
+    authorize: async (currentUser) => {
+      const existingAccount = await getAccountByIdUseCase(accountId);
+      if (currentUser.group_id !== existingAccount.group_id) {
+        return { data: null, error: t('errors.noPermissionDelete') };
+      }
+      if (!AccessScope.for(currentUser).canViewShared(existingAccount)) {
+        return { data: null, error: t('errors.noPermissionDelete') };
+      }
+      return null;
+    },
+    mutate: async () => {
+      await deleteAccountUseCase(accountId);
+      revalidateAccountRelatedPaths();
+      return true;
+    },
+    formatError: (error) => (error instanceof Error ? error.message : t('errors.deleteFailed')),
+  });
 }

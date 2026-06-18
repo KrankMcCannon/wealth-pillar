@@ -16,6 +16,7 @@ import { useRequiredGroupUsers } from '@/hooks';
 import { useModalState } from '@/lib/navigation/url-state';
 import { formModalStyles as s } from '@/components/form/form-modal-styles';
 import { cn } from '@/lib/utils';
+import { initialsFromName } from '@/lib/utils/string-formatter';
 
 const createManageGroupSchema = (t: ReturnType<typeof useTranslations>) =>
   z.object({
@@ -24,21 +25,8 @@ const createManageGroupSchema = (t: ReturnType<typeof useTranslations>) =>
 
 type ManageGroupFormData = z.infer<ReturnType<typeof createManageGroupSchema>>;
 
-function getInitials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return '?';
-  if (parts.length === 1) {
-    const w = parts[0] ?? '';
-    const slice = w.slice(0, 2);
-    return slice.length > 0 ? slice.toUpperCase() : '?';
-  }
-  const first = parts[0] ?? '';
-  const last = parts[parts.length - 1] ?? '';
-  const a = first.charAt(0);
-  const b = last.charAt(0);
-  if (!a && !b) return '?';
-  return `${a}${b}`.toUpperCase();
-}
+const displayInitials = (name: string) =>
+  initialsFromName(name, { emptyFallback: '?', singleWord: 'two' });
 
 export interface ManageGroupModalProps {
   isOpen: boolean;
@@ -178,7 +166,7 @@ export function ManageGroupModal({
                       className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border/35 bg-muted text-[11px] font-bold tabular-nums text-primary"
                       aria-hidden
                     >
-                      {getInitials(member.name ?? '')}
+                      {displayInitials(member.name ?? '')}
                     </div>
                     <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                       <span className="truncate text-sm font-medium text-foreground">

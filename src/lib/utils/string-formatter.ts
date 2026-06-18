@@ -41,3 +41,34 @@ export function truncateMiddle(
   if (text.length <= startLength + endLength) return text;
   return `${text.slice(0, startLength)}...${text.slice(-endLength)}`;
 }
+
+export type InitialsFromNameOptions = {
+  emptyFallback?: string;
+  /** Single-word names: first letter only, or up to two letters. */
+  singleWord?: 'first' | 'two';
+};
+
+/**
+ * Derive display initials from a person's name.
+ */
+export function initialsFromName(name: string, options: InitialsFromNameOptions = {}): string {
+  const { emptyFallback = 'WP', singleWord = 'first' } = options;
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return emptyFallback;
+
+  if (parts.length === 1) {
+    const word = parts[0] ?? '';
+    if (singleWord === 'two') {
+      const slice = word.slice(0, 2);
+      return slice.length > 0 ? slice.toUpperCase() : emptyFallback;
+    }
+    return word[0]?.toUpperCase() ?? emptyFallback.charAt(0);
+  }
+
+  const first = parts[0] ?? '';
+  const last = parts[parts.length - 1] ?? '';
+  const a = first.charAt(0);
+  const b = last.charAt(0);
+  if (!a && !b) return emptyFallback;
+  return `${a}${b}`.toUpperCase();
+}

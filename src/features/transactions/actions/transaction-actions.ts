@@ -1,6 +1,7 @@
 'use server';
 
 import { getCurrentUser } from '@/lib/auth/cached-auth';
+import { isAuthDenial, requireAuthenticatedUser } from '@/lib/permissions/action-auth';
 import type { ServiceResult } from '@/lib/types/service-result';
 import { assertCanActOnUser } from '@/features/permissions/assert-can-act-on-user';
 import { createTransactionUseCase } from '@/server/use-cases/transactions/create-transaction.use-case';
@@ -162,10 +163,11 @@ export async function loadMoreTransactionsAction(input: LoadMoreTransactionsInpu
   }>
 > {
   try {
-    const currentUser = await getCurrentUser();
-    if (!currentUser) {
-      return { data: null, error: 'Non autenticato. Effettua il login per continuare.' };
-    }
+    const auth = await requireAuthenticatedUser(
+      'Non autenticato. Effettua il login per continuare.'
+    );
+    if (isAuthDenial(auth)) return auth;
+    const currentUser = auth;
 
     const groupId = currentUser.group_id?.trim();
     if (!groupId) {

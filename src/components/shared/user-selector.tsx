@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { Users } from 'lucide-react';
 import { useUserFilter } from '@/hooks';
 import { User } from '@/lib/types';
+import { initialsFromName } from '@/lib/utils/string-formatter';
 import type { CSSProperties } from 'react';
 
 const userSelectorStyles = {
@@ -37,21 +38,8 @@ const userSelectorStyles = {
   },
 } as const;
 
-function getInitials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return '?';
-  if (parts.length === 1) {
-    const w = parts[0] ?? '';
-    const slice = w.slice(0, 2);
-    return slice.length > 0 ? slice.toUpperCase() : '?';
-  }
-  const first = parts[0] ?? '';
-  const last = parts[parts.length - 1] ?? '';
-  const a = first.charAt(0);
-  const b = last.charAt(0);
-  if (!a && !b) return '?';
-  return `${a}${b}`.toUpperCase();
-}
+const displayInitials = (name: string) =>
+  initialsFromName(name, { emptyFallback: '?', singleWord: 'two' });
 
 interface UserSelectorProps {
   className?: string;
@@ -171,7 +159,9 @@ const UserSelector = memo(
                   {isAll ? (
                     <Users className={userSelectorStyles.avatar.allIcon} strokeWidth={2} />
                   ) : (
-                    <span className={userSelectorStyles.initials}>{getInitials(member.name)}</span>
+                    <span className={userSelectorStyles.initials}>
+                      {displayInitials(member.name)}
+                    </span>
                   )}
                 </div>
 

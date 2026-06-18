@@ -183,6 +183,34 @@ function validateUpdatePermission(
   return null;
 }
 
+function buildUpdatePayload(input: UpdateRecurringSeriesInput): {
+  payload: Partial<UpdateRecurringSeriesInput> & { updated_at?: string };
+  error?: string;
+} {
+  const updatePayload: Partial<UpdateRecurringSeriesInput> & { updated_at?: string } = {};
+
+  if (input.description !== undefined) updatePayload.description = input.description.trim();
+  if (input.amount !== undefined) {
+    if (input.amount <= 0) return { payload: {}, error: "L'importo deve essere maggiore di zero" };
+    updatePayload.amount = input.amount;
+  }
+  if (input.type !== undefined) updatePayload.type = input.type;
+  if (input.category !== undefined) updatePayload.category = input.category;
+  if (input.frequency !== undefined) updatePayload.frequency = input.frequency;
+  if (input.account_id !== undefined) updatePayload.account_id = input.account_id;
+  if (input.start_date !== undefined)
+    updatePayload.start_date = new Date(input.start_date).toISOString();
+  if (input.end_date !== undefined)
+    updatePayload.end_date = input.end_date ? new Date(input.end_date).toISOString() : null;
+  if (input.due_day !== undefined) updatePayload.due_day = input.due_day;
+  if (input.is_active !== undefined) updatePayload.is_active = input.is_active;
+  if (input.user_ids !== undefined) updatePayload.user_ids = input.user_ids;
+
+  updatePayload.updated_at = new Date().toISOString();
+
+  return { payload: updatePayload };
+}
+
 /**
  * Update an existing recurring series
  *
@@ -218,36 +246,6 @@ export async function updateRecurringSeriesAction(
       input.user_ids
     );
     if (permError) return { data: null, error: permError };
-
-    // Helper: Build update payload
-    function buildUpdatePayload(input: UpdateRecurringSeriesInput): {
-      payload: Partial<UpdateRecurringSeriesInput> & { updated_at?: string };
-      error?: string;
-    } {
-      const updatePayload: Partial<UpdateRecurringSeriesInput> & { updated_at?: string } = {};
-
-      if (input.description !== undefined) updatePayload.description = input.description.trim();
-      if (input.amount !== undefined) {
-        if (input.amount <= 0)
-          return { payload: {}, error: "L'importo deve essere maggiore di zero" };
-        updatePayload.amount = input.amount;
-      }
-      if (input.type !== undefined) updatePayload.type = input.type;
-      if (input.category !== undefined) updatePayload.category = input.category;
-      if (input.frequency !== undefined) updatePayload.frequency = input.frequency;
-      if (input.account_id !== undefined) updatePayload.account_id = input.account_id;
-      if (input.start_date !== undefined)
-        updatePayload.start_date = new Date(input.start_date).toISOString();
-      if (input.end_date !== undefined)
-        updatePayload.end_date = input.end_date ? new Date(input.end_date).toISOString() : null;
-      if (input.due_day !== undefined) updatePayload.due_day = input.due_day;
-      if (input.is_active !== undefined) updatePayload.is_active = input.is_active;
-      if (input.user_ids !== undefined) updatePayload.user_ids = input.user_ids;
-
-      updatePayload.updated_at = new Date().toISOString();
-
-      return { payload: updatePayload };
-    }
 
     // Build update data
     const { payload, error: payloadError } = buildUpdatePayload(input);

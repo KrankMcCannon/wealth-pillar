@@ -2,7 +2,11 @@
 
 import { revalidateBudgetPeriodRelatedPaths } from '@/lib/cache/revalidation-paths';
 import { getTranslations } from 'next-intl/server';
-import { getCurrentUser } from '@/lib/auth/cached-auth';
+import {
+  denyUnlessCanViewUser,
+  isAuthDenial,
+  requireAuthenticatedUser,
+} from '@/lib/permissions/action-auth';
 import { createBudgetPeriodUseCase } from '@/server/use-cases/budget-periods/create-budget-period.use-case';
 import { closeBudgetPeriodUseCase } from '@/server/use-cases/budget-periods/close-budget-period.use-case';
 import { deleteBudgetPeriodUseCase } from '@/server/use-cases/budget-periods/delete-budget-period.use-case';
@@ -17,7 +21,6 @@ import {
 import { getTransactionsByUserUseCase } from '@/server/use-cases/transactions/get-transactions.use-case';
 import { getBudgetsByUserUseCase } from '@/server/use-cases/budgets/get-budgets.use-case';
 import { AccountsRepository } from '@/server/repositories/accounts.repository';
-import { AccessScope } from '@/lib/permissions/access-scope';
 import type { BudgetPeriod, User } from '@/lib/types';
 import type { ServiceResult } from '@/lib/types/service-result';
 import { DateTime } from 'luxon';
@@ -29,15 +32,16 @@ async function getBudgetPeriodActionTranslator(locale?: string) {
   return getTranslations('Budgets.PeriodActions');
 }
 
-function denyUnlessCanViewUser(
-  currentUser: User,
+async function authorizeBudgetPeriodUser(
+  unauthenticatedError: string,
   userId: string,
-  error: string
-): { data: null; error: string } | null {
-  if (!AccessScope.for(currentUser).canViewUser(userId)) {
-    return { data: null, error };
-  }
-  return null;
+  permissionError: string
+): Promise<User | ServiceResult<never>> {
+  const auth = await requireAuthenticatedUser(unauthenticatedError);
+  if (isAuthDenial(auth)) return auth;
+  const denied = denyUnlessCanViewUser(auth, userId, permissionError);
+  if (denied) return denied;
+  return auth;
 }
 
 /**
@@ -55,21 +59,12 @@ export async function startPeriodAction(
   let t: Awaited<ReturnType<typeof getTranslations>> | null = null;
   try {
     t = await getBudgetPeriodActionTranslator(locale);
-    // Authentication check (cached per request)
-    const currentUser = await getCurrentUser();
-    if (!currentUser) {
-      return {
-        data: null,
-        error: t('errors.unauthenticated'),
-      };
-    }
-
-    const denied = denyUnlessCanViewUser(
-      currentUser as unknown as User,
+    const auth = await authorizeBudgetPeriodUser(
+      t('errors.unauthenticated'),
       userId,
       t('errors.noPermissionManageOthers')
     );
-    if (denied) return denied;
+    if (isAuthDenial(auth)) return auth;
 
     // Create new period
     const result = await createBudgetPeriodUseCase(userId, startDate);
@@ -104,21 +99,12 @@ export async function closePeriodAction(
   let t: Awaited<ReturnType<typeof getTranslations>> | null = null;
   try {
     t = await getBudgetPeriodActionTranslator(locale);
-    // Authentication check (cached per request)
-    const currentUser = await getCurrentUser();
-    if (!currentUser) {
-      return {
-        data: null,
-        error: t('errors.unauthenticated'),
-      };
-    }
-
-    const deniedClose = denyUnlessCanViewUser(
-      currentUser as unknown as User,
+    const auth = await authorizeBudgetPeriodUser(
+      t('errors.unauthenticated'),
       userId,
       t('errors.noPermissionClose')
     );
-    if (deniedClose) return deniedClose;
+    if (isAuthDenial(auth)) return auth;
 
     // Close period with calculations or pre-calculated totals
     const result = await closeBudgetPeriodUseCase(userId, periodId, endDate);
@@ -155,20 +141,12 @@ export async function editClosingDateAction(
   let t: Awaited<ReturnType<typeof getTranslations>> | null = null;
   try {
     t = await getBudgetPeriodActionTranslator(locale);
-    const currentUser = await getCurrentUser();
-    if (!currentUser) {
-      return {
-        data: null,
-        error: t('errors.unauthenticated'),
-      };
-    }
-
-    const deniedEdit = denyUnlessCanViewUser(
-      currentUser as unknown as User,
+    const auth = await authorizeBudgetPeriodUser(
+      t('errors.unauthenticated'),
       userId,
       t('errors.noPermissionEditClosingDate')
     );
-    if (deniedEdit) return deniedEdit;
+    if (isAuthDenial(auth)) return auth;
 
     const result = await editBudgetPeriodClosingDateUseCase(userId, periodId, newEndDate);
 
@@ -213,20 +191,12 @@ export async function getLatestClosedPeriodAction(
   let t: Awaited<ReturnType<typeof getTranslations>> | null = null;
   try {
     t = await getBudgetPeriodActionTranslator(locale);
-    const currentUser = await getCurrentUser();
-    if (!currentUser) {
-      return {
-        data: null,
-        error: t('errors.unauthenticated'),
-      };
-    }
-
-    const deniedLatest = denyUnlessCanViewUser(
-      currentUser as unknown as User,
+    const auth = await authorizeBudgetPeriodUser(
+      t('errors.unauthenticated'),
       userId,
       t('errors.noPermissionUserData')
     );
-    if (deniedLatest) return deniedLatest;
+    if (isAuthDenial(auth)) return auth;
 
     const period = await getLatestClosedBudgetPeriodUseCase(userId);
 
@@ -257,21 +227,12 @@ export async function deletePeriodAction(
   let t: Awaited<ReturnType<typeof getTranslations>> | null = null;
   try {
     t = await getBudgetPeriodActionTranslator(locale);
-    // Authentication check (cached per request)
-    const currentUser = await getCurrentUser();
-    if (!currentUser) {
-      return {
-        data: null,
-        error: t('errors.unauthenticated'),
-      };
-    }
-
-    const deniedDelete = denyUnlessCanViewUser(
-      currentUser as unknown as User,
+    const auth = await authorizeBudgetPeriodUser(
+      t('errors.unauthenticated'),
       userId,
       t('errors.noPermissionDelete')
     );
-    if (deniedDelete) return deniedDelete;
+    if (isAuthDenial(auth)) return auth;
 
     // Delete period
     await deleteBudgetPeriodUseCase(userId, periodId);
@@ -303,21 +264,12 @@ export async function getUserPeriodsAction(
   let t: Awaited<ReturnType<typeof getTranslations>> | null = null;
   try {
     t = await getBudgetPeriodActionTranslator(locale);
-    // Authentication check (cached per request)
-    const currentUser = await getCurrentUser();
-    if (!currentUser) {
-      return {
-        data: null,
-        error: t('errors.unauthenticated'),
-      };
-    }
-
-    const deniedPeriods = denyUnlessCanViewUser(
-      currentUser as unknown as User,
+    const auth = await authorizeBudgetPeriodUser(
+      t('errors.unauthenticated'),
       userId,
       t('errors.noPermissionViewOthers')
     );
-    if (deniedPeriods) return deniedPeriods;
+    if (isAuthDenial(auth)) return auth;
 
     // Fetch periods
     const periods = await getBudgetsPeriodsByUserUseCase(userId);
@@ -347,21 +299,12 @@ export async function getActivePeriodAction(
   let t: Awaited<ReturnType<typeof getTranslations>> | null = null;
   try {
     t = await getBudgetPeriodActionTranslator(locale);
-    // Authentication check (cached per request)
-    const currentUser = await getCurrentUser();
-    if (!currentUser) {
-      return {
-        data: null,
-        error: t('errors.unauthenticated'),
-      };
-    }
-
-    const deniedActive = denyUnlessCanViewUser(
-      currentUser as unknown as User,
+    const auth = await authorizeBudgetPeriodUser(
+      t('errors.unauthenticated'),
       userId,
       t('errors.noPermissionViewActiveOthers')
     );
-    if (deniedActive) return deniedActive;
+    if (isAuthDenial(auth)) return auth;
 
     // Fetch active period
     const period = await getActiveBudgetPeriodUseCase(userId);
@@ -402,18 +345,12 @@ export async function getPeriodPreviewAction(
   let t: Awaited<ReturnType<typeof getTranslations>> | null = null;
   try {
     t = await getBudgetPeriodActionTranslator(locale);
-    // Authentication check (cached per request)
-    const currentUser = await getCurrentUser();
-    if (!currentUser) {
-      return { data: null, error: t('errors.unauthenticatedShort') };
-    }
-
-    const deniedPreview = denyUnlessCanViewUser(
-      currentUser as unknown as User,
+    const auth = await authorizeBudgetPeriodUser(
+      t('errors.unauthenticated'),
       userId,
       t('errors.permissionDenied')
     );
-    if (deniedPreview) return deniedPreview;
+    if (isAuthDenial(auth)) return auth;
 
     // Fetch necessary data on server
     // We fetch all transactions for the user to ensure accurate calculations
