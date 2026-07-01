@@ -235,6 +235,83 @@ export class TransactionsRepository {
   }
 
   /**
+   * Bulk insert transactions; skips rows that conflict on (account_id, import_hash).
+   */
+  static async createMany(data: InsertTransaction[], executor?: DbExecutor) {
+    if (data.length === 0) return [];
+    const dbConn = resolveDb(executor);
+    return dbConn
+      .insert(transactions)
+      .values(data)
+      .onConflictDoNothing({
+        target: [transactions.account_id, transactions.import_hash],
+      })
+      .returning();
+  }
+
+  static async findByAccountDateRange(
+    accountId: string,
+    startDate: string,
+    endDate: string,
+    executor?: DbExecutor
+  ) {
+    const dbConn = resolveDb(executor);
+    return dbConn
+      .select()
+      .from(transactions)
+      .where(
+        and(
+          eq(transactions.account_id, accountId),
+          sql`${transactions.date} >= ${startDate}`,
+          sql`${transactions.date} <= ${endDate}`
+        )
+      );
+  }
+
+  static async findImportHashesForAccount(
+    accountId: string,
+    hashes: string[],
+    executor?: DbExecutor
+  ): Promise<string[]> {
+    if (hashes.length === 0) return [];
+    const dbConn = resolveDb(executor);
+    const rows = await dbConn
+      .select({ import_hash: transactions.import_hash })
+      .from(transactions)
+      .where(
+        and(eq(transactions.account_id, accountId), inArray(transactions.import_hash, hashes))
+      );
+    return rows
+      .map((row) => row.import_hash)
+      .filter((hash): hash is string => typeof hash === 'string' && hash.length > 0);
+  }
+
+  static async findManualDuplicatesForAccount(
+    accountId: string,
+    startDate: string,
+    endDate: string,
+    executor?: DbExecutor
+  ) {
+    const dbConn = resolveDb(executor);
+    return dbConn
+      .select({
+        date: transactions.date,
+        amount: transactions.amount,
+        type: transactions.type,
+        description: transactions.description,
+      })
+      .from(transactions)
+      .where(
+        and(
+          eq(transactions.account_id, accountId),
+          sql`${transactions.date} >= ${startDate}`,
+          sql`${transactions.date} <= ${endDate}`,
+          sql`${transactions.import_hash} IS NULL`
+        )
+      );
+  }
+
+  /**
    * Update a transaction
    */
   static async update(id: string, data: Partial<UpdateTransaction>, executor?: DbExecutor) {

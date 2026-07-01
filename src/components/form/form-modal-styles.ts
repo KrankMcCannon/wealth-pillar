@@ -155,6 +155,9 @@ export const formModalStyles = {
       'space-y-2 rounded-xl border border-modal-border/30 bg-modal-elevated/35 p-3 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)]',
     row: 'flex cursor-pointer items-center gap-3 rounded-lg p-2 transition-colors hover:bg-modal-elevated-hover',
     rowActive: 'bg-modal-ring/12',
+    singleOption:
+      'flex w-full cursor-pointer items-center gap-3 rounded-xl border border-modal-border/30 bg-modal-elevated/35 p-3 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)] transition-colors hover:bg-modal-elevated-hover',
+    singleOptionActive: 'border-modal-ring/30 bg-modal-ring/12',
     userRow: 'flex flex-1 items-center gap-2',
     avatar:
       'flex size-8 items-center justify-center rounded-full bg-modal-ring text-sm font-medium text-modal-fg',

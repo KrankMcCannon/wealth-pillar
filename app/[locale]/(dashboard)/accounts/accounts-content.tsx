@@ -49,6 +49,7 @@ export default function AccountsContent({
     handleEditAccount,
     handleUserFilterChange,
     openModal,
+    isModalOpen,
   } = useAccountsContent({
     accountBalances,
     currentUser,
@@ -205,6 +206,7 @@ export default function AccountsContent({
         onClick={() => openModal('account')}
         ariaLabel={t('addAccountCta')}
         testId="accounts-fab-add"
+        hidden={isModalOpen}
       />
     </>
   );

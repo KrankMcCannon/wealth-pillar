@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { MODAL_TYPES, SETTINGS_MODAL_TYPES, isSettingsModalType } from './url-state';
 
 describe('MODAL_TYPES', () => {
-  it('includes 13 modal types (6 entity + 7 settings)', () => {
-    expect(MODAL_TYPES).toHaveLength(13);
+  it('includes 14 modal types (7 entity + 7 settings)', () => {
+    expect(MODAL_TYPES).toHaveLength(14);
     expect(MODAL_TYPES).toEqual(
       expect.arrayContaining([
         'transaction',
@@ -11,6 +11,7 @@ describe('MODAL_TYPES', () => {
         'category',
         'recurring',
         'account',
+        'import',
         'investment',
         'settings:profile',
         'settings:currency',

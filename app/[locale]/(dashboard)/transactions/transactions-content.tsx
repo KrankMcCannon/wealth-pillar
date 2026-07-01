@@ -136,6 +136,7 @@ export default function TransactionsContent({
                 onFiltersChange={setFilters}
                 categories={categories}
                 accounts={accounts}
+                onImport={() => openModal('import')}
                 {...(showUserPicker
                   ? {
                       currentUser,

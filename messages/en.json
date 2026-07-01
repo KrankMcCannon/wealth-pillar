@@ -702,6 +702,7 @@
         "toolbarAria": "Transaction filters",
         "userToolbarAria": "Filter by group member",
         "filters": "Filters",
+        "import": "Import",
         "drawerTitle": "Advanced filters"
       },
       "customRange": {
@@ -876,6 +877,55 @@
         "createdDescription": "Transaction added successfully.",
         "updatedTitle": "Transaction updated",
         "updatedDescription": "Changes saved successfully."
+      }
+    },
+    "ImportModal": {
+      "title": "Import transactions",
+      "description": "Upload a Revolut or Credem statement (CSV or Excel).",
+      "upload": {
+        "title": "Choose file",
+        "cta": "Select statement file",
+        "hint": "Supported: Revolut account statement, Credem lista movimenti"
+      },
+      "mapping": {
+        "fileLabel": "{file} · detected format: {format}",
+        "user": "Assign to member",
+        "accountForProduct": "Account for {product}",
+        "excludeProduct": "Exclude this product",
+        "rowsCount": "{count} rows importable · {excluded} excluded (pending/non-EUR)"
+      },
+      "preview": {
+        "summary": "{included} of {total} rows selected for import",
+        "includeRow": "Include row",
+        "typeIncome": "Income",
+        "typeExpense": "Expense",
+        "internalTransfer": "Likely internal transfer",
+        "recurringMatch": "Matches recurring: {description}",
+        "category": "Category"
+      },
+      "result": {
+        "inserted": "{count} transactions imported",
+        "skipped": "{count} rows skipped (duplicates or conflicts)"
+      },
+      "status": {
+        "new": "New",
+        "duplicate": "Duplicate",
+        "possible-duplicate": "Possible duplicate",
+        "excluded": "Excluded"
+      },
+      "actions": {
+        "back": "Back",
+        "continue": "Continue",
+        "import": "Import {count} rows",
+        "done": "Done"
+      },
+      "errors": {
+        "parseFailed": "Could not parse file",
+        "prepareFailed": "Could not prepare import",
+        "commitFailed": "Import failed",
+        "noRows": "No rows to import for the selected accounts",
+        "noRowsSelected": "Select at least one row to import",
+        "generic": "Please try again"
       }
     }
   },

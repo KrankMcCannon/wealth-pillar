@@ -62,7 +62,7 @@ function StackedPrimaryFooter({
   const busy = disabled || isSubmitting;
 
   return (
-    <div className={cn(s.footer.actionsStack, className)}>
+    <div className={cn(s.footer.actionsStack, 'relative z-10', className)}>
       <button type={submitType} disabled={busy} className={s.primaryCta} aria-busy={isSubmitting}>
         {showSubmitSpinner && isSubmitting ? (
           <Loader2 className="h-5 w-5 shrink-0 animate-spin" aria-hidden />

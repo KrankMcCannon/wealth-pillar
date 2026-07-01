@@ -6,18 +6,20 @@ import { useTranslations } from 'next-intl';
 import { Landmark } from 'lucide-react';
 import type { User, AccountLiquidity, AccountType } from '@/lib/types';
 import { defaultLiquidityForType } from '@/lib/utils/account-classification';
-import { cn } from '@/lib/utils';
-import { ModalSelectField, ModalTextField, formModalStyles as s } from '@/components/form';
+import {
+  ModalCheckboxField,
+  ModalSelectField,
+  ModalTextField,
+  formModalStyles as s,
+} from '@/components/form';
 import { sortSelectOptions } from '@/components/form/form-select';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui';
 
 export type AccountFormData = {
   name: string;
   type: AccountType;
   liquidity: AccountLiquidity;
   user_id: string;
-  isDefault?: boolean | undefined;
+  isDefault: boolean;
 };
 
 interface AccountFormFieldsProps {
@@ -36,7 +38,6 @@ export function AccountFormFields({
   const t = useTranslations('Accounts.FormModal');
   const { control, setValue, watch } = form;
 
-  const watchedIsDefault = watch('isDefault');
   const watchedType = watch('type');
 
   const prevTypeRef = useRef(watchedType);
@@ -102,17 +103,12 @@ export function AccountFormFields({
         {...(shouldDisableUserField ? { hint: t('fields.owner.memberHelper') } : {})}
       />
 
-      <div className={cn(s.noteShell, 'flex flex-row items-center gap-3 py-3')}>
-        <Checkbox
-          id="isDefault"
-          checked={watchedIsDefault ?? false}
-          onCheckedChange={(checked) => setValue('isDefault', checked as boolean)}
-          disabled={isSubmitting}
-        />
-        <Label htmlFor="isDefault" className="text-sm font-medium leading-snug text-modal-fg">
-          {t('fields.isDefault')}
-        </Label>
-      </div>
+      <ModalCheckboxField
+        control={control}
+        name="isDefault"
+        label={t('fields.isDefault')}
+        disabled={isSubmitting}
+      />
     </div>
   );
 }

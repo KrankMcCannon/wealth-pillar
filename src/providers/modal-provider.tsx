@@ -17,6 +17,9 @@ const RecurringFormModal = lazy(
   () => import('@/features/recurring/components/recurring-form-modal')
 );
 const AccountFormModal = lazy(() => import('@/features/accounts/components/account-form-modal'));
+const ImportModal = lazy(
+  () => import('@/features/transactions/components/import-modal/import-modal')
+);
 const AddInvestmentModal = lazy(
   () => import('@/features/investments/components/add-investment-modal')
 );
@@ -48,6 +51,8 @@ function ModalRenderer() {
       {modal === 'recurring' && <RecurringFormModal isOpen onClose={closeModal} editId={editId} />}
 
       {modal === 'account' && <AccountFormModal isOpen onClose={closeModal} editId={editId} />}
+
+      {modal === 'import' && <ImportModal isOpen onClose={closeModal} />}
 
       {modal === 'investment' && <AddInvestmentModal isOpen onClose={closeModal} editId={editId} />}
     </Suspense>

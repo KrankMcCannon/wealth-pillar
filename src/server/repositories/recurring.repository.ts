@@ -1,6 +1,6 @@
 import { db } from '@/server/db/drizzle';
 import { recurringTransactions, accounts } from '@/server/db/schema';
-import { eq, arrayOverlaps, arrayContains } from 'drizzle-orm';
+import { eq, arrayOverlaps, arrayContains, and } from 'drizzle-orm';
 
 export class RecurringRepository {
   static async findById(id: string) {
@@ -58,5 +58,17 @@ export class RecurringRepository {
       .where(eq(recurringTransactions.id, id))
       .returning();
     return results.length > 0 ? results[0] : null;
+  }
+
+  static async findActiveByAccount(accountId: string) {
+    return await db
+      .select()
+      .from(recurringTransactions)
+      .where(
+        and(
+          eq(recurringTransactions.account_id, accountId),
+          eq(recurringTransactions.is_active, true)
+        )
+      );
   }
 }

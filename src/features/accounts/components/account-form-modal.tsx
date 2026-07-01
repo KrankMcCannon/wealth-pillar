@@ -54,7 +54,7 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
         type: z.enum(['payroll', 'cash', 'investments', 'savings']),
         liquidity: z.enum(['spendable', 'reserve']),
         user_id: z.string().min(1, t('validation.userRequired')),
-        isDefault: z.boolean().optional(),
+        isDefault: z.boolean().default(false),
       }),
     [t]
   );

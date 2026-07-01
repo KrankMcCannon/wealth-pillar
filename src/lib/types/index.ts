@@ -105,6 +105,7 @@ export interface Transaction {
   frequency?: TransactionFrequencyType | null;
   recurring_series_id?: string | null; // Link to recurring series if this transaction is generated from one
   group_id?: string | null;
+  import_hash?: string | null;
   created_at: DateString;
   updated_at: DateString;
 }

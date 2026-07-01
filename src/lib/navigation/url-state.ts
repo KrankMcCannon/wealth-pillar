@@ -8,6 +8,7 @@ export const MODAL_TYPES = [
   'category',
   'recurring',
   'account',
+  'import',
   'investment',
   'settings:profile',
   'settings:currency',

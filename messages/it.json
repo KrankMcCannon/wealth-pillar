@@ -702,6 +702,7 @@
         "toolbarAria": "Filtri transazioni",
         "userToolbarAria": "Filtra per membro del gruppo",
         "filters": "Filtri",
+        "import": "Importa",
         "drawerTitle": "Filtri avanzati"
       },
       "customRange": {
@@ -876,6 +877,55 @@
         "createdDescription": "Transazione aggiunta correttamente.",
         "updatedTitle": "Transazione aggiornata",
         "updatedDescription": "Modifiche salvate correttamente."
+      }
+    },
+    "ImportModal": {
+      "title": "Importa transazioni",
+      "description": "Carica un estratto Revolut o Credem (CSV o Excel).",
+      "upload": {
+        "title": "Scegli file",
+        "cta": "Seleziona estratto conto",
+        "hint": "Supportati: estratto Revolut, lista movimenti Credem"
+      },
+      "mapping": {
+        "fileLabel": "{file} · formato rilevato: {format}",
+        "user": "Assegna al membro",
+        "accountForProduct": "Conto per {product}",
+        "excludeProduct": "Escludi questo prodotto",
+        "rowsCount": "{count} righe importabili · {excluded} escluse (in sospeso/non EUR)"
+      },
+      "preview": {
+        "summary": "{included} di {total} righe selezionate per l'import",
+        "includeRow": "Includi riga",
+        "typeIncome": "Entrata",
+        "typeExpense": "Uscita",
+        "internalTransfer": "Probabile giroconto interno",
+        "recurringMatch": "Corrisponde a ricorrente: {description}",
+        "category": "Categoria"
+      },
+      "result": {
+        "inserted": "{count} transazioni importate",
+        "skipped": "{count} righe saltate (duplicati o conflitti)"
+      },
+      "status": {
+        "new": "Nuova",
+        "duplicate": "Duplicato",
+        "possible-duplicate": "Possibile duplicato",
+        "excluded": "Esclusa"
+      },
+      "actions": {
+        "back": "Indietro",
+        "continue": "Continua",
+        "import": "Importa {count} righe",
+        "done": "Fine"
+      },
+      "errors": {
+        "parseFailed": "Impossibile leggere il file",
+        "prepareFailed": "Impossibile preparare l'import",
+        "commitFailed": "Import fallito",
+        "noRows": "Nessuna riga da importare per i conti selezionati",
+        "noRowsSelected": "Seleziona almeno una riga da importare",
+        "generic": "Riprova"
       }
     }
   },
