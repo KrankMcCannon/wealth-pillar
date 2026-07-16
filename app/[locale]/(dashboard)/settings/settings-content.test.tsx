@@ -13,6 +13,7 @@ vi.mock('next-themes', () => ({
 
 vi.mock('@/hooks', () => ({
   useMounted: () => true,
+  useRequiredCurrentUser: () => currentUser,
 }));
 
 vi.mock('@clerk/nextjs', () => ({
@@ -112,10 +113,10 @@ describe('SettingsContent', () => {
     fireEvent.click(screen.getByRole('button', { name: 'editButton' }));
     expect(openModal).toHaveBeenCalledWith('settings:profile');
 
-    fireEvent.click(screen.getByRole('button', { name: 'manageGroupTitle' }));
+    fireEvent.click(screen.getByRole('button', { name: /manageGroupTitle/ }));
     expect(openModal).toHaveBeenCalledWith('settings:group');
 
-    fireEvent.click(screen.getByRole('button', { name: 'manageTitle' }));
+    fireEvent.click(screen.getByRole('button', { name: /manageTitle/ }));
     expect(openModal).toHaveBeenCalledWith('settings:categories');
   });
 });

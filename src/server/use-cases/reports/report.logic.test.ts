@@ -112,7 +112,7 @@ describe('computeGroupAccountTypeSummary', () => {
       {
         id: 'shared-1',
         name: 'Shared Checking',
-        type: 'checking',
+        type: 'payroll',
         user_ids: ['u1', 'u2'],
         group_id: 'g1',
         balance: 1000,
@@ -122,7 +122,7 @@ describe('computeGroupAccountTypeSummary', () => {
     ];
     const rows = computeGroupAccountTypeSummary([], accounts, ['u1', 'u2'], window);
     expect(rows).toHaveLength(1);
-    expect(rows[0]?.accountType).toBe('checking');
+    expect(rows[0]?.accountType).toBe('payroll');
     expect(rows[0]?.totalBalance).toBe(1000);
   });
 });

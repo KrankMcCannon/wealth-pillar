@@ -6,6 +6,17 @@ vi.mock('next-intl', () => ({
   useTranslations: () => (key: string) => key,
 }));
 
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
+  usePathname: () => '',
+}));
+
+vi.mock('@/i18n/routing', () => ({
+  Link: ({ children, href }: any) => <a href={href}>{children}</a>,
+  useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
+  usePathname: () => '',
+}));
+
 describe('PageLoader', () => {
   it('renders list skeleton without dashboard shell chrome', () => {
     const { container } = render(<PageLoader variant="list" />);

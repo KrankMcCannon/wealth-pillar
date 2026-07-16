@@ -85,7 +85,7 @@ export async function createSeriesUseCase(
   if (!series) throw new Error('Failed to create series');
 
   let groupId: string | undefined;
-  if (data.user_ids && data.user_ids.length > 0) {
+  if (data.user_ids && data.user_ids.length > 0 && typeof data.user_ids[0] === 'string') {
     try {
       groupId = await getUserGroupIdUseCase(data.user_ids[0]);
     } catch (e) {
@@ -114,7 +114,7 @@ export async function updateSeriesUseCase(
   if (!series) throw new Error('Failed to update series');
 
   let groupId: string | undefined;
-  if (series.user_ids && series.user_ids.length > 0) {
+  if (series.user_ids && series.user_ids.length > 0 && typeof series.user_ids[0] === 'string') {
     try {
       groupId = await getUserGroupIdUseCase(series.user_ids[0]);
     } catch (e) {
@@ -138,7 +138,7 @@ export async function deleteSeriesUseCase(id: string): Promise<void> {
   await RecurringRepository.delete(id);
 
   let groupId: string | undefined;
-  if (series.user_ids && series.user_ids.length > 0) {
+  if (series.user_ids && series.user_ids.length > 0 && typeof series.user_ids[0] === 'string') {
     try {
       groupId = await getUserGroupIdUseCase(series.user_ids[0]);
     } catch (e) {
