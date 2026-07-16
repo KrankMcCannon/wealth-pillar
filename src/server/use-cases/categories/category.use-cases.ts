@@ -7,6 +7,26 @@ import { isValidColor } from './category.logic';
 import { validateId, validateRequiredString } from '@/lib/utils/validation-utils';
 import { invalidateCategoryCaches } from '@/lib/utils/cache-utils';
 import type { Category } from '@/lib/types';
+import { db } from '@/server/db/drizzle';
+import { categories, transactions, recurringTransactions, budgets } from '@/server/db/schema';
+import { eq, sql } from 'drizzle-orm';
+import { revalidateTag } from 'next/cache';
+import { CACHE_TAGS } from '@/lib/cache/config';
+
+async function ensureUniqueCategoryKeyForUpdate(baseKey: string, categoryId: string): Promise<string> {
+  let candidate = baseKey;
+  let suffix = 2;
+  while (true) {
+    const existing = await CategoriesRepository.findByKey(candidate);
+    if (!existing || existing.id === categoryId) {
+      break;
+    }
+    candidate = `${baseKey}_${suffix}`;
+    suffix += 1;
+    if (suffix > 100) return `${baseKey}_${Date.now().toString(36)}`;
+  }
+  return candidate;
+}
 
 export interface CreateCategoryInput {
   label: string;
@@ -139,10 +159,6 @@ export const updateCategoryUseCase = async (
 
   const updateData: Record<string, unknown> = {};
 
-  if (data.label !== undefined) {
-    updateData.label = validateRequiredString(data.label, 'Label');
-  }
-
   if (data.icon !== undefined) {
     updateData.icon = validateRequiredString(data.icon, 'Icon');
   }
@@ -155,10 +171,77 @@ export const updateCategoryUseCase = async (
     updateData.color = color.toUpperCase();
   }
 
-  const category = await CategoriesRepository.update(id, updateData);
-  if (!category) throw new Error('Failed to update category');
+  let oldKey = existing.key;
+  let newKey = oldKey;
+
+  if (data.label !== undefined) {
+    const label = validateRequiredString(data.label, 'Label');
+    updateData.label = label;
+
+    if (label !== existing.label) {
+      const normalizedKey = label
+        .toLowerCase()
+        .trim()
+        .replaceAll(/[^a-z0-9]+/g, '_')
+        .replaceAll(/(^_+)|(_+$)/g, '');
+      newKey = await ensureUniqueCategoryKeyForUpdate(normalizedKey, id);
+      if (newKey !== oldKey) {
+        updateData.key = newKey;
+      }
+    }
+  }
+
+  const category = await db.transaction(async (tx) => {
+    const [updatedCategory] = await tx
+      .update(categories)
+      .set({ ...updateData, updated_at: new Date() })
+      .where(eq(categories.id, id))
+      .returning();
+    if (!updatedCategory) throw new Error('Failed to update category');
+
+    if (newKey !== oldKey) {
+      // Update all transactions referencing the old category key
+      await tx
+        .update(transactions)
+        .set({ category: newKey })
+        .where(eq(transactions.category, oldKey));
+
+      // Update all recurring transactions referencing the old category key
+      await tx
+        .update(recurringTransactions)
+        .set({ category: newKey })
+        .where(eq(recurringTransactions.category, oldKey));
+
+      // Update all budgets referencing the old category key in their jsonb array
+      const affectedBudgets = await tx
+        .select()
+        .from(budgets)
+        .where(sql`jsonb_exists(${budgets.categories}, ${oldKey})`);
+
+      for (const b of affectedBudgets) {
+        const cats = Array.isArray(b.categories) ? b.categories : [];
+        const newCats = cats.map((c) => (c === oldKey ? newKey : c));
+        await tx
+          .update(budgets)
+          .set({ categories: newCats })
+          .where(eq(budgets.id, b.id));
+      }
+    }
+
+    return updatedCategory;
+  });
 
   invalidateCategoryCaches({ categoryId: id });
+  revalidateTag(`group:${existing.group_id}:categories`, 'max');
+
+  if (newKey !== oldKey) {
+    revalidateTag(`group:${existing.group_id}:transactions`, 'max');
+    revalidateTag(`group:${existing.group_id}:budgets`, 'max');
+    revalidateTag(`group:${existing.group_id}:recurring`, 'max');
+    revalidateTag(CACHE_TAGS.TRANSACTIONS, 'max');
+    revalidateTag(CACHE_TAGS.BUDGETS, 'max');
+    revalidateTag(CACHE_TAGS.RECURRING_SERIES, 'max');
+  }
 
   return serialize(category) as unknown as Category;
 };

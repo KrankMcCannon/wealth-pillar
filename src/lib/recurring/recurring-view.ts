@@ -1,7 +1,6 @@
 import type { RecurringTransactionSeries } from '@/lib/types';
 import {
   calculateDaysUntilDue,
-  calculateMonthlyTotalAbs,
   calculateRecurringTotals,
 } from './recurring-calculations';
 
@@ -55,13 +54,15 @@ export function buildRecurringView(
   const pausedCount = filteredSeries.length - activeSeries.length;
   const upcomingSeries = filteredSeries.filter((item) => item.is_active && item.daysUntilDue >= 0);
 
+  const monthlyTotals = calculateRecurringTotals(activeSeries);
+
   return {
     filteredSeries,
     activeSeries,
     visibleSeriesCount,
     pausedCount,
     upcomingSeries,
-    monthlyTotals: calculateRecurringTotals(activeSeries),
-    totalMonthlyRecurring: calculateMonthlyTotalAbs(activeSeries),
+    monthlyTotals,
+    totalMonthlyRecurring: monthlyTotals.netMonthly,
   };
 }

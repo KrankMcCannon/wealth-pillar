@@ -20,6 +20,7 @@ export interface TransactionCacheInvalidationOptions {
   accountId: string;
   userId?: string | null | undefined;
   toAccountId?: string | null | undefined;
+  transactionId?: string | undefined;
 }
 
 /**
@@ -73,6 +74,10 @@ export function invalidateTransactionCaches(opts: TransactionCacheInvalidationOp
 
   if (opts.toAccountId) {
     tags.push(CACHE_TAGS.ACCOUNT(opts.toAccountId), `account:${opts.toAccountId}:transactions`);
+  }
+
+  if (opts.transactionId) {
+    tags.push(`transaction:${opts.transactionId}`);
   }
 
   invalidateTags(tags);
@@ -178,6 +183,7 @@ export function invalidateCategoryCaches(opts: { categoryId?: string }): void {
 export function invalidateRecurringCaches(opts: {
   seriesId?: string | undefined;
   userIds?: string[] | undefined;
+  groupId?: string | undefined;
 }): void {
   const tags: string[] = [CACHE_TAGS.RECURRING_SERIES];
 
@@ -189,6 +195,10 @@ export function invalidateRecurringCaches(opts: {
     opts.userIds.forEach((uid) => {
       tags.push(`user:${uid}:recurring`);
     });
+  }
+
+  if (opts.groupId) {
+    tags.push(`group:${opts.groupId}:recurring`);
   }
 
   invalidateTags(tags);
@@ -204,6 +214,7 @@ export function invalidateTransactionUpdateCaches(
     accountId: string;
     toAccountId?: string | null | undefined;
     groupId: string | null;
+    id?: string | null | undefined;
   },
   update: {
     userId?: string | null | undefined;
@@ -213,6 +224,10 @@ export function invalidateTransactionUpdateCaches(
   }
 ): void {
   const tags: string[] = [CACHE_TAGS.TRANSACTIONS, CACHE_TAGS.ACCOUNTS];
+
+  if (existing.id) {
+    tags.push(`transaction:${existing.id}`);
+  }
 
   // User tags
   if (existing.userId)

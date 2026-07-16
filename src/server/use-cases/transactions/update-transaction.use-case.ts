@@ -52,6 +52,7 @@ export async function updateTransactionUseCase(
 
   invalidateTransactionUpdateCaches(
     {
+      id: existing.id,
       userId: existing.user_id,
       accountId: existing.account_id,
       toAccountId: existing.to_account_id ?? null,

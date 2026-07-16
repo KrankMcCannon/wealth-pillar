@@ -148,7 +148,7 @@ export default function AccountsContent({
                   emphasis="strong"
                   className="inline"
                 >
-                  {Math.abs(accountStats.spendableBalance)}
+                  {accountStats.spendableBalance}
                 </Amount>
               </span>
               <span className={stitchAccounts.balanceMetaLine}>
@@ -160,7 +160,7 @@ export default function AccountsContent({
               <span className={stitchAccounts.balanceMetaLine}>
                 <span>{t('totalBalanceLabel')}</span>
                 <Amount type={balancePositive ? 'income' : 'expense'} size="sm" className="inline">
-                  {Math.abs(accountStats.totalBalance)}
+                  {accountStats.totalBalance}
                 </Amount>
               </span>
             </div>

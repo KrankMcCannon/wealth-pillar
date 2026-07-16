@@ -103,4 +103,17 @@ describe('buildRecurringView', () => {
     expect(view.monthlyTotals.totalExpenses).toBe(0);
     expect(view.totalMonthlyRecurring).toBe(1200);
   });
+
+  it('computes totalMonthlyRecurring as net monthly amount (income - expense)', () => {
+    const series = [
+      createSeries({ id: 'inc', type: 'income', amount: 1500 }),
+      createSeries({ id: 'exp', type: 'expense', amount: 400 }),
+    ];
+
+    const view = buildRecurringView(series);
+
+    expect(view.monthlyTotals.totalIncome).toBe(1500);
+    expect(view.monthlyTotals.totalExpenses).toBe(400);
+    expect(view.totalMonthlyRecurring).toBe(1100);
+  });
 });

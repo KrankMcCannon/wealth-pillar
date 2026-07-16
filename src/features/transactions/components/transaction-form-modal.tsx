@@ -294,7 +294,7 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
     editId: string;
     balanceSnapshot: AccountBalanceSnapshot;
   };
-  type TransactionMutationHandle = CreateMutationHandle | UpdateMutationHandle;
+  type TransactionMutationHandle = CreateMutationHandle | UpdateMutationHandle | null;
 
   const handleSubmit = useEntityFormSubmit<
     TransactionFormData,
@@ -320,18 +320,18 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
       return { kind: 'create', tempId, balanceSnapshot };
     },
     commitCreate: (handle, result) => {
-      if (handle.kind !== 'create') return;
+      if (!handle || handle.kind !== 'create') return;
       commitOptimistic(handle.tempId, result);
     },
     rollbackCreate: (handle, _error) => {
-      if (handle.kind !== 'create') return;
+      if (!handle || handle.kind !== 'create') return;
       rollbackOptimistic(handle.tempId);
       applyBalanceSnapshotToStore(handle.balanceSnapshot, updateAccount);
     },
     applyUpdateOptimistic: (id, payload) => {
       const original = seedTransaction?.id === id ? seedTransaction : null;
       if (!original) {
-        throw new Error(t('errors.notFound'));
+        return null;
       }
       const optimistic = buildOptimisticTransactionFromOriginal(original, payload);
       applyUpdateOptimisticStore(id, optimistic, original);
@@ -344,11 +344,11 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
       return { kind: 'update', editId: id, balanceSnapshot };
     },
     commitUpdate: (handle, result) => {
-      if (handle.kind !== 'update') return;
+      if (!handle || handle.kind !== 'update') return;
       commitUpdateOptimisticStore(handle.editId, result);
     },
     rollbackUpdate: (handle, _error) => {
-      if (handle.kind !== 'update') return;
+      if (!handle || handle.kind !== 'update') return;
       rollbackUpdateOptimisticStore(handle.editId);
       applyBalanceSnapshotToStore(handle.balanceSnapshot, updateAccount);
     },

@@ -107,10 +107,16 @@ export function useTransactionsContent({
     }
   }, [queryKey, initialHasMore, initialNextCursor]);
 
-  const serverList = useMemo(
-    () => [...serverTransactions, ...extraPages],
-    [serverTransactions, extraPages]
-  );
+  const serverList = useMemo(() => {
+    const merged = [...serverTransactions, ...extraPages];
+    const seen = new Set<string>();
+    return merged.filter((transaction) => {
+      if (!transaction?.id) return true;
+      if (seen.has(transaction.id)) return false;
+      seen.add(transaction.id);
+      return true;
+    });
+  }, [serverTransactions, extraPages]);
 
   useEffect(() => {
     pruneCommitted(new Set(serverList.map((transaction) => transaction.id)));

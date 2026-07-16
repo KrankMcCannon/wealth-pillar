@@ -1,6 +1,6 @@
 import { RecurringRepository } from '@/server/repositories/recurring.repository';
 import { recurringTransactions } from '@/server/db/schema';
-import { getUsersByGroupUseCase } from '../users/user.use-cases';
+import { getUsersByGroupUseCase, getUserGroupIdUseCase } from '../users/user.use-cases';
 import { cached } from '@/lib/cache';
 import { cacheOptions } from '@/lib/cache/config';
 import { recurringCacheKeys } from '@/lib/cache/keys';
@@ -84,8 +84,18 @@ export async function createSeriesUseCase(
   } as typeof recurringTransactions.$inferInsert);
   if (!series) throw new Error('Failed to create series');
 
+  let groupId: string | undefined;
+  if (data.user_ids && data.user_ids.length > 0) {
+    try {
+      groupId = await getUserGroupIdUseCase(data.user_ids[0]);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
   invalidateRecurringCaches({
     userIds: data.user_ids,
+    groupId,
   });
 
   return serialize(series) as unknown as RecurringTransactionSeries;
@@ -103,7 +113,20 @@ export async function updateSeriesUseCase(
   const series = await RecurringRepository.update(id, updatePayload);
   if (!series) throw new Error('Failed to update series');
 
-  invalidateRecurringCaches({ seriesId: id });
+  let groupId: string | undefined;
+  if (series.user_ids && series.user_ids.length > 0) {
+    try {
+      groupId = await getUserGroupIdUseCase(series.user_ids[0]);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  invalidateRecurringCaches({
+    seriesId: id,
+    userIds: series.user_ids,
+    groupId,
+  });
 
   return serialize(series) as unknown as RecurringTransactionSeries;
 }
@@ -114,8 +137,18 @@ export async function deleteSeriesUseCase(id: string): Promise<void> {
 
   await RecurringRepository.delete(id);
 
+  let groupId: string | undefined;
+  if (series.user_ids && series.user_ids.length > 0) {
+    try {
+      groupId = await getUserGroupIdUseCase(series.user_ids[0]);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
   invalidateRecurringCaches({
     seriesId: id,
     userIds: series.user_ids,
+    groupId,
   });
 }
