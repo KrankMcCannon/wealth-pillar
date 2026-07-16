@@ -192,11 +192,25 @@ export function computeGroupAccountTypeSummary(
   const flows = computeUserFlows(transactions, accounts, userIds, window);
   const merged = new Map<string, { balance: number; earned: number; spent: number }>();
 
+  // Sum balances of unique accounts associated with the selected users to avoid duplicates for shared accounts
+  const uniqueAccounts = accounts.filter((account) =>
+    account.user_ids.some((uid) => userIds.includes(uid))
+  );
+
+  for (const account of uniqueAccounts) {
+    const type = normalizeAccountType(account.type);
+    const existing = merged.get(type) ?? { balance: 0, earned: 0, spent: 0 };
+    merged.set(type, {
+      ...existing,
+      balance: existing.balance + (account.balance || 0),
+    });
+  }
+
   for (const flow of flows) {
     for (const row of flow.accounts) {
       const existing = merged.get(row.accountType) ?? { balance: 0, earned: 0, spent: 0 };
       merged.set(row.accountType, {
-        balance: existing.balance + row.balance,
+        balance: existing.balance, // keep unique sum
         earned: existing.earned + row.earned,
         spent: existing.spent + row.spent,
       });

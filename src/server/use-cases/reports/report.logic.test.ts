@@ -106,6 +106,25 @@ describe('computeGroupAccountTypeSummary', () => {
     expect(rows[0]?.totalSpent).toBe(50);
     expect(rows[0]?.totalBalance).toBe(500);
   });
+
+  it('avoids double-counting shared accounts for multiple users', () => {
+    const accounts: Account[] = [
+      {
+        id: 'shared-1',
+        name: 'Shared Checking',
+        type: 'checking',
+        user_ids: ['u1', 'u2'],
+        group_id: 'g1',
+        balance: 1000,
+        created_at: '',
+        updated_at: '',
+      },
+    ];
+    const rows = computeGroupAccountTypeSummary([], accounts, ['u1', 'u2'], window);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]?.accountType).toBe('checking');
+    expect(rows[0]?.totalBalance).toBe(1000);
+  });
 });
 
 describe('netFlowDeltaPercent', () => {
