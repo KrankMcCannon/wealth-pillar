@@ -947,7 +947,10 @@
         "expensesPerMonth": "Expenses/month"
       },
       "summary": {
-        "totalMonthlyLabel": "Total monthly"
+        "totalMonthlyLabel": "Total monthly",
+        "netOutflowLabel": "Net outflow",
+        "netInflowLabel": "Net inflow",
+        "balancedLabel": "Balanced"
       },
       "groups": {
         "upcoming": "Upcoming",

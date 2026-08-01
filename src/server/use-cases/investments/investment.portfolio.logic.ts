@@ -96,7 +96,7 @@ export function enrichPortfolioFromInvestments(
   const allocationMap = new Map<string, number>();
   for (const inv of enrichedInvestments) {
     const key = inv.symbol.toUpperCase();
-    allocationMap.set(key, (allocationMap.get(key) || 0) + inv.currentValue);
+    allocationMap.set(key, (allocationMap.get(key) || 0) + inv.totalPaid);
   }
   const assetAllocation = [...allocationMap.entries()]
     .map(([symbol, value]) => ({ symbol, value }))

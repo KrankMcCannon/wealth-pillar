@@ -34,20 +34,21 @@ export async function POST(req: Request) {
     });
   } catch (error) {
     const clerkId = evt?.data?.id ?? undefined;
+    const errorMessage = error instanceof Error ? error.message : String(error);
     const logPayload = {
       eventType: evt?.type,
       clerkId,
-      errorMessage: error instanceof Error ? error.message : String(error),
+      errorMessage,
       stack: error instanceof Error ? error.stack : undefined,
       timestamp: new Date().toISOString(),
     };
-    console.error(
-      '[Clerk Webhook] Processing failed (returning 200 to avoid retries):',
-      JSON.stringify(logPayload)
+    console.error('[Clerk Webhook] Processing failed:', JSON.stringify(logPayload));
+    return new Response(
+      JSON.stringify({ error: 'Webhook processing failed', details: errorMessage }),
+      {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      }
     );
-    return new Response(JSON.stringify({ received: true }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
   }
 }

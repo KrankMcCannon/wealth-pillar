@@ -60,20 +60,26 @@ export function buildBudgetChartViewModel(
 
   const groupedTransactions = Object.entries(groupedMap)
     .sort(([dateA], [dateB]) => dateB.localeCompare(dateA))
-    .map(([date, txs]) => ({
-      date,
-      transactions: [...txs].sort((a, b) => {
-        const dtA = toDateTime(a.date);
-        const dtB = toDateTime(b.date);
-        if (!dtA || !dtB) return 0;
-        return dtB.toMillis() - dtA.toMillis();
-      }),
-      total: txs.reduce((sum, tx) => {
+    .map(([date, txs]) => {
+      const txsWithTime = txs.map((tx) => ({
+        tx,
+        time: toDateTime(tx.date)?.toMillis() ?? 0,
+      }));
+      txsWithTime.sort((a, b) => b.time - a.time);
+
+      const sortedTxs = txsWithTime.map((item) => item.tx);
+      const total = sortedTxs.reduce((sum, tx) => {
         if (tx.type === 'income') return sum - tx.amount;
         if (tx.type === 'expense') return sum + tx.amount;
         return sum;
-      }, 0),
-    }));
+      }, 0);
+
+      return {
+        date,
+        transactions: sortedTxs,
+        total,
+      };
+    });
 
   const chartData = buildCumulativeChartPoints(
     periodTransactions,

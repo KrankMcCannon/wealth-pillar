@@ -34,3 +34,10 @@ Famiglie e piccoli gruppi B2C, **Italian-first** (IT primario, EN peer per viagg
 ### Accessibility
 
 WCAG 2.2 AA (AAA aspirazionale su contenuti finanziari critici). EAA 2025 come baseline. Touch target ≥ 44×44pt sulla shell mobile. Colore mai unico segnale. Label reali sui form, `aria-describedby` sugli errori, copy screen-reader in IT prima dell'EN.
+
+## Self-Improving Loop (Agent Rules)
+
+1. **Deterministic Evaluation**: Every code modification must pass the verification harness `pnpm harness:eval` (TypeScript compilation, ESLint quality check, and Vitest suite execution).
+2. **Persistent Memory**: Log root causes of resolved issues and architectural learnings in `.antigravity/memory.md` and sync with `/Users/ivanapiscitelli/Documents/Dev/Colloquio Edo/WikiDev/wealth-pillar/self-improving-loop-memory.md`.
+3. **Context Optimization**: Keep context windows minimal using Agentic Context Engineering (ACE). Delegate scans to subagents, avoid injecting large raw log traces, and structure feedback cleanly.
+

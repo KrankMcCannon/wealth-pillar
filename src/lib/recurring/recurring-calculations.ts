@@ -138,4 +138,3 @@ export function calculateRecurringTotals(series: RecurringTransactionSeries[]): 
     netMonthly: totalIncome - totalExpenses,
   };
 }
-

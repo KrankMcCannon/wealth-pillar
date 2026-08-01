@@ -23,6 +23,7 @@ export function AssetAllocationCard({ data, className }: AssetAllocationCardProp
   }
 
   const displayData = data;
+  // Sum of current market values — must match the per-row values displayed below the chart.
   const totalValue = displayData.reduce((sum, item) => sum + item.value, 0);
 
   return (

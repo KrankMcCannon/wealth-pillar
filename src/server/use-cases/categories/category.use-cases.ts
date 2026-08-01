@@ -13,7 +13,10 @@ import { eq, sql } from 'drizzle-orm';
 import { revalidateTag } from 'next/cache';
 import { CACHE_TAGS } from '@/lib/cache/config';
 
-async function ensureUniqueCategoryKeyForUpdate(baseKey: string, categoryId: string): Promise<string> {
+async function ensureUniqueCategoryKeyForUpdate(
+  baseKey: string,
+  categoryId: string
+): Promise<string> {
   let candidate = baseKey;
   let suffix = 2;
   while (true) {
@@ -171,7 +174,7 @@ export const updateCategoryUseCase = async (
     updateData.color = color.toUpperCase();
   }
 
-  let oldKey = existing.key;
+  const oldKey = existing.key;
   let newKey = oldKey;
 
   if (data.label !== undefined) {
@@ -221,10 +224,7 @@ export const updateCategoryUseCase = async (
       for (const b of affectedBudgets) {
         const cats = Array.isArray(b.categories) ? b.categories : [];
         const newCats = cats.map((c) => (c === oldKey ? newKey : c));
-        await tx
-          .update(budgets)
-          .set({ categories: newCats })
-          .where(eq(budgets.id, b.id));
+        await tx.update(budgets).set({ categories: newCats }).where(eq(budgets.id, b.id));
       }
     }
 

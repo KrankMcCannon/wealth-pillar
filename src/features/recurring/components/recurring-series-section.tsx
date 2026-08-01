@@ -79,8 +79,54 @@ export function RecurringSeriesSection({
     totalMonthlyRecurring,
   } = view;
 
-  const monthlyStats = useMemo(
-    () => [
+  const monthlyStats = useMemo(() => {
+    let summaryCard = {
+      label: t('summary.totalMonthlyLabel'),
+      Icon: Banknote,
+      itemClass: stitchRecurring.statMiniItemPrimary,
+      iconWrap: stitchRecurring.statMiniIconWrap,
+      iconClass: stitchRecurring.statMiniIcon,
+      valueClass: stitchRecurring.statMiniValuePrimary,
+      amount: totalMonthlyRecurring,
+      amountType: 'neutral' as const,
+    };
+
+    if (totalMonthlyRecurring < 0) {
+      summaryCard = {
+        label: t('summary.netOutflowLabel'),
+        Icon: TrendingDown,
+        itemClass: stitchRecurring.statMiniItemDestructive,
+        iconWrap: stitchRecurring.statMiniIconWrapDestructive,
+        iconClass: stitchRecurring.statMiniIconDestructive,
+        valueClass: stitchRecurring.statMiniValueDestructive,
+        // Show absolute value — "Uscita netta" + red color already communicate direction
+        amount: Math.abs(totalMonthlyRecurring),
+        amountType: 'expense' as const,
+      };
+    } else if (totalMonthlyRecurring > 0) {
+      summaryCard = {
+        label: t('summary.netInflowLabel'),
+        Icon: TrendingUp,
+        itemClass: stitchRecurring.statMiniItemSuccess,
+        iconWrap: stitchRecurring.statMiniIconWrapSuccess,
+        iconClass: stitchRecurring.statMiniIconSuccess,
+        valueClass: stitchRecurring.statMiniValueSuccess,
+        amount: totalMonthlyRecurring,
+        amountType: 'income' as const,
+      };
+    }
+
+    return [
+      {
+        label: t('stats.expensesPerMonth'),
+        Icon: TrendingDown,
+        itemClass: stitchRecurring.statMiniItemDestructive,
+        iconWrap: stitchRecurring.statMiniIconWrapDestructive,
+        iconClass: stitchRecurring.statMiniIconDestructive,
+        valueClass: stitchRecurring.statMiniValueDestructive,
+        amount: monthlyTotals.totalExpenses,
+        amountType: 'expense' as const,
+      },
       {
         label: t('stats.incomePerMonth'),
         Icon: TrendingUp,
@@ -91,29 +137,9 @@ export function RecurringSeriesSection({
         amount: monthlyTotals.totalIncome,
         amountType: 'income' as const,
       },
-      {
-        label: t('stats.expensesPerMonth'),
-        Icon: TrendingDown,
-        itemClass: stitchRecurring.statMiniItemDestructive,
-        iconWrap: stitchRecurring.statMiniIconWrapDestructive,
-        iconClass: stitchRecurring.statMiniIconDestructive,
-        valueClass: stitchRecurring.statMiniValueDestructive,
-        amount: -monthlyTotals.totalExpenses,
-        amountType: 'expense' as const,
-      },
-      {
-        label: t('summary.totalMonthlyLabel'),
-        Icon: Banknote,
-        itemClass: stitchRecurring.statMiniItemPrimary,
-        iconWrap: stitchRecurring.statMiniIconWrap,
-        iconClass: stitchRecurring.statMiniIcon,
-        valueClass: stitchRecurring.statMiniValuePrimary,
-        amount: totalMonthlyRecurring,
-        amountType: 'neutral' as const,
-      },
-    ],
-    [t, totalMonthlyRecurring, monthlyTotals.totalIncome, monthlyTotals.totalExpenses]
-  );
+      summaryCard,
+    ];
+  }, [t, totalMonthlyRecurring, monthlyTotals.totalIncome, monthlyTotals.totalExpenses]);
 
   const renderPageEmptyState = () => (
     <div className={cn(stitchRecurring.emptyState, className)} role="status" aria-live="polite">

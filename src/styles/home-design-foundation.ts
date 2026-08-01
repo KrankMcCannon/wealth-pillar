@@ -281,7 +281,7 @@ export const stitchStatMini = {
   icon: 'h-2.5 w-2.5 text-primary',
   iconSuccess: 'h-2.5 w-2.5 text-income',
   iconDestructive: 'h-2.5 w-2.5 text-expense',
-  label: 'truncate text-[10px] font-semibold uppercase tracking-wide text-muted-foreground',
+  label: 'line-clamp-2 text-[10px] font-semibold uppercase leading-tight tracking-wide text-muted-foreground',
   value: 'text-base font-semibold tabular-nums leading-tight text-foreground',
   valuePrimary: 'text-base font-semibold tabular-nums leading-tight text-primary',
   valueSuccess: 'text-base font-semibold tabular-nums leading-tight text-income',

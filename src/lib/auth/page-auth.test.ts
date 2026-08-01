@@ -44,7 +44,7 @@ const mockUser = {
 describe('resolvePageContext', () => {
   beforeEach(() => {
     vi.resetAllMocks();
-    vi.mocked(getAuth).mockResolvedValue({ userId: null } as any);
+    vi.mocked(getAuth).mockResolvedValue({ userId: null } as never);
   });
 
   it('returns auth context with group id', async () => {

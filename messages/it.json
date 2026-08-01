@@ -947,7 +947,10 @@
         "expensesPerMonth": "Uscite/mese"
       },
       "summary": {
-        "totalMonthlyLabel": "Totale mensile"
+        "totalMonthlyLabel": "Totale mensile",
+        "netOutflowLabel": "Uscita netta",
+        "netInflowLabel": "Entrata netta",
+        "balancedLabel": "Pareggio"
       },
       "groups": {
         "upcoming": "In arrivo",

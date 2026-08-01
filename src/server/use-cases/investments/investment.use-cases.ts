@@ -99,6 +99,7 @@ export async function addInvestmentUseCase(data: InvestmentInsert) {
     currency_rate: data.currency_rate?.toString(),
     tax_paid: data.tax_paid?.toString(),
     net_earn: data.net_earn?.toString(),
+    created_at: data.created_at ? new Date(data.created_at) : new Date(),
   } as typeof investments.$inferInsert;
 
   return await InvestmentRepository.create(depositData);

@@ -1,8 +1,5 @@
 import type { RecurringTransactionSeries } from '@/lib/types';
-import {
-  calculateDaysUntilDue,
-  calculateRecurringTotals,
-} from './recurring-calculations';
+import { calculateDaysUntilDue, calculateRecurringTotals } from './recurring-calculations';
 
 export type DecoratedRecurringSeries = RecurringTransactionSeries & {
   daysUntilDue: number;
