@@ -31,9 +31,7 @@ async function TransactionsPageData({
   const typeRaw =
     typeof resolvedSearchParams.type === 'string' ? resolvedSearchParams.type : undefined;
   const typeParam: TransactionsListQuery['type'] =
-    typeRaw === 'all' || typeRaw === 'income' || typeRaw === 'expense' || typeRaw === 'transfer'
-      ? typeRaw
-      : undefined;
+    typeRaw === 'all' || typeRaw === 'income' || typeRaw === 'expense' ? typeRaw : undefined;
   const dateRangeRaw =
     typeof resolvedSearchParams.dateRange === 'string' ? resolvedSearchParams.dateRange : undefined;
   const dateRangeParam: TransactionsListQuery['dateRange'] =
@@ -42,8 +40,7 @@ async function TransactionsPageData({
     dateRangeRaw === 'week' ||
     dateRangeRaw === 'month' ||
     dateRangeRaw === 'year' ||
-    dateRangeRaw === 'custom' ||
-    dateRangeRaw === 'today'
+    dateRangeRaw === 'custom'
       ? dateRangeRaw
       : undefined;
 

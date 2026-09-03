@@ -70,6 +70,18 @@ export function getCurrentReportingWindow(
   return { start: startOfDay(startOfMonth(now)), end };
 }
 
+/** Inclusive union of current + comparison windows for a single date-bounded fetch. */
+export function unionReportingWindows(
+  current: DateWindow,
+  comparison: DateWindow | null
+): DateWindow {
+  if (!comparison) return current;
+  return {
+    start: current.start < comparison.start ? current.start : comparison.start,
+    end: current.end > comparison.end ? current.end : comparison.end,
+  };
+}
+
 /**
  * Finestra precedente per confronto delta: stessa “forma” del preset.
  * - monthly: stesso giorno del mese nel mese precedente (finestra parziale se siamo a metà mese)

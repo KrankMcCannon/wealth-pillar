@@ -388,7 +388,8 @@
     "home": "Back to home"
   },
   "ReportsContent": {
-    "headerTitle": "Reports"
+    "headerTitle": "Reports",
+    "incompleteData": "This period has more transactions than we can include. Totals may be incomplete."
   },
   "Reports": {
     "TimeFilter": {
@@ -1537,6 +1538,9 @@
         "cannotReassignAsMember": "You cannot assign the budget to another user.",
         "noPermissionAssignUser": "You do not have permission to assign this budget to this user.",
         "updateFailed": "Failed to update budget",
+        "notFound": "Budget not found",
+        "permissionDenied": "Permission denied",
+        "loadFailed": "Failed to load budget",
         "noPermissionDelete": "You do not have permission to delete this budget.",
         "deleteFailed": "Failed to delete budget"
       }

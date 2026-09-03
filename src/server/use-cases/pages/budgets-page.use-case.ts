@@ -7,6 +7,10 @@ import {
 } from '@/server/request-cache/services';
 import { getActiveBudgetPeriodsForUsersUseCase } from '../budget-periods/get-active-budget-periods-for-users.use-case';
 import { getTransactionsByGroupUseCase } from '../transactions/get-transactions.use-case';
+import {
+  BUDGETS_TRANSACTIONS_LIMIT,
+  BUDGETS_TRANSACTIONS_OVERFLOW,
+} from '@/server/db/query-limits';
 import { buildBudgetsByUserPure } from '../budgets/budget.logic';
 import {
   buildBudgetChartViewModel,
@@ -18,7 +22,6 @@ import type {
   Category,
   BudgetPeriod,
   User,
-  Transaction,
   UserBudgetSummary,
 } from '@/lib/types';
 import { scopeBudgetsPageData } from '@/server/permissions/scope-page-data';
@@ -27,21 +30,11 @@ import { parsePeriodDates, resolveChartPeriodEnd } from '../shared/period.logic'
 
 export interface BudgetsPageData {
   budgets: Budget[];
-  transactions: Transaction[];
   accounts: Account[];
   categories: Category[];
   budgetPeriods: Record<string, BudgetPeriod | null>;
   budgetsByUser: Record<string, UserBudgetSummary>;
   chartViewModelsByUser: Record<string, BudgetChartViewModel>;
-}
-
-async function safeFetch<T>(promise: Promise<T>, fallback: T): Promise<T> {
-  try {
-    return await promise;
-  } catch (e) {
-    console.error(`[BudgetsPageUseCase] Fetch failed:`, e);
-    return fallback;
-  }
 }
 
 async function getCachedBudgetsPageData(groupId: string): Promise<BudgetsPageData> {
@@ -52,24 +45,14 @@ async function getCachedBudgetsPageData(groupId: string): Promise<BudgetsPageDat
   cacheTag(`group:${groupId}:accounts`);
   cacheTag('categories');
 
-  // 1. Get group users
-  let groupUsers: User[] = [];
-  try {
-    groupUsers = await getGroupUsersByGroupIdDeduped(groupId);
-  } catch (error) {
-    console.error('[BudgetsPageUseCase] Failed to fetch group users:', error);
-  }
+  const groupUsers = await getGroupUsersByGroupIdDeduped(groupId);
   const userIds = groupUsers.map((u) => u.id);
 
-  // 2. Fetch Metadata
   const [budgets, accounts, categories, periodMap] = await Promise.all([
-    safeFetch(getBudgetsByGroupUseCase(groupId), [] as Budget[]),
-    safeFetch(getAccountsByGroupDeduped(groupId), [] as Account[]),
-    safeFetch(getAllCategoriesDeduped(), [] as Category[]),
-    safeFetch(
-      getActiveBudgetPeriodsForUsersUseCase(userIds),
-      {} as Record<string, BudgetPeriod | null>
-    ),
+    getBudgetsByGroupUseCase(groupId),
+    getAccountsByGroupDeduped(groupId),
+    getAllCategoriesDeduped(),
+    getActiveBudgetPeriodsForUsersUseCase(userIds),
   ]);
 
   // 3. Build Budget Periods & Determine Time Range
@@ -96,14 +79,21 @@ async function getCachedBudgetsPageData(groupId: string): Promise<BudgetsPageDat
   });
 
   // 4. Fetch transactions for the union period (same rows used by the UI list + chart)
-  const txOptions: { startDate?: Date; endDate?: Date } = {};
+  const txOptions: {
+    startDate?: Date;
+    endDate?: Date;
+    limit: number;
+    countTotal: false;
+  } = {
+    limit: BUDGETS_TRANSACTIONS_LIMIT,
+    countTotal: false,
+  };
   if (minDate) txOptions.startDate = minDate;
   if (maxDate) txOptions.endDate = maxDate;
-  const transactionResult = await getTransactionsByGroupUseCase(groupId, txOptions).catch(() => ({
-    data: [] as Transaction[],
-    total: 0,
-    hasMore: false,
-  }));
+  const transactionResult = await getTransactionsByGroupUseCase(groupId, txOptions);
+  if (transactionResult.hasMore) {
+    throw new Error(BUDGETS_TRANSACTIONS_OVERFLOW);
+  }
 
   // 5. Budget totals from the same transactions as the list/chart (avoids empty RPC aggregates)
   const budgetsByUser = buildBudgetsByUserPure(
@@ -130,7 +120,6 @@ async function getCachedBudgetsPageData(groupId: string): Promise<BudgetsPageDat
 
   return {
     budgets,
-    transactions: transactionResult.data,
     accounts,
     categories,
     budgetPeriods,

@@ -186,7 +186,7 @@ export function OnboardingStepBudgets({
       <Button
         type="button"
         onClick={addBudget}
-        disabled={loading}
+        disabled={loading || categories.length === 0}
         className={onboardingStyles.addButton}
       >
         <PlusCircle className={onboardingStyles.budgets.addIcon} /> {t('buttons.addBudget')}

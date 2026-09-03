@@ -33,7 +33,6 @@ export * from './skeleton';
 export * from './empty';
 export * from './field';
 export * from './avatar';
-export * from './scroll-area';
 export * from './spinner';
 export * from './toggle-group';
 export * from './category-badge';

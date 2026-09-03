@@ -112,29 +112,17 @@ export async function getProcessedUserPeriodsUseCase(user: User): Promise<Budget
 }
 
 /**
- * Main Reports Data Fetching Use Case
+ * Users, accounts, categories, and periods — no transactions.
+ * Resolve reporting windows from this context before fetching txs.
  */
-export async function getReportsDataUseCase(groupId: string, groupUserIds?: string[]) {
+export async function getReportsContextUseCase(groupId: string, groupUserIds?: string[]) {
   if (!groupId) throw new Error('Reports: groupId is required');
 
-  // Fetch data in parallel using repositories
-  const [users, allAccounts, allCategories, { data: allTransactions }] = await Promise.all([
+  const [users, allAccounts, allCategories] = await Promise.all([
     UsersRepository.findByGroupId(groupId),
     AccountsRepository.findByGroup(groupId),
     CategoriesRepository.findByGroup(groupId),
-    TransactionsRepository.getByGroup(groupId, {
-      limit: REPORTS_TRANSACTIONS_LIMIT,
-      countTotal: false,
-    }),
   ]);
-
-  // Drizzle returns numeric() columns as strings from Postgres — coerce to numbers here
-  const normalizedTransactions: Transaction[] = (allTransactions || []).map(
-    (t: typeof transactions.$inferSelect) => ({
-      ...t,
-      amount: Number(t.amount),
-    })
-  ) as Transaction[];
 
   const normalizedAccounts: Account[] = (allAccounts || []).map((a: Account) => ({
     ...a,
@@ -152,12 +140,32 @@ export async function getReportsDataUseCase(groupId: string, groupUserIds?: stri
   const allPeriods: BudgetPeriod[] = periodArrays.flat();
 
   return {
-    transactions: normalizedTransactions,
     accounts: normalizedAccounts,
     periods: allPeriods,
     categories: allCategories || [],
     users: filteredUsers,
   };
+}
+
+export async function getReportsTransactionsUseCase(
+  groupId: string,
+  window: { startDate: Date; endDate: Date }
+): Promise<{ transactions: Transaction[]; hasMore: boolean }> {
+  const { data: allTransactions, hasMore } = await TransactionsRepository.getByGroup(groupId, {
+    startDate: window.startDate,
+    endDate: window.endDate,
+    limit: REPORTS_TRANSACTIONS_LIMIT,
+    countTotal: false,
+  });
+
+  const normalizedTransactions: Transaction[] = (allTransactions || []).map(
+    (t: typeof transactions.$inferSelect) => ({
+      ...t,
+      amount: Number(t.amount),
+    })
+  ) as Transaction[];
+
+  return { transactions: normalizedTransactions, hasMore };
 }
 
 /**

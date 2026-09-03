@@ -11,7 +11,8 @@ export function appliedQueryToFiltersState(
   applied: AppliedTransactionsQuery,
   searchQuery: string
 ): TransactionFiltersState {
-  const resolvedType = applied.type === 'transfer' ? 'all' : applied.type;
+  const resolvedType =
+    applied.type === 'income' || applied.type === 'expense' ? applied.type : 'all';
   const keysFromCsv = applied.categories
     ? applied.categories
         .split(',')

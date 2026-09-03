@@ -3,6 +3,10 @@
  * Reusable primitives to standardize the migration of dashboard-like pages.
  */
 
+/** Bottom padding for dashboard mains so content clears the fixed tab bar. */
+export const dashboardContentBottomPadding =
+  'pb-[max(7rem,calc(5.5rem+env(safe-area-inset-bottom)))]';
+
 /** Superfici Stitch solide — navy uniforme, senza gradienti/blur decorativi. */
 export const stitchSurface = {
   card: 'rounded-xl border border-border/25 bg-card/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]',
@@ -386,6 +390,8 @@ export const stitchReports = {
     'sticky z-30 w-full border-b border-border/25 bg-background/90 px-4 py-2 backdrop-blur-sm',
   chipRow: 'flex gap-2 overflow-x-auto pb-1 scrollbar-hide',
   sectionStack: 'flex flex-col gap-5 pt-1',
+  incompleteNotice:
+    'rounded-xl border border-warning/35 bg-warning/10 px-3 py-2 text-sm text-foreground',
   sectionTitle: 'text-lg font-semibold tracking-tight text-foreground',
   /** Hero bento — card principale flusso netto */
   heroNetCard:
@@ -475,7 +481,7 @@ export const stitchTransactionFilterTriggers = {
  * Settings page — dark Stitch (aligned with stitchHome / stitchDashboardShell).
  */
 export const stitchSettings = {
-  pageMain: 'flex flex-col gap-5 px-4 pt-1 pb-20',
+  pageMain: `flex flex-col gap-5 px-4 pt-1 ${dashboardContentBottomPadding}`,
   sectionEyebrow: 'px-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground',
   sectionCard:
     'overflow-hidden rounded-2xl border border-border/20 bg-card/90 shadow-[0_16px_36px_rgba(0,7,30,0.28)]',

@@ -98,15 +98,6 @@ export function useOnboardingWizard({ categories, onComplete }: UseOnboardingWiz
     [t]
   );
 
-  const fallbackCategoryOptions = useMemo(
-    () => [
-      { value: 'expense', label: t('fallbackCategories.expense') },
-      { value: 'utilities', label: t('fallbackCategories.utilities') },
-      { value: 'other', label: t('fallbackCategories.other') },
-    ],
-    [t]
-  );
-
   const canProceed = useMemo(() => {
     if (currentStep === 0) {
       return groupName.trim().length > 1;
@@ -117,6 +108,7 @@ export function useOnboardingWizard({ categories, onComplete }: UseOnboardingWiz
     }
 
     if (currentStep === 2) {
+      if (categories.length === 0) return false;
       return budgets.every((budget) => {
         const amount = Number.parseFloat(budget.amount);
         return (
@@ -129,20 +121,22 @@ export function useOnboardingWizard({ categories, onComplete }: UseOnboardingWiz
     }
 
     return true;
-  }, [currentStep, groupName, accounts, budgets]);
+  }, [currentStep, groupName, accounts, budgets, categories.length]);
 
-  const categoryOptions = categories.length
-    ? categories.map((category) => ({ value: category.id, label: category.label }))
-    : fallbackCategoryOptions;
+  const categoryOptions = categories.map((category) => ({
+    value: category.id,
+    label: category.label,
+  }));
 
   const handleNext = useCallback(() => {
     if (!canProceed) {
       setLocalError(t('errors.completeRequiredFields'));
       return;
     }
-    setLocalError(null);
-    setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
-  }, [canProceed, steps.length, t]);
+    const nextStep = Math.min(currentStep + 1, steps.length - 1);
+    setLocalError(nextStep === 2 && categories.length === 0 ? t('categories.noneAvailable') : null);
+    setCurrentStep(nextStep);
+  }, [canProceed, currentStep, steps.length, categories.length, t]);
 
   const handleBack = useCallback(() => {
     setLocalError(null);

@@ -14,7 +14,6 @@ export {
   type TransactionDayListProps,
 } from './transaction-day-list';
 
-export { TransactionPagination } from './transaction-pagination';
 export { TransactionsScreenList } from './transactions-screen-list';
 export { RecurrentTabPanel } from './recurrent-tab-panel';
 export { TransactionFilterChips } from './transaction-filter-chips';

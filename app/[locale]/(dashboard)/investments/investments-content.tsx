@@ -11,7 +11,6 @@ import UserSelector from '@/components/shared/user-selector';
 import { User } from '@/lib';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui';
 import { PersonalInvestmentTab } from '@/features/investments/components/personal-investment-tab';
-import { useInvestmentsList } from '@/features/investments/hooks/use-investments-list';
 import { stitchInvestments, stitchTransactions } from '@/styles/home-design-foundation';
 import { useModalState, useTabState } from '@/lib/navigation/url-state';
 import type { InvestmentsPageData } from '@/server/use-cases/pages/investments-page.use-case';
@@ -42,18 +41,8 @@ export default function InvestmentsContent({
     portfolioHistory,
     indexData,
     currentIndex,
-    holdings: initialHoldings,
-    hasMore: initialHasMore,
-    nextCursor: initialNextCursor,
-    userScope,
+    holdings,
   } = pageData;
-
-  const { holdings, hasMore, isLoadingMore, loadMore } = useInvestmentsList({
-    initialHoldings,
-    initialHasMore,
-    initialNextCursor,
-    userScope,
-  });
 
   const t = useTranslations('InvestmentsContent');
   const tActionMenu = useTranslations('Header.ActionMenu');
@@ -121,9 +110,6 @@ export default function InvestmentsContent({
                 indexData={indexData}
                 currentIndex={currentIndex}
                 holdings={holdings}
-                hasMore={hasMore}
-                isLoadingMore={isLoadingMore}
-                onLoadMore={loadMore}
               />
             </div>
           </TabsContent>

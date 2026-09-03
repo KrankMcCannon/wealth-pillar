@@ -37,9 +37,6 @@ interface PersonalInvestmentTabProps {
     | undefined;
   currentIndex?: string | undefined;
   holdings: InvestmentListItem[];
-  hasMore: boolean;
-  isLoadingMore: boolean;
-  onLoadMore: () => void;
 }
 
 export function PersonalInvestmentTab({
@@ -49,9 +46,6 @@ export function PersonalInvestmentTab({
   indexData,
   currentIndex = 'IVV',
   holdings,
-  hasMore,
-  isLoadingMore,
-  onLoadMore,
 }: Readonly<PersonalInvestmentTabProps>) {
   const benchmarkAnchorId = 'benchmark-chart';
   const router = useRouter();
@@ -91,12 +85,7 @@ export function PersonalInvestmentTab({
         />
       </div>
 
-      <InvestmentsScreenList
-        holdings={holdings}
-        hasMore={hasMore}
-        isLoadingMore={isLoadingMore}
-        onLoadMore={onLoadMore}
-      />
+      <InvestmentsScreenList holdings={holdings} />
     </div>
   );
 }

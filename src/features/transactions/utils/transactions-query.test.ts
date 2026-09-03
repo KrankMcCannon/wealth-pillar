@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  appliedQueryToFiltersState,
   appliedQueryToListQuery,
   buildTransactionsQueryString,
   matchesAppliedQuery,
@@ -48,6 +49,16 @@ describe('buildTransactionsQueryString', () => {
     expect(qs).toMatch(/q=caff/);
     expect(qs).not.toContain('page=');
     expect(qs).not.toContain('pageSize=');
+  });
+});
+
+describe('appliedQueryToFiltersState', () => {
+  it('keeps income/expense chips and treats other types as all', () => {
+    expect(appliedQueryToFiltersState({ type: 'income', dateRange: 'all' }, '').type).toBe(
+      'income'
+    );
+    expect(appliedQueryToFiltersState({ type: 'all', dateRange: 'all' }, '').type).toBe('all');
+    expect(appliedQueryToFiltersState({ type: 'transfer', dateRange: 'all' }, '').type).toBe('all');
   });
 });
 

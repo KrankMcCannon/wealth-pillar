@@ -36,7 +36,7 @@ export const BudgetSection = ({
 
   const goToBudgets = useCallback(() => router.push('/budgets'), [router]);
   const goToMemberBudgets = useCallback(
-    (userId: string) => router.push(`/budgets?userId=${encodeURIComponent(userId)}`),
+    (userId: string) => router.push(`/budgets?user=${encodeURIComponent(userId)}`),
     [router]
   );
 

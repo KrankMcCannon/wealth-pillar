@@ -25,8 +25,19 @@ import {
   stitchSurface,
 } from '@/styles/home-design-foundation';
 import { buildRecurringView } from '@/lib/recurring/recurring-view';
-import { cn } from '@/lib/utils';
+import { cn, type AmountVariants } from '@/lib/utils';
 import { User } from '@/lib/types';
+
+type RecurringStatCard = {
+  label: string;
+  Icon: typeof Banknote;
+  itemClass: string;
+  iconWrap: string;
+  iconClass: string;
+  valueClass: string;
+  amount: number;
+  amountType: NonNullable<AmountVariants['type']>;
+};
 
 interface RecurringSeriesSectionProps {
   readonly series: RecurringTransactionSeries[];
@@ -80,41 +91,40 @@ export function RecurringSeriesSection({
   } = view;
 
   const monthlyStats = useMemo(() => {
-    let summaryCard = {
-      label: t('summary.totalMonthlyLabel'),
-      Icon: Banknote,
-      itemClass: stitchRecurring.statMiniItemPrimary,
-      iconWrap: stitchRecurring.statMiniIconWrap,
-      iconClass: stitchRecurring.statMiniIcon,
-      valueClass: stitchRecurring.statMiniValuePrimary,
-      amount: totalMonthlyRecurring,
-      amountType: 'neutral' as const,
-    };
-
-    if (totalMonthlyRecurring < 0) {
-      summaryCard = {
-        label: t('summary.netOutflowLabel'),
-        Icon: TrendingDown,
-        itemClass: stitchRecurring.statMiniItemDestructive,
-        iconWrap: stitchRecurring.statMiniIconWrapDestructive,
-        iconClass: stitchRecurring.statMiniIconDestructive,
-        valueClass: stitchRecurring.statMiniValueDestructive,
-        // Show absolute value — "Uscita netta" + red color already communicate direction
-        amount: Math.abs(totalMonthlyRecurring),
-        amountType: 'expense' as const,
-      };
-    } else if (totalMonthlyRecurring > 0) {
-      summaryCard = {
-        label: t('summary.netInflowLabel'),
-        Icon: TrendingUp,
-        itemClass: stitchRecurring.statMiniItemSuccess,
-        iconWrap: stitchRecurring.statMiniIconWrapSuccess,
-        iconClass: stitchRecurring.statMiniIconSuccess,
-        valueClass: stitchRecurring.statMiniValueSuccess,
-        amount: totalMonthlyRecurring,
-        amountType: 'income' as const,
-      };
-    }
+    const summaryCard: RecurringStatCard =
+      totalMonthlyRecurring < 0
+        ? {
+            label: t('summary.netOutflowLabel'),
+            Icon: TrendingDown,
+            itemClass: stitchRecurring.statMiniItemDestructive,
+            iconWrap: stitchRecurring.statMiniIconWrapDestructive,
+            iconClass: stitchRecurring.statMiniIconDestructive,
+            valueClass: stitchRecurring.statMiniValueDestructive,
+            // Show absolute value — "Uscita netta" + red color already communicate direction
+            amount: Math.abs(totalMonthlyRecurring),
+            amountType: 'expense',
+          }
+        : totalMonthlyRecurring > 0
+          ? {
+              label: t('summary.netInflowLabel'),
+              Icon: TrendingUp,
+              itemClass: stitchRecurring.statMiniItemSuccess,
+              iconWrap: stitchRecurring.statMiniIconWrapSuccess,
+              iconClass: stitchRecurring.statMiniIconSuccess,
+              valueClass: stitchRecurring.statMiniValueSuccess,
+              amount: totalMonthlyRecurring,
+              amountType: 'income',
+            }
+          : {
+              label: t('summary.totalMonthlyLabel'),
+              Icon: Banknote,
+              itemClass: stitchRecurring.statMiniItemPrimary,
+              iconWrap: stitchRecurring.statMiniIconWrap,
+              iconClass: stitchRecurring.statMiniIcon,
+              valueClass: stitchRecurring.statMiniValuePrimary,
+              amount: totalMonthlyRecurring,
+              amountType: 'neutral',
+            };
 
     return [
       {

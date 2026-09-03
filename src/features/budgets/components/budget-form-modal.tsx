@@ -113,12 +113,15 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
     [categories]
   );
 
-  const loadEditValues = useCallback(async (id: string, signal: AbortSignal) => {
-    const result = await getBudgetByIdAction(id);
-    if (signal.aborted) return null;
-    if (!result.data) return null;
-    return mapBudgetToFormData(result.data);
-  }, []);
+  const loadEditValues = useCallback(
+    async (id: string, signal: AbortSignal) => {
+      const result = await getBudgetByIdAction(id, locale);
+      if (signal.aborted) return null;
+      if (!result.data) return null;
+      return mapBudgetToFormData(result.data);
+    },
+    [locale]
+  );
 
   const getEditValuesSync = useCallback(
     (id: string) => {

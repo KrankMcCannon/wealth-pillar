@@ -52,6 +52,71 @@ describe('sumIncomeExpenseInWindow', () => {
     expect(income).toBe(1000);
     expect(expenses).toBe(0);
   });
+
+  it('includes a date-only last day and excludes the next calendar day', () => {
+    const txs: Transaction[] = [
+      {
+        id: 'in',
+        description: '',
+        amount: 40,
+        type: 'expense',
+        category: 'food',
+        date: '2024-06-30',
+        user_id: 'u1',
+        account_id: 'a1',
+        to_account_id: null,
+        frequency: 'once',
+        recurring_series_id: null,
+        group_id: 'g1',
+        created_at: '',
+        updated_at: '',
+      },
+      {
+        id: 'out',
+        description: '',
+        amount: 99,
+        type: 'expense',
+        category: 'food',
+        date: '2024-07-01',
+        user_id: 'u1',
+        account_id: 'a1',
+        to_account_id: null,
+        frequency: 'once',
+        recurring_series_id: null,
+        group_id: 'g1',
+        created_at: '',
+        updated_at: '',
+      },
+    ];
+    const { expenses } = sumIncomeExpenseInWindow(txs, window);
+    expect(expenses).toBe(40);
+  });
+
+  it('ignores transfers in income and expense totals', () => {
+    const { income, expenses } = sumIncomeExpenseInWindow(
+      [
+        {
+          id: 'tr',
+          description: '',
+          amount: 100,
+          type: 'transfer',
+          category: 'savings',
+          date: '2024-06-10',
+          user_id: 'u1',
+          account_id: 'a1',
+          to_account_id: 'a2',
+          frequency: 'once',
+          recurring_series_id: null,
+          group_id: 'g1',
+          created_at: '',
+          updated_at: '',
+        },
+      ],
+      window
+    );
+    expect(income).toBe(0);
+    expect(expenses).toBe(0);
+  });
 });
 
 describe('computeGroupAccountTypeSummary', () => {

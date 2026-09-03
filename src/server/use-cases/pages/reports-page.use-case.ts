@@ -1,7 +1,8 @@
 import { cacheLife, cacheTag } from 'next/cache';
 import { endOfDay, startOfDay, subYears } from 'date-fns';
 import {
-  getReportsDataUseCase,
+  getReportsContextUseCase,
+  getReportsTransactionsUseCase,
   calculatePeriodSummariesUseCase,
   resolveYtdBudgetStart,
   type ReportPeriodSummary,
@@ -15,6 +16,7 @@ import {
 import {
   getComparisonReportingWindow,
   getCurrentReportingWindow,
+  unionReportingWindows,
   DEFAULT_REPORTS_PRESET,
   type ReportsTimePreset,
 } from '@/features/reports/utils/reporting-window';
@@ -36,6 +38,7 @@ export interface ReportsPageData {
   defaultScope: ReportsScope;
   preset: ReportsTimePreset;
   comparisonLabelKey: 'vsLastMonth' | 'vsLastWeek' | 'vsLastYear' | 'vsPreviousRange';
+  transactionsTruncated: boolean;
 }
 
 async function getCachedReportsPageData(
@@ -55,9 +58,10 @@ async function getCachedReportsPageData(
       ? { start: params.customStart, end: params.customEnd }
       : null;
 
-  const reportsData = await getReportsDataUseCase(groupId, groupUserIds);
-  const { transactions, accounts, periods, categories, users } = reportsData;
-
+  const { accounts, periods, categories, users } = await getReportsContextUseCase(
+    groupId,
+    groupUserIds
+  );
   const userIds = users.map((u) => u.id);
 
   let currentWindow: DateWindow = getCurrentReportingWindow(preset, customRange);
@@ -74,6 +78,12 @@ async function getCachedReportsPageData(
       };
     }
   }
+
+  const fetchWindow = unionReportingWindows(currentWindow, comparisonWindow);
+  const { transactions, hasMore: transactionsTruncated } = await getReportsTransactionsUseCase(
+    groupId,
+    { startDate: fetchWindow.start, endDate: fetchWindow.end }
+  );
 
   const periodSummaries = calculatePeriodSummariesUseCase(periods, transactions, accounts);
   const filteredPeriods = periodSummaries
@@ -121,6 +131,7 @@ async function getCachedReportsPageData(
     defaultScope,
     preset,
     comparisonLabelKey,
+    transactionsTruncated,
   };
 }
 

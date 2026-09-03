@@ -153,6 +153,12 @@ export default function ReportsContent({
         {...(isPending ? { className: 'opacity-70 transition-opacity' } : {})}
       >
         <div className={stitchReports.sectionStack}>
+          {data.transactionsTruncated ? (
+            <p className={stitchReports.incompleteNotice} role="status">
+              {t('incompleteData')}
+            </p>
+          ) : null}
+
           <UserSelector
             hideTitle
             currentUser={currentUser}

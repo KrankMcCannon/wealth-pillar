@@ -21,7 +21,6 @@ import type { User } from '@/lib/types';
 import type { DashboardPageData } from '@/server/use-cases/pages/dashboard.use-case';
 
 const RECURRING_MAX_ITEMS = 5;
-const RECENT_ACTIVITY_MAX = 5;
 
 interface HomeContentProps {
   currentUser: User;
@@ -38,7 +37,7 @@ export default function HomeContent({
   const {
     recurringSeries = [],
     budgetsByUser = {},
-    transactions = [],
+    recentActivityByScope,
     categories = [],
     balanceViewModel = {
       totalBalanceAll: 0,
@@ -87,11 +86,11 @@ export default function HomeContent({
       : effectiveUserId;
 
   const recentTransactions = useMemo(() => {
-    const filtered = recentActivityUserId
-      ? transactions.filter((tx) => tx.user_id === recentActivityUserId)
-      : transactions;
-    return filtered.slice(0, RECENT_ACTIVITY_MAX);
-  }, [transactions, recentActivityUserId]);
+    if (recentActivityUserId) {
+      return recentActivityByScope.byUserId[recentActivityUserId] ?? [];
+    }
+    return recentActivityByScope.all;
+  }, [recentActivityByScope, recentActivityUserId]);
 
   return (
     <>

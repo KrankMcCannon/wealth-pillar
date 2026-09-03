@@ -6,7 +6,6 @@ import {
   buildPortfolioHistoryWithSnapshots,
   enrichPortfolioFromInvestments,
 } from './investment.portfolio.logic';
-import { decodeInvestmentCursor, encodeInvestmentCursor } from '@/lib/utils/investment-cursor';
 import type { InvestmentInsert, InvestmentsOverviewResult } from './investment.types';
 
 export type {
@@ -17,10 +16,6 @@ export type {
   InvestmentsOverviewResult,
   InvestmentInsert,
 } from './investment.types';
-
-export const INVESTMENTS_LIST_PAGE_SIZE = 30;
-
-type InvestmentRow = typeof investments.$inferSelect;
 
 export async function getInvestmentsOverviewUseCase(
   userIds: string | string[]
@@ -62,32 +57,6 @@ export async function getInvestmentsOverviewUseCase(
   return {
     ...portfolio,
     portfolioHistory,
-  };
-}
-
-export async function fetchInvestmentsHoldingsWindow(
-  userIds: string[],
-  cursor?: string
-): Promise<{ holdings: InvestmentRow[]; hasMore: boolean; nextCursor?: string }> {
-  const decodedCursor = cursor?.trim() ? decodeInvestmentCursor(cursor.trim()) : undefined;
-  const result = await InvestmentRepository.findByUsersKeyset({
-    userIds,
-    limit: INVESTMENTS_LIST_PAGE_SIZE,
-    ...(decodedCursor
-      ? { cursorAfter: { createdAt: decodedCursor.createdAt, id: decodedCursor.id } }
-      : {}),
-  });
-
-  const last = result.data[result.data.length - 1];
-  const nextCursor =
-    result.hasMore && last
-      ? encodeInvestmentCursor({ created_at: last.created_at, id: last.id })
-      : undefined;
-
-  return {
-    holdings: result.data,
-    hasMore: result.hasMore,
-    ...(nextCursor ? { nextCursor } : {}),
   };
 }
 

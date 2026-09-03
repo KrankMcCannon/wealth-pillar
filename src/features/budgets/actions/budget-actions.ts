@@ -162,27 +162,31 @@ export async function updateBudgetAction(
   }
 }
 
-export async function getBudgetByIdAction(id: string): Promise<ServiceResult<Budget>> {
+export async function getBudgetByIdAction(
+  id: string,
+  locale?: string
+): Promise<ServiceResult<Budget>> {
+  const t = await getBudgetsActionTranslator(locale);
   try {
     const currentUser = await getCurrentUser();
     if (!currentUser) {
-      return { data: null, error: 'Non autenticato' };
+      return { data: null, error: t('errors.unauthenticated') };
     }
 
     const budget = await getBudgetByIdUseCase(id);
     if (!budget?.user_id) {
-      return { data: null, error: 'Budget non trovato' };
+      return { data: null, error: t('errors.notFound') };
     }
 
     if (!AccessScope.for(currentUser as unknown as User).canViewOwned(budget)) {
-      return { data: null, error: 'Permesso negato' };
+      return { data: null, error: t('errors.permissionDenied') };
     }
 
     return { data: budget, error: null };
   } catch (error) {
     return {
       data: null,
-      error: error instanceof Error ? error.message : 'Failed to load budget',
+      error: error instanceof Error ? error.message : t('errors.loadFailed'),
     };
   }
 }

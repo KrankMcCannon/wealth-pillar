@@ -6,6 +6,8 @@ import {
   useOptimisticTransactionStore,
 } from '../stores/optimistic-transactions';
 import type { Transaction } from '@/lib/types';
+import { loadMoreTransactionsAction } from '../actions/transaction-actions';
+import { toast } from '@/hooks/use-toast';
 
 vi.mock('next/navigation', () => ({
   useSearchParams: () => new URLSearchParams(),
@@ -26,6 +28,14 @@ vi.mock('@/hooks/use-debounced-value', () => ({
 vi.mock('@/lib/navigation/url-state', () => ({
   useModalState: () => ({ openModal: vi.fn() }),
   useTabState: () => ({ activeTab: 'Transactions', setActiveTab: vi.fn() }),
+}));
+
+vi.mock('next-intl', () => ({
+  useTranslations: () => (key: string) => key,
+}));
+
+vi.mock('@/hooks/use-toast', () => ({
+  toast: vi.fn(),
 }));
 
 vi.mock('../actions/transaction-actions', () => ({
@@ -60,6 +70,8 @@ const baseProps = {
 describe('useTransactionsContent optimistic merge', () => {
   beforeEach(() => {
     useOptimisticTransactionStore.getState().reset();
+    vi.mocked(loadMoreTransactionsAction).mockReset();
+    vi.mocked(toast).mockReset();
   });
 
   it('keeps optimistic rows when server transactions refresh', () => {
@@ -147,5 +159,34 @@ describe('useTransactionsContent optimistic merge', () => {
 
     expect(result.current.listItems.filter((item) => item.id === 'real-1')).toHaveLength(1);
     expect(useOptimisticTransactionStore.getState().pending).toHaveLength(0);
+  });
+
+  it('toasts and clears the load-more lock when the action fails', async () => {
+    vi.mocked(loadMoreTransactionsAction).mockResolvedValue({
+      data: null,
+      error: 'network',
+    });
+
+    const { result } = renderHook((props) => useTransactionsContent(props), {
+      initialProps: {
+        ...baseProps,
+        hasMore: true,
+        nextCursor: 'cursor-1',
+        transactions: [serverTx],
+      },
+    });
+
+    await act(async () => {
+      await result.current.loadMore();
+    });
+
+    expect(toast).toHaveBeenCalledWith({ title: 'loadMoreError', variant: 'destructive' });
+    expect(result.current.isLoadingMore).toBe(false);
+
+    await act(async () => {
+      await result.current.loadMore();
+    });
+
+    expect(loadMoreTransactionsAction).toHaveBeenCalledTimes(2);
   });
 });

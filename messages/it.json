@@ -388,7 +388,8 @@
     "home": "Torna alla home"
   },
   "ReportsContent": {
-    "headerTitle": "Rapporti"
+    "headerTitle": "Rapporti",
+    "incompleteData": "Il periodo include più movimenti di quelli che possiamo calcolare. I totali potrebbero essere parziali."
   },
   "Reports": {
     "TimeFilter": {
@@ -1537,6 +1538,9 @@
         "cannotReassignAsMember": "Non puoi assegnare il budget a un altro utente.",
         "noPermissionAssignUser": "Non hai i permessi per assegnare questo budget a questo utente.",
         "updateFailed": "Impossibile aggiornare il budget",
+        "notFound": "Budget non trovato",
+        "permissionDenied": "Permesso negato",
+        "loadFailed": "Impossibile caricare il budget",
         "noPermissionDelete": "Non hai i permessi per eliminare questo budget.",
         "deleteFailed": "Impossibile eliminare il budget"
       }
