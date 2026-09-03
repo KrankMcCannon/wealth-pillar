@@ -162,33 +162,30 @@ export class TransactionsRepository {
     if (options?.category) {
       conditions.push(eq(transactions.category, options.category));
     }
+    if (options?.categoryKeys?.length) {
+      conditions.push(inArray(transactions.category, options.categoryKeys));
+    }
     if (options?.type) {
       conditions.push(eq(transactions.type, options.type));
     }
 
-    const baseQuery = db
+    const listWhere = and(...conditions);
+
+    let query = db
       .select()
       .from(transactions)
-      .where(and(...conditions));
-
-    const countResult2 = await db
-      .select({ total: count() })
-      .from(transactions)
-      .where(and(...conditions));
-    const total = countResult2[0]?.total ?? 0;
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let query: any = baseQuery.orderBy(desc(transactions.date), desc(transactions.created_at));
+      .where(listWhere)
+      .orderBy(desc(transactions.date), desc(transactions.created_at));
 
     if (options?.limit) {
-      query = query.limit(options.limit);
+      query = query.limit(options.limit) as typeof query;
     }
 
     const data = await query;
 
     return {
       data,
-      total,
+      total: data.length,
     };
   }
 

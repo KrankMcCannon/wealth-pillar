@@ -41,6 +41,14 @@ export async function getTransactionsByUserUseCase(
 ): Promise<Transaction[]> {
   if (!userId?.trim()) throw new Error('User ID is required');
 
+  const filterKey = JSON.stringify({
+    startDate: options?.startDate?.toISOString() ?? null,
+    endDate: options?.endDate?.toISOString() ?? null,
+    category: options?.category ?? null,
+    categoryKeys: options?.categoryKeys ?? null,
+    limit: options?.limit ?? null,
+  });
+
   const getCachedTransactions = cached(
     async () => {
       const result = await TransactionsRepository.getByUser(userId, options);
@@ -48,7 +56,7 @@ export async function getTransactionsByUserUseCase(
         result.data.map((t: (typeof result.data)[number]) => ({ ...t, amount: Number(t.amount) }))
       ) as Transaction[];
     },
-    transactionCacheKeys.byUser(userId),
+    transactionCacheKeys.byUser(userId, filterKey),
     cacheOptions.transactionsByUser(userId)
   );
 

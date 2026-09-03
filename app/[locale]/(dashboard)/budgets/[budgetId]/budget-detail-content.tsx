@@ -8,6 +8,7 @@ import { usePageHeader } from '@/hooks/use-page-header';
 import { Button } from '@/components/ui';
 import { BudgetCategoryLucideIcon } from '@/features/budgets/components/budget-category-lucide-icon';
 import { getBudgetCategoryStatus } from '@/features/budgets/components/budget-category-card';
+import { BudgetProgressBar } from '@/features/budgets/components/budget-progress-bar';
 import { TransactionDayList } from '@/features/transactions';
 import { useTransactionEditStore } from '@/features/transactions/stores/transaction-edit-store';
 import { useModalState } from '@/lib/navigation/url-state';
@@ -116,6 +117,17 @@ export default function BudgetDetailContent({ pageDataPromise }: BudgetDetailCon
 
             <div className={stitchBudgets.heroMetricsRow}>
               <div>
+                <p className={stitchBudgets.heroMetricLabel}>{t('metrics.remaining')}</p>
+                <p
+                  className={cn(
+                    stitchBudgets.heroMetricValue,
+                    progress.remaining < 0 && 'text-expense'
+                  )}
+                >
+                  {formatCurrencyLocale(progress.remaining, locale)}
+                </p>
+              </div>
+              <div>
                 <p className={stitchBudgets.heroMetricLabel}>{t('metrics.spent')}</p>
                 <p className={stitchBudgets.heroMetricValue}>
                   {formatCurrencyLocale(progress.spent, locale)}
@@ -127,17 +139,18 @@ export default function BudgetDetailContent({ pageDataPromise }: BudgetDetailCon
                   {formatCurrencyLocale(progress.amount, locale)}
                 </p>
               </div>
-              <div>
-                <p className={stitchBudgets.heroMetricLabel}>{t('metrics.remaining')}</p>
-                <p
-                  className={cn(
-                    stitchBudgets.heroMetricValue,
-                    progress.remaining < 0 && 'text-expense'
-                  )}
-                >
-                  {formatCurrencyLocale(progress.remaining, locale)}
-                </p>
-              </div>
+            </div>
+
+            <div className="mt-4">
+              <BudgetProgressBar
+                percent={progress.percentage}
+                label={t('progressAria', { percent: Math.round(progress.percentage) })}
+                fillClassName={cn(
+                  status === 'over' && stitchBudgets.progressFillOver,
+                  status === 'fixed' && stitchBudgets.progressFillFixed,
+                  status === 'onTrack' && stitchBudgets.progressFillPrimary
+                )}
+              />
             </div>
           </section>
 

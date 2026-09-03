@@ -1342,6 +1342,8 @@
       "spentPrefix": "Speso:",
       "totalPrefix": "Totale:",
       "availablePrefix": "Disponibile:",
+      "assignedPrefix": "Assegnato:",
+      "progressAria": "Budget di {name}, {percent} percento utilizzato",
       "exceededPrefix": "Sforamento:",
       "empty": {
         "title": "Nessun budget configurato",
@@ -1402,10 +1404,14 @@
       "hero": {
         "totalAvailable": "Totale disponibile da spendere",
         "totalSpent": "Totale speso",
-        "outOf": "su {total}"
+        "totalAssigned": "Assegnato",
+        "outOf": "su {total}",
+        "srHeading": "Riepilogo budget"
       },
       "closePeriod": "Chiudi periodo",
       "editClosingDate": "Modifica ultima chiusura",
+      "periodActionsAria": "Azioni del periodo",
+      "periodCloseSuccess": "Periodo chiuso. Il periodo successivo è iniziato.",
       "fabAddBudget": "Aggiungi budget",
       "categoryCard": {
         "ariaOpenDetail": "Open budget details: {name}",
@@ -1417,7 +1423,8 @@
         "footerPaidInFull": "Saldato",
         "footerPercentUsed": "{percent}% usato",
         "footerLeft": "{amount} rimanenti",
-        "footerOver": "{amount} oltre"
+        "footerOver": "{amount} oltre",
+        "progressAria": "{name}, {percent} percento del budget utilizzato"
       },
       "today": "Oggi",
       "transactionCount": "{count} {count, plural, one {transazione} other {transazioni}}",
@@ -1445,6 +1452,7 @@
         "limit": "Limite",
         "remaining": "Rimanente"
       },
+      "progressAria": "Budget rimanente, {percent} percento utilizzato",
       "categoriesTitle": "Categorie di spesa",
       "transactions": {
         "sectionTitle": "Transazioni del budget",

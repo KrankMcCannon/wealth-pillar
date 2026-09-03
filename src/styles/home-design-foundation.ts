@@ -113,11 +113,19 @@ export const stitchBudgets = {
   heroMetricLabel: 'text-[11px] font-medium uppercase tracking-wide text-muted-foreground',
   heroMetricValue: 'mt-1 text-[17px] font-semibold leading-tight tabular-nums text-foreground',
   heroGradientBar: 'hidden',
+  heroStatMiniRow: 'mt-4 grid grid-cols-2 gap-2 border-t border-border/25 pt-4',
+  periodHeader:
+    'flex items-center justify-between gap-2 rounded-xl border border-border/40 bg-card/90 px-2 py-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]',
+  periodHeaderDates:
+    'flex min-w-0 items-center gap-2 px-2 text-sm font-semibold tabular-nums tracking-tight text-foreground',
+  periodHeaderIcon: 'h-4 w-4 shrink-0 text-primary',
+  overflowTrigger:
+    'flex size-11 shrink-0 items-center justify-center rounded-lg border border-border/45 bg-secondary/40 text-foreground transition-colors hover:bg-secondary/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35 disabled:pointer-events-none disabled:opacity-45',
   closePeriodButton:
     'flex w-full items-center justify-center gap-2 rounded-lg border-2 border-border/55 bg-transparent px-6 py-3 text-sm font-medium tracking-wide text-muted-foreground transition-all hover:bg-secondary/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35',
   listStack: 'flex flex-col gap-4',
   categoryCard:
-    'group relative flex w-full flex-col gap-3 rounded-xl border border-border/25 bg-card/90 p-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] transition-transform duration-200 hover:scale-[1.01] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45',
+    'group relative flex w-full flex-col gap-3 rounded-xl border border-border/25 bg-card/90 p-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] transition-transform duration-200 hover:scale-[1.01] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45 motion-reduce:transform-none motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100',
   categoryCardSelected: 'ring-2 ring-ring/55 ring-offset-2 ring-offset-background',
   categoryCardOver: 'border-expense/35',
   categoryCardOverGlow: 'hidden',
@@ -125,7 +133,7 @@ export const stitchBudgets = {
   categoryTitleRow: 'flex min-w-0 items-center gap-2.5',
   /** Icon 40px — cerchio primary-fixed / secondary / error come Stitch. */
   iconWrapOnTrack:
-    'flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-primary/35 bg-primary/12 text-primary-foreground',
+    'flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-primary/35 bg-primary/12 text-primary',
   iconWrapFixed:
     'flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border/35 bg-secondary/35 text-primary-foreground',
   iconWrapOver:
@@ -285,7 +293,8 @@ export const stitchStatMini = {
   icon: 'h-2.5 w-2.5 text-primary',
   iconSuccess: 'h-2.5 w-2.5 text-income',
   iconDestructive: 'h-2.5 w-2.5 text-expense',
-  label: 'line-clamp-2 text-[10px] font-semibold uppercase leading-tight tracking-wide text-muted-foreground',
+  label:
+    'line-clamp-2 text-[10px] font-semibold uppercase leading-tight tracking-wide text-muted-foreground',
   value: 'text-base font-semibold tabular-nums leading-tight text-foreground',
   valuePrimary: 'text-base font-semibold tabular-nums leading-tight text-primary',
   valueSuccess: 'text-base font-semibold tabular-nums leading-tight text-income',

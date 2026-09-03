@@ -1342,6 +1342,8 @@
       "spentPrefix": "Spent:",
       "totalPrefix": "Total:",
       "availablePrefix": "Available:",
+      "assignedPrefix": "Assigned:",
+      "progressAria": "{name} budget, {percent} percent used",
       "exceededPrefix": "Exceeded:",
       "empty": {
         "title": "No budgets configured",
@@ -1402,10 +1404,14 @@
       "hero": {
         "totalAvailable": "Total available to spend",
         "totalSpent": "Total spent",
-        "outOf": "of {total}"
+        "totalAssigned": "Assigned",
+        "outOf": "of {total}",
+        "srHeading": "Budget summary"
       },
       "closePeriod": "Close period",
       "editClosingDate": "Adjust last closing date",
+      "periodActionsAria": "Period actions",
+      "periodCloseSuccess": "Period closed. The next period has started.",
       "fabAddBudget": "Add budget",
       "categoryCard": {
         "ariaOpenDetail": "Open budget details: {name}",
@@ -1417,7 +1423,8 @@
         "footerPaidInFull": "Paid in full",
         "footerPercentUsed": "{percent}% used",
         "footerLeft": "{amount} left",
-        "footerOver": "{amount} over"
+        "footerOver": "{amount} over",
+        "progressAria": "{name}, {percent} percent of budget used"
       },
       "today": "Today",
       "transactionCount": "{count} {count, plural, one {transaction} other {transactions}}",
@@ -1445,6 +1452,7 @@
         "limit": "Limit",
         "remaining": "Remaining"
       },
+      "progressAria": "Budget remaining, {percent} percent used",
       "categoriesTitle": "Spending categories",
       "transactions": {
         "sectionTitle": "Budget transactions",

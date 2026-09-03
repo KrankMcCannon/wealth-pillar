@@ -6,7 +6,7 @@
 
 import { use, useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { CalendarClock, CheckCircle2, ShoppingCart } from 'lucide-react';
+import { ShoppingCart } from 'lucide-react';
 import { PageFab, HomeDashboardMain } from '@/components/layout';
 import { usePageHeader } from '@/hooks/use-page-header';
 import { EmptyState } from '@/components/shared';
@@ -15,6 +15,7 @@ import {
   BudgetChart,
   BudgetsSummaryHero,
   BudgetCategoryCard,
+  BudgetPeriodHeader,
   CloseBudgetPeriodModal,
   EditClosingDateModal,
 } from '@/features/budgets/components';
@@ -74,6 +75,7 @@ export default function BudgetsContent({
   } = useBudgetsContent(props);
   const [isClosePeriodModalOpen, setIsClosePeriodModalOpen] = useState(false);
   const [isEditClosingDateModalOpen, setIsEditClosingDateModalOpen] = useState(false);
+  const [periodStatusMessage, setPeriodStatusMessage] = useState('');
 
   usePageHeader({
     title: t('title'),
@@ -100,39 +102,32 @@ export default function BudgetsContent({
 
           {userBudgetSummary && userBudgetSummary.budgets.length > 0 ? (
             <>
+              <BudgetPeriodHeader
+                periodStart={userBudgetSummary.periodStart}
+                periodEnd={userBudgetSummary.periodEnd}
+                onClosePeriod={() => setIsClosePeriodModalOpen(true)}
+                onEditClosingDate={() => setIsEditClosingDateModalOpen(true)}
+              />
+
               <BudgetsSummaryHero
                 summary={userBudgetSummary}
                 labels={{
                   totalAvailable: t('hero.totalAvailable'),
                   totalSpent: t('hero.totalSpent'),
-                  outOf: (total) => t('hero.outOf', { total }),
+                  totalAssigned: t('hero.totalAssigned'),
+                  srHeading: t('hero.srHeading'),
                 }}
               />
 
-              <div className="flex flex-col items-center gap-2">
-                <button
-                  type="button"
-                  className={stitchBudgets.closePeriodButton}
-                  onClick={() => setIsClosePeriodModalOpen(true)}
-                >
-                  <CheckCircle2 className="h-5 w-5 shrink-0" aria-hidden />
-                  {t('closePeriod')}
-                </button>
-
-                <button
-                  type="button"
-                  className={stitchBudgets.closePeriodButton}
-                  onClick={() => setIsEditClosingDateModalOpen(true)}
-                >
-                  <CalendarClock className="h-5 w-5 shrink-0" aria-hidden />
-                  {t('editClosingDate')}
-                </button>
+              <div role="status" aria-live="polite" className="sr-only">
+                {periodStatusMessage}
               </div>
 
               <CloseBudgetPeriodModal
                 key={isClosePeriodModalOpen ? budgetContextUserId : 'closed'}
                 isOpen={isClosePeriodModalOpen}
                 onClose={() => setIsClosePeriodModalOpen(false)}
+                onSuccess={() => setPeriodStatusMessage(t('periodCloseSuccess'))}
                 userId={budgetContextUserId}
               />
 

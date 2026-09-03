@@ -10,9 +10,11 @@ import { Amount } from '@/components/ui/primitives/amount';
 import {
   budgetStyles,
   getBudgetSectionProgressStyles,
-  getBudgetSectionProgressBarStyle,
 } from '@/features/budgets/theme/budget-styles';
+import { BudgetProgressBar } from '@/features/budgets/components/budget-progress-bar';
+import { deriveUserBudgetStatus } from '@/features/budgets/utils/budget-status';
 import { useRouter } from '@/i18n/routing';
+import { formatDateShort } from '@/lib/utils/date-utils';
 import { cn } from '@/lib/utils';
 import { stitchHome, stitchSurface } from '@/styles/home-design-foundation';
 
@@ -32,6 +34,7 @@ export const BudgetSection = ({
 }: BudgetSectionProps) => {
   const router = useRouter();
   const t = useTranslations('Budgets.HomeSection');
+  const tPage = useTranslations('Budgets.Page');
   const locale = useLocale();
 
   const goToBudgets = useCallback(() => router.push('/budgets'), [router]);
@@ -98,26 +101,28 @@ export const BudgetSection = ({
       <div className="flex flex-col gap-2">
         {sortedBudgetEntries.map((entry) => {
           const progressClasses = getBudgetSectionProgressStyles(entry.overallPercentage);
+          const status = deriveUserBudgetStatus(entry);
           const periodLabel =
             entry.activePeriod && entry.periodStart
-              ? `${new Date(entry.periodStart).toLocaleDateString(locale, {
-                  day: 'numeric',
-                  month: 'short',
-                })} - ${
-                  entry.periodEnd
-                    ? new Date(entry.periodEnd).toLocaleDateString(locale, {
-                        day: 'numeric',
-                        month: 'short',
-                      })
-                    : t('periodOngoing')
+              ? `${formatDateShort(entry.periodStart, locale)} – ${
+                  entry.periodEnd ? formatDateShort(entry.periodEnd, locale) : t('periodOngoing')
                 }`
               : t('periodOngoing');
+          const badgeLabel =
+            status === 'over'
+              ? tPage('categoryCard.badgeOver')
+              : status === 'fixed'
+                ? tPage('categoryCard.badgeFixed')
+                : tPage('categoryCard.badgeOnTrack');
 
           return (
             <button
               key={entry.user.id}
               type="button"
-              className={cn(stitchHome.listRowInteractiveMinTouch, 'flex-col items-stretch gap-2')}
+              className={cn(
+                stitchHome.listRowInteractiveMinTouch,
+                'flex-col items-stretch gap-1.5'
+              )}
               onClick={() => goToMemberBudgets(entry.user.id)}
             >
               <div className="flex w-full items-center gap-3">
@@ -126,48 +131,47 @@ export const BudgetSection = ({
                 </div>
                 <div className="min-w-0 flex-1 text-left">
                   <p className={stitchHome.rowTitle}>{entry.user.name ?? ''}</p>
-                  <p className={stitchHome.rowMeta}>{periodLabel}</p>
+                  <p className={stitchHome.rowMeta}>
+                    {periodLabel}
+                    <span className="mx-1.5 text-border">·</span>
+                    <span
+                      className={
+                        status === 'over'
+                          ? 'text-expense'
+                          : status === 'fixed'
+                            ? 'text-muted-foreground'
+                            : 'text-teal-accent'
+                      }
+                    >
+                      {badgeLabel}
+                    </span>
+                  </p>
                 </div>
                 <Amount
-                  type="neutral"
+                  type={entry.totalRemaining < 0 ? 'expense' : 'income'}
                   size="lg"
                   emphasis="strong"
-                  className="shrink-0 text-foreground"
+                  className="shrink-0"
                 >
-                  {entry.totalBudget}
+                  {entry.totalRemaining}
                 </Amount>
               </div>
 
-              <p className="w-full text-left text-xs text-muted-foreground">
-                {t('spentPrefix')}{' '}
-                <Amount type="expense" size="sm" emphasis="subtle" className="inline">
-                  {entry.totalSpent}
-                </Amount>
-                <span className="mx-1.5 text-border">·</span>
-                {t('availablePrefix')}{' '}
-                <Amount type="income" size="sm" emphasis="subtle" className="inline">
-                  {entry.totalRemaining}
-                </Amount>
-              </p>
-
               <div className="flex w-full items-center gap-2">
                 <div className="flex-1">
-                  <div className={stitchHome.progressTrack}>
-                    <div
-                      className={`${budgetStyles.progress.barFillBase} ${progressClasses.bar}`}
-                      style={getBudgetSectionProgressBarStyle(entry.overallPercentage)}
-                    />
-                  </div>
-                </div>
-                <div className="flex shrink-0 items-center gap-1.5">
-                  <div
-                    className={`${budgetStyles.section.progressBadgeDot} ${progressClasses.dot}`}
-                    aria-hidden
+                  <BudgetProgressBar
+                    percent={entry.overallPercentage}
+                    label={t('progressAria', {
+                      name: entry.user.name ?? '',
+                      percent: Math.round(entry.overallPercentage),
+                    })}
+                    fillClassName={cn(budgetStyles.progress.barFillBase, progressClasses.bar)}
+                    trackClassName={stitchHome.progressTrack}
                   />
-                  <span className={`text-sm font-semibold tabular-nums ${progressClasses.text}`}>
-                    {Math.round(entry.overallPercentage)}%
-                  </span>
                 </div>
+                <span className={`text-sm font-semibold tabular-nums ${progressClasses.text}`}>
+                  {Math.round(entry.overallPercentage)}%
+                </span>
               </div>
             </button>
           );

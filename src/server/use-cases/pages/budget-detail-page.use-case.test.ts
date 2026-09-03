@@ -38,7 +38,10 @@ import {
   getAllCategoriesDeduped,
   getAccountsByGroupDeduped,
 } from '@/server/request-cache/services';
-import { getBudgetDetailPageData } from './budget-detail-page.use-case';
+import {
+  getBudgetDetailPageData,
+  previewGroupedBudgetTransactions,
+} from './budget-detail-page.use-case';
 
 const budget: Budget = {
   id: 'b-1',
@@ -70,6 +73,16 @@ const categories: Category[] = [
     label: 'Transport',
     icon: 'car',
     color: '#00ff00',
+    group_id: 'group-1',
+    created_at: '2024-01-01',
+    updated_at: '2024-01-01',
+  },
+  {
+    id: 'cat-3',
+    key: 'beauty',
+    label: 'Beauty',
+    icon: 'scissors',
+    color: '#0000ff',
     group_id: 'group-1',
     created_at: '2024-01-01',
     updated_at: '2024-01-01',
@@ -138,6 +151,24 @@ describe('getBudgetDetailPageData', () => {
     expect(data.categoryBreakdown[0]?.key).toBe('food');
     expect(data.categoryBreakdown[0]?.spent).toBe(100);
     expect(data.groupedTransactions).toHaveLength(1);
+    expect(getTransactionsByUserUseCase).toHaveBeenCalledWith(
+      'user-1',
+      expect.objectContaining({
+        categoryKeys: ['food', 'transport'],
+      })
+    );
+    expect(data.categories.map((c) => c.key)).toEqual(['food', 'transport']);
+  });
+
+  it('caps grouped transaction preview without changing spend math', () => {
+    const groups = Array.from({ length: 5 }, (_, i) => ({
+      date: `2026-01-0${i + 1}`,
+      transactions: [tx({ id: `tx-${i}`, date: `2026-01-0${i + 1}` })],
+      total: 100,
+    }));
+    const preview = previewGroupedBudgetTransactions(groups, 2);
+    expect(preview).toHaveLength(2);
+    expect(preview[0]?.date).toBe('2026-01-01');
   });
 
   it('calls notFound when budget belongs to another group', async () => {

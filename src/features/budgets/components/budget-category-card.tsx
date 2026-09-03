@@ -7,15 +7,15 @@ import type { BudgetProgress, Category } from '@/lib/types';
 import { stitchBudgets } from '@/styles/home-design-foundation';
 import { formatCurrencyLocale } from '@/lib/utils/currency-formatter';
 import { BudgetCategoryLucideIcon } from './budget-category-lucide-icon';
+import { BudgetProgressBar } from './budget-progress-bar';
+import {
+  getBudgetCategoryStatus,
+  type BudgetCategoryStatus,
+} from '@/features/budgets/utils/budget-status';
 import { cn } from '@/lib/utils';
 
-export type BudgetCategoryStatus = 'onTrack' | 'fixed' | 'over';
-
-export function getBudgetCategoryStatus(progress: BudgetProgress): BudgetCategoryStatus {
-  if (progress.remaining < 0 || progress.percentage > 100) return 'over';
-  if (progress.percentage >= 100 && progress.remaining >= 0) return 'fixed';
-  return 'onTrack';
-}
+export type { BudgetCategoryStatus };
+export { getBudgetCategoryStatus };
 
 export interface BudgetCategoryCardProps {
   readonly progress: BudgetProgress;
@@ -36,7 +36,6 @@ export function BudgetCategoryCard({
   const categoryKey = progress.categories[0] ?? '';
 
   const status = getBudgetCategoryStatus(progress);
-  const barWidthPct = Math.min(100, Math.max(0, progress.percentage));
 
   const limitMarkerLeftPct = useMemo(() => {
     if (status !== 'over' || progress.spent <= 0 || progress.amount <= 0) return null;
@@ -106,24 +105,19 @@ export function BudgetCategoryCard({
           </span>
         </div>
 
-        <div className={stitchBudgets.progressTrack}>
-          <div
-            className={cn(
-              'relative z-1 h-full',
-              status === 'over' && stitchBudgets.progressFillOver,
-              status === 'fixed' && stitchBudgets.progressFillFixed,
-              status === 'onTrack' && stitchBudgets.progressFillPrimary
-            )}
-            style={{ width: `${status === 'over' ? 100 : barWidthPct}%` }}
-          />
-          {status === 'over' && limitMarkerLeftPct != null ? (
-            <div
-              className={cn(stitchBudgets.progressLimitMarker, 'z-10')}
-              style={{ left: `${limitMarkerLeftPct}%`, transform: 'translateX(-50%)' }}
-              aria-hidden
-            />
-          ) : null}
-        </div>
+        <BudgetProgressBar
+          percent={progress.percentage}
+          label={t('categoryCard.progressAria', {
+            name: progress.description,
+            percent: Math.round(progress.percentage),
+          })}
+          fillClassName={cn(
+            status === 'over' && stitchBudgets.progressFillOver,
+            status === 'fixed' && stitchBudgets.progressFillFixed,
+            status === 'onTrack' && stitchBudgets.progressFillPrimary
+          )}
+          limitMarkerLeftPct={status === 'over' ? limitMarkerLeftPct : null}
+        />
 
         <div className={stitchBudgets.footerRow}>
           <span

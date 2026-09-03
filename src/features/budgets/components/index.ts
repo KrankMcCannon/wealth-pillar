@@ -8,6 +8,8 @@ export { BudgetsSummaryHero } from './budgets-summary-hero';
 export type { BudgetsSummaryHeroProps } from './budgets-summary-hero';
 export { BudgetCategoryCard, getBudgetCategoryStatus } from './budget-category-card';
 export type { BudgetCategoryCardProps, BudgetCategoryStatus } from './budget-category-card';
+export { BudgetProgressBar } from './budget-progress-bar';
+export { BudgetPeriodHeader } from './budget-period-header';
 
 // Chart Component
 export { BudgetChart } from './budget-chart';
