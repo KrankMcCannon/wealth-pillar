@@ -4,8 +4,9 @@ import {
   computeGroupAccountTypeSummary,
   netFlowDeltaPercent,
   buildReportsSectionViewModel,
+  REPORTS_TOP_EXPENSES_LIMIT,
 } from './report.logic';
-import type { Account, Transaction } from '@/lib/types';
+import type { Account, Category, Transaction } from '@/lib/types';
 
 const window = {
   start: new Date('2024-06-01'),
@@ -245,5 +246,122 @@ describe('buildReportsSectionViewModel', () => {
     expect(vm.totalReserve).toBe(500);
     expect(vm.netSavings.net).toBe(100);
     expect(vm.netSavings.deposits).toBe(100);
+  });
+
+  it('caps top expenses at 8 with filter key and color, not UUID as key', () => {
+    const accounts: Account[] = [
+      {
+        id: 'a1',
+        name: 'Cash',
+        type: 'cash',
+        user_ids: ['u1'],
+        group_id: 'g1',
+        balance: 50,
+        created_at: '',
+        updated_at: '',
+      },
+    ];
+    const categories: Category[] = Array.from({ length: 9 }, (_, i) => ({
+      id: `uuid-cat-${i}`,
+      key: `cat-${i}`,
+      label: `Category ${i}`,
+      icon: 'tag',
+      color: `#00${i}${i}${i}${i}`,
+      group_id: 'g1',
+      created_at: '',
+      updated_at: '',
+    }));
+    const txs: Transaction[] = [
+      ...categories.map((cat, i) => ({
+        id: `e-${i}`,
+        description: '',
+        amount: 90 - i * 10,
+        type: 'expense' as const,
+        category: cat.key,
+        date: '2024-06-10',
+        user_id: 'u1',
+        account_id: 'a1',
+        to_account_id: null,
+        frequency: 'once' as const,
+        recurring_series_id: null,
+        group_id: 'g1',
+        created_at: '',
+        updated_at: '',
+      })),
+      {
+        id: 'orphan',
+        description: '',
+        amount: 5,
+        type: 'expense',
+        category: 'unknown-key',
+        date: '2024-06-11',
+        user_id: 'u1',
+        account_id: 'a1',
+        to_account_id: null,
+        frequency: 'once',
+        recurring_series_id: null,
+        group_id: 'g1',
+        created_at: '',
+        updated_at: '',
+      },
+    ];
+
+    const vm = buildReportsSectionViewModel(txs, accounts, categories, ['u1'], window, null, 'u1');
+
+    expect(vm.topExpenses).toHaveLength(REPORTS_TOP_EXPENSES_LIMIT);
+    expect(vm.topExpenses.map((row) => row.total)).toEqual([90, 80, 70, 60, 50, 40, 30, 20]);
+    expect(vm.topExpenses[0]).toMatchObject({
+      id: 'uuid-cat-0',
+      key: 'cat-0',
+      name: 'Category 0',
+      total: 90,
+      color: '#000000',
+    });
+    expect(vm.topExpenses.every((row) => row.key.startsWith('cat-'))).toBe(true);
+    expect(vm.topExpenses.some((row) => row.key.startsWith('uuid-'))).toBe(false);
+  });
+
+  it('uses tx.category as key when the category row is missing', () => {
+    const accounts: Account[] = [
+      {
+        id: 'a1',
+        name: 'Cash',
+        type: 'cash',
+        user_ids: ['u1'],
+        group_id: 'g1',
+        balance: 50,
+        created_at: '',
+        updated_at: '',
+      },
+    ];
+    const txs: Transaction[] = [
+      {
+        id: 'orphan',
+        description: '',
+        amount: 12,
+        type: 'expense',
+        category: 'unknown-key',
+        date: '2024-06-11',
+        user_id: 'u1',
+        account_id: 'a1',
+        to_account_id: null,
+        frequency: 'once',
+        recurring_series_id: null,
+        group_id: 'g1',
+        created_at: '',
+        updated_at: '',
+      },
+    ];
+
+    const vm = buildReportsSectionViewModel(txs, accounts, [], ['u1'], window, null, 'u1');
+    expect(vm.topExpenses).toEqual([
+      {
+        id: 'unknown-key',
+        key: 'unknown-key',
+        name: 'Unknown Key',
+        total: 12,
+        color: 'oklch(var(--color-muted-foreground))',
+      },
+    ]);
   });
 });

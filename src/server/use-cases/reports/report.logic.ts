@@ -43,6 +43,16 @@ export function sumIncomeExpenseInWindow(
   return { income, expenses };
 }
 
+export const REPORTS_TOP_EXPENSES_LIMIT = 8;
+
+export interface ReportsTopExpenseRow {
+  id: string;
+  key: string;
+  name: string;
+  total: number;
+  color: string;
+}
+
 export function computeCategoryStats(
   transactions: Transaction[],
   categories: Category[],
@@ -61,7 +71,7 @@ export function computeCategoryStats(
   const categoryMap = new Map(categories.map((c) => [c.id, c]));
   const statsMap = new Map<
     string,
-    { id: string; name: string; type: string; total: number; color: string }
+    { id: string; key: string; name: string; type: string; total: number; color: string }
   >();
 
   for (const tx of filtered) {
@@ -77,6 +87,7 @@ export function computeCategoryStats(
     if (!statsMap.has(catKey)) {
       statsMap.set(catKey, {
         id: catKey,
+        key: category?.key ?? catId,
         name: category?.label || formatCategoryFallback(catId),
         type: tx.type,
         total: 0,
@@ -257,7 +268,7 @@ export interface ReportsSectionViewModel {
   income: number;
   expenses: number;
   comparisonPercent: number | null;
-  topExpenses: { id: string; name: string; total: number }[];
+  topExpenses: ReportsTopExpenseRow[];
   accountBreakdown: AccountTypeSummary[];
   totalWealth: number;
   totalSpendable: number;
@@ -285,9 +296,13 @@ export function buildReportsSectionViewModel(
   }
 
   const expenseStats = computeCategoryStats(transactions, categories, window, userId);
-  const topExpenses = expenseStats
-    .slice(0, 3)
-    .map((s) => ({ id: s.id, name: s.name, total: s.total }));
+  const topExpenses = expenseStats.slice(0, REPORTS_TOP_EXPENSES_LIMIT).map((s) => ({
+    id: s.id,
+    key: s.key,
+    name: s.name,
+    total: s.total,
+    color: s.color,
+  }));
 
   const accountBreakdown =
     userId !== undefined

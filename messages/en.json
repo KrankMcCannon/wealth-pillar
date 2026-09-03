@@ -407,9 +407,12 @@
     "Hero": {
       "srHeading": "Financial summary",
       "netFlow": "Net flow",
-      "income": "Income",
-      "expense": "Expense",
-      "savedThisPeriod": "Saved this period",
+      "incomeThisPeriod": "Income this period",
+      "expenseThisPeriod": "Expense this period",
+      "movedToSavings": "Moved to savings",
+      "movedToSavingsNet": "Net moved",
+      "deposits": "Deposits",
+      "withdrawals": "Withdrawals",
       "spendableBalance": "Available to spend",
       "reserveBalance": "Savings & reserve",
       "noComparison": "Not enough history to compare.",
@@ -419,13 +422,20 @@
       "vsPreviousRange": "vs previous range"
     },
     "TopExpenses": {
-      "title": "Top expenses",
-      "empty": "No expenses in this range."
+      "title": "Spending this period",
+      "empty": "No expenses in this range.",
+      "percentOfExpenses": "{percent}% of spend",
+      "other": "Other"
     },
     "AccountBreakdown": {
-      "title": "Account breakdown",
+      "title": "Accounts this period",
       "empty": "No accounts to show.",
-      "percentOfWealth": "{percent}% of wealth",
+      "periodNet": "Net this period",
+      "income": "Income",
+      "expense": "Expenses",
+      "balance": "Balance",
+      "ofWealth": "Of wealth",
+      "percentOfWealth": "{percent}%",
       "types": {
         "checking": "Checking",
         "savings": "Savings",

@@ -1,7 +1,5 @@
-'use client';
-
-import { PageLoader } from '@/components/shared/page-loader';
+import { ReportsSkeleton } from '@/components/ui/primitives/skeletons/reports-skeleton';
 
 export default function ReportsLoading() {
-  return <PageLoader variant="list" />;
+  return <ReportsSkeleton />;
 }

@@ -407,11 +407,18 @@ export const stitchReports = {
   trendNegative: 'text-expense',
   rankingCard: 'rounded-xl border border-border/25 bg-card/90 p-3',
   rankingRow: 'relative space-y-1.5',
+  rankingRowLink:
+    'relative block min-h-11 space-y-1.5 rounded-lg px-0 py-0.5 text-left transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35',
   rankingRowHeader: 'flex items-end justify-between gap-2',
   rankingIconWrap:
     'flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted/90 text-muted-foreground',
+  rankingChevron: 'h-4 w-4 shrink-0 text-muted-foreground',
   rankingLabel: 'text-sm font-medium text-foreground',
   rankingAmount: 'text-sm font-semibold tabular-nums text-foreground',
+  rankingMeta: 'text-[11px] tabular-nums text-muted-foreground',
+  savingsGrid: 'grid grid-cols-3 gap-2',
+  snapshotGrid: 'grid grid-cols-2 gap-2',
+  kpiPair: 'mt-4 grid grid-cols-2 gap-2 border-t border-border/25 pt-4',
   progressTrack: 'h-1.5 w-full overflow-hidden rounded-full bg-muted',
   progressFillPrimary: 'h-full rounded-full bg-primary',
   progressFillSecondary: 'h-full rounded-full bg-secondary',
@@ -419,6 +426,10 @@ export const stitchReports = {
   /** Account breakdown */
   accountRow:
     'flex items-center justify-between gap-3 rounded-xl border border-border/25 bg-card/90 p-3',
+  accountCard: 'flex flex-col gap-3 rounded-xl border border-border/25 bg-card/90 p-3',
+  accountMetricGrid: 'grid grid-cols-2 gap-x-3 gap-y-3',
+  accountMetricLabel: 'text-xs font-medium text-muted-foreground',
+  accountMetricValue: 'mt-0.5 text-base font-semibold tabular-nums leading-tight text-foreground',
   accountIconWrap:
     'flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-primary/25 bg-primary/12 text-primary-foreground',
   accountIconWrapMuted:

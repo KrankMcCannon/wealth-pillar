@@ -407,9 +407,12 @@
     "Hero": {
       "srHeading": "Riepilogo finanziario",
       "netFlow": "Flusso netto",
-      "income": "Entrate",
-      "expense": "Uscite",
-      "savedThisPeriod": "Risparmiato nel periodo",
+      "incomeThisPeriod": "Entrate nel periodo",
+      "expenseThisPeriod": "Uscite nel periodo",
+      "movedToSavings": "Spostato in risparmio",
+      "movedToSavingsNet": "Netto spostato",
+      "deposits": "Versamenti",
+      "withdrawals": "Prelievi",
       "spendableBalance": "Disponibilità",
       "reserveBalance": "Risparmi e riserve",
       "noComparison": "Storico insufficiente per il confronto.",
@@ -419,13 +422,20 @@
       "vsPreviousRange": "rispetto al periodo precedente"
     },
     "TopExpenses": {
-      "title": "Spese principali",
-      "empty": "Nessuna uscita in questo intervallo."
+      "title": "Uscite nel periodo",
+      "empty": "Nessuna uscita in questo intervallo.",
+      "percentOfExpenses": "{percent}% delle uscite",
+      "other": "Altro"
     },
     "AccountBreakdown": {
-      "title": "Ripartizione conti",
+      "title": "Conti nel periodo",
       "empty": "Nessun conto da mostrare.",
-      "percentOfWealth": "{percent}% del patrimonio",
+      "periodNet": "Netto nel periodo",
+      "income": "Entrate",
+      "expense": "Uscite",
+      "balance": "Saldo",
+      "ofWealth": "Del patrimonio",
+      "percentOfWealth": "{percent}%",
       "types": {
         "checking": "Conto corrente",
         "savings": "Risparmio",
