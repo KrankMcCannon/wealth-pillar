@@ -626,6 +626,7 @@
       "transactions": "Transactions",
       "recurrent": "Recurring"
     },
+    "tabsAria": "Transactions and recurring series",
     "empty": {
       "title": "No Transactions",
       "forUser": "No transactions for the selected user",
@@ -795,6 +796,7 @@
       },
       "actions": {
         "edit": "Edit transaction",
+        "editAria": "Edit transaction: {description}, {amount}",
         "delete": "Delete transaction"
       },
       "pagination": {
@@ -943,6 +945,7 @@
   "Recurring": {
     "Section": {
       "title": "Recurring Transactions",
+      "viewAll": "View All",
       "empty": {
         "title": "No recurring series",
         "forUser": "There are no recurring series for this user",
@@ -966,6 +969,10 @@
       "groups": {
         "upcoming": "Upcoming",
         "upcomingEmpty": "No upcoming recurring entries.",
+        "monthly": "Monthly",
+        "yearly": "Yearly",
+        "overdue": "Overdue",
+        "paused": "Paused",
         "paid": "Already paid this month",
         "paidEmpty": "No paid recurring entries in this period."
       },
@@ -1021,7 +1028,8 @@
         "delete": "Delete",
         "pauseAria": "Pause recurring series",
         "resumeAria": "Resume recurring series",
-        "deleteAria": "Delete recurring series"
+        "deleteAria": "Delete recurring series",
+        "editAria": "Edit recurring series: {description}, {amount}"
       }
     },
     "FormModal": {
@@ -1177,6 +1185,7 @@
   },
   "BottomNav": {
     "ariaNav": "Primary navigation",
+    "skipToContent": "Skip to content",
     "home": "Home",
     "transactions": "Transactions",
     "budgets": "Budgets",

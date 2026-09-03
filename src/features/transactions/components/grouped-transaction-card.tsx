@@ -70,31 +70,23 @@ function GroupedTransactionCardInner({
     ) : null;
 
   const rows = transactions.map((transaction, index) => (
-    <TransactionRow
-      key={transaction.id ?? `temp-${transaction.date ?? 'unknown'}-${index}`}
-      transaction={transaction}
-      accountNames={accountNames}
-      variant={variant}
-      context={context}
-      onEditTransaction={onEditTransaction}
-      getCategoryLabel={getCategoryLabel}
-      getCategoryColor={getCategoryColor}
-    />
+    <li key={transaction.id ?? `temp-${transaction.date ?? 'unknown'}-${index}`}>
+      <TransactionRow
+        transaction={transaction}
+        accountNames={accountNames}
+        variant={variant}
+        context={context}
+        onEditTransaction={onEditTransaction}
+        getCategoryLabel={getCategoryLabel}
+        getCategoryColor={getCategoryColor}
+      />
+    </li>
   ));
-
-  if (variant === 'regular') {
-    return (
-      <div className={stitchDashboardGroupedList}>
-        {header}
-        <div className="flex flex-col gap-2">{rows}</div>
-      </div>
-    );
-  }
 
   return (
     <div className={stitchDashboardGroupedList}>
       {header}
-      <div className="flex flex-col gap-2">{rows}</div>
+      <ul className="m-0 flex list-none flex-col gap-2 p-0">{rows}</ul>
     </div>
   );
 }

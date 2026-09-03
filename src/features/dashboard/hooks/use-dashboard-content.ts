@@ -6,9 +6,10 @@
 import { useMemo, useCallback } from 'react';
 import { useUserFilter, usePermissions } from '@/hooks';
 import { useModalState } from '@/lib/navigation/url-state';
-import type { User } from '@/lib/types';
+import type { RecurringTransactionSeries, Transaction, User } from '@/lib/types';
 import type { DashboardBalanceViewModel } from '@/server/use-cases/accounts/account.logic';
-import { useRouter } from '@/i18n/routing';
+import { useRecurringEditStore } from '@/features/recurring/stores/recurring-edit-store';
+import { useTransactionEditStore } from '@/features/transactions/stores/transaction-edit-store';
 
 export interface UseDashboardContentParams {
   currentUser: User;
@@ -23,14 +24,14 @@ export interface UseDashboardContentReturn {
   spendableBalance: number;
   reserveBalance: number;
   handleCreateRecurringSeries: () => void;
-  handleOpenRecurringTab: () => void;
+  handleEditRecurringSeries: (series: RecurringTransactionSeries) => void;
+  handleEditTransaction: (transaction: Transaction) => void;
 }
 
 export function useDashboardContent({
   currentUser,
   balanceViewModel,
 }: UseDashboardContentParams): UseDashboardContentReturn {
-  const router = useRouter();
   const { selectedGroupFilter, selectedUserId } = useUserFilter();
   const { effectiveUserId, isMember } = usePermissions({
     currentUser,
@@ -38,6 +39,8 @@ export function useDashboardContent({
   });
 
   const { openModal } = useModalState();
+  const setRecurringEditSeed = useRecurringEditStore((state) => state.setSeed);
+  const setTransactionEditSeed = useTransactionEditStore((state) => state.setSeed);
 
   const spendableBalance = useMemo(() => {
     const balanceUserId = isMember ? currentUser.id : selectedUserId;
@@ -59,9 +62,21 @@ export function useDashboardContent({
     openModal('recurring');
   }, [openModal]);
 
-  const handleOpenRecurringTab = useCallback(() => {
-    router.push('/transactions?tab=Recurrent');
-  }, [router]);
+  const handleEditRecurringSeries = useCallback(
+    (series: RecurringTransactionSeries) => {
+      setRecurringEditSeed(series);
+      openModal('recurring', series.id);
+    },
+    [openModal, setRecurringEditSeed]
+  );
+
+  const handleEditTransaction = useCallback(
+    (transaction: Transaction) => {
+      setTransactionEditSeed(transaction);
+      openModal('transaction', transaction.id);
+    },
+    [openModal, setTransactionEditSeed]
+  );
 
   return {
     isMember,
@@ -71,6 +86,7 @@ export function useDashboardContent({
     spendableBalance,
     reserveBalance,
     handleCreateRecurringSeries,
-    handleOpenRecurringTab,
+    handleEditRecurringSeries,
+    handleEditTransaction,
   };
 }

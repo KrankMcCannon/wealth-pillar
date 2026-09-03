@@ -117,9 +117,9 @@ export default function TransactionsContent({
 
   return (
     <>
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex min-h-0 flex-col">
-        <div className={stitchTransactions.tabsStickyBar}>
-          <TabsList className={stitchTransactions.tabsList}>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex min-h-0 w-full min-w-0 flex-col">
+        <div className={`${stitchTransactions.tabsStickyBar} px-4`}>
+          <TabsList className={stitchTransactions.tabsList} aria-label={t('tabsAria')}>
             <TabsTrigger className={stitchTransactions.tabsTrigger} value="Transactions">
               {t('tabs.transactions')}
             </TabsTrigger>

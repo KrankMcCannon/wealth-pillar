@@ -253,7 +253,7 @@ export const stitchTransactions = {
   dayHeaderTotalValue: 'text-xs font-bold tabular-nums',
   dayHeaderCount: 'mt-0.5 text-xs text-muted-foreground',
   tabsStickyBar:
-    'sticky z-30 border-b border-border/22 bg-background/88 pb-2 pt-1 backdrop-blur-xl',
+    'sticky z-30 w-full min-w-0 overflow-x-hidden border-b border-border/22 bg-background/88 pb-2 pt-1 backdrop-blur-xl',
   /** Padding orizzontale da `HomeDashboardMain` (px-4); qui solo gap verticale. */
   /** `pb` è solo su `HomeDashboardMain` (dashboardContentBottomPadding). */
   mainStack: 'flex flex-col gap-3 pb-0 pt-1',
@@ -266,9 +266,9 @@ export const stitchTransactions = {
   chipSnapItem: 'snap-start shrink-0',
   /** Tab Transazioni / Ricorrenti — stessa lingua cromatica di stitchHome.sectionCard. */
   tabsList:
-    'grid h-12 w-full grid-cols-2 place-items-center gap-1 rounded-full border border-border/35 bg-card/95 p-1 shadow-[0_14px_30px_rgba(0,7,30,0.3)]',
+    'grid h-12 w-full min-w-0 max-w-full grid-cols-2 place-items-center gap-1 rounded-full border border-border/35 bg-card/95 p-1 shadow-[0_14px_30px_rgba(0,7,30,0.3)]',
   tabsTrigger:
-    'inline-flex h-9 w-full items-center justify-center rounded-full px-2 text-[13px] font-semibold tracking-wide text-muted-foreground shadow-none transition-all duration-200 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35 data-[state=active]:bg-accent data-[state=active]:text-foreground data-[state=active]:shadow-[inset_0_0_0_1px_rgba(143,176,255,0.28)] data-[state=active]:translate-y-0 motion-reduce:transition-none',
+    'inline-flex h-9 min-w-0 w-full items-center justify-center truncate rounded-full px-2 text-[13px] font-semibold tracking-wide text-muted-foreground shadow-none transition-all duration-200 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35 data-[state=active]:bg-accent data-[state=active]:text-foreground data-[state=active]:shadow-[inset_0_0_0_1px_rgba(143,176,255,0.28)] data-[state=active]:translate-y-0 motion-reduce:transition-none',
   listSkeleton: 'space-y-3',
 } as const;
 

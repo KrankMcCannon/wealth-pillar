@@ -626,6 +626,7 @@
       "transactions": "Transazioni",
       "recurrent": "Ricorrenti"
     },
+    "tabsAria": "Transazioni e serie ricorrenti",
     "empty": {
       "title": "Nessuna transazione",
       "forUser": "Nessuna transazione per l'utente selezionato",
@@ -795,6 +796,7 @@
       },
       "actions": {
         "edit": "Modifica transazione",
+        "editAria": "Modifica transazione: {description}, {amount}",
         "delete": "Elimina transazione"
       },
       "pagination": {
@@ -943,6 +945,7 @@
   "Recurring": {
     "Section": {
       "title": "Transazioni Ricorrenti",
+      "viewAll": "Vedi tutto",
       "empty": {
         "title": "Nessuna serie ricorrente",
         "forUser": "Non ci sono serie ricorrenti per questo utente",
@@ -966,6 +969,10 @@
       "groups": {
         "upcoming": "In arrivo",
         "upcomingEmpty": "Nessuna voce ricorrente in arrivo.",
+        "monthly": "Mensili",
+        "yearly": "Annuali",
+        "overdue": "Scadute",
+        "paused": "In pausa",
         "paid": "Già pagato questo mese",
         "paidEmpty": "Nessuna voce ricorrente pagata in questo periodo."
       },
@@ -1021,7 +1028,8 @@
         "delete": "Elimina",
         "pauseAria": "Metti in pausa la serie ricorrente",
         "resumeAria": "Riprendi la serie ricorrente",
-        "deleteAria": "Elimina la serie ricorrente"
+        "deleteAria": "Elimina la serie ricorrente",
+        "editAria": "Modifica serie ricorrente: {description}, {amount}"
       }
     },
     "FormModal": {
@@ -1177,6 +1185,7 @@
   },
   "BottomNav": {
     "ariaNav": "Navigazione principale",
+    "skipToContent": "Vai al contenuto",
     "home": "Home",
     "transactions": "Transazioni",
     "budgets": "Budget",

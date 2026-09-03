@@ -62,7 +62,8 @@ export default function HomeContent({
     reserveBalance,
     selectedUserId,
     handleCreateRecurringSeries,
-    handleOpenRecurringTab,
+    handleEditRecurringSeries,
+    handleEditTransaction,
   } = useDashboardContent({
     currentUser,
     balanceViewModel,
@@ -124,12 +125,17 @@ export default function HomeContent({
           selectedUserId={recurringFilterUserId}
           showStats={false}
           onCreateRecurringSeries={handleCreateRecurringSeries}
-          onCardClick={handleOpenRecurringTab}
+          onEditRecurringSeries={handleEditRecurringSeries}
+          viewAllHref="/transactions?tab=Recurrent"
           homeDashboardListLayout
           maxItems={RECURRING_MAX_ITEMS}
         />
 
-        <RecentActivitySection transactions={recentTransactions} categories={categories} />
+        <RecentActivitySection
+          transactions={recentTransactions}
+          categories={categories}
+          onEditTransaction={handleEditTransaction}
+        />
       </HomeDashboardMain>
     </>
   );
