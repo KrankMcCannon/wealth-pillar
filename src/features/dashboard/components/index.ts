@@ -2,8 +2,8 @@
  * Dashboard Components Public API
  */
 
+export { UserSelectorSkeleton } from '@/components/ui/primitives/skeletons/transaction-skeletons';
 export {
-  UserSelectorSkeleton,
   BalanceSectionSkeleton,
   BudgetSectionSkeleton,
   RecurringSeriesSkeleton,

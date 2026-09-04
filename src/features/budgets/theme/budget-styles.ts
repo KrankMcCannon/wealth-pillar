@@ -84,50 +84,6 @@ export const animationStyles = {
   },
 } as const;
 
-/** Styles still used by home `BudgetSection`. */
-export const budgetStyles = {
-  progress: {
-    barFillBase: 'h-full rounded-full transition-all duration-500',
-  },
-  section: {
-    progressBadgeDot: 'w-1.5 h-1.5 rounded-full',
-  },
-} as const;
-
 export function getBudgetCategoryColorStyle(color?: string) {
   return { backgroundColor: color || 'var(--color-muted)' };
-}
-
-export function getBudgetSectionProgressStyles(percentage: number): {
-  amount: string;
-  dot: string;
-  text: string;
-  bar: string;
-} {
-  if (percentage > 100) {
-    return {
-      amount: 'text-expense',
-      dot: 'bg-expense',
-      text: 'text-expense',
-      bar: 'bg-expense',
-    };
-  }
-  if (percentage > 75) {
-    return {
-      amount: 'text-warning',
-      dot: 'bg-warning',
-      text: 'text-warning',
-      bar: 'bg-warning',
-    };
-  }
-  return {
-    amount: 'text-primary',
-    dot: 'bg-primary',
-    text: 'text-primary',
-    bar: 'bg-primary',
-  };
-}
-
-export function getBudgetSectionProgressBarStyle(percentage: number) {
-  return { width: `${Math.min(percentage, 100)}%` };
 }

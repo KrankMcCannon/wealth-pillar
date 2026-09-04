@@ -12,15 +12,10 @@ import {
 import { HomeDashboardMain } from '@/components/layout';
 import { usePageHeader } from '@/hooks/use-page-header';
 import { useDashboardContent } from '@/features/dashboard';
+import { HomeBriefing } from '@/features/dashboard/components/home-briefing';
 import UserSelector from '@/components/shared/user-selector';
-import { BalanceSection } from '@/features/accounts';
-import { BudgetSection } from '@/features/budgets';
-import { RecurringSeriesSection } from '@/features/recurring';
-import { RecentActivitySection } from '@/features/transactions';
 import type { User } from '@/lib/types';
 import type { DashboardPageData } from '@/server/use-cases/pages/dashboard.use-case';
-
-const RECURRING_MAX_ITEMS = 5;
 
 interface HomeContentProps {
   currentUser: User;
@@ -61,7 +56,6 @@ export default function HomeContent({
     spendableBalance,
     reserveBalance,
     selectedUserId,
-    handleCreateRecurringSeries,
     handleEditRecurringSeries,
     handleEditTransaction,
   } = useDashboardContent({
@@ -93,6 +87,8 @@ export default function HomeContent({
     return recentActivityByScope.all;
   }, [recentActivityByScope, recentActivityUserId]);
 
+  const selectedViewUserId = isMember ? currentUser.id : selectedUserId;
+
   return (
     <>
       {showUserPicker ? (
@@ -108,32 +104,18 @@ export default function HomeContent({
           </DrawerContent>
         </Drawer>
       ) : null}
-      <HomeDashboardMain>
-        <BalanceSection
+      <HomeDashboardMain className="gap-0 pt-3">
+        <HomeBriefing
           spendableBalance={spendableBalance}
           reserveBalance={reserveBalance}
           selectedUserId={selectedUserId}
-        />
-
-        <BudgetSection
           budgetsByUser={budgetsByUser}
-          selectedViewUserId={isMember ? currentUser.id : selectedUserId}
-        />
-
-        <RecurringSeriesSection
-          series={recurringSeries}
-          selectedUserId={recurringFilterUserId}
-          showStats={false}
-          onCreateRecurringSeries={handleCreateRecurringSeries}
-          onEditRecurringSeries={handleEditRecurringSeries}
-          viewAllHref="/transactions?tab=Recurrent"
-          homeDashboardListLayout
-          maxItems={RECURRING_MAX_ITEMS}
-        />
-
-        <RecentActivitySection
-          transactions={recentTransactions}
+          selectedViewUserId={selectedViewUserId}
+          recurringSeries={recurringSeries}
+          recurringFilterUserId={recurringFilterUserId}
+          recentTransactions={recentTransactions}
           categories={categories}
+          onEditRecurringSeries={handleEditRecurringSeries}
           onEditTransaction={handleEditTransaction}
         />
       </HomeDashboardMain>

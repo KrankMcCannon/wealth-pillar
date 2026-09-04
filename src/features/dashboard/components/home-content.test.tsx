@@ -6,10 +6,14 @@ import type { DashboardPageData } from '@/server/use-cases/pages/dashboard.use-c
 
 vi.mock('next-intl', () => ({
   useTranslations: () => (key: string) => key,
+  useLocale: () => 'en',
 }));
 
 vi.mock('@/i18n/routing', () => ({
   useRouter: () => ({ push: vi.fn() }),
+  Link: ({ href, children }: { href: string; children: React.ReactNode }) => (
+    <a href={href}>{children}</a>
+  ),
 }));
 
 vi.mock('@/hooks', () => ({
@@ -41,22 +45,6 @@ vi.mock('@/components/ui', () => ({
 
 vi.mock('@/components/shared/user-selector', () => ({
   default: () => <div data-testid="user-selector" />,
-}));
-
-vi.mock('@/features/accounts', () => ({
-  BalanceSection: () => <section data-testid="balance-section" />,
-}));
-
-vi.mock('@/features/budgets', () => ({
-  BudgetSection: () => <section data-testid="budget-section" />,
-}));
-
-vi.mock('@/features/recurring', () => ({
-  RecurringSeriesSection: () => <section data-testid="recurring-section" />,
-}));
-
-vi.mock('@/features/transactions', () => ({
-  RecentActivitySection: () => <section data-testid="recent-activity-section" />,
 }));
 
 const currentUser = {
@@ -121,7 +109,7 @@ const dashboardData: DashboardPageData = {
 };
 
 describe('HomeContent', () => {
-  it('renders all four home sections', async () => {
+  it('renders the briefing sections', async () => {
     const dashboardDataPromise = Promise.resolve(dashboardData);
     await act(async () => {
       render(
@@ -136,10 +124,15 @@ describe('HomeContent', () => {
     });
 
     expect(await screen.findByTestId('home-main')).toBeInTheDocument();
-    expect(screen.getByTestId('balance-section')).toBeInTheDocument();
-    expect(screen.getByTestId('budget-section')).toBeInTheDocument();
-    expect(screen.getByTestId('recurring-section')).toBeInTheDocument();
-    expect(screen.getByTestId('recent-activity-section')).toBeInTheDocument();
+    expect(screen.getByText('spendableLabel')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /spendableViewAll/ }).getAttribute('href')).toBe(
+      '/accounts'
+    );
+    expect(screen.getAllByRole('heading').map((heading) => heading.textContent)).toEqual([
+      'budgetTitle',
+      'upcomingTitle',
+      'recentActivityTitle',
+    ]);
     expect(screen.queryByTestId('action-menu')).not.toBeInTheDocument();
   });
 });

@@ -10,6 +10,9 @@ vi.mock('next-intl', () => ({
 
 vi.mock('@/i18n/routing', () => ({
   useRouter: () => ({ push: vi.fn() }),
+  Link: ({ href, children }: { href: string; children: React.ReactNode }) => (
+    <a href={href}>{children}</a>
+  ),
 }));
 
 const summary: UserBudgetSummary = {
@@ -41,7 +44,8 @@ describe('BudgetSection', () => {
 
     expect(screen.getByRole('progressbar')).toBeTruthy();
     expect(screen.getByText(/150/)).toBeTruthy();
-    expect(screen.getByText('categoryCard.badgeOnTrack')).toBeTruthy();
+    expect(screen.queryByText('categoryCard.badgeOnTrack')).toBeNull();
+    expect(screen.getByText(/periodOngoing/)).toBeTruthy();
     expect(screen.queryByText('spentPrefix')).toBeNull();
     expect(screen.queryByText('assignedPrefix')).toBeNull();
   });

@@ -1,183 +1,137 @@
 'use client';
 
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import type { UserBudgetSummary } from '@/lib';
-import { HomeSectionCard } from '@/components/home';
-import { EmptyState } from '@/components/shared';
-import { SectionHeader } from '@/components/layout';
 import { Amount } from '@/components/ui/primitives/amount';
-import {
-  budgetStyles,
-  getBudgetSectionProgressStyles,
-} from '@/features/budgets/theme/budget-styles';
 import { BudgetProgressBar } from '@/features/budgets/components/budget-progress-bar';
 import { deriveUserBudgetStatus } from '@/features/budgets/utils/budget-status';
-import { useRouter } from '@/i18n/routing';
 import { formatDateShort } from '@/lib/utils/date-utils';
+import { Link } from '@/i18n/routing';
 import { cn } from '@/lib/utils';
-import { stitchHome, stitchSurface } from '@/styles/home-design-foundation';
+import { stitchBudgets, stitchHome } from '@/styles/home-design-foundation';
 
 interface BudgetSectionProps {
   budgetsByUser: Record<string, UserBudgetSummary>;
   selectedViewUserId?: string | undefined;
-  headerLeading?: React.ReactNode;
 }
 
-/**
- * Budget section — home dashboard with stitchHome list rows.
- */
-export const BudgetSection = ({
-  budgetsByUser,
-  selectedViewUserId,
-  headerLeading,
-}: BudgetSectionProps) => {
-  const router = useRouter();
-  const t = useTranslations('Budgets.HomeSection');
-  const tPage = useTranslations('Budgets.Page');
+export const BudgetSection = ({ budgetsByUser, selectedViewUserId }: BudgetSectionProps) => {
+  const t = useTranslations('HomeContent');
+  const tHome = useTranslations('Budgets.HomeSection');
   const locale = useLocale();
 
-  const goToBudgets = useCallback(() => router.push('/budgets'), [router]);
-  const goToMemberBudgets = useCallback(
-    (userId: string) => router.push(`/budgets?user=${encodeURIComponent(userId)}`),
-    [router]
-  );
+  const budgetEntries = useMemo(() => {
+    const all = Object.values(budgetsByUser);
+    const filtered = selectedViewUserId
+      ? all.filter((entry) => entry.user.id === selectedViewUserId)
+      : all;
+    return [...filtered]
+      .filter((entry) => entry.budgets.length > 0)
+      .sort((a, b) => b.overallPercentage - a.overallPercentage);
+  }, [budgetsByUser, selectedViewUserId]);
 
-  const allBudgetEntries = useMemo(() => Object.values(budgetsByUser), [budgetsByUser]);
-
-  const budgetEntries = useMemo(
-    () =>
-      selectedViewUserId
-        ? allBudgetEntries.filter((entry) => entry.user.id === selectedViewUserId)
-        : allBudgetEntries,
-    [allBudgetEntries, selectedViewUserId]
-  );
-
-  const totalBudgetRows = useMemo(
-    () => budgetEntries.reduce((sum, entry) => sum + entry.budgets.length, 0),
-    [budgetEntries]
-  );
-
-  const sortedBudgetEntries = useMemo(
-    () => [...budgetEntries].sort((a, b) => b.totalBudget - a.totalBudget),
-    [budgetEntries]
-  );
-
-  if (budgetEntries.length === 0 || totalBudgetRows === 0) {
-    return (
-      <HomeSectionCard>
-        <SectionHeader
-          title={t('title')}
-          subtitle={t('subtitle')}
-          className="pb-1"
-          titleClassName={stitchHome.sectionHeaderTitle}
-          subtitleClassName={stitchHome.sectionHeaderSubtitle}
-        />
-        <EmptyState
-          variant="surface"
-          title={t('empty.title')}
-          description={t('empty.description')}
-          action={
-            <button type="button" onClick={goToBudgets} className={stitchSurface.primaryCta}>
-              {t('empty.createButton')}
-            </button>
-          }
-        />
-      </HomeSectionCard>
-    );
-  }
+  const showNames = budgetEntries.length > 1;
 
   return (
-    <HomeSectionCard>
-      <SectionHeader
-        title={t('title')}
-        subtitle={t('multiUsersSubtitle', { count: budgetEntries.length })}
-        leading={headerLeading}
-        className={cn('pb-1', headerLeading && 'items-start')}
-        titleClassName={stitchHome.sectionHeaderTitle}
-        subtitleClassName={stitchHome.sectionHeaderSubtitle}
-      />
+    <section aria-labelledby="home-budget-heading" className="flex flex-col gap-1.5">
+      <div className="flex items-center justify-between gap-3">
+        <h2
+          id="home-budget-heading"
+          className="text-sm font-semibold tracking-tight text-foreground"
+        >
+          {t('budgetTitle')}
+        </h2>
+        <Link href="/budgets" className={cn(stitchHome.viewAllLink, 'min-h-8 min-w-0 py-0')}>
+          {t('budgetViewAll')}
+        </Link>
+      </div>
 
-      <div className="flex flex-col gap-2">
-        {sortedBudgetEntries.map((entry) => {
-          const progressClasses = getBudgetSectionProgressStyles(entry.overallPercentage);
-          const status = deriveUserBudgetStatus(entry);
-          const periodLabel =
-            entry.activePeriod && entry.periodStart
-              ? `${formatDateShort(entry.periodStart, locale)} – ${
-                  entry.periodEnd ? formatDateShort(entry.periodEnd, locale) : t('periodOngoing')
-                }`
-              : t('periodOngoing');
-          const badgeLabel =
-            status === 'over'
-              ? tPage('categoryCard.badgeOver')
-              : status === 'fixed'
-                ? tPage('categoryCard.badgeFixed')
-                : tPage('categoryCard.badgeOnTrack');
+      {budgetEntries.length === 0 ? (
+        <div className="flex flex-col gap-1">
+          <p className="text-sm text-foreground">{t('budgetEmpty')}</p>
+          <p className="text-sm text-muted-foreground">{t('budgetEmptyBody')}</p>
+          <Link
+            href="/budgets"
+            className="inline-flex min-h-10 w-fit items-center text-sm font-semibold text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45"
+          >
+            {t('budgetSet')}
+          </Link>
+        </div>
+      ) : (
+        <ul className="m-0 flex list-none flex-col gap-4 p-0">
+          {budgetEntries.map((entry) => {
+            const status = deriveUserBudgetStatus(entry);
+            const over = status === 'over';
+            const remainingLabel = over ? t('budgetOverLabel') : t('budgetLeft');
+            const periodLabel =
+              entry.activePeriod && entry.periodStart
+                ? `${formatDateShort(entry.periodStart, locale)} – ${
+                    entry.periodEnd
+                      ? formatDateShort(entry.periodEnd, locale)
+                      : tHome('periodOngoing')
+                  }`
+                : tHome('periodOngoing');
 
-          return (
-            <button
-              key={entry.user.id}
-              type="button"
-              className={cn(
-                stitchHome.listRowInteractiveMinTouch,
-                'flex-col items-stretch gap-1.5'
-              )}
-              onClick={() => goToMemberBudgets(entry.user.id)}
-            >
-              <div className="flex w-full items-center gap-3">
-                <div className={stitchHome.budgetRowAvatar}>
-                  {(entry.user.name ?? '?').charAt(0).toUpperCase()}
-                </div>
-                <div className="min-w-0 flex-1 text-left">
-                  <p className={stitchHome.rowTitle}>{entry.user.name ?? ''}</p>
-                  <p className={stitchHome.rowMeta}>
-                    {periodLabel}
-                    <span className="mx-1.5 text-border">·</span>
-                    <span
-                      className={
-                        status === 'over'
-                          ? 'text-expense'
-                          : status === 'fixed'
-                            ? 'text-muted-foreground'
-                            : 'text-teal-accent'
-                      }
-                    >
-                      {badgeLabel}
-                    </span>
-                  </p>
-                </div>
-                <Amount
-                  type={entry.totalRemaining < 0 ? 'expense' : 'income'}
-                  size="lg"
-                  emphasis="strong"
-                  className="shrink-0"
+            return (
+              <li key={entry.user.id}>
+                <Link
+                  href={`/budgets?user=${encodeURIComponent(entry.user.id)}`}
+                  className="flex flex-col gap-1 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45"
                 >
-                  {entry.totalRemaining}
-                </Amount>
-              </div>
-
-              <div className="flex w-full items-center gap-2">
-                <div className="flex-1">
+                  <p
+                    className={
+                      showNames
+                        ? 'truncate text-sm text-muted-foreground'
+                        : 'truncate text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground'
+                    }
+                  >
+                    {showNames ? entry.user.name : remainingLabel}
+                  </p>
+                  {showNames ? (
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                      {remainingLabel}
+                    </p>
+                  ) : null}
+                  <Amount
+                    type={entry.totalRemaining < 0 ? 'expense' : 'income'}
+                    size="2xl"
+                    emphasis="strong"
+                    className="block text-[1.75rem] leading-none"
+                  >
+                    {entry.totalRemaining}
+                  </Amount>
+                  <div className="flex items-baseline justify-between gap-3">
+                    <p className="min-w-0 truncate text-xs text-muted-foreground">
+                      <Amount type="expense" size="sm" className="inline">
+                        {entry.totalSpent}
+                      </Amount>
+                      {` ${over ? t('overOfConnector') : t('spentOfConnector')} `}
+                      <Amount type="neutral" size="sm" className="inline">
+                        {entry.totalBudget}
+                      </Amount>
+                    </p>
+                    <p className="shrink-0 text-xs tabular-nums text-muted-foreground">
+                      {periodLabel}
+                    </p>
+                  </div>
                   <BudgetProgressBar
                     percent={entry.overallPercentage}
-                    label={t('progressAria', {
+                    label={tHome('progressAria', {
                       name: entry.user.name ?? '',
                       percent: Math.round(entry.overallPercentage),
                     })}
-                    fillClassName={cn(budgetStyles.progress.barFillBase, progressClasses.bar)}
-                    trackClassName={stitchHome.progressTrack}
+                    fillClassName={
+                      over ? stitchBudgets.progressFillOver : stitchBudgets.progressFillPrimary
+                    }
                   />
-                </div>
-                <span className={`text-sm font-semibold tabular-nums ${progressClasses.text}`}>
-                  {Math.round(entry.overallPercentage)}%
-                </span>
-              </div>
-            </button>
-          );
-        })}
-      </div>
-    </HomeSectionCard>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </section>
   );
 };
 

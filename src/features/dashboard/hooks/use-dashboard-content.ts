@@ -23,7 +23,6 @@ export interface UseDashboardContentReturn {
   effectiveUserId: string;
   spendableBalance: number;
   reserveBalance: number;
-  handleCreateRecurringSeries: () => void;
   handleEditRecurringSeries: (series: RecurringTransactionSeries) => void;
   handleEditTransaction: (transaction: Transaction) => void;
 }
@@ -58,10 +57,6 @@ export function useDashboardContent({
     return balanceViewModel.reserveBalanceAll;
   }, [isMember, currentUser.id, selectedUserId, balanceViewModel]);
 
-  const handleCreateRecurringSeries = useCallback(() => {
-    openModal('recurring');
-  }, [openModal]);
-
   const handleEditRecurringSeries = useCallback(
     (series: RecurringTransactionSeries) => {
       setRecurringEditSeed(series);
@@ -85,7 +80,6 @@ export function useDashboardContent({
     effectiveUserId,
     spendableBalance,
     reserveBalance,
-    handleCreateRecurringSeries,
     handleEditRecurringSeries,
     handleEditTransaction,
   };
