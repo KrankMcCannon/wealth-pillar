@@ -1,5 +1,5 @@
 /**
- * AccountsList — lista conti (stessa riga Home: titolo, meta, Amount).
+ * AccountsList — Home-density rows grouped by account type.
  */
 
 'use client';
@@ -8,7 +8,13 @@ import { useTranslations } from 'next-intl';
 import type { Account } from '@/lib';
 import { AccountCard } from './account-card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { stitchHome, stitchRecurring, stitchSurface } from '@/styles/home-design-foundation';
+import {
+  stitchHome,
+  stitchRecurring,
+  stitchSurface,
+  stitchTransactions,
+} from '@/styles/home-design-foundation';
+import { groupAccountsByType } from '../utils/group-accounts-by-type';
 
 function AccountCardSkeletonRow() {
   return (
@@ -39,6 +45,7 @@ export const AccountsList = ({
 }: Readonly<AccountsListProps>) => {
   const t = useTranslations('Accounts.List');
   const tContent = useTranslations('Accounts.Content');
+  const tCard = useTranslations('Accounts.Card');
   const isInitialLoading = isLoading && (!accounts || accounts.length === 0);
 
   if (isInitialLoading) {
@@ -69,21 +76,35 @@ export const AccountsList = ({
     );
   }
 
+  const groups = groupAccountsByType(accounts);
+
   return (
-    <ul className={stitchHome.plainList}>
-      {accounts.map((account) => {
-        const accountBalance = accountBalances[account.id] || 0;
+    <div className="flex flex-col gap-4">
+      {groups.map((group) => {
+        const headingId = `accounts-type-${group.type}`;
         return (
-          <li key={account.id}>
-            <AccountCard
-              account={account}
-              accountBalance={accountBalance}
-              onClick={onAccountClick ? () => onAccountClick(account) : undefined}
-            />
-          </li>
+          <section key={group.type} className="flex flex-col gap-1.5" aria-labelledby={headingId}>
+            <h2 id={headingId} className={stitchTransactions.dayHeaderTitle}>
+              {tCard(`accountTypes.${group.type}`)}
+            </h2>
+            <ul className={stitchHome.plainList}>
+              {group.accounts.map((account) => {
+                const accountBalance = accountBalances[account.id] || 0;
+                return (
+                  <li key={account.id}>
+                    <AccountCard
+                      account={account}
+                      accountBalance={accountBalance}
+                      onClick={onAccountClick ? () => onAccountClick(account) : undefined}
+                    />
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
         );
       })}
-    </ul>
+    </div>
   );
 };
 

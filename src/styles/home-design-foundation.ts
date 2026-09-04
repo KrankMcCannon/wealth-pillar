@@ -354,33 +354,6 @@ export const stitchAccounts = {
   /** Banner vista membro (contesto). */
   memberBanner:
     'rounded-lg border border-border/30 bg-muted/60 px-3 py-2 text-sm leading-snug text-muted-foreground',
-  /** Compact balance summary card (accounts page only). */
-  summaryHeaderLeft: 'flex min-w-0 items-center gap-2',
-  summaryIconWrap:
-    'flex size-8 shrink-0 items-center justify-center rounded-full border border-border/35 bg-muted/85',
-  summaryIcon: 'h-3.5 w-3.5 text-primary',
-  summaryTitle: 'text-sm font-semibold tracking-tight text-foreground',
-  summarySubtitle: 'text-xs text-muted-foreground',
-  /** Disponibilità + saldo totale + riserve: righe uniformi una sotto l'altra. */
-  balanceMetaRow: 'flex flex-col gap-1 text-sm text-muted-foreground',
-  balanceMetaLine: 'flex items-baseline justify-between gap-3',
-  statMiniGrid: stitchStatMini.grid,
-  statMiniItem: stitchStatMini.itemRow,
-  statMiniItemPrimary: stitchStatMini.itemPrimary,
-  statMiniItemSuccess: stitchStatMini.itemSuccess,
-  statMiniItemDestructive: stitchStatMini.itemDestructive,
-  statMiniHeader: stitchStatMini.header,
-  statMiniIconWrap: stitchStatMini.iconWrap,
-  statMiniIconWrapSuccess: stitchStatMini.iconWrapSuccess,
-  statMiniIconWrapDestructive: stitchStatMini.iconWrapDestructive,
-  statMiniIcon: stitchStatMini.icon,
-  statMiniIconSuccess: stitchStatMini.iconSuccess,
-  statMiniIconDestructive: stitchStatMini.iconDestructive,
-  statMiniLabel: stitchStatMini.label,
-  statMiniValue: stitchStatMini.value,
-  statMiniValuePrimary: stitchStatMini.valuePrimary,
-  statMiniValueSuccess: stitchStatMini.valueSuccess,
-  statMiniValueDestructive: stitchStatMini.valueDestructive,
 } as const;
 
 /**

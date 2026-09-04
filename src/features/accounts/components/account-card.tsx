@@ -54,7 +54,10 @@ export const AccountCard = memo(function AccountCard({
   };
   const liquidity = resolveAccountLiquidity(account);
   const liquidityLabel = t(`liquidity.${liquidity}`);
-  const subtitle = accountSubtitle(account, liquidityLabel, accountTypeLabels);
+  const subtitle =
+    balancePresentation === 'dashboard'
+      ? accountSubtitle(account, liquidityLabel, accountTypeLabels)
+      : liquidityLabel;
   const meta = isNegative ? `${subtitle} · ${t('debt')}` : subtitle;
 
   if (balancePresentation === 'dashboard') {

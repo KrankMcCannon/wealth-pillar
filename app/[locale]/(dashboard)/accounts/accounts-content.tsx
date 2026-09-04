@@ -1,23 +1,21 @@
 'use client';
 
 /**
- * Accounts Content — Stitch dark, aligned with home / transactions / recurring.
+ * Accounts — Statement layout: spendable hero, rows grouped by account type.
  */
 
-import { useMemo, useEffect } from 'react';
-import { CreditCard, Landmark, TrendingDown, TrendingUp } from 'lucide-react';
+import { useEffect } from 'react';
 import { useTranslations } from 'next-intl';
-import { PageFab, SectionHeader, HomeDashboardMain } from '@/components/layout';
+import { HomeDashboardMain } from '@/components/layout';
 import { usePageHeader } from '@/hooks/use-page-header';
-import { HomeSectionCard } from '@/components/home';
 import { AccountsList, useAccountsContent } from '@/features/accounts';
 import { Amount } from '@/components/ui/primitives';
-import { UserFilterChipRow } from '@/features/transactions/components/user-filter-chip-row';
+import { PeopleChips } from '@/features/transactions/components/filter-dock';
 import { cn } from '@/lib/utils';
 import type { User } from '@/lib/types';
 import type { AccountsPageData } from '@/server/use-cases/pages/accounts-page.use-case';
 import { useReferenceDataStore } from '@/stores/reference-data-store';
-import { stitchAccounts, stitchHome, stitchTransactions } from '@/styles/home-design-foundation';
+import { stitchAccounts, stitchHome } from '@/styles/home-design-foundation';
 
 interface AccountsContentProps {
   currentUser: User;
@@ -39,6 +37,8 @@ export default function AccountsContent({
 
   const accounts = pageData.accounts;
   const t = useTranslations('Accounts.Content');
+  const tLedger = useTranslations('TransactionsContent.Ledger');
+  const tUsers = useTranslations('UserSelector');
   const {
     isMember,
     selectedUserId,
@@ -48,7 +48,6 @@ export default function AccountsContent({
     handleEditAccount,
     handleUserFilterChange,
     openModal,
-    isModalOpen,
   } = useAccountsContent({
     accountBalances,
     currentUser,
@@ -66,147 +65,69 @@ export default function AccountsContent({
     isDashboard: false,
   });
 
-  const metricStats = useMemo(
-    () => [
-      {
-        label: t('stats.positive'),
-        value: accountStats.positiveAccounts,
-        variant: 'success' as const,
-        Icon: TrendingUp,
-        itemClass: stitchAccounts.statMiniItemSuccess,
-        iconWrap: stitchAccounts.statMiniIconWrapSuccess,
-        iconClass: stitchAccounts.statMiniIconSuccess,
-        valueClass: stitchAccounts.statMiniValueSuccess,
-      },
-      {
-        label: t('stats.negative'),
-        value: accountStats.negativeAccounts,
-        variant: 'destructive' as const,
-        Icon: TrendingDown,
-        itemClass: stitchAccounts.statMiniItemDestructive,
-        iconWrap: stitchAccounts.statMiniIconWrapDestructive,
-        iconClass: stitchAccounts.statMiniIconDestructive,
-        valueClass: stitchAccounts.statMiniValueDestructive,
-      },
-      {
-        label: t('stats.total'),
-        value: accountStats.totalAccounts,
-        variant: 'primary' as const,
-        Icon: Landmark,
-        itemClass: stitchAccounts.statMiniItemPrimary,
-        iconWrap: stitchAccounts.statMiniIconWrap,
-        iconClass: stitchAccounts.statMiniIcon,
-        valueClass: stitchAccounts.statMiniValue,
-      },
-    ],
-    [t, accountStats.totalAccounts, accountStats.positiveAccounts, accountStats.negativeAccounts]
-  );
-
-  const showBalanceBreakdown = accountStats.totalAccounts > 1;
-  const balancePositive = accountStats.totalBalance >= 0;
+  const negative = accountStats.spendableBalance < 0;
+  const onAddAccount = () => openModal('account');
 
   return (
-    <>
-      <HomeDashboardMain id="main-accounts">
-        <div className={stitchTransactions.mainStack}>
-          {showUserPicker ? (
-            <UserFilterChipRow
-              groupUsers={groupUsers}
-              selectedUserId={selectedUserId}
-              onUserFilterChange={handleUserFilterChange}
-            />
-          ) : null}
+    <HomeDashboardMain id="main-accounts" className="gap-5 pt-3">
+      {showUserPicker ? (
+        <PeopleChips
+          label={tLedger('filterWho')}
+          ariaLabel={tLedger('usersAria')}
+          allLabel={tUsers('all')}
+          peopleAria={(name) => tUsers('selectUserAria', { name })}
+          groupUsers={groupUsers}
+          selectedUserId={selectedUserId}
+          onUserFilterChange={handleUserFilterChange}
+        />
+      ) : null}
 
-          {isMember ? (
-            <p className={stitchAccounts.memberBanner} role="status">
-              {t('memberViewBanner')}
-            </p>
-          ) : null}
+      {isMember ? (
+        <p className={stitchAccounts.memberBanner} role="status">
+          {t('memberViewBanner')}
+        </p>
+      ) : null}
 
-          <HomeSectionCard aria-labelledby="accounts-section-balance" className="space-y-2">
-            <div className={stitchAccounts.summaryHeaderLeft}>
-              <div className={stitchAccounts.summaryIconWrap}>
-                <CreditCard className={stitchAccounts.summaryIcon} aria-hidden />
-              </div>
-              <div className="min-w-0">
-                <h2 id="accounts-section-balance" className={stitchAccounts.summaryTitle}>
-                  {t('sectionBalanceTitle')}
-                </h2>
-                <p className={stitchAccounts.summarySubtitle}>
-                  {t('headerSubtitle', { count: accountStats.totalAccounts })}
-                </p>
-              </div>
-            </div>
-
-            <div className={stitchAccounts.balanceMetaRow}>
-              <span className={stitchAccounts.balanceMetaLine}>
-                <span>{t('spendableBalanceLabel')}</span>
-                <Amount
-                  type={accountStats.spendableBalance >= 0 ? 'income' : 'expense'}
-                  size="sm"
-                  emphasis="strong"
-                  className="inline"
-                >
-                  {accountStats.spendableBalance}
-                </Amount>
-              </span>
-              <span className={stitchAccounts.balanceMetaLine}>
-                <span>{t('reserveBalanceLabel')}</span>
-                <Amount type="balance" size="sm" className="inline">
-                  {accountStats.reserveBalance}
-                </Amount>
-              </span>
-              <span className={stitchAccounts.balanceMetaLine}>
-                <span>{t('totalBalanceLabel')}</span>
-                <Amount type={balancePositive ? 'income' : 'expense'} size="sm" className="inline">
-                  {accountStats.totalBalance}
-                </Amount>
-              </span>
-            </div>
-
-            {showBalanceBreakdown ? (
-              <div className={stitchAccounts.statMiniGrid}>
-                {metricStats.map((stat) => (
-                  <div key={stat.label} className={cn(stitchAccounts.statMiniItem, stat.itemClass)}>
-                    <div className={stitchAccounts.statMiniHeader}>
-                      <div className={stat.iconWrap}>
-                        <stat.Icon className={stat.iconClass} aria-hidden />
-                      </div>
-                      <p className={stitchAccounts.statMiniLabel}>{stat.label}</p>
-                    </div>
-                    <p className={stat.valueClass}>
-                      {typeof stat.value === 'number' ? stat.value.toLocaleString() : stat.value}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            ) : null}
-          </HomeSectionCard>
-
-          <HomeSectionCard aria-labelledby="accounts-section-list">
-            <SectionHeader
-              titleId="accounts-section-list"
-              title={t('sectionListTitle')}
-              subtitle={t('sectionListSubtitle')}
-              className="pb-1"
-              titleClassName={stitchHome.sectionHeaderTitle}
-              subtitleClassName={stitchHome.sectionHeaderSubtitle}
-            />
-            <AccountsList
-              accounts={sortedAccounts}
-              accountBalances={filteredBalances}
-              onAccountClick={handleEditAccount}
-              onAddAccount={() => openModal('account')}
-            />
-          </HomeSectionCard>
+      <header className="flex flex-col gap-1">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+            {t('spendableBalanceLabel')}
+          </p>
+          <button
+            type="button"
+            onClick={onAddAccount}
+            className={cn(stitchHome.viewAllLink, 'min-h-8 min-w-0 py-0')}
+            data-testid="accounts-add"
+          >
+            {t('addAccountCta')}
+          </button>
         </div>
-      </HomeDashboardMain>
-      <PageFab
-        onClick={() => openModal('account')}
-        ariaLabel={t('addAccountCta')}
-        testId="accounts-fab-add"
-        hidden={isModalOpen}
+        <p aria-live="polite">
+          <Amount
+            type={negative ? 'expense' : 'balance'}
+            size="2xl"
+            emphasis="strong"
+            className="text-[2.75rem] leading-none tracking-[-0.04em]"
+          >
+            {accountStats.spendableBalance}
+          </Amount>
+        </p>
+        {accountStats.reserveBalance !== 0 ? (
+          <p className="text-sm text-muted-foreground">
+            {t('reserveBalanceLabel')}:{' '}
+            <Amount type="balance" size="sm" className="inline text-foreground">
+              {accountStats.reserveBalance}
+            </Amount>
+          </p>
+        ) : null}
+      </header>
+
+      <AccountsList
+        accounts={sortedAccounts}
+        accountBalances={filteredBalances}
+        onAccountClick={handleEditAccount}
+        onAddAccount={onAddAccount}
       />
-    </>
+    </HomeDashboardMain>
   );
 }
