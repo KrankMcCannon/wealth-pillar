@@ -627,6 +627,25 @@
       "recurrent": "Ricorrenti"
     },
     "tabsAria": "Transazioni e serie ricorrenti",
+    "Ledger": {
+      "canSpend": "Puoi spendere",
+      "asOf": "Al {date}",
+      "filterWho": "Chi",
+      "filterType": "Tipo",
+      "filterStatus": "Stato",
+      "typesAria": "Filtra per tipo",
+      "usersAria": "Filtra per membro",
+      "monthlyNet": "Netto / mese",
+      "monthlyEarn": "Entrate / mese",
+      "monthlySpend": "Uscite / mese",
+      "statusAria": "Stato serie",
+      "statusAll": "Tutti",
+      "statusActive": "Attivi",
+      "statusPaused": "In pausa",
+      "signIncome": "entrata",
+      "signExpense": "uscita",
+      "signTransfer": "trasferimento"
+    },
     "empty": {
       "title": "Nessuna transazione",
       "forUser": "Nessuna transazione per l'utente selezionato",
@@ -968,6 +987,7 @@
       },
       "groups": {
         "upcoming": "In arrivo",
+        "later": "Più avanti",
         "upcomingEmpty": "Nessuna voce ricorrente in arrivo.",
         "monthly": "Mensili",
         "yearly": "Annuali",

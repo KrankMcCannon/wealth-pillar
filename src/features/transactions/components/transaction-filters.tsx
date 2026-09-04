@@ -2,7 +2,7 @@
 
 /**
  * TransactionFilters — filter drawer panel (period, account, category).
- * Search and type chips live in `TransactionFilterChips`.
+ * Search and type filters live on the ledger; this drawer keeps period, account, and category.
  */
 
 import { useState, useMemo, useCallback } from 'react';

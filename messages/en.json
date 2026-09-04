@@ -627,6 +627,25 @@
       "recurrent": "Recurring"
     },
     "tabsAria": "Transactions and recurring series",
+    "Ledger": {
+      "canSpend": "You can spend",
+      "asOf": "As of {date}",
+      "filterWho": "Who",
+      "filterType": "Type",
+      "filterStatus": "Status",
+      "typesAria": "Filter by type",
+      "usersAria": "Filter by member",
+      "monthlyNet": "Net / month",
+      "monthlyEarn": "In / month",
+      "monthlySpend": "Out / month",
+      "statusAria": "Series status",
+      "statusAll": "All",
+      "statusActive": "Active",
+      "statusPaused": "Paused",
+      "signIncome": "income",
+      "signExpense": "expense",
+      "signTransfer": "transfer"
+    },
     "empty": {
       "title": "No Transactions",
       "forUser": "No transactions for the selected user",
@@ -968,6 +987,7 @@
       },
       "groups": {
         "upcoming": "Upcoming",
+        "later": "Later",
         "upcomingEmpty": "No upcoming recurring entries.",
         "monthly": "Monthly",
         "yearly": "Yearly",

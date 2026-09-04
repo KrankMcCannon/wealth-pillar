@@ -5,16 +5,9 @@ import { useTranslations } from 'next-intl';
 import { useTransactionsContent, type UseTransactionsContentProps } from '@/features/transactions';
 import type { User, RecurringTransactionSeries } from '@/lib/types';
 import type { TransactionsListData } from '@/server/use-cases/pages/transactions-page.use-case';
-import { HomeDashboardMain, PageFab } from '@/components/layout';
 import { usePageHeader } from '@/hooks/use-page-header';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui';
-import {
-  TransactionFilterChips,
-  TransactionsScreenList,
-  RecurrentTabPanel,
-} from '@/features/transactions';
-import { stitchTransactions } from '@/styles/home-design-foundation';
 import { useRecurringEditStore } from '@/features/recurring/stores/recurring-edit-store';
+import { TransactionsWorkspace } from '@/features/transactions/components/transactions-workspace';
 
 interface TransactionsContentProps {
   currentUser: User;
@@ -50,7 +43,6 @@ export default function TransactionsContent({
   };
 
   const t = useTranslations('TransactionsContent');
-  const tTable = useTranslations('Transactions.Table');
 
   const showUserPicker =
     (currentUser.role === 'admin' || currentUser.role === 'superadmin') && groupUsers.length > 1;
@@ -104,96 +96,49 @@ export default function TransactionsContent({
     [filters]
   );
 
-  const handleClearFilters = useCallback(() => {
-    setFilters({
-      searchQuery: '',
-      type: 'all',
-      dateRange: 'all',
-      categoryKey: 'all',
-      accountId: 'all',
-    });
-    if (selectedBudget) handleClearBudgetFilter();
-  }, [setFilters, selectedBudget, handleClearBudgetFilter]);
-
   return (
-    <>
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex min-h-0 w-full min-w-0 flex-col">
-        <div className={`${stitchTransactions.tabsStickyBar} px-4`}>
-          <TabsList className={stitchTransactions.tabsList} aria-label={t('tabsAria')}>
-            <TabsTrigger className={stitchTransactions.tabsTrigger} value="Transactions">
-              {t('tabs.transactions')}
-            </TabsTrigger>
-            <TabsTrigger className={stitchTransactions.tabsTrigger} value="Recurrent">
-              {t('tabs.recurrent')}
-            </TabsTrigger>
-          </TabsList>
-        </div>
-        <HomeDashboardMain id="main-transactions">
-          <TabsContent value="Transactions" className="mt-0">
-            <div className={stitchTransactions.mainStack}>
-              <TransactionFilterChips
-                filters={filters}
-                onFiltersChange={setFilters}
-                categories={categories}
-                accounts={accounts}
-                onImport={() => openModal('import')}
-                {...(showUserPicker
-                  ? {
-                      currentUser,
-                      groupUsers,
-                      selectedUserId,
-                      onUserFilterChange: handleUserFilterChange,
-                    }
-                  : {})}
-                {...(selectedBudget?.description !== undefined
-                  ? { budgetName: selectedBudget.description }
-                  : {})}
-                {...(selectedBudget ? { onClearBudgetFilter: handleClearBudgetFilter } : {})}
-              />
-
-              <TransactionsScreenList
-                transactions={listItems}
-                accountNames={accountNames}
-                categories={categories}
-                hasMore={hasMore}
-                isLoadingMore={isLoadingMore}
-                isNavigatingFilters={isNavigatingFilters}
-                onLoadMore={loadMore}
-                onEditTransaction={handleEditTransaction}
-                onAddTransaction={() => openModal('transaction')}
-                {...(hasActiveFilters && { onClearFilters: handleClearFilters })}
-                emptyTitle={t('empty.title')}
-                emptyDescription={
-                  hasActiveFilters
-                    ? t('empty.noFilterResults')
-                    : selectedUserId
-                      ? t('empty.forUser')
-                      : t('empty.noTransactionsYet')
-                }
-              />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="Recurrent" className="mt-0">
-            <RecurrentTabPanel
-              isActive={activeTab === 'Recurrent'}
-              recurringSeriesPromise={recurringSeriesPromise}
-              groupUsers={groupUsers}
-              selectedUserId={selectedUserId}
-              onUserFilterChange={handleUserFilterChange}
-              showUserPicker={showUserPicker}
-              onCreateRecurringSeries={() => openModal('recurring')}
-              onEditRecurringSeries={handleEditRecurringSeries}
-            />
-          </TabsContent>
-        </HomeDashboardMain>
-      </Tabs>
-      <PageFab
-        onClick={() => openModal('transaction')}
-        ariaLabel={tTable('empty.addCta')}
-        testId="transactions-fab-add"
-        hidden={activeTab !== 'Transactions'}
-      />
-    </>
+    <TransactionsWorkspace
+      activeTab={activeTab}
+      onTabChange={setActiveTab}
+      seriesPromise={recurringSeriesPromise}
+      ledger={{
+        accounts,
+        transactions: listItems,
+        accountNames,
+        categories,
+        filters,
+        setFilters,
+        hasMore,
+        isLoadingMore,
+        isNavigatingFilters,
+        onLoadMore: loadMore,
+        onEditTransaction: handleEditTransaction,
+        onAddTransaction: () => openModal('transaction'),
+        onImport: () => openModal('import'),
+        emptyTitle: t('empty.title'),
+        emptyDescription: hasActiveFilters
+          ? t('empty.noFilterResults')
+          : selectedUserId
+            ? t('empty.forUser')
+            : t('empty.noTransactionsYet'),
+        showUserPicker,
+        groupUsers,
+        selectedUserId,
+        onUserFilterChange: handleUserFilterChange,
+        ...(selectedBudget?.description !== undefined
+          ? { budgetName: selectedBudget.description }
+          : {}),
+        ...(selectedBudget ? { onClearBudgetFilter: handleClearBudgetFilter } : {}),
+      }}
+      recurring={{
+        categories,
+        showUserPicker,
+        groupUsers,
+        selectedUserId,
+        onUserFilterChange: handleUserFilterChange,
+        onCreateRecurringSeries: () => openModal('recurring'),
+        onEditRecurringSeries: handleEditRecurringSeries,
+      }}
+    />
   );
 }
