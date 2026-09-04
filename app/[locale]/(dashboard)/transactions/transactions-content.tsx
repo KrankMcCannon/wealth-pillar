@@ -131,7 +131,6 @@ export default function TransactionsContent({
         ...(selectedBudget ? { onClearBudgetFilter: handleClearBudgetFilter } : {}),
       }}
       recurring={{
-        categories,
         showUserPicker,
         groupUsers,
         selectedUserId,

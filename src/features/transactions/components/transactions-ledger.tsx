@@ -4,15 +4,14 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { Search, SlidersHorizontal, Upload, X } from 'lucide-react';
 import { HomeDashboardMain, PageFab } from '@/components/layout';
-import { Button, CategoryBadge, Input, Spinner } from '@/components/ui';
+import { Button, Input, Spinner } from '@/components/ui';
+import { Amount } from '@/components/ui/primitives/amount';
+import { PlainListRow } from '@/components/ui/layout/plain-list-row';
 import { FilterDrawer } from '@/components/ui/filters';
 import { TransactionFilters } from '@/features/transactions';
 import { groupByDay } from '@/features/transactions/utils/group-by-day';
 import { currentSpendable, spendableByDay } from '@/features/transactions/utils/spendable';
-import {
-  getCategoryColor,
-  getCategoryLabel,
-} from '@/server/use-cases/categories/category.logic';
+import { getCategoryLabel } from '@/server/use-cases/categories/category.logic';
 import { useInfiniteScrollSentinel } from '@/hooks/use-infinite-scroll-sentinel';
 import { formatCurrency, cn } from '@/lib/utils';
 import { stitchHome, stitchTransactions } from '@/styles/home-design-foundation';
@@ -144,9 +143,7 @@ export function TransactionsLedger(props: TransactionsLedgerProps) {
             label={tLedger('filterType')}
             ariaLabel={tLedger('typesAria')}
             selected={props.filters.type}
-            onSelect={(type: TransactionTypeFilter) =>
-              props.setFilters({ ...props.filters, type })
-            }
+            onSelect={(type: TransactionTypeFilter) => props.setFilters({ ...props.filters, type })}
             options={[
               { key: 'all' as const, label: tFilters('typeOptions.all') },
               { key: 'income' as const, label: tFilters('typeOptions.income') },
@@ -231,7 +228,7 @@ export function TransactionsLedger(props: TransactionsLedgerProps) {
                     {formatCurrency(Math.abs(group.net))}
                   </p>
                 </div>
-                <ul className="m-0 list-none overflow-hidden rounded-2xl border border-border/25 bg-card/90 p-0 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+                <ul className={stitchHome.plainList}>
                   {group.transactions.map((transaction) => (
                     <li key={transaction.id}>
                       <DayRow
@@ -239,9 +236,7 @@ export function TransactionsLedger(props: TransactionsLedgerProps) {
                         description={transaction.description}
                         amount={transaction.amount}
                         type={transaction.type}
-                        categoryKey={transaction.category}
                         categoryLabel={getCategoryLabel(props.categories, transaction.category)}
-                        categoryColor={getCategoryColor(props.categories, transaction.category)}
                         accountLabel={
                           transaction.account_id
                             ? props.accountNames[transaction.account_id]
@@ -285,7 +280,11 @@ export function TransactionsLedger(props: TransactionsLedgerProps) {
           </p>
         ) : null}
 
-        <FilterDrawer open={filtersOpen} onOpenChange={setFiltersOpen} title={tChips('drawerTitle')}>
+        <FilterDrawer
+          open={filtersOpen}
+          onOpenChange={setFiltersOpen}
+          title={tChips('drawerTitle')}
+        >
           <div className="overflow-y-auto px-2 pb-4">
             <TransactionFilters
               filters={props.filters}
@@ -315,9 +314,7 @@ function DayRow({
   description,
   amount,
   type,
-  categoryKey,
   categoryLabel,
-  categoryColor,
   accountLabel,
   onClick,
 }: {
@@ -325,50 +322,29 @@ function DayRow({
   description: string;
   amount: number;
   type: 'income' | 'expense' | 'transfer';
-  categoryKey: string;
   categoryLabel: string;
-  categoryColor: string;
   accountLabel?: string | undefined;
   onClick: () => void;
 }) {
-  const tLedger = useTranslations('TransactionsContent.Ledger');
   const t = useTranslations('Transactions.Table');
-  const sign =
-    type === 'income'
-      ? tLedger('signIncome')
-      : type === 'expense'
-        ? tLedger('signExpense')
-        : tLedger('signTransfer');
   const amountLabel = formatCurrency(Math.abs(amount));
   const meta = accountLabel ? `${categoryLabel} · ${accountLabel}` : categoryLabel;
 
   return (
-    <button
-      type="button"
+    <PlainListRow
+      title={description}
+      meta={meta}
       onClick={onClick}
-      data-testid={`transaction-row-${id}`}
-      aria-label={t('actions.editAria', { description, amount: amountLabel })}
-      className="flex min-h-11 w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-accent/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/40"
+      testId={`transaction-row-${id}`}
+      ariaLabel={t('actions.editAria', { description, amount: amountLabel })}
     >
-      <CategoryBadge categoryKey={categoryKey} color={categoryColor} size="md" />
-      <span className="min-w-0 flex-1">
-        <span className="block truncate text-sm font-semibold text-foreground">{description}</span>
-        <span className="block truncate text-xs text-muted-foreground">{meta}</span>
-      </span>
-      <span
-        className={cn(
-          'shrink-0 text-sm font-semibold tabular-nums',
-          type === 'income'
-            ? stitchHome.amountIncome
-            : type === 'expense'
-              ? stitchHome.amountExpense
-              : 'text-muted-foreground'
-        )}
+      <Amount
+        type={type === 'income' ? 'income' : type === 'expense' ? 'expense' : 'neutral'}
+        size="sm"
+        emphasis="strong"
       >
-        <span className="sr-only">{sign} </span>
-        {type === 'income' ? '+' : type === 'expense' ? '−' : ''}
-        {amountLabel}
-      </span>
-    </button>
+        {type === 'expense' ? -Math.abs(amount) : Math.abs(amount)}
+      </Amount>
+    </PlainListRow>
   );
 }

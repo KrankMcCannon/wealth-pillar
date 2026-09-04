@@ -4,6 +4,7 @@
  * Centralized exports for all layout components
  */
 
+export { PlainListRow, type PlainListRowProps } from './plain-list-row';
 export { RowCard, type RowCardProps } from './row-card';
 export { MetricCard, type MetricCardProps, type MetricCardStatItem } from './metric-card';
 export { MetricGrid, type MetricGridProps } from './metric-grid';

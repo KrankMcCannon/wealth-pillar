@@ -17,15 +17,6 @@ vi.mock('@/lib/navigation/url-state', () => ({
   useModalState: () => ({ openModal: vi.fn() }),
 }));
 
-vi.mock('@/components/ui/layout/row-card', () => ({
-  RowCard: ({ title, primaryValue }: { title: string; primaryValue?: string }) => (
-    <div data-testid="row-card">
-      <span>{title}</span>
-      {primaryValue ? <span>{primaryValue}</span> : null}
-    </div>
-  ),
-}));
-
 const sample: InvestmentListItem[] = Array.from({ length: 3 }, (_, i) => ({
   id: `inv-${i}`,
   name: `Asset ${i}`,
@@ -44,9 +35,11 @@ describe('InvestmentsScreenList', () => {
     expect(screen.getByText('Investments.InvestmentList.empty')).toBeTruthy();
   });
 
-  it('renders holdings rows', () => {
+  it('renders holdings as non-interactive rows', () => {
     render(<InvestmentsScreenList holdings={sample} />);
     expect(screen.getByText('SYM0')).toBeTruthy();
     expect(screen.getByText('SYM2')).toBeTruthy();
+    expect(screen.getByText(/Asset 0/)).toBeTruthy();
+    expect(screen.queryByRole('button')).toBeNull();
   });
 });

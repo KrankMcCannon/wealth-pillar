@@ -32,7 +32,6 @@ export interface TransactionsLedgerProps {
 export interface RecurringLedgerProps {
   readonly tabs: ReactNode;
   readonly series: RecurringTransactionSeries[];
-  readonly categories: Category[];
   readonly showUserPicker: boolean;
   readonly groupUsers: User[];
   readonly selectedUserId: string | undefined;

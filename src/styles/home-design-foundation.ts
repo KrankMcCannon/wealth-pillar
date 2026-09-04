@@ -64,6 +64,12 @@ export const stitchHome = {
     'rounded-xl bg-muted/60 px-4 py-6 text-center text-sm text-muted-foreground shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]',
   rowTitle: 'truncate text-sm font-semibold text-foreground',
   rowMeta: 'truncate text-xs text-muted-foreground',
+  /** Home-density ledger rows — unstyled list, no card chrome. Do not reuse listRowInteractive. */
+  plainList: 'm-0 flex list-none flex-col p-0',
+  plainRow:
+    'flex min-h-10 w-full items-center justify-between gap-3 py-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45',
+  plainRowTitle: 'block truncate text-sm text-foreground',
+  plainRowMeta: 'block truncate text-xs text-muted-foreground',
   amountIncome: 'text-income',
   amountExpense: 'text-expense',
   budgetUserCard:
@@ -207,12 +213,6 @@ export const stitchInvestments = {
   chartCardHeader: 'border-b border-border/25 px-4 pb-3 pt-4',
   chartCardTitle: 'text-[11px] font-semibold uppercase tracking-wide text-muted-foreground',
   chartCardContent: 'p-4',
-  listSection: stitchSurface.card,
-  listSectionHeader: 'px-4 pt-4 pb-1',
-  listSectionTitle: 'text-base font-semibold text-foreground',
-  listStack: 'flex flex-col gap-2 px-1 py-2',
-  holdingIconWrap:
-    'flex size-10 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary',
   emptyState:
     'rounded-xl border border-border/25 bg-card/90 p-6 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]',
   emptyTitle: 'text-base font-medium text-foreground',
@@ -381,13 +381,6 @@ export const stitchAccounts = {
   statMiniValuePrimary: stitchStatMini.valuePrimary,
   statMiniValueSuccess: stitchStatMini.valueSuccess,
   statMiniValueDestructive: stitchStatMini.valueDestructive,
-  accountListIconWrap: 'border border-border/35 bg-muted/85 !text-primary',
-  accountListTitle: 'font-semibold text-[15px] leading-snug text-foreground',
-  accountListSubtitle: 'mt-0.5 text-[11px] font-medium text-muted-foreground',
-  accountListAmountSuccess: 'text-sm font-bold tabular-nums tracking-tight text-income',
-  accountListAmountPrimary: 'text-sm font-bold tabular-nums tracking-tight text-primary',
-  accountListAmountNegative: 'text-sm font-bold tabular-nums tracking-tight text-expense',
-  accountListAmountSecondary: 'mt-0.5 text-[10px] font-semibold tabular-nums text-expense',
 } as const;
 
 /**

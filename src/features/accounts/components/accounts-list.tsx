@@ -1,5 +1,5 @@
 /**
- * AccountsList — lista conti (UI Stitch: righe in grouped list come home / transactions).
+ * AccountsList — lista conti (stessa riga Home: titolo, meta, Amount).
  */
 
 'use client';
@@ -7,29 +7,15 @@
 import { useTranslations } from 'next-intl';
 import type { Account } from '@/lib';
 import { AccountCard } from './account-card';
-import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  stitchDashboardGroupedList,
-  stitchHome,
-  stitchRecurring,
-  stitchSurface,
-} from '@/styles/home-design-foundation';
+import { stitchHome, stitchRecurring, stitchSurface } from '@/styles/home-design-foundation';
 
 function AccountCardSkeletonRow() {
   return (
-    <div
-      className={cn(
-        stitchHome.listRowInteractive,
-        'flex w-full items-center justify-between gap-3'
-      )}
-    >
-      <div className="flex min-w-0 flex-1 items-center gap-3">
-        <Skeleton className="size-9 shrink-0 rounded-xl" />
-        <div className="min-w-0 flex-1 flex flex-col gap-1.5">
-          <Skeleton className="h-4 w-[55%]" />
-          <Skeleton className="h-3 w-20" />
-        </div>
+    <div className={stitchHome.plainRow}>
+      <div className="min-w-0 flex-1 flex flex-col gap-1.5">
+        <Skeleton className="h-4 w-[55%]" />
+        <Skeleton className="h-3 w-20" />
       </div>
       <Skeleton className="h-4 w-16 shrink-0" />
     </div>
@@ -57,11 +43,13 @@ export const AccountsList = ({
 
   if (isInitialLoading) {
     return (
-      <div className={stitchDashboardGroupedList}>
+      <ul className={stitchHome.plainList}>
         {['skeleton-1', 'skeleton-2', 'skeleton-3'].map((id) => (
-          <AccountCardSkeletonRow key={id} />
+          <li key={id}>
+            <AccountCardSkeletonRow />
+          </li>
         ))}
-      </div>
+      </ul>
     );
   }
 
@@ -82,19 +70,20 @@ export const AccountsList = ({
   }
 
   return (
-    <div className={stitchDashboardGroupedList}>
+    <ul className={stitchHome.plainList}>
       {accounts.map((account) => {
         const accountBalance = accountBalances[account.id] || 0;
         return (
-          <AccountCard
-            key={account.id}
-            account={account}
-            accountBalance={accountBalance}
-            onClick={onAccountClick ? () => onAccountClick(account) : undefined}
-          />
+          <li key={account.id}>
+            <AccountCard
+              account={account}
+              accountBalance={accountBalance}
+              onClick={onAccountClick ? () => onAccountClick(account) : undefined}
+            />
+          </li>
         );
       })}
-    </div>
+    </ul>
   );
 };
 

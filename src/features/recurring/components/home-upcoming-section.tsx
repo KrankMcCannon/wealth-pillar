@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/routing';
 import { Amount } from '@/components/ui/primitives/amount';
+import { PlainListRow } from '@/components/ui/layout/plain-list-row';
 import { buildRecurringView } from '@/lib/recurring/recurring-view';
 import type { RecurringTransactionSeries } from '@/lib/types';
 import { stitchHome } from '@/styles/home-design-foundation';
@@ -52,7 +53,7 @@ export function HomeUpcomingSection({
       {upcoming.length === 0 ? (
         <p className="text-sm text-muted-foreground">{t('upcomingEmpty')}</p>
       ) : (
-        <ul className="m-0 flex list-none flex-col p-0">
+        <ul className={stitchHome.plainList}>
           {upcoming.map((item) => {
             const when =
               item.daysUntilDue < 0
@@ -62,29 +63,21 @@ export function HomeUpcomingSection({
                   : item.daysUntilDue === 1
                     ? tSeries('due.tomorrow')
                     : tSeries('due.inDays', { count: item.daysUntilDue });
-            const handleEditSeries = () => onEditRecurringSeries(item);
             return (
               <li key={item.id}>
-                <button
-                  type="button"
-                  onClick={handleEditSeries}
-                  className="flex min-h-10 w-full items-center justify-between gap-3 py-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45"
+                <PlainListRow
+                  title={item.description}
+                  meta={when}
+                  onClick={() => onEditRecurringSeries(item)}
                 >
-                  <span className="min-w-0">
-                    <span className="block truncate text-sm text-foreground">
-                      {item.description}
-                    </span>
-                    <span className="block text-xs text-muted-foreground">{when}</span>
-                  </span>
                   <Amount
                     type={item.type === 'income' ? 'income' : 'expense'}
                     size="sm"
                     emphasis="strong"
-                    className="shrink-0"
                   >
                     {item.type === 'expense' ? -Math.abs(item.amount) : Math.abs(item.amount)}
                   </Amount>
-                </button>
+                </PlainListRow>
               </li>
             );
           })}

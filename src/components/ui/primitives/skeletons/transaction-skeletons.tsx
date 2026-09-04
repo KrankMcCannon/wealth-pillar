@@ -1,6 +1,5 @@
 import { Skeleton } from '@/components/ui/skeleton';
 import { SkeletonList } from '@/components/ui/primitives';
-import { stitchRecurring, stitchTransactions } from '@/styles/home-design-foundation';
 
 export const TransactionHeaderSkeleton = () => (
   <header className="border-b border-border px-4 py-3">
@@ -28,33 +27,24 @@ export const UserSelectorSkeleton = () => (
 );
 
 export const TransactionCardSkeleton = () => (
-  <div className="rounded-xl border border-border/25 bg-card/90 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
-    <div className="flex items-center gap-3">
-      <Skeleton className="size-10 shrink-0 rounded-xl" />
-      <div className="min-w-0 flex-1 flex flex-col gap-2">
-        <Skeleton className="h-4 w-28" />
-        <Skeleton className="h-3 w-20" />
-      </div>
-      <div className="flex flex-col items-end gap-1.5">
-        <Skeleton className="h-4 w-16" />
-        <Skeleton className="h-3 w-12" />
-      </div>
+  <div className="flex min-h-10 items-center justify-between gap-3 py-1">
+    <div className="min-w-0 flex-1 flex flex-col gap-1.5">
+      <Skeleton className="h-4 w-[55%]" />
+      <Skeleton className="h-3 w-20" />
     </div>
+    <Skeleton className="h-4 w-16 shrink-0" />
   </div>
 );
 
 export const TransactionDayGroupSkeleton = () => (
-  <div className="flex flex-col gap-3">
-    <div className="flex items-center justify-between px-1">
+  <div className="flex flex-col gap-1.5">
+    <div className="flex items-baseline justify-between gap-3">
       <Skeleton className="h-4 w-24" />
-      <div className="flex flex-col items-end gap-1">
-        <Skeleton className="h-4 w-16" />
-        <Skeleton className="h-3 w-12" />
-      </div>
+      <Skeleton className="h-3 w-16" />
     </div>
     <SkeletonList
       count={3}
-      spacing="flex flex-col gap-2"
+      spacing="flex flex-col"
       renderItem={() => <TransactionCardSkeleton />}
     />
   </div>
@@ -91,29 +81,18 @@ export const TransactionsToolbarSkeleton = () => (
 
 export const RecurringSeriesSkeleton = () => (
   <div className="flex flex-col gap-4">
-    <Skeleton className="h-36 w-full rounded-2xl" />
+    <Skeleton className="h-10 w-40" />
     <SkeletonList
       count={2}
       spacing="flex flex-col gap-4"
       renderItem={() => (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-1.5">
           <Skeleton className="h-3 w-20" />
-          <div className={stitchTransactions.dayCard}>
-            <SkeletonList
-              count={2}
-              spacing={stitchRecurring.listStack}
-              renderItem={() => (
-                <div className="flex items-center gap-3 rounded-xl bg-muted/90 px-3 py-2 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]">
-                  <Skeleton className="size-8 shrink-0 rounded-xl" />
-                  <div className="flex flex-1 flex-col gap-1.5">
-                    <Skeleton className="h-3.5 w-32" />
-                    <Skeleton className="h-3 w-24" />
-                  </div>
-                  <Skeleton className="h-4 w-14 shrink-0" />
-                </div>
-              )}
-            />
-          </div>
+          <SkeletonList
+            count={2}
+            spacing="flex flex-col"
+            renderItem={() => <TransactionCardSkeleton />}
+          />
         </div>
       )}
     />

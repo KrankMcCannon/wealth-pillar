@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { Link } from '@/i18n/routing';
 import { useLocale, useTranslations } from 'next-intl';
 import { Amount } from '@/components/ui/primitives/amount';
+import { PlainListRow } from '@/components/ui/layout/plain-list-row';
 import { formatDateSmart, toDateTime } from '@/lib/utils/date-utils';
 import type { Transaction, Category } from '@/lib/types';
 import { stitchHome } from '@/styles/home-design-foundation';
@@ -50,28 +51,21 @@ export function RecentActivitySection({
       {transactions.length === 0 ? (
         <p className="text-sm text-muted-foreground">{t('recentActivityEmpty')}</p>
       ) : (
-        <ul className="m-0 flex list-none flex-col p-0">
+        <ul className={stitchHome.plainList}>
           {transactions.map((tx) => {
             const category = categoryByKey.get(tx.category);
             const txDate = toDateTime(tx.date);
             const dateLabel = txDate?.isValid
               ? formatDateSmart(txDate.toISODate() || '', locale)
               : null;
-            const handleEditTrailItem = () => onEditTransaction(tx);
             const meta = [category?.label ?? tx.category, dateLabel].filter(Boolean).join(' · ');
             return (
               <li key={tx.id}>
-                <button
-                  type="button"
-                  onClick={handleEditTrailItem}
-                  className="flex min-h-10 w-full items-center justify-between gap-3 py-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45"
+                <PlainListRow
+                  title={tx.description}
+                  meta={meta}
+                  onClick={() => onEditTransaction(tx)}
                 >
-                  <span className="min-w-0">
-                    <span className="block truncate text-sm text-foreground">{tx.description}</span>
-                    {meta ? (
-                      <span className="block truncate text-xs text-muted-foreground">{meta}</span>
-                    ) : null}
-                  </span>
                   <Amount
                     type={
                       tx.type === 'income'
@@ -82,11 +76,10 @@ export function RecentActivitySection({
                     }
                     size="sm"
                     emphasis="strong"
-                    className="shrink-0"
                   >
                     {tx.type === 'expense' ? -Math.abs(tx.amount) : Math.abs(tx.amount)}
                   </Amount>
-                </button>
+                </PlainListRow>
               </li>
             );
           })}
