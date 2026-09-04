@@ -14,6 +14,7 @@ import { ReportsHero } from '@/features/reports/components/reports-hero';
 import { TopExpensesRanking } from '@/features/reports/components/top-expenses-ranking';
 import { AccountBreakdownSection } from '@/features/reports/components/account-breakdown-section';
 import { BudgetPeriodSection } from '@/features/reports/components/budget-period-section';
+import { buildReportsCategoryTransactionsHref } from '@/features/reports/utils/reports-transactions-href';
 import type { ReportsTimePreset } from '@/features/reports/utils/reporting-window';
 
 interface ReportsContentProps {
@@ -153,6 +154,12 @@ export default function ReportsContent({
         {...(isPending ? { className: 'opacity-70 transition-opacity' } : {})}
       >
         <div className={stitchReports.sectionStack}>
+          {data.transactionsTruncated ? (
+            <p className={stitchReports.incompleteNotice} role="status">
+              {t('incompleteData')}
+            </p>
+          ) : null}
+
           <UserSelector
             hideTitle
             currentUser={currentUser}
@@ -166,18 +173,29 @@ export default function ReportsContent({
             netFlow={section.netFlow}
             income={section.income}
             expenses={section.expenses}
-            totalSpendable={section.totalSpendable}
-            totalReserve={section.totalReserve}
             netSavings={section.netSavings}
             comparisonPercent={section.comparisonPercent}
             comparisonLabel={comparisonLabel}
           />
 
-          <TopExpensesRanking items={section.topExpenses} />
+          <TopExpensesRanking
+            items={section.topExpenses}
+            periodExpenses={section.expenses}
+            hrefForCategory={(categoryKey) =>
+              buildReportsCategoryTransactionsHref({
+                preset,
+                customRange,
+                scope: selectedScope,
+                categoryKey,
+              })
+            }
+          />
 
           <AccountBreakdownSection
             rows={section.accountBreakdown}
             totalWealth={section.totalWealth}
+            totalSpendable={section.totalSpendable}
+            totalReserve={section.totalReserve}
           />
 
           <BudgetPeriodSection periods={scopedPeriods} />

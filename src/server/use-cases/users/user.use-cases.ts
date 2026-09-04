@@ -22,12 +22,7 @@ export async function getUserByIdUseCase(userId: string): Promise<User | null> {
 }
 
 export async function getUserByClerkIdUseCase(clerkId: string): Promise<User | null> {
-  const getCachedUser = cached(
-    async () => await UsersRepository.findByClerkId(clerkId),
-    userCacheKeys.byClerkId(clerkId),
-    cacheOptions.userByClerk(clerkId)
-  );
-  const user = await getCachedUser();
+  const user = await UsersRepository.findByClerkId(clerkId);
   return user ? (serialize(user) as unknown as User) : null;
 }
 

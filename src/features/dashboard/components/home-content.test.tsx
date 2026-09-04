@@ -71,21 +71,40 @@ const currentUser = {
 
 const dashboardData: DashboardPageData = {
   accounts: [],
-  transactions: [
-    {
-      id: 'tx1',
-      user_id: 'u1',
-      group_id: 'g1',
-      amount: -10,
-      category: 'food',
-      date: '2024-06-01',
-      type: 'expense',
-      account_id: 'a1',
-      description: 'Lunch',
-      created_at: '2024-06-01',
-      updated_at: '2024-06-01',
+  recentActivityByScope: {
+    all: [
+      {
+        id: 'tx1',
+        user_id: 'u1',
+        group_id: 'g1',
+        amount: -10,
+        category: 'food',
+        date: '2024-06-01',
+        type: 'expense',
+        account_id: 'a1',
+        description: 'Lunch',
+        created_at: '2024-06-01',
+        updated_at: '2024-06-01',
+      },
+    ],
+    byUserId: {
+      u1: [
+        {
+          id: 'tx1',
+          user_id: 'u1',
+          group_id: 'g1',
+          amount: -10,
+          category: 'food',
+          date: '2024-06-01',
+          type: 'expense',
+          account_id: 'a1',
+          description: 'Lunch',
+          created_at: '2024-06-01',
+          updated_at: '2024-06-01',
+        },
+      ],
     },
-  ],
+  },
   budgetPeriods: { u1: null },
   recurringSeries: [],
   categories: [],

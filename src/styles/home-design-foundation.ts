@@ -3,6 +3,10 @@
  * Reusable primitives to standardize the migration of dashboard-like pages.
  */
 
+/** Bottom padding for dashboard mains so content clears the fixed tab bar. */
+export const dashboardContentBottomPadding =
+  'pb-[max(7rem,calc(5.5rem+env(safe-area-inset-bottom)))]';
+
 /** Superfici Stitch solide — navy uniforme, senza gradienti/blur decorativi. */
 export const stitchSurface = {
   card: 'rounded-xl border border-border/25 bg-card/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]',
@@ -109,11 +113,19 @@ export const stitchBudgets = {
   heroMetricLabel: 'text-[11px] font-medium uppercase tracking-wide text-muted-foreground',
   heroMetricValue: 'mt-1 text-[17px] font-semibold leading-tight tabular-nums text-foreground',
   heroGradientBar: 'hidden',
+  heroStatMiniRow: 'mt-4 grid grid-cols-2 gap-2 border-t border-border/25 pt-4',
+  periodHeader:
+    'flex items-center justify-between gap-2 rounded-xl border border-border/40 bg-card/90 px-2 py-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]',
+  periodHeaderDates:
+    'flex min-w-0 items-center gap-2 px-2 text-sm font-semibold tabular-nums tracking-tight text-foreground',
+  periodHeaderIcon: 'h-4 w-4 shrink-0 text-primary',
+  overflowTrigger:
+    'flex size-11 shrink-0 items-center justify-center rounded-lg border border-border/45 bg-secondary/40 text-foreground transition-colors hover:bg-secondary/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35 disabled:pointer-events-none disabled:opacity-45',
   closePeriodButton:
     'flex w-full items-center justify-center gap-2 rounded-lg border-2 border-border/55 bg-transparent px-6 py-3 text-sm font-medium tracking-wide text-muted-foreground transition-all hover:bg-secondary/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35',
   listStack: 'flex flex-col gap-4',
   categoryCard:
-    'group relative flex w-full flex-col gap-3 rounded-xl border border-border/25 bg-card/90 p-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] transition-transform duration-200 hover:scale-[1.01] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45',
+    'group relative flex w-full flex-col gap-3 rounded-xl border border-border/25 bg-card/90 p-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] transition-transform duration-200 hover:scale-[1.01] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45 motion-reduce:transform-none motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100',
   categoryCardSelected: 'ring-2 ring-ring/55 ring-offset-2 ring-offset-background',
   categoryCardOver: 'border-expense/35',
   categoryCardOverGlow: 'hidden',
@@ -121,7 +133,7 @@ export const stitchBudgets = {
   categoryTitleRow: 'flex min-w-0 items-center gap-2.5',
   /** Icon 40px — cerchio primary-fixed / secondary / error come Stitch. */
   iconWrapOnTrack:
-    'flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-primary/35 bg-primary/12 text-primary-foreground',
+    'flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-primary/35 bg-primary/12 text-primary',
   iconWrapFixed:
     'flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border/35 bg-secondary/35 text-primary-foreground',
   iconWrapOver:
@@ -241,7 +253,7 @@ export const stitchTransactions = {
   dayHeaderTotalValue: 'text-xs font-bold tabular-nums',
   dayHeaderCount: 'mt-0.5 text-xs text-muted-foreground',
   tabsStickyBar:
-    'sticky z-30 border-b border-border/22 bg-background/88 pb-2 pt-1 backdrop-blur-xl',
+    'sticky z-30 w-full min-w-0 overflow-x-hidden border-b border-border/22 bg-background/88 pb-2 pt-1 backdrop-blur-xl',
   /** Padding orizzontale da `HomeDashboardMain` (px-4); qui solo gap verticale. */
   /** `pb` è solo su `HomeDashboardMain` (dashboardContentBottomPadding). */
   mainStack: 'flex flex-col gap-3 pb-0 pt-1',
@@ -254,9 +266,9 @@ export const stitchTransactions = {
   chipSnapItem: 'snap-start shrink-0',
   /** Tab Transazioni / Ricorrenti — stessa lingua cromatica di stitchHome.sectionCard. */
   tabsList:
-    'grid h-12 w-full grid-cols-2 place-items-center gap-1 rounded-full border border-border/35 bg-card/95 p-1 shadow-[0_14px_30px_rgba(0,7,30,0.3)]',
+    'grid h-12 w-full min-w-0 max-w-full grid-cols-2 place-items-center gap-1 rounded-full border border-border/35 bg-card/95 p-1 shadow-[0_14px_30px_rgba(0,7,30,0.3)]',
   tabsTrigger:
-    'inline-flex h-9 w-full items-center justify-center rounded-full px-2 text-[13px] font-semibold tracking-wide text-muted-foreground shadow-none transition-all duration-200 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35 data-[state=active]:bg-accent data-[state=active]:text-foreground data-[state=active]:shadow-[inset_0_0_0_1px_rgba(143,176,255,0.28)] data-[state=active]:translate-y-0 motion-reduce:transition-none',
+    'inline-flex h-9 min-w-0 w-full items-center justify-center truncate rounded-full px-2 text-[13px] font-semibold tracking-wide text-muted-foreground shadow-none transition-all duration-200 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35 data-[state=active]:bg-accent data-[state=active]:text-foreground data-[state=active]:shadow-[inset_0_0_0_1px_rgba(143,176,255,0.28)] data-[state=active]:translate-y-0 motion-reduce:transition-none',
   listSkeleton: 'space-y-3',
 } as const;
 
@@ -281,7 +293,8 @@ export const stitchStatMini = {
   icon: 'h-2.5 w-2.5 text-primary',
   iconSuccess: 'h-2.5 w-2.5 text-income',
   iconDestructive: 'h-2.5 w-2.5 text-expense',
-  label: 'truncate text-[10px] font-semibold uppercase tracking-wide text-muted-foreground',
+  label:
+    'line-clamp-2 text-[10px] font-semibold uppercase leading-tight tracking-wide text-muted-foreground',
   value: 'text-base font-semibold tabular-nums leading-tight text-foreground',
   valuePrimary: 'text-base font-semibold tabular-nums leading-tight text-primary',
   valueSuccess: 'text-base font-semibold tabular-nums leading-tight text-income',
@@ -386,6 +399,8 @@ export const stitchReports = {
     'sticky z-30 w-full border-b border-border/25 bg-background/90 px-4 py-2 backdrop-blur-sm',
   chipRow: 'flex gap-2 overflow-x-auto pb-1 scrollbar-hide',
   sectionStack: 'flex flex-col gap-5 pt-1',
+  incompleteNotice:
+    'rounded-xl border border-warning/35 bg-warning/10 px-3 py-2 text-sm text-foreground',
   sectionTitle: 'text-lg font-semibold tracking-tight text-foreground',
   /** Hero bento — card principale flusso netto */
   heroNetCard:
@@ -401,11 +416,18 @@ export const stitchReports = {
   trendNegative: 'text-expense',
   rankingCard: 'rounded-xl border border-border/25 bg-card/90 p-3',
   rankingRow: 'relative space-y-1.5',
+  rankingRowLink:
+    'relative block min-h-11 space-y-1.5 rounded-lg px-0 py-0.5 text-left transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35',
   rankingRowHeader: 'flex items-end justify-between gap-2',
   rankingIconWrap:
     'flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted/90 text-muted-foreground',
+  rankingChevron: 'h-4 w-4 shrink-0 text-muted-foreground',
   rankingLabel: 'text-sm font-medium text-foreground',
   rankingAmount: 'text-sm font-semibold tabular-nums text-foreground',
+  rankingMeta: 'text-[11px] tabular-nums text-muted-foreground',
+  savingsGrid: 'grid grid-cols-3 gap-2',
+  snapshotGrid: 'grid grid-cols-2 gap-2',
+  kpiPair: 'mt-4 grid grid-cols-2 gap-2 border-t border-border/25 pt-4',
   progressTrack: 'h-1.5 w-full overflow-hidden rounded-full bg-muted',
   progressFillPrimary: 'h-full rounded-full bg-primary',
   progressFillSecondary: 'h-full rounded-full bg-secondary',
@@ -413,6 +435,10 @@ export const stitchReports = {
   /** Account breakdown */
   accountRow:
     'flex items-center justify-between gap-3 rounded-xl border border-border/25 bg-card/90 p-3',
+  accountCard: 'flex flex-col gap-3 rounded-xl border border-border/25 bg-card/90 p-3',
+  accountMetricGrid: 'grid grid-cols-2 gap-x-3 gap-y-3',
+  accountMetricLabel: 'text-xs font-medium text-muted-foreground',
+  accountMetricValue: 'mt-0.5 text-base font-semibold tabular-nums leading-tight text-foreground',
   accountIconWrap:
     'flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-primary/25 bg-primary/12 text-primary-foreground',
   accountIconWrapMuted:
@@ -475,7 +501,7 @@ export const stitchTransactionFilterTriggers = {
  * Settings page — dark Stitch (aligned with stitchHome / stitchDashboardShell).
  */
 export const stitchSettings = {
-  pageMain: 'flex flex-col gap-5 px-4 pt-1 pb-20',
+  pageMain: `flex flex-col gap-5 px-4 pt-1 ${dashboardContentBottomPadding}`,
   sectionEyebrow: 'px-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground',
   sectionCard:
     'overflow-hidden rounded-2xl border border-border/20 bg-card/90 shadow-[0_16px_36px_rgba(0,7,30,0.28)]',

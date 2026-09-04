@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import { useCallback, useState } from 'react';
-import { Search, SlidersHorizontal, X } from 'lucide-react';
+import { Search, SlidersHorizontal, Upload, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import type { Category, Account, User } from '@/lib/types';
 import type {
@@ -34,6 +34,7 @@ export interface TransactionFilterChipsProps {
   readonly groupUsers?: User[] | undefined;
   readonly selectedUserId?: string | undefined;
   readonly onUserFilterChange?: ((userId: string) => void) | undefined;
+  readonly onImport?: (() => void) | undefined;
   readonly className?: string;
 }
 
@@ -48,6 +49,7 @@ export function TransactionFilterChips({
   groupUsers,
   selectedUserId,
   onUserFilterChange,
+  onImport,
   className,
 }: TransactionFilterChipsProps) {
   const t = useTranslations('Transactions.Filters');
@@ -145,7 +147,18 @@ export function TransactionFilterChips({
         ))}
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
+        {onImport ? (
+          <button
+            type="button"
+            onClick={onImport}
+            data-testid="transactions-import-button"
+            className={cn(stitchTransactions.chipBase, stitchTransactions.chipInactive)}
+          >
+            <Upload className={stitchTransactions.filtersChipIcon} aria-hidden />
+            {tChips('import')}
+          </button>
+        ) : null}
         <button
           type="button"
           onClick={() => setAdvancedOpen(true)}

@@ -1,7 +1,5 @@
-'use client';
-
-import { PageLoader } from '@/components/shared/page-loader';
+import { SettingsPageSkeleton } from '@/components/ui/primitives/skeletons';
 
 export default function SettingsLoading() {
-  return <PageLoader variant="list" />;
+  return <SettingsPageSkeleton />;
 }

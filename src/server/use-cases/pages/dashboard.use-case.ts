@@ -9,6 +9,7 @@ import {
 import { getTransactionsByGroupUseCase } from '../transactions/get-transactions.use-case';
 import {
   DASHBOARD_TRANSACTIONS_LIMIT,
+  RECENT_ACTIVITY_LIMIT,
   dashboardTransactionStartDate,
 } from '@/server/db/query-limits';
 import { getBudgetsByGroupUseCase } from '../budgets/get-budgets.use-case';
@@ -57,9 +58,34 @@ async function safeFetch<T>(promise: Promise<T>, fallback: T, context: string): 
   }
 }
 
+export interface RecentActivityByScope {
+  all: Transaction[];
+  byUserId: Record<string, Transaction[]>;
+}
+
+export function buildRecentActivityByScope(
+  transactions: Transaction[],
+  userIds: string[]
+): RecentActivityByScope {
+  const byUserId: Record<string, Transaction[]> = {};
+  for (const userId of userIds) {
+    byUserId[userId] = [];
+  }
+  for (const tx of transactions) {
+    const bucket = tx.user_id ? byUserId[tx.user_id] : undefined;
+    if (bucket && bucket.length < RECENT_ACTIVITY_LIMIT) {
+      bucket.push(tx);
+    }
+  }
+  return {
+    all: transactions.slice(0, RECENT_ACTIVITY_LIMIT),
+    byUserId,
+  };
+}
+
 export interface DashboardPageData {
   accounts: Account[];
-  transactions: Transaction[];
+  recentActivityByScope: RecentActivityByScope;
   budgetPeriods: Record<string, BudgetPeriod | null>;
   recurringSeries: RecurringTransactionSeries[];
   categories: Category[];
@@ -144,7 +170,7 @@ async function getCachedDashboardPageData(groupId: string): Promise<DashboardPag
 
   return {
     accounts,
-    transactions: transactionResult.data,
+    recentActivityByScope: buildRecentActivityByScope(transactionResult.data, userIds),
     budgetPeriods,
     recurringSeries,
     categories,

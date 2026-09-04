@@ -46,6 +46,6 @@ describe('investment-form-data', () => {
     expect(payload.symbol).toBe('AAPL');
     expect(payload.amount).toBe(1000);
     expect(payload.shares_acquired).toBe(4);
-    expect(payload.created_at).toEqual(new Date('2026-01-15'));
+    expect(payload.created_at).toBe('2026-01-15');
   });
 });

@@ -215,8 +215,16 @@ export const transactions = pgTable(
     group_id: uuid('group_id'),
     recurring_series_id: uuid('recurring_series_id'),
     frequency: varchar({ length: 20 }),
+    import_hash: text('import_hash'),
   },
   (table) => [
+    uniqueIndex('transactions_account_import_hash_unique')
+      .using(
+        'btree',
+        table.account_id.asc().nullsLast().op('uuid_ops'),
+        table.import_hash.asc().nullsLast().op('text_ops')
+      )
+      .where(sql`${table.import_hash} IS NOT NULL`),
     index('idx_transactions_account_date').using(
       'btree',
       table.account_id.asc().nullsLast().op('date_ops'),

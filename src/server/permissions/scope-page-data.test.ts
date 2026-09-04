@@ -88,7 +88,10 @@ describe('AccessScope filterShared', () => {
 describe('scopeDashboardPageData', () => {
   const dashboardData: DashboardPageData = {
     accounts: [accountA, accountB],
-    transactions: [txA, txB],
+    recentActivityByScope: {
+      all: [txA, txB],
+      byUserId: { 'member-1': [txA], 'member-2': [txB] },
+    },
     budgetPeriods: { 'member-1': null, 'member-2': null },
     recurringSeries: [],
     categories: [],
@@ -131,7 +134,8 @@ describe('scopeDashboardPageData', () => {
     const scoped = scopeDashboardPageData(dashboardData, member);
 
     expect(scoped.accounts).toEqual([accountA]);
-    expect(scoped.transactions).toEqual([txA]);
+    expect(scoped.recentActivityByScope.all).toEqual([txA]);
+    expect(scoped.recentActivityByScope.byUserId).toEqual({ 'member-1': [txA] });
     expect(Object.keys(scoped.budgetsByUser)).toEqual(['member-1']);
     expect(scoped.balanceViewModel.spendableBalanceAll).toBe(100);
     expect(scoped.balanceViewModel.spendableByUserId).toEqual({ 'member-1': 100 });
@@ -145,7 +149,6 @@ describe('scopeDashboardPageData', () => {
 describe('scopeAccountsPageData', () => {
   const pageData: AccountsPageData = {
     accounts: [accountA, accountB],
-    transactions: [],
     accountBalances: { a1: 100, a2: 500 },
     statsAll: {
       totalBalance: 600,
@@ -190,7 +193,6 @@ describe('scopeBudgetsPageData', () => {
       { id: 'b1', user_id: 'member-1', group_id: 'g1', amount: 100, category: 'food' } as never,
       { id: 'b2', user_id: 'member-2', group_id: 'g1', amount: 200, category: 'food' } as never,
     ],
-    transactions: [txA, txB],
     accounts: [accountA, accountB],
     categories: [],
     budgetPeriods: { 'member-1': null, 'member-2': null },
@@ -202,7 +204,6 @@ describe('scopeBudgetsPageData', () => {
     const scoped = scopeBudgetsPageData(pageData, member);
 
     expect(scoped.budgets.map((b) => b.id)).toEqual(['b1']);
-    expect(scoped.transactions).toEqual([txA]);
     expect(Object.keys(scoped.budgetsByUser)).toEqual(['member-1']);
   });
 });
@@ -240,6 +241,7 @@ describe('scopeReportsPageData', () => {
     defaultScope: 'all',
     preset: 'monthly',
     comparisonLabelKey: 'vsLastMonth',
+    transactionsTruncated: false,
   };
 
   it('forces members to their own report section', () => {
@@ -249,6 +251,12 @@ describe('scopeReportsPageData', () => {
     expect(scoped.sections.all.netFlow).toBe(10);
     expect(scoped.sections['member-2']).toBeUndefined();
     expect(scoped.periods).toHaveLength(1);
+    expect(scoped.transactionsTruncated).toBe(false);
+  });
+
+  it('copies transactionsTruncated for members', () => {
+    const scoped = scopeReportsPageData({ ...pageData, transactionsTruncated: true }, member);
+    expect(scoped.transactionsTruncated).toBe(true);
   });
 });
 

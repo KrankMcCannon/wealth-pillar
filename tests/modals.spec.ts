@@ -50,13 +50,16 @@ test.describe('entity modals (mobile)', () => {
     await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(2000);
 
-    const closePeriodButton = page.getByRole('button', { name: /chiudi periodo|close period/i });
-    if (!(await closePeriodButton.isVisible({ timeout: 5000 }))) {
+    const periodActions = page.getByRole('button', { name: /azioni del periodo|period actions/i });
+    if (!(await periodActions.isVisible({ timeout: 5000 }))) {
       test.skip();
       return;
     }
 
-    await closePeriodButton.click();
+    await periodActions.click();
+    const closePeriodItem = page.getByRole('menuitem', { name: /chiudi periodo|close period/i });
+    await expect(closePeriodItem).toBeVisible({ timeout: 5000 });
+    await closePeriodItem.click();
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 });
     await expect(page.locator('[data-vaul-drawer]')).toBeVisible();
   });
@@ -68,15 +71,18 @@ test.describe('entity modals (mobile)', () => {
     await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(2000);
 
-    const editClosingDateButton = page.getByRole('button', {
-      name: /modifica ultima chiusura|adjust last closing date/i,
-    });
-    if (!(await editClosingDateButton.isVisible({ timeout: 5000 }))) {
+    const periodActions = page.getByRole('button', { name: /azioni del periodo|period actions/i });
+    if (!(await periodActions.isVisible({ timeout: 5000 }))) {
       test.skip();
       return;
     }
 
-    await editClosingDateButton.click();
+    await periodActions.click();
+    const editClosingDateItem = page.getByRole('menuitem', {
+      name: /modifica ultima chiusura|adjust last closing date/i,
+    });
+    await expect(editClosingDateItem).toBeVisible({ timeout: 5000 });
+    await editClosingDateItem.click();
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 });
     await expect(page.locator('[data-vaul-drawer]')).toBeVisible();
   });

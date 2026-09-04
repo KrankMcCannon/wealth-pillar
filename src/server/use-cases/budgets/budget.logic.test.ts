@@ -128,6 +128,65 @@ describe('buildBudgetsByUserPure', () => {
     const sumPerBudget = (result['user-1']?.budgets ?? []).reduce((s, b) => s + b.spent, 0);
     expect(sumPerBudget).toBe(200);
   });
+
+  it('counts a shared-account expense only for the transaction owner', () => {
+    const other = { ...user, id: 'user-2' } as User;
+    const result = buildBudgetsByUserPure(
+      [user, other],
+      [budget(), budget({ id: 'b-2', user_id: 'user-2' })],
+      [tx({ amount: 80, account_id: 'shared-acc' })],
+      { 'user-1': null, 'user-2': null },
+      fixedNow
+    );
+    expect(result['user-1']?.totalSpent).toBe(80);
+    expect(result['user-2']?.totalSpent).toBe(0);
+  });
+
+  it('includes Rome date-only last day and excludes the next calendar day', () => {
+    const period: BudgetPeriod = {
+      id: 'p-1',
+      user_id: 'user-1',
+      start_date: '2024-06-01',
+      end_date: '2024-06-30',
+      is_active: false,
+      created_at: '2024-06-01',
+      updated_at: '2024-06-01',
+    };
+    const result = buildBudgetsByUserPure(
+      [user],
+      [budget()],
+      [
+        tx({ id: 'in', date: '2024-06-30', amount: 40 }),
+        tx({ id: 'out', date: '2024-07-01', amount: 99 }),
+      ],
+      { 'user-1': period },
+      new Date('2024-07-15T12:00:00+02:00')
+    );
+    expect(result['user-1']?.totalSpent).toBe(40);
+  });
+
+  it('stops an open period at now so future-dated rows do not count', () => {
+    const period: BudgetPeriod = {
+      id: 'p-1',
+      user_id: 'user-1',
+      start_date: '2024-06-01',
+      end_date: null,
+      is_active: true,
+      created_at: '2024-06-01',
+      updated_at: '2024-06-01',
+    };
+    const result = buildBudgetsByUserPure(
+      [user],
+      [budget()],
+      [
+        tx({ id: 'past', date: '2024-06-10', amount: 25 }),
+        tx({ id: 'future', date: '2024-06-20', amount: 90 }),
+      ],
+      { 'user-1': period },
+      fixedNow
+    );
+    expect(result['user-1']?.totalSpent).toBe(25);
+  });
 });
 
 describe('filterTransactionsForBudgetsUnion', () => {

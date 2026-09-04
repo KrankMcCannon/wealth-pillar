@@ -4,12 +4,12 @@ import type { TimeSeriesEntry } from '@/lib/types/market-data.types';
 import { withTimeout } from '@/lib/utils/with-timeout';
 import { getMarketDataUseCase } from '../market-data/market-data.use-cases';
 import {
-  fetchInvestmentsHoldingsWindow,
   getInvestmentsOverviewUseCase,
   resolveInvestmentsTargetUserIds,
 } from '../investments/investment.use-cases';
 import type {
   AssetAllocationSlice,
+  EnrichedInvestment,
   InvestmentListItem,
   PortfolioSummary,
 } from '../investments/investment.types';
@@ -27,26 +27,29 @@ export interface InvestmentsPageData {
   indexData: TimeSeriesEntry[];
   currentIndex: string;
   holdings: InvestmentListItem[];
-  hasMore: boolean;
-  nextCursor?: string;
   userScope: string;
 }
 
-function mapHoldingsToInvestment(
-  rows: Awaited<ReturnType<typeof fetchInvestmentsHoldingsWindow>>['holdings']
-): InvestmentListItem[] {
-  return rows.map((row) => ({
-    id: row.id,
-    name: row.name,
-    symbol: row.symbol,
-    amount: Number(row.amount),
-    shares_acquired: Number(row.shares_acquired),
-    currency: row.currency,
-    tax_paid: Number(row.tax_paid),
-    totalPaid: Number(row.amount) + (Number(row.tax_paid) || 0),
-    net_earn: Number(row.net_earn),
-    created_at: row.created_at,
-  }));
+function mapOverviewToHoldings(rows: EnrichedInvestment[]): InvestmentListItem[] {
+  return [...rows]
+    .sort((a, b) => {
+      const ta = new Date(a.created_at ?? 0).getTime();
+      const tb = new Date(b.created_at ?? 0).getTime();
+      if (tb !== ta) return tb - ta;
+      return b.id.localeCompare(a.id);
+    })
+    .map((row) => ({
+      id: row.id,
+      name: row.name,
+      symbol: row.symbol,
+      amount: row.amount,
+      shares_acquired: row.shares_acquired,
+      currency: row.currency,
+      tax_paid: row.tax_paid,
+      totalPaid: row.totalPaid,
+      net_earn: row.net_earn,
+      created_at: row.created_at,
+    }));
 }
 
 async function getCachedInvestmentsPageData(
@@ -59,9 +62,8 @@ async function getCachedInvestmentsPageData(
   cacheLife('minutes');
   cacheTag(`group:${groupId}:investments`);
 
-  const [overview, holdingsWindow, indexData] = await Promise.all([
+  const [overview, indexData] = await Promise.all([
     getInvestmentsOverviewUseCase(targetUserIds),
-    fetchInvestmentsHoldingsWindow(targetUserIds),
     withTimeout(getMarketDataUseCase(indexSymbol), 1500, [] as TimeSeriesEntry[]),
   ]);
 
@@ -71,9 +73,7 @@ async function getCachedInvestmentsPageData(
     portfolioHistory: overview.portfolioHistory,
     indexData,
     currentIndex: indexSymbol,
-    holdings: mapHoldingsToInvestment(holdingsWindow.holdings),
-    hasMore: holdingsWindow.hasMore,
-    ...(holdingsWindow.nextCursor ? { nextCursor: holdingsWindow.nextCursor } : {}),
+    holdings: mapOverviewToHoldings(overview.investments),
     userScope,
   };
 }
@@ -91,16 +91,4 @@ export async function getInvestmentsPageData(
   const data = await getCachedInvestmentsPageData(groupId, targetUserIds, indexSymbol, userScope);
 
   return scopeInvestmentsPageData(data, currentUser);
-}
-
-export async function fetchInvestmentsPageWindow(
-  targetUserIds: string[],
-  cursor: string
-): Promise<{ holdings: InvestmentListItem[]; hasMore: boolean; nextCursor?: string }> {
-  const window = await fetchInvestmentsHoldingsWindow(targetUserIds, cursor);
-  return {
-    holdings: mapHoldingsToInvestment(window.holdings),
-    hasMore: window.hasMore,
-    ...(window.nextCursor ? { nextCursor: window.nextCursor } : {}),
-  };
 }

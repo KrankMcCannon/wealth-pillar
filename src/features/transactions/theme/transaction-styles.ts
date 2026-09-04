@@ -1,5 +1,4 @@
 import type { CSSProperties } from 'react';
-import type { MotionValue } from 'framer-motion';
 import type { Transaction } from '@/lib';
 
 export const typographyStyles = {
@@ -199,7 +198,7 @@ export const transactionTokens = {
 
 export const transactionStyles = {
   page: {
-    container: 'relative flex w-full min-h-[100svh] flex-col bg-background md:pl-64',
+    container: 'relative flex w-full min-h-[100svh] flex-col bg-background',
     main: `flex-1 ${spacingStyles.page.mobile} space-y-6 sm:space-y-8 pb-14`,
     loadingContent: 'space-y-6',
   },
@@ -450,7 +449,6 @@ export const transactionStyles = {
       opacity: isOpen ? 1 : 0,
       pointerEvents: isOpen ? 'auto' : 'none',
     }),
-    motionStyle: (x: MotionValue<number>) => ({ x }),
   },
   dayList: {
     container: 'space-y-6',
@@ -478,106 +476,6 @@ export const transactionStyles = {
       rowTitle: 'h-4 w-32 rounded animate-pulse bg-muted/60',
       rowSubtitle: 'h-3 w-20 rounded animate-pulse bg-muted/50',
       rowAmount: 'h-5 w-16 rounded animate-pulse bg-muted/60',
-    },
-  },
-  transactionTable: {
-    wrapper:
-      'rounded-2xl border border-border/50 bg-card overflow-hidden shadow-sm shadow-muted/15',
-    header: 'border-b border-primary/10 bg-primary/[0.03]',
-    headerRow: '',
-    headerCell:
-      'h-9 px-4 text-left align-middle text-[10px] font-semibold uppercase tracking-widest text-primary/50 whitespace-nowrap select-none',
-    headerCellRight: 'text-right',
-    headerCellCenter: 'text-center',
-    dayRow: 'bg-primary/[0.04] border-b border-primary/10',
-    dayCell: 'px-4 py-2',
-    dayDate: 'text-xs font-semibold text-primary/80 tracking-wide uppercase',
-    dayCount: 'text-[10px] text-primary/40 font-medium',
-    dayTotalPositive: 'text-success text-xs font-bold tabular-nums',
-    dayTotalNegative: 'text-destructive text-xs font-bold tabular-nums',
-    dayTotalNeutral: 'text-primary text-xs font-bold tabular-nums',
-    dayHeaderRow: 'flex items-center gap-2',
-    categoryPill:
-      'inline-flex items-center gap-1.5 rounded-full border border-primary/15 bg-primary/6 px-2.5 py-0.5 text-[11px] font-medium text-primary/70 whitespace-nowrap',
-    row: 'border-b border-primary/[0.06] hover:bg-primary/[0.03] cursor-pointer transition-colors duration-100 group',
-    cell: 'px-4 py-3 align-middle',
-    cellRight: 'text-right',
-    cellCenter: 'text-center',
-    cellNarrow: 'px-2 py-3 align-middle',
-    descriptionText: 'text-sm font-medium text-primary/90 truncate max-w-[min(100%,18rem)]',
-    accountText: 'text-[11px] text-primary/45 font-medium truncate max-w-[80px]',
-    amount: 'text-sm font-bold tabular-nums tracking-tight',
-    amountIncome: 'text-success',
-    amountExpense: 'text-destructive',
-    amountTransfer: 'text-primary',
-    actionCell: 'w-10 px-2 py-3 align-middle',
-    actionDeleteButton:
-      'inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-destructive/30 hover:text-destructive hover:bg-destructive/10 transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/30',
-    emptyWrapper: 'py-16 text-center',
-    emptyIcon: 'mx-auto mb-5 text-primary/35',
-    emptyTitle: 'text-base font-semibold text-primary mb-1.5',
-    emptyDescription: 'text-sm text-primary/55 max-w-xs mx-auto mb-5',
-    emptyAddButton:
-      'inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition-all duration-150 hover:bg-primary/90 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 active:scale-[0.98]',
-    emptyClearButton:
-      'inline-flex items-center gap-2 rounded-xl border border-primary/25 bg-transparent px-4 py-2 text-sm font-medium text-primary/70 transition-all duration-150 hover:bg-primary/5 hover:text-primary hover:border-primary/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 active:scale-[0.98]',
-    skeleton: {
-      row: 'border-b border-primary/[0.06]',
-      cell: 'px-4 py-3 align-middle',
-      icon: 'h-7 w-7 rounded-lg bg-primary/10 animate-pulse',
-      line: 'h-3.5 rounded-md bg-primary/10 animate-pulse',
-      lineShort: 'h-2.5 rounded-md bg-primary/8 animate-pulse mt-1',
-      amountLine: 'h-3.5 w-14 rounded-md bg-primary/10 animate-pulse ml-auto',
-      dayRow: 'border-b border-primary/10 bg-primary/[0.04]',
-      dayCell: 'px-4 py-2',
-      dayLine: 'h-3 w-20 rounded bg-primary/12 animate-pulse',
-    },
-    mobile: {
-      wrapper: 'sm:hidden',
-      contentStack: 'space-y-4',
-      dayHeader: 'flex items-center justify-between px-1 mb-2',
-      dayDate: 'text-xs font-semibold text-primary/70 tracking-wide uppercase',
-      dayMeta: 'flex items-center gap-2',
-      dayCount: 'text-[10px] text-primary/40 font-medium',
-      dayNetPositive: 'text-success text-xs font-bold tabular-nums',
-      dayNetNegative: 'text-destructive text-xs font-bold tabular-nums',
-      dayNetNeutral: 'text-primary text-xs font-bold tabular-nums',
-      cardGroup:
-        'rounded-2xl border border-border/50 bg-card overflow-hidden shadow-sm shadow-muted/15',
-      emptyWrapper: 'py-14 text-center rounded-2xl border border-border/50 bg-card',
-      skeleton: {
-        wrapper: 'space-y-4',
-        dayHeader: 'h-3.5 w-24 rounded bg-primary/12 animate-pulse mb-2 ml-1',
-        card: 'rounded-2xl border border-border/50 bg-card overflow-hidden',
-        row: 'flex items-center gap-3 px-4 py-3.5 border-b border-primary/[0.06] last:border-0',
-        icon: 'h-9 w-9 rounded-xl bg-primary/10 animate-pulse shrink-0',
-        body: 'flex-1 space-y-1.5',
-        line: 'h-3.5 rounded bg-primary/10 animate-pulse',
-        lineSub: 'h-2.5 w-1/2 rounded bg-primary/8 animate-pulse',
-        amount: 'h-4 w-14 rounded bg-primary/10 animate-pulse shrink-0',
-      },
-      pagination: 'mt-3 rounded-2xl border border-border/50 bg-card shadow-sm shadow-muted/15',
-    },
-    pagination: {
-      wrapper: 'flex items-center justify-between gap-3 border-t border-border/25 px-0 py-3.5',
-      info: 'text-[11px] font-medium tabular-nums text-muted-foreground',
-      infoHighlight: 'font-semibold text-foreground',
-      controls: 'flex items-center gap-1',
-      button:
-        'inline-flex h-8 min-w-[2rem] items-center justify-center rounded-full border border-border/35 bg-muted/80 px-2.5 text-[13px] font-medium text-muted-foreground transition-all duration-150 hover:border-border/45 hover:bg-accent hover:text-foreground disabled:pointer-events-none disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35',
-      buttonActive:
-        'border-transparent bg-accent text-foreground shadow-[inset_0_0_0_1px_rgba(143,176,255,0.28)] hover:bg-accent hover:text-foreground',
-      buttonIcon: 'h-3.5 w-3.5',
-      ellipsis:
-        'inline-flex h-8 min-w-[2rem] select-none items-center justify-center text-xs text-muted-foreground/70',
-      loadingSpinner:
-        'h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary border-t-transparent motion-reduce:animate-none',
-      perPageWrapper: 'flex shrink-0 items-center gap-1.5',
-      perPageLabel: 'hidden text-[11px] font-medium text-muted-foreground sm:block',
-      perPageSelect:
-        'h-8 cursor-pointer appearance-none rounded-full border border-border/35 bg-muted/80 px-2.5 pr-6 text-[13px] font-medium text-foreground transition-all duration-150 hover:border-border/45 hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring/35',
-      perPageChevron: 'text-muted-foreground',
-      mobileIndicator: 'px-3 text-[13px] font-semibold tabular-nums text-foreground sm:hidden',
     },
   },
 } as const;

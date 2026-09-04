@@ -29,7 +29,7 @@ export function buildInvestmentPayload(data: InvestmentFormData) {
     amount: Number(data.amount),
     shares_acquired: Number(data.shares),
     currency: data.currency,
-    created_at: new Date(data.created_at),
+    created_at: data.created_at,
     tax_paid: Number(data.tax_paid) || 0,
     currency_rate: 1,
     net_earn: 0,

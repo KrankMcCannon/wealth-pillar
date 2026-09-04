@@ -87,5 +87,34 @@ describe('getDashboardPageData', () => {
     expect(result.categories).toEqual([]);
     expect(result.balanceViewModel.spendableBalanceAll).toBeGreaterThanOrEqual(0);
     expect(result).not.toHaveProperty('investments');
+    expect(result).not.toHaveProperty('transactions');
+    expect(result.recentActivityByScope).toEqual({ all: [], byUserId: { u1: [] } });
+  });
+
+  it('slices recent activity to 5 per scope from the year window', async () => {
+    const txs = Array.from({ length: 6 }, (_, i) => ({
+      id: `tx${i}`,
+      user_id: 'u1',
+      group_id: 'g1',
+      amount: 10,
+      category: 'food',
+      date: `2024-06-0${i + 1}`,
+      type: 'expense' as const,
+      account_id: 'a1',
+      description: '',
+      created_at: '2024-06-01',
+      updated_at: '2024-06-01',
+    }));
+    vi.mocked(getTransactionsByGroupUseCase).mockResolvedValue({
+      data: txs,
+      total: 6,
+      hasMore: false,
+    });
+
+    const result = await getDashboardPageData('g1', groupUsers[0]);
+
+    expect(result.recentActivityByScope.all).toHaveLength(5);
+    expect(result.recentActivityByScope.byUserId.u1).toHaveLength(5);
+    expect(result.recentActivityByScope.all[0]?.id).toBe('tx0');
   });
 });

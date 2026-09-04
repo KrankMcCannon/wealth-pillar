@@ -70,7 +70,6 @@ function SeriesCardInner({
   const daysUntilDue = daysUntilDueProp ?? calculateDaysUntilDue(series);
   const isOverdue = daysUntilDue < 0;
   const isDueToday = daysUntilDue === 0;
-  const isDueSoon = daysUntilDue <= 3;
   const canDelete = Boolean(onDelete) && showDelete;
   const canPause = Boolean(onPause);
 
@@ -103,17 +102,23 @@ function SeriesCardInner({
         ? stitchHome.amountExpense
         : 'text-muted-foreground';
 
-  const urgencyRingClass = cn(
-    isOverdue && 'ring-1 ring-inset ring-expense/35',
-    isDueToday && 'ring-1 ring-inset ring-amber-400/40',
-    isDueSoon && !isDueToday && !isOverdue && 'ring-1 ring-inset ring-border/30'
-  );
+  const dueLabel = getDueDateLabel(daysUntilDue, t);
+  const dueNode =
+    series.is_active && (isOverdue || isDueToday) ? (
+      <StatusBadge status={isOverdue ? 'danger' : 'warning'} size="sm">
+        {dueLabel}
+      </StatusBadge>
+    ) : (
+      <span className={stitchHome.rowMeta}>{dueLabel}</span>
+    );
+
+  const amountLabel = formatCurrency(Math.abs(Number(series.amount)));
 
   const metadata = (
     <>
       <span className={stitchHome.rowMeta}>{getFrequencyLabel(series.frequency, t)}</span>
       <span className={transactionStyles.transactionRow.separator}>•</span>
-      <span className={stitchHome.rowMeta}>{getDueDateLabel(daysUntilDue, t)}</span>
+      {dueNode}
       {!series.is_active ? (
         <>
           <span className={transactionStyles.transactionRow.separator}>•</span>
@@ -166,7 +171,7 @@ function SeriesCardInner({
       title={series.description}
       titleClassName={stitchHome.rowTitle}
       metadata={metadata}
-      primaryValue={formatCurrency(Math.abs(Number(series.amount)))}
+      primaryValue={amountLabel}
       amountVariant={
         amountType === 'income' ? 'success' : amountType === 'expense' ? 'destructive' : 'primary'
       }
@@ -175,11 +180,14 @@ function SeriesCardInner({
       rightLayout={pauseDeleteActions ? 'row' : 'stack'}
       variant="regular"
       onClick={handleCardClick}
+      interactiveAriaLabel={t('actions.editAria', {
+        description: series.description,
+        amount: amountLabel,
+      })}
       className={cn(
-        stitchHome.listRowInteractive,
+        stitchHome.listRowInteractiveMinTouch,
         'w-full',
         !series.is_active && 'opacity-60',
-        urgencyRingClass,
         className
       )}
       testId={`recurring-series-row-${series.id}`}

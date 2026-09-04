@@ -43,6 +43,7 @@ export interface UseBudgetsContentReturn {
   readonly handleSelectUser: (userId: string) => void;
   readonly handleOpenBudgetDetail: (budgetId: string) => void;
   readonly openModal: ReturnType<typeof useModalState>['openModal'];
+  readonly isModalOpen: boolean;
 }
 
 export function useBudgetsContent({
@@ -80,7 +81,7 @@ export function useBudgetsContent({
     [budgets, budgetContextUserId]
   );
 
-  const { openModal } = useModalState();
+  const { openModal, modal } = useModalState();
 
   const { budgetsByUser } = useBudgetsByUser({ precalculatedData });
   const userBudgetSummary = budgetsByUser[budgetContextUserId] ?? null;
@@ -101,7 +102,7 @@ export function useBudgetsContent({
   const handleSelectUser = useCallback(
     (userId: string) => {
       setSelectedGroupFilter(userId);
-      router.push(`/budgets?userId=${encodeURIComponent(userId)}`);
+      router.push(`/budgets?user=${encodeURIComponent(userId)}`);
     },
     [router, setSelectedGroupFilter]
   );
@@ -133,5 +134,6 @@ export function useBudgetsContent({
     handleSelectUser,
     handleOpenBudgetDetail,
     openModal,
+    isModalOpen: Boolean(modal),
   };
 }

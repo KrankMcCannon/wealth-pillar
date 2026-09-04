@@ -2,15 +2,17 @@
 
 import { useLocale } from 'next-intl';
 import type { UserBudgetSummary } from '@/lib/types';
-import { stitchBudgets } from '@/styles/home-design-foundation';
+import { stitchBudgets, stitchStatMini } from '@/styles/home-design-foundation';
 import { formatCurrencyLocale } from '@/lib/utils/currency-formatter';
+import { cn } from '@/lib/utils';
 
 export interface BudgetsSummaryHeroProps {
   readonly summary: UserBudgetSummary;
   readonly labels: {
     readonly totalAvailable: string;
     readonly totalSpent: string;
-    readonly outOf: (total: string) => string;
+    readonly totalAssigned: string;
+    readonly srHeading: string;
   };
 }
 
@@ -29,23 +31,27 @@ export function BudgetsSummaryHero({ summary, labels }: Readonly<BudgetsSummaryH
   const { main, rest } = splitCurrencyParts(availableFormatted);
 
   return (
-    <section className={stitchBudgets.heroSection} aria-label={labels.totalAvailable}>
+    <section className={stitchBudgets.heroSection} aria-labelledby="budgets-hero-heading">
+      <h2 id="budgets-hero-heading" className="sr-only">
+        {labels.srHeading}
+      </h2>
       <div className={stitchBudgets.heroInner}>
-        <div className={stitchBudgets.heroTopRow}>
-          <div className={stitchBudgets.heroPrimaryBlock}>
-            <span className={stitchBudgets.heroEyebrow}>{labels.totalAvailable}</span>
-            <div className={stitchBudgets.heroAmountRow}>
-              <span className={stitchBudgets.heroAmount}>{main}</span>
-              {rest ? <span className={stitchBudgets.heroAmountCents}>{rest}</span> : null}
-              <span className={stitchBudgets.heroAmountBudget}>
-                {labels.outOf(budgetFormatted)}
-              </span>
-            </div>
+        <div className={stitchBudgets.heroPrimaryBlock}>
+          <span className={stitchBudgets.heroEyebrow}>{labels.totalAvailable}</span>
+          <div className={stitchBudgets.heroAmountRow}>
+            <span className={stitchBudgets.heroAmount}>{main}</span>
+            {rest ? <span className={stitchBudgets.heroAmountCents}>{rest}</span> : null}
           </div>
+        </div>
 
-          <div className={stitchBudgets.heroSpentBlock}>
-            <span className={stitchBudgets.heroMetricLabel}>{labels.totalSpent}</span>
-            <span className={stitchBudgets.heroSpentValue}>{spentFormatted}</span>
+        <div className={stitchBudgets.heroStatMiniRow}>
+          <div className={cn(stitchStatMini.item, stitchStatMini.itemDestructive)}>
+            <p className={stitchStatMini.label}>{labels.totalSpent}</p>
+            <p className={stitchStatMini.valueDestructive}>{spentFormatted}</p>
+          </div>
+          <div className={cn(stitchStatMini.item, stitchStatMini.itemPrimary)}>
+            <p className={stitchStatMini.label}>{labels.totalAssigned}</p>
+            <p className={stitchStatMini.valuePrimary}>{budgetFormatted}</p>
           </div>
         </div>
       </div>

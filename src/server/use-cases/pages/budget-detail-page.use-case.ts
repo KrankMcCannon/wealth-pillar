@@ -18,6 +18,7 @@ import { parsePeriodDates } from '../shared/period.logic';
 import type { Account, Budget, Category, Transaction, User } from '@/lib/types';
 import type { BudgetDetailPageData } from './budget-detail-page.types';
 import { scopeBudgetDetailPageData } from '@/server/permissions/scope-page-data';
+import { BUDGET_DETAIL_TX_PREVIEW } from '@/server/db/query-limits';
 
 export type { BudgetDetailPageData } from './budget-detail-page.types';
 
@@ -50,6 +51,49 @@ function groupTransactionsByDay(transactions: Transaction[]): GroupedBudgetTrans
     }));
 }
 
+export function previewGroupedBudgetTransactions(
+  groups: GroupedBudgetTransaction[],
+  maxTransactions: number
+): GroupedBudgetTransaction[] {
+  if (maxTransactions <= 0) return [];
+  const preview: GroupedBudgetTransaction[] = [];
+  let remaining = maxTransactions;
+  for (const group of groups) {
+    if (remaining <= 0) break;
+    if (group.transactions.length <= remaining) {
+      preview.push(group);
+      remaining -= group.transactions.length;
+      continue;
+    }
+    preview.push({
+      ...group,
+      transactions: group.transactions.slice(0, remaining),
+    });
+    break;
+  }
+  return preview;
+}
+
+function slimDetailPayload(
+  accounts: Account[],
+  categories: Category[],
+  budget: Budget,
+  budgetTransactions: Transaction[]
+): { accounts: Account[]; categories: Category[] } {
+  const categoryKeys = new Set(budget.categories);
+  const accountIds = new Set(
+    budgetTransactions.flatMap(
+      (tx) => [tx.account_id, tx.to_account_id].filter(Boolean) as string[]
+    )
+  );
+  return {
+    categories: categories.filter(
+      (c) => categoryKeys.has(c.key) || categoryKeys.has(c.id) || categoryKeys.has(c.label)
+    ),
+    accounts: accounts.filter((a) => accountIds.has(a.id)),
+  };
+}
+
 async function getCachedBudgetDetailPageData(
   groupId: string,
   budgetId: string
@@ -72,21 +116,23 @@ async function getCachedBudgetDetailPageData(
     notFound();
   }
 
-  const [activePeriod, accounts, categories] = await Promise.all([
-    getActiveBudgetPeriodUseCase(budget.user_id).catch(() => null),
-    getAccountsByGroupDeduped(groupId).catch(() => [] as Account[]),
-    getAllCategoriesDeduped().catch(() => [] as Category[]),
-  ]);
-
+  const activePeriod = await getActiveBudgetPeriodUseCase(budget.user_id).catch(() => null);
   const [periodStart, periodEnd] = parsePeriodDates(activePeriod);
-  const txOptions: { startDate?: Date; endDate?: Date } = {
+  const txOptions: {
+    startDate?: Date;
+    endDate?: Date;
+    categoryKeys?: string[];
+  } = {
     startDate: periodStart.toJSDate(),
     endDate: periodEnd.toJSDate(),
+    ...(budget.categories.length > 0 ? { categoryKeys: budget.categories } : {}),
   };
 
-  const userTransactions = await getTransactionsByUserUseCase(budget.user_id, txOptions).catch(
-    () => [] as Transaction[]
-  );
+  const [accounts, categories, userTransactions] = await Promise.all([
+    getAccountsByGroupDeduped(groupId).catch(() => [] as Account[]),
+    getAllCategoriesDeduped().catch(() => [] as Category[]),
+    getTransactionsByUserUseCase(budget.user_id, txOptions).catch(() => [] as Transaction[]),
+  ]);
 
   const budgetTransactions = filterTransactionsForBudget(
     userTransactions,
@@ -96,7 +142,11 @@ async function getCachedBudgetDetailPageData(
   );
   const progress = calculateBudgetProgress(budget, budgetTransactions);
   const categoryBreakdown = buildBudgetCategoryBreakdown(budget, budgetTransactions, categories);
-  const groupedTransactions = groupTransactionsByDay(budgetTransactions);
+  const groupedTransactions = previewGroupedBudgetTransactions(
+    groupTransactionsByDay(budgetTransactions),
+    BUDGET_DETAIL_TX_PREVIEW
+  );
+  const slim = slimDetailPayload(accounts, categories, budget, budgetTransactions);
 
   return {
     budget,
@@ -106,8 +156,8 @@ async function getCachedBudgetDetailPageData(
     periodEnd: periodEnd.toISO() ?? null,
     categoryBreakdown,
     groupedTransactions,
-    accounts,
-    categories,
+    accounts: slim.accounts,
+    categories: slim.categories,
   };
 }
 

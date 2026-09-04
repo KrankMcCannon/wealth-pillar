@@ -139,7 +139,7 @@ test.describe('Transaction Flows', () => {
       await page.waitForLoadState('domcontentloaded');
       await page.waitForTimeout(2000);
 
-      const transactionItem = page.locator('[data-testid="transaction-row"]').first();
+      const transactionItem = page.locator('[data-testid^="transaction-row-"]').first();
       if (await transactionItem.isVisible({ timeout: 5000 })) {
         await transactionItem.click();
         await expect(page.locator('text=Modifica transazione')).toBeVisible({ timeout: 5000 });
@@ -151,7 +151,7 @@ test.describe('Transaction Flows', () => {
       await page.waitForLoadState('domcontentloaded');
       await page.waitForTimeout(2000);
 
-      const transactionItem = page.locator('[data-testid="transaction-row"]').first();
+      const transactionItem = page.locator('[data-testid^="transaction-row-"]').first();
       if (await transactionItem.isVisible({ timeout: 5000 })) {
         await transactionItem.click();
         await expect(page.locator('text=Modifica transazione')).toBeVisible({ timeout: 5000 });
@@ -172,7 +172,7 @@ test.describe('Transaction Flows', () => {
       await page.waitForLoadState('domcontentloaded');
       await page.waitForTimeout(2000);
 
-      const transactionItem = page.locator('[data-testid="transaction-row"]').first();
+      const transactionItem = page.locator('[data-testid^="transaction-row-"]').first();
       if (await transactionItem.isVisible({ timeout: 5000 })) {
         await transactionItem.click();
         await expect(page.locator('text=Modifica transazione')).toBeVisible({ timeout: 5000 });
@@ -189,7 +189,7 @@ test.describe('Transaction Flows', () => {
       await page.waitForLoadState('domcontentloaded');
       await page.waitForTimeout(2000);
 
-      const transactionItem = page.locator('[data-testid="transaction-row"]').first();
+      const transactionItem = page.locator('[data-testid^="transaction-row-"]').first();
       if (await transactionItem.isVisible({ timeout: 5000 })) {
         await transactionItem.click();
         await page.getByTestId('transaction-form-delete').click();
@@ -209,7 +209,7 @@ test.describe('Transaction Flows', () => {
       await page.waitForLoadState('domcontentloaded');
       await page.waitForTimeout(2000);
 
-      const transactionItem = page.locator('[data-testid="transaction-row"]').first();
+      const transactionItem = page.locator('[data-testid^="transaction-row-"]').first();
       if (await transactionItem.isVisible({ timeout: 5000 })) {
         await transactionItem.click();
         await page.getByTestId('transaction-form-delete').click();

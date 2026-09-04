@@ -33,6 +33,8 @@ describe('buildRecurringView', () => {
         due: 0,
         overdue: -2,
         paused: 5,
+        laterMonthly: 18,
+        laterYearly: 40,
         'other-user': 1,
       };
       return daysById[series.id] ?? 10;
@@ -58,11 +60,13 @@ describe('buildRecurringView', () => {
     expect(recurringCalculations.calculateDaysUntilDue).toHaveBeenCalledTimes(1);
   });
 
-  it('sorts by daysUntilDue ascending and groups upcoming series', () => {
+  it('sorts by due date and splits upcoming from later monthly/yearly', () => {
     const series = [
       createSeries({ id: 'upcoming' }),
       createSeries({ id: 'due' }),
       createSeries({ id: 'overdue' }),
+      createSeries({ id: 'laterMonthly' }),
+      createSeries({ id: 'laterYearly', frequency: 'yearly' }),
       createSeries({ id: 'paused', is_active: false }),
     ];
 
@@ -73,8 +77,13 @@ describe('buildRecurringView', () => {
       'due',
       'upcoming',
       'paused',
+      'laterMonthly',
+      'laterYearly',
     ]);
-    expect(view.upcomingSeries.map((item) => item.id)).toEqual(['due', 'upcoming']);
+    expect(view.upcomingSeries.map((item) => item.id)).toEqual(['overdue', 'due', 'upcoming']);
+    expect(view.monthlySeries.map((item) => item.id)).toEqual(['laterMonthly']);
+    expect(view.yearlySeries.map((item) => item.id)).toEqual(['laterYearly']);
+    expect(view.pausedSeries.map((item) => item.id)).toEqual(['paused']);
     expect(view.pausedCount).toBe(1);
   });
 
@@ -102,5 +111,18 @@ describe('buildRecurringView', () => {
     expect(view.monthlyTotals.totalIncome).toBe(1200);
     expect(view.monthlyTotals.totalExpenses).toBe(0);
     expect(view.totalMonthlyRecurring).toBe(1200);
+  });
+
+  it('computes totalMonthlyRecurring as net monthly amount (income - expense)', () => {
+    const series = [
+      createSeries({ id: 'inc', type: 'income', amount: 1500 }),
+      createSeries({ id: 'exp', type: 'expense', amount: 400 }),
+    ];
+
+    const view = buildRecurringView(series);
+
+    expect(view.monthlyTotals.totalIncome).toBe(1500);
+    expect(view.monthlyTotals.totalExpenses).toBe(400);
+    expect(view.totalMonthlyRecurring).toBe(1100);
   });
 });

@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
 import { cn } from '@/lib';
+import { dashboardContentBottomPadding } from '@/styles/home-design-foundation';
 
-export const dashboardContentBottomPadding =
-  'pb-[max(7rem,calc(5.5rem+env(safe-area-inset-bottom)))]';
+export { dashboardContentBottomPadding };
 
 const homeDashboardLayoutStyles = {
   main: `flex min-h-0 w-full flex-col gap-6 px-4 pt-4 ${dashboardContentBottomPadding}`,

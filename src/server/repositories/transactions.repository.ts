@@ -162,33 +162,30 @@ export class TransactionsRepository {
     if (options?.category) {
       conditions.push(eq(transactions.category, options.category));
     }
+    if (options?.categoryKeys?.length) {
+      conditions.push(inArray(transactions.category, options.categoryKeys));
+    }
     if (options?.type) {
       conditions.push(eq(transactions.type, options.type));
     }
 
-    const baseQuery = db
+    const listWhere = and(...conditions);
+
+    let query = db
       .select()
       .from(transactions)
-      .where(and(...conditions));
-
-    const countResult2 = await db
-      .select({ total: count() })
-      .from(transactions)
-      .where(and(...conditions));
-    const total = countResult2[0]?.total ?? 0;
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let query: any = baseQuery.orderBy(desc(transactions.date), desc(transactions.created_at));
+      .where(listWhere)
+      .orderBy(desc(transactions.date), desc(transactions.created_at));
 
     if (options?.limit) {
-      query = query.limit(options.limit);
+      query = query.limit(options.limit) as typeof query;
     }
 
     const data = await query;
 
     return {
       data,
-      total,
+      total: data.length,
     };
   }
 
@@ -232,6 +229,83 @@ export class TransactionsRepository {
     const dbConn = resolveDb(executor);
     const [row] = await dbConn.insert(transactions).values(data).returning();
     return row;
+  }
+
+  /**
+   * Bulk insert transactions; skips rows that conflict on (account_id, import_hash).
+   */
+  static async createMany(data: InsertTransaction[], executor?: DbExecutor) {
+    if (data.length === 0) return [];
+    const dbConn = resolveDb(executor);
+    return dbConn
+      .insert(transactions)
+      .values(data)
+      .onConflictDoNothing({
+        target: [transactions.account_id, transactions.import_hash],
+      })
+      .returning();
+  }
+
+  static async findByAccountDateRange(
+    accountId: string,
+    startDate: string,
+    endDate: string,
+    executor?: DbExecutor
+  ) {
+    const dbConn = resolveDb(executor);
+    return dbConn
+      .select()
+      .from(transactions)
+      .where(
+        and(
+          eq(transactions.account_id, accountId),
+          sql`${transactions.date} >= ${startDate}`,
+          sql`${transactions.date} <= ${endDate}`
+        )
+      );
+  }
+
+  static async findImportHashesForAccount(
+    accountId: string,
+    hashes: string[],
+    executor?: DbExecutor
+  ): Promise<string[]> {
+    if (hashes.length === 0) return [];
+    const dbConn = resolveDb(executor);
+    const rows = await dbConn
+      .select({ import_hash: transactions.import_hash })
+      .from(transactions)
+      .where(
+        and(eq(transactions.account_id, accountId), inArray(transactions.import_hash, hashes))
+      );
+    return rows
+      .map((row) => row.import_hash)
+      .filter((hash): hash is string => typeof hash === 'string' && hash.length > 0);
+  }
+
+  static async findManualDuplicatesForAccount(
+    accountId: string,
+    startDate: string,
+    endDate: string,
+    executor?: DbExecutor
+  ) {
+    const dbConn = resolveDb(executor);
+    return dbConn
+      .select({
+        date: transactions.date,
+        amount: transactions.amount,
+        type: transactions.type,
+        description: transactions.description,
+      })
+      .from(transactions)
+      .where(
+        and(
+          eq(transactions.account_id, accountId),
+          sql`${transactions.date} >= ${startDate}`,
+          sql`${transactions.date} <= ${endDate}`,
+          sql`${transactions.import_hash} IS NULL`
+        )
+      );
   }
 
   /**

@@ -18,6 +18,7 @@ describe('invalidateTransactionCaches', () => {
       accountId: 'a1',
       userId: 'u1',
       toAccountId: 'a2',
+      transactionId: 't1',
     });
 
     const tags = vi.mocked(revalidateTag).mock.calls.map((c) => c[0]);
@@ -25,6 +26,7 @@ describe('invalidateTransactionCaches', () => {
     expect(tags).toContain('account:a2');
     expect(tags).toContain('group:g1:accounts');
     expect(tags).toContain('group:g1:budgets');
+    expect(tags).toContain('transaction:t1');
   });
 });
 
@@ -40,6 +42,7 @@ describe('invalidateTransactionUpdateCaches', () => {
         accountId: 'a1',
         toAccountId: 'a2',
         groupId: 'g1',
+        id: 't1',
       },
       { accountId: 'a3' }
     );
@@ -49,5 +52,6 @@ describe('invalidateTransactionUpdateCaches', () => {
     expect(tags).toContain('account:a2');
     expect(tags).toContain('account:a3');
     expect(tags).toContain('group:g1:accounts');
+    expect(tags).toContain('transaction:t1');
   });
 });

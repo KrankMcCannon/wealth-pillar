@@ -31,7 +31,7 @@ vi.mock('@/lib/utils/permissions', () => ({
   getSelectableUsers: (_user: unknown, users: unknown[]) => users,
 }));
 
-import { getCurrentUser, getGroupUsers } from '@/lib/auth/cached-auth';
+import { getCurrentUser, getGroupUsers, getAuth } from '@/lib/auth/cached-auth';
 
 const mockUser = {
   id: 'u1',
@@ -43,7 +43,8 @@ const mockUser = {
 
 describe('resolvePageContext', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
+    vi.mocked(getAuth).mockResolvedValue({ userId: null } as never);
   });
 
   it('returns auth context with group id', async () => {

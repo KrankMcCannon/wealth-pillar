@@ -28,27 +28,18 @@ async function SettingsPageData({ params }: Readonly<{ params: Promise<{ locale:
     updated_at: now,
   };
 
-  const initialPreferences = await withTimeout(
-    getUserPreferencesUseCase(currentUser.id),
-    2500,
-    fallbackPreferences,
-    'userPreferences'
-  );
-
-  let initialGroupName = '';
-  if (currentUser.group_id) {
-    try {
-      const group = await withTimeout(
-        getGroupByIdUseCase(currentUser.group_id),
-        2500,
-        null,
-        'groupName'
-      );
-      initialGroupName = group?.name ?? '';
-    } catch {
-      initialGroupName = '';
-    }
-  }
+  const [initialPreferences, group] = await Promise.all([
+    withTimeout(
+      getUserPreferencesUseCase(currentUser.id),
+      2500,
+      fallbackPreferences,
+      'userPreferences'
+    ),
+    currentUser.group_id
+      ? withTimeout(getGroupByIdUseCase(currentUser.group_id), 2500, null, 'groupName')
+      : Promise.resolve(null),
+  ]);
+  const initialGroupName = group?.name ?? '';
 
   return (
     <SettingsContent

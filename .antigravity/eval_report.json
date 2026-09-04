@@ -1,0 +1,18 @@
+{
+  "timestamp": "2026-08-01T20:02:12.220Z",
+  "verdict": "SUCCESS",
+  "steps": {
+    "typecheck": {
+      "status": "PASSED",
+      "output": ""
+    },
+    "lint": {
+      "status": "PASSED",
+      "output": ""
+    },
+    "test": {
+      "status": "PASSED",
+      "output": "c/features/transactions/utils/transaction-form-data.test.ts \u001b[2m(\u001b[22m\u001b[2m2 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 2\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m src/lib/import/parse-import-amount.test.ts \u001b[2m(\u001b[22m\u001b[2m3 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 2\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m src/lib/utils/investment-cursor.test.ts \u001b[2m(\u001b[22m\u001b[2m2 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 2\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m src/lib/cache/revalidation-paths.test.ts \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 2\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m src/features/categories/utils/category-helpers.test.ts \u001b[2m(\u001b[22m\u001b[2m2 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 2\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m src/features/reports/utils/reporting-window.test.ts \u001b[2m(\u001b[22m\u001b[2m3 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 2\u001b[2mms\u001b[22m\u001b[39m\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m97 passed\u001b[39m\u001b[22m\u001b[90m (97)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m555 passed\u001b[39m\u001b[22m\u001b[90m (555)\u001b[39m\n\u001b[2m   Start at \u001b[22m 22:02:33\n\u001b[2m   Duration \u001b[22m 15.70s\u001b[2m (transform 5.21s, setup 22.22s, import 21.14s, tests 6.48s, environment 70.51s)\u001b[22m\n\n"
+    }
+  }
+}

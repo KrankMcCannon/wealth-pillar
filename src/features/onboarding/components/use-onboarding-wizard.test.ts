@@ -148,4 +148,40 @@ describe('useOnboardingWizard', () => {
     expect(result.current.localError).toBe('save failed');
     expect(onComplete).toHaveBeenCalled();
   });
+
+  it('does not use placeholder category ids when categories are empty', () => {
+    const { result } = renderHook(() =>
+      useOnboardingWizard({ categories: [], onComplete: vi.fn() })
+    );
+
+    expect(result.current.categoryOptions).toEqual([]);
+  });
+
+  it('blocks budget submit when categories are empty and still allows skip', async () => {
+    const onComplete = vi.fn();
+    const { result } = renderHook(() => useOnboardingWizard({ categories: [], onComplete }));
+
+    act(() => {
+      result.current.setGroupName('My Group');
+    });
+    act(() => {
+      result.current.handleNext();
+    });
+    act(() => {
+      result.current.updateAccountField(0, 'name', 'Main');
+    });
+    act(() => {
+      result.current.handleNext();
+    });
+
+    expect(result.current.currentStep).toBe(2);
+    expect(result.current.canProceed).toBe(false);
+    expect(result.current.localError).toBe('categories.noneAvailable');
+
+    await act(async () => {
+      await result.current.handleSkipBudgets();
+    });
+
+    expect(onComplete).toHaveBeenCalledWith(expect.objectContaining({ budgets: [] }));
+  });
 });

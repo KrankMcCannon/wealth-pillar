@@ -8,6 +8,8 @@ import type { TransactionFiltersState } from '@/server/use-cases/transactions/tr
 import type { Transaction, Budget, Account } from '@/lib/types';
 import { useModalState, useTabState, type ModalType } from '@/lib/navigation/url-state';
 import { useRouter } from '@/i18n/routing';
+import { toast } from '@/hooks/use-toast';
+import { useTranslations } from 'next-intl';
 import { useTransactionEditStore } from '../stores/transaction-edit-store';
 import {
   mergeOptimisticTransactions,
@@ -66,6 +68,7 @@ export function useTransactionsContent({
   appliedQuery,
 }: UseTransactionsContentProps): UseTransactionsContentReturn {
   const router = useRouter();
+  const t = useTranslations('TransactionsContent');
   const searchParams = useSearchParams();
   const [isNavigating, startNavigation] = useTransition();
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -107,10 +110,16 @@ export function useTransactionsContent({
     }
   }, [queryKey, initialHasMore, initialNextCursor]);
 
-  const serverList = useMemo(
-    () => [...serverTransactions, ...extraPages],
-    [serverTransactions, extraPages]
-  );
+  const serverList = useMemo(() => {
+    const merged = [...serverTransactions, ...extraPages];
+    const seen = new Set<string>();
+    return merged.filter((transaction) => {
+      if (!transaction?.id) return true;
+      if (seen.has(transaction.id)) return false;
+      seen.add(transaction.id);
+      return true;
+    });
+  }, [serverTransactions, extraPages]);
 
   useEffect(() => {
     pruneCommitted(new Set(serverList.map((transaction) => transaction.id)));
@@ -197,15 +206,20 @@ export function useTransactionsContent({
         query: listQuery,
         cursor: nextCursor,
       });
-      if (result.error || !result.data) return;
+      if (result.error || !result.data) {
+        toast({ title: t('loadMoreError'), variant: 'destructive' });
+        return;
+      }
       setExtraPages((prev) => [...prev, ...result.data!.transactions]);
       setHasMore(result.data.hasMore);
       setNextCursor(result.data.nextCursor);
+    } catch {
+      toast({ title: t('loadMoreError'), variant: 'destructive' });
     } finally {
       setIsLoadingMore(false);
       loadMoreLock.current = false;
     }
-  }, [hasMore, nextCursor, isLoadingMore, appliedQuery, searchDraft]);
+  }, [hasMore, nextCursor, isLoadingMore, appliedQuery, searchDraft, t]);
 
   const handleUserFilterChange = useCallback(
     (userId: string) => {

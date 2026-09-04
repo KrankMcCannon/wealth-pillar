@@ -34,7 +34,7 @@ export function BottomNavigation() {
     <div className={bottomNavigationStyles.container}>
       <nav className={bottomNavigationStyles.inner} aria-label={t('ariaNav')}>
         {navItems.map((item) => {
-          const isActive = pathname === item.href;
+          const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
           const IconComponent = item.icon;
           const label = t(item.labelKey);
           return (

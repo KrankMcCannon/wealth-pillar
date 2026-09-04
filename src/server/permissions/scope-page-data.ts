@@ -36,9 +36,14 @@ export function scopeDashboardPageData(
   const accounts = scope.filterShared(data.accounts);
   const accountBalances = pickAccountBalances(data.accountBalances, accounts);
 
+  const mine = data.recentActivityByScope.byUserId[scope.viewerId] ?? [];
+
   return {
     accounts,
-    transactions: scope.filterOwned(data.transactions),
+    recentActivityByScope: {
+      all: mine,
+      byUserId: { [scope.viewerId]: mine },
+    },
     budgetPeriods: scope.pickUserRecord(data.budgetPeriods),
     recurringSeries: scope.filterShared(data.recurringSeries),
     categories: data.categories,
@@ -63,7 +68,6 @@ export function scopeAccountsPageData(data: AccountsPageData, currentUser: User)
 
   return {
     accounts,
-    transactions: [],
     accountBalances,
     statsAll: memberStats,
     statsByUserId: { [scope.viewerId]: memberStats },
@@ -79,7 +83,6 @@ export function scopeBudgetsPageData(data: BudgetsPageData, currentUser: User): 
 
   return {
     budgets: scope.filterOwned(data.budgets),
-    transactions: scope.filterOwned(data.transactions),
     accounts,
     categories: data.categories,
     budgetPeriods: scope.pickUserRecord(data.budgetPeriods),
@@ -107,6 +110,7 @@ export function scopeReportsPageData(data: ReportsPageData, currentUser: User): 
     defaultScope: scope.viewerId,
     preset: data.preset,
     comparisonLabelKey: data.comparisonLabelKey,
+    transactionsTruncated: data.transactionsTruncated,
   };
 }
 

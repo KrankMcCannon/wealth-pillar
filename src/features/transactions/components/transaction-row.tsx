@@ -4,6 +4,7 @@ import { Badge, CategoryBadge } from '@/components/ui';
 import { Transaction } from '@/lib';
 import { formatCurrency, cn } from '@/lib/utils';
 import { memo } from 'react';
+import { useTranslations } from 'next-intl';
 import { RowCard } from '@/components/ui/layout/row-card';
 import {
   transactionStyles,
@@ -35,6 +36,7 @@ export const TransactionRow = memo(
     getCategoryLabel,
     getCategoryColor,
   }: TransactionRowProps) => {
+    const t = useTranslations('Transactions.Table');
     // Calculate days until due for recurrent transactions
     const getDaysUntilDue = (): number => {
       if (!transaction.frequency || transaction.frequency === 'once') return Infinity;
@@ -125,7 +127,11 @@ export const TransactionRow = memo(
         // Interaction — hover/pressed da `listRowInteractive` (Stitch home)
         variant="regular"
         onClick={() => onEditTransaction?.(transaction)}
-        className={cn(stitchHome.listRowInteractive, 'w-full')}
+        interactiveAriaLabel={t('actions.editAria', {
+          description: transaction.description,
+          amount: primaryValue,
+        })}
+        className={cn(stitchHome.listRowInteractiveMinTouch, 'w-full')}
         testId={`transaction-row-${transaction.id}`}
       />
     );

@@ -20,6 +20,7 @@ interface CloseBudgetPeriodModalProps {
   isOpen: boolean;
   onClose: () => void;
   userId: string;
+  onSuccess?: () => void;
 }
 
 function CloseBudgetPeriodFields({
@@ -51,6 +52,7 @@ function CloseBudgetPeriodModal({
   isOpen,
   onClose,
   userId,
+  onSuccess,
 }: Readonly<CloseBudgetPeriodModalProps>) {
   const t = useTranslations('Budgets.PeriodManager');
   const locale = useLocale();
@@ -63,6 +65,11 @@ function CloseBudgetPeriodModal({
   const handleClose = useCallback(() => {
     onClose();
   }, [onClose]);
+
+  const refreshAfterSuccess = useCallback(() => {
+    onSuccess?.();
+    router.refresh();
+  }, [onSuccess, router]);
 
   useEffect(() => {
     let cancelled = false;
@@ -137,7 +144,7 @@ function CloseBudgetPeriodModal({
     updateAction: async () => ({ data: null, error: t('errors.operationFailed') }),
     getSuccessToast,
     errorToast: { title: t('errors.operationFailed') },
-    refreshAfterSuccess: () => router.refresh(),
+    refreshAfterSuccess,
     unknownErrorMessage: t('errors.unknown'),
   });
 

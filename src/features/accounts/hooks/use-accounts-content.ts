@@ -24,7 +24,7 @@ export function useAccountsContent({
   const { setSelectedGroupFilter, selectedUserId } = useUserFilter();
   const { isMember } = usePermissions({ currentUser, selectedUserId });
 
-  const { openModal } = useModalState();
+  const { openModal, modal } = useModalState();
 
   useEffect(() => {
     if (isMember) {
@@ -90,5 +90,6 @@ export function useAccountsContent({
     handleEditAccount,
     handleUserFilterChange,
     openModal,
+    isModalOpen: Boolean(modal),
   };
 }

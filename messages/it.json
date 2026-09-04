@@ -388,7 +388,8 @@
     "home": "Torna alla home"
   },
   "ReportsContent": {
-    "headerTitle": "Rapporti"
+    "headerTitle": "Rapporti",
+    "incompleteData": "Il periodo include più movimenti di quelli che possiamo calcolare. I totali potrebbero essere parziali."
   },
   "Reports": {
     "TimeFilter": {
@@ -406,9 +407,12 @@
     "Hero": {
       "srHeading": "Riepilogo finanziario",
       "netFlow": "Flusso netto",
-      "income": "Entrate",
-      "expense": "Uscite",
-      "savedThisPeriod": "Risparmiato nel periodo",
+      "incomeThisPeriod": "Entrate nel periodo",
+      "expenseThisPeriod": "Uscite nel periodo",
+      "movedToSavings": "Spostato in risparmio",
+      "movedToSavingsNet": "Netto spostato",
+      "deposits": "Versamenti",
+      "withdrawals": "Prelievi",
       "spendableBalance": "Disponibilità",
       "reserveBalance": "Risparmi e riserve",
       "noComparison": "Storico insufficiente per il confronto.",
@@ -418,13 +422,20 @@
       "vsPreviousRange": "rispetto al periodo precedente"
     },
     "TopExpenses": {
-      "title": "Spese principali",
-      "empty": "Nessuna uscita in questo intervallo."
+      "title": "Uscite nel periodo",
+      "empty": "Nessuna uscita in questo intervallo.",
+      "percentOfExpenses": "{percent}% delle uscite",
+      "other": "Altro"
     },
     "AccountBreakdown": {
-      "title": "Ripartizione conti",
+      "title": "Conti nel periodo",
       "empty": "Nessun conto da mostrare.",
-      "percentOfWealth": "{percent}% del patrimonio",
+      "periodNet": "Netto nel periodo",
+      "income": "Entrate",
+      "expense": "Uscite",
+      "balance": "Saldo",
+      "ofWealth": "Del patrimonio",
+      "percentOfWealth": "{percent}%",
       "types": {
         "checking": "Conto corrente",
         "savings": "Risparmio",
@@ -615,6 +626,7 @@
       "transactions": "Transazioni",
       "recurrent": "Ricorrenti"
     },
+    "tabsAria": "Transazioni e serie ricorrenti",
     "empty": {
       "title": "Nessuna transazione",
       "forUser": "Nessuna transazione per l'utente selezionato",
@@ -702,6 +714,7 @@
         "toolbarAria": "Filtri transazioni",
         "userToolbarAria": "Filtra per membro del gruppo",
         "filters": "Filtri",
+        "import": "Importa",
         "drawerTitle": "Filtri avanzati"
       },
       "customRange": {
@@ -783,6 +796,7 @@
       },
       "actions": {
         "edit": "Modifica transazione",
+        "editAria": "Modifica transazione: {description}, {amount}",
         "delete": "Elimina transazione"
       },
       "pagination": {
@@ -877,11 +891,61 @@
         "updatedTitle": "Transazione aggiornata",
         "updatedDescription": "Modifiche salvate correttamente."
       }
+    },
+    "ImportModal": {
+      "title": "Importa transazioni",
+      "description": "Carica un estratto Revolut o Credem (CSV o Excel).",
+      "upload": {
+        "title": "Scegli file",
+        "cta": "Seleziona estratto conto",
+        "hint": "Supportati: estratto Revolut, lista movimenti Credem"
+      },
+      "mapping": {
+        "fileLabel": "{file} · formato rilevato: {format}",
+        "user": "Assegna al membro",
+        "accountForProduct": "Conto per {product}",
+        "excludeProduct": "Escludi questo prodotto",
+        "rowsCount": "{count} righe importabili · {excluded} escluse (in sospeso/non EUR)"
+      },
+      "preview": {
+        "summary": "{included} di {total} righe selezionate per l'import",
+        "includeRow": "Includi riga",
+        "typeIncome": "Entrata",
+        "typeExpense": "Uscita",
+        "internalTransfer": "Probabile giroconto interno",
+        "recurringMatch": "Corrisponde a ricorrente: {description}",
+        "category": "Categoria"
+      },
+      "result": {
+        "inserted": "{count} transazioni importate",
+        "skipped": "{count} righe saltate (duplicati o conflitti)"
+      },
+      "status": {
+        "new": "Nuova",
+        "duplicate": "Duplicato",
+        "possible-duplicate": "Possibile duplicato",
+        "excluded": "Esclusa"
+      },
+      "actions": {
+        "back": "Indietro",
+        "continue": "Continua",
+        "import": "Importa {count} righe",
+        "done": "Fine"
+      },
+      "errors": {
+        "parseFailed": "Impossibile leggere il file",
+        "prepareFailed": "Impossibile preparare l'import",
+        "commitFailed": "Import fallito",
+        "noRows": "Nessuna riga da importare per i conti selezionati",
+        "noRowsSelected": "Seleziona almeno una riga da importare",
+        "generic": "Riprova"
+      }
     }
   },
   "Recurring": {
     "Section": {
       "title": "Transazioni Ricorrenti",
+      "viewAll": "Vedi tutto",
       "empty": {
         "title": "Nessuna serie ricorrente",
         "forUser": "Non ci sono serie ricorrenti per questo utente",
@@ -897,11 +961,18 @@
         "expensesPerMonth": "Uscite/mese"
       },
       "summary": {
-        "totalMonthlyLabel": "Totale mensile"
+        "totalMonthlyLabel": "Totale mensile",
+        "netOutflowLabel": "Uscita netta",
+        "netInflowLabel": "Entrata netta",
+        "balancedLabel": "Pareggio"
       },
       "groups": {
         "upcoming": "In arrivo",
         "upcomingEmpty": "Nessuna voce ricorrente in arrivo.",
+        "monthly": "Mensili",
+        "yearly": "Annuali",
+        "overdue": "Scadute",
+        "paused": "In pausa",
         "paid": "Già pagato questo mese",
         "paidEmpty": "Nessuna voce ricorrente pagata in questo periodo."
       },
@@ -957,7 +1028,8 @@
         "delete": "Elimina",
         "pauseAria": "Metti in pausa la serie ricorrente",
         "resumeAria": "Riprendi la serie ricorrente",
-        "deleteAria": "Elimina la serie ricorrente"
+        "deleteAria": "Elimina la serie ricorrente",
+        "editAria": "Modifica serie ricorrente: {description}, {amount}"
       }
     },
     "FormModal": {
@@ -1113,6 +1185,7 @@
   },
   "BottomNav": {
     "ariaNav": "Navigazione principale",
+    "skipToContent": "Vai al contenuto",
     "home": "Home",
     "transactions": "Transazioni",
     "budgets": "Budget",
@@ -1278,6 +1351,8 @@
       "spentPrefix": "Speso:",
       "totalPrefix": "Totale:",
       "availablePrefix": "Disponibile:",
+      "assignedPrefix": "Assegnato:",
+      "progressAria": "Budget di {name}, {percent} percento utilizzato",
       "exceededPrefix": "Sforamento:",
       "empty": {
         "title": "Nessun budget configurato",
@@ -1338,10 +1413,14 @@
       "hero": {
         "totalAvailable": "Totale disponibile da spendere",
         "totalSpent": "Totale speso",
-        "outOf": "su {total}"
+        "totalAssigned": "Assegnato",
+        "outOf": "su {total}",
+        "srHeading": "Riepilogo budget"
       },
       "closePeriod": "Chiudi periodo",
       "editClosingDate": "Modifica ultima chiusura",
+      "periodActionsAria": "Azioni del periodo",
+      "periodCloseSuccess": "Periodo chiuso. Il periodo successivo è iniziato.",
       "fabAddBudget": "Aggiungi budget",
       "categoryCard": {
         "ariaOpenDetail": "Open budget details: {name}",
@@ -1353,7 +1432,8 @@
         "footerPaidInFull": "Saldato",
         "footerPercentUsed": "{percent}% usato",
         "footerLeft": "{amount} rimanenti",
-        "footerOver": "{amount} oltre"
+        "footerOver": "{amount} oltre",
+        "progressAria": "{name}, {percent} percento del budget utilizzato"
       },
       "today": "Oggi",
       "transactionCount": "{count} {count, plural, one {transazione} other {transazioni}}",
@@ -1381,6 +1461,7 @@
         "limit": "Limite",
         "remaining": "Rimanente"
       },
+      "progressAria": "Budget rimanente, {percent} percento utilizzato",
       "categoriesTitle": "Categorie di spesa",
       "transactions": {
         "sectionTitle": "Transazioni del budget",
@@ -1484,6 +1565,9 @@
         "cannotReassignAsMember": "Non puoi assegnare il budget a un altro utente.",
         "noPermissionAssignUser": "Non hai i permessi per assegnare questo budget a questo utente.",
         "updateFailed": "Impossibile aggiornare il budget",
+        "notFound": "Budget non trovato",
+        "permissionDenied": "Permesso negato",
+        "loadFailed": "Impossibile caricare il budget",
         "noPermissionDelete": "Non hai i permessi per eliminare questo budget.",
         "deleteFailed": "Impossibile eliminare il budget"
       }

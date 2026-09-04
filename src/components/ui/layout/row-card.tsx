@@ -181,7 +181,7 @@ export const RowCard = memo(
 
           {/* Content */}
           <div className={cn(rowCardStyles.layout.content, compact && 'w-max min-w-0 flex-none')}>
-            <h4
+            <p
               className={cn(
                 rowCardStyles.title,
                 compact &&
@@ -190,7 +190,7 @@ export const RowCard = memo(
               )}
             >
               {title}
-            </h4>
+            </p>
             {subtitle && (
               <p
                 className={cn(

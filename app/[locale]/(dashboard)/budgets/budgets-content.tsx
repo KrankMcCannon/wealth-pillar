@@ -1,12 +1,12 @@
 'use client';
 
 /**
- * Budgets Content — Stitch dark layout; member context via UserSelector + `?userId=`.
+ * Budgets Content — Stitch dark layout; member context via UserSelector + `?user=`.
  */
 
 import { use, useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { CalendarClock, CheckCircle2, ShoppingCart } from 'lucide-react';
+import { ShoppingCart } from 'lucide-react';
 import { PageFab, HomeDashboardMain } from '@/components/layout';
 import { usePageHeader } from '@/hooks/use-page-header';
 import { EmptyState } from '@/components/shared';
@@ -15,6 +15,7 @@ import {
   BudgetChart,
   BudgetsSummaryHero,
   BudgetCategoryCard,
+  BudgetPeriodHeader,
   CloseBudgetPeriodModal,
   EditClosingDateModal,
 } from '@/features/budgets/components';
@@ -23,7 +24,7 @@ import type { User, UserBudgetSummary } from '@/lib/types';
 import type { BudgetsPageData } from '@/server/use-cases/pages/budgets-page.use-case';
 import { stitchBudgets } from '@/styles/home-design-foundation';
 import { Button } from '@/components/ui';
-import { useBudgets, useReferenceDataStore } from '@/stores/reference-data-store';
+import { useReferenceDataStore } from '@/stores/reference-data-store';
 
 type BudgetsPagePayload = BudgetsPageData & {
   budgetsByUser: Record<string, UserBudgetSummary>;
@@ -43,14 +44,13 @@ export default function BudgetsContent({
   const pageData = use(pageDataPromise);
   const { categories = [], budgetsByUser = {}, chartViewModelsByUser = {} } = pageData;
 
-  const storeBudgets = useBudgets();
   const refreshBudgets = useReferenceDataStore((state) => state.refreshBudgets);
 
   useEffect(() => {
     refreshBudgets(pageData.budgets ?? []);
   }, [pageData.budgets, refreshBudgets]);
 
-  const budgets = storeBudgets.length > 0 ? storeBudgets : (pageData.budgets ?? []);
+  const budgets = pageData.budgets ?? [];
 
   const props: UseBudgetsContentProps = {
     categories: categories || [],
@@ -71,9 +71,11 @@ export default function BudgetsContent({
     handleCreateBudget,
     handleSelectUser,
     handleOpenBudgetDetail,
+    isModalOpen,
   } = useBudgetsContent(props);
   const [isClosePeriodModalOpen, setIsClosePeriodModalOpen] = useState(false);
   const [isEditClosingDateModalOpen, setIsEditClosingDateModalOpen] = useState(false);
+  const [periodStatusMessage, setPeriodStatusMessage] = useState('');
 
   usePageHeader({
     title: t('title'),
@@ -100,39 +102,32 @@ export default function BudgetsContent({
 
           {userBudgetSummary && userBudgetSummary.budgets.length > 0 ? (
             <>
+              <BudgetPeriodHeader
+                periodStart={userBudgetSummary.periodStart}
+                periodEnd={userBudgetSummary.periodEnd}
+                onClosePeriod={() => setIsClosePeriodModalOpen(true)}
+                onEditClosingDate={() => setIsEditClosingDateModalOpen(true)}
+              />
+
               <BudgetsSummaryHero
                 summary={userBudgetSummary}
                 labels={{
                   totalAvailable: t('hero.totalAvailable'),
                   totalSpent: t('hero.totalSpent'),
-                  outOf: (total) => t('hero.outOf', { total }),
+                  totalAssigned: t('hero.totalAssigned'),
+                  srHeading: t('hero.srHeading'),
                 }}
               />
 
-              <div className="flex flex-col items-center gap-2">
-                <button
-                  type="button"
-                  className={stitchBudgets.closePeriodButton}
-                  onClick={() => setIsClosePeriodModalOpen(true)}
-                >
-                  <CheckCircle2 className="h-5 w-5 shrink-0" aria-hidden />
-                  {t('closePeriod')}
-                </button>
-
-                <button
-                  type="button"
-                  className={stitchBudgets.closePeriodButton}
-                  onClick={() => setIsEditClosingDateModalOpen(true)}
-                >
-                  <CalendarClock className="h-5 w-5 shrink-0" aria-hidden />
-                  {t('editClosingDate')}
-                </button>
+              <div role="status" aria-live="polite" className="sr-only">
+                {periodStatusMessage}
               </div>
 
               <CloseBudgetPeriodModal
                 key={isClosePeriodModalOpen ? budgetContextUserId : 'closed'}
                 isOpen={isClosePeriodModalOpen}
                 onClose={() => setIsClosePeriodModalOpen(false)}
+                onSuccess={() => setPeriodStatusMessage(t('periodCloseSuccess'))}
                 userId={budgetContextUserId}
               />
 
@@ -178,6 +173,7 @@ export default function BudgetsContent({
         onClick={handleCreateBudget}
         ariaLabel={t('fabAddBudget')}
         testId="budgets-fab-add"
+        hidden={isModalOpen || isClosePeriodModalOpen || isEditClosingDateModalOpen}
       />
     </>
   );

@@ -13,4 +13,5 @@ export { ModalCategoryField, type ModalCategoryFieldProps } from './modal-catego
 export { ModalDateField, type ModalDateFieldProps } from './modal-date-field';
 export { ModalMultiSelectField, type ModalMultiSelectFieldProps } from './modal-multi-select-field';
 export { ModalIconField, type ModalIconFieldProps } from './modal-icon-field';
+export { ModalCheckboxField, type ModalCheckboxFieldProps } from './modal-checkbox-field';
 export { ModalSearchInput, type ModalSearchInputProps } from './modal-search-input';

@@ -1,9 +1,8 @@
 import type { RecurringTransactionSeries } from '@/lib/types';
-import {
-  calculateDaysUntilDue,
-  calculateMonthlyTotalAbs,
-  calculateRecurringTotals,
-} from './recurring-calculations';
+import { calculateDaysUntilDue, calculateRecurringTotals } from './recurring-calculations';
+
+/** Active series due within this many days (including overdue) go in Upcoming. */
+export const UPCOMING_WITHIN_DAYS = 7;
 
 export type DecoratedRecurringSeries = RecurringTransactionSeries & {
   daysUntilDue: number;
@@ -15,6 +14,9 @@ export interface RecurringViewModel {
   visibleSeriesCount: number;
   pausedCount: number;
   upcomingSeries: DecoratedRecurringSeries[];
+  monthlySeries: DecoratedRecurringSeries[];
+  yearlySeries: DecoratedRecurringSeries[];
+  pausedSeries: DecoratedRecurringSeries[];
   monthlyTotals: {
     totalIncome: number;
     totalExpenses: number;
@@ -52,8 +54,14 @@ export function buildRecurringView(
   const filteredSeries = maxItems && maxItems > 0 ? decorated.slice(0, maxItems) : decorated;
 
   const activeSeries = filteredSeries.filter((item) => item.is_active);
-  const pausedCount = filteredSeries.length - activeSeries.length;
-  const upcomingSeries = filteredSeries.filter((item) => item.is_active && item.daysUntilDue >= 0);
+  const pausedSeries = filteredSeries.filter((item) => !item.is_active);
+  const pausedCount = pausedSeries.length;
+  const upcomingSeries = activeSeries.filter((item) => item.daysUntilDue <= UPCOMING_WITHIN_DAYS);
+  const laterSeries = activeSeries.filter((item) => item.daysUntilDue > UPCOMING_WITHIN_DAYS);
+  const yearlySeries = laterSeries.filter((item) => item.frequency === 'yearly');
+  const monthlySeries = laterSeries.filter((item) => item.frequency !== 'yearly');
+
+  const monthlyTotals = calculateRecurringTotals(activeSeries);
 
   return {
     filteredSeries,
@@ -61,7 +69,10 @@ export function buildRecurringView(
     visibleSeriesCount,
     pausedCount,
     upcomingSeries,
-    monthlyTotals: calculateRecurringTotals(activeSeries),
-    totalMonthlyRecurring: calculateMonthlyTotalAbs(activeSeries),
+    monthlySeries,
+    yearlySeries,
+    pausedSeries,
+    monthlyTotals,
+    totalMonthlyRecurring: monthlyTotals.netMonthly,
   };
 }

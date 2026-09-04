@@ -16,7 +16,7 @@ import { UserFilterChipRow } from '@/features/transactions/components/user-filte
 import { cn } from '@/lib/utils';
 import type { User } from '@/lib/types';
 import type { AccountsPageData } from '@/server/use-cases/pages/accounts-page.use-case';
-import { useAccounts, useReferenceDataStore } from '@/stores/reference-data-store';
+import { useReferenceDataStore } from '@/stores/reference-data-store';
 import { stitchAccounts, stitchHome, stitchTransactions } from '@/styles/home-design-foundation';
 
 interface AccountsContentProps {
@@ -31,14 +31,13 @@ export default function AccountsContent({
   pageData,
 }: AccountsContentProps) {
   const { accountBalances } = pageData;
-  const storeAccounts = useAccounts();
   const refreshAccounts = useReferenceDataStore((state) => state.refreshAccounts);
 
   useEffect(() => {
     refreshAccounts(pageData.accounts);
   }, [pageData.accounts, refreshAccounts]);
 
-  const accounts = storeAccounts.length > 0 ? storeAccounts : pageData.accounts;
+  const accounts = pageData.accounts;
   const t = useTranslations('Accounts.Content');
   const {
     isMember,
@@ -49,6 +48,7 @@ export default function AccountsContent({
     handleEditAccount,
     handleUserFilterChange,
     openModal,
+    isModalOpen,
   } = useAccountsContent({
     accountBalances,
     currentUser,
@@ -147,7 +147,7 @@ export default function AccountsContent({
                   emphasis="strong"
                   className="inline"
                 >
-                  {Math.abs(accountStats.spendableBalance)}
+                  {accountStats.spendableBalance}
                 </Amount>
               </span>
               <span className={stitchAccounts.balanceMetaLine}>
@@ -159,7 +159,7 @@ export default function AccountsContent({
               <span className={stitchAccounts.balanceMetaLine}>
                 <span>{t('totalBalanceLabel')}</span>
                 <Amount type={balancePositive ? 'income' : 'expense'} size="sm" className="inline">
-                  {Math.abs(accountStats.totalBalance)}
+                  {accountStats.totalBalance}
                 </Amount>
               </span>
             </div>
@@ -205,6 +205,7 @@ export default function AccountsContent({
         onClick={() => openModal('account')}
         ariaLabel={t('addAccountCta')}
         testId="accounts-fab-add"
+        hidden={isModalOpen}
       />
     </>
   );

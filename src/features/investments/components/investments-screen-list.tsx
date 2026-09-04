@@ -1,13 +1,10 @@
 'use client';
 
-import { memo, useRef } from 'react';
+import { memo } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { ArrowUpRight, TrendingUp } from 'lucide-react';
 import { RowCard } from '@/components/ui/layout/row-card';
-import { Button } from '@/components/ui/button';
-import { Spinner } from '@/components/ui/spinner';
 import { stitchHome, stitchInvestments } from '@/styles/home-design-foundation';
-import { useInfiniteScrollSentinel } from '@/hooks/use-infinite-scroll-sentinel';
 import { useModalState } from '@/lib/navigation/url-state';
 import { formatCurrencyLocale } from '@/lib/utils/currency-formatter';
 import { cn } from '@/lib/utils';
@@ -15,34 +12,16 @@ import type { InvestmentListItem } from '@/server/use-cases/investments/investme
 
 export interface InvestmentsScreenListProps {
   holdings: InvestmentListItem[];
-  hasMore: boolean;
-  isLoadingMore: boolean;
-  onLoadMore: () => void;
 }
 
-function InvestmentsScreenListInner({
-  holdings,
-  hasMore,
-  isLoadingMore,
-  onLoadMore,
-}: Readonly<InvestmentsScreenListProps>) {
+function InvestmentsScreenListInner({ holdings }: Readonly<InvestmentsScreenListProps>) {
   const tList = useTranslations('Investments.InvestmentList');
-  const tLoadMore = useTranslations('Transactions.LoadMore');
   const tMenu = useTranslations('Header.ActionMenu');
   const { openModal } = useModalState();
   const locale = useLocale();
   const headingId = 'investments-list-heading';
-  const sentinelRef = useRef<HTMLDivElement>(null);
 
   const isEmpty = holdings.length === 0;
-  const showLoadMore = hasMore && holdings.length > 0;
-
-  useInfiniteScrollSentinel(sentinelRef, {
-    enabled: showLoadMore,
-    hasMore,
-    isLoading: isLoadingMore,
-    onLoadMore,
-  });
 
   return (
     <section className={stitchInvestments.listSection} aria-labelledby={headingId}>
@@ -112,34 +91,6 @@ function InvestmentsScreenListInner({
             })}
           </ul>
         )}
-
-        {showLoadMore ? (
-          <div className="flex flex-col items-center gap-3 pt-2">
-            <div ref={sentinelRef} className="h-px w-full" aria-hidden />
-            <Button
-              type="button"
-              variant="outline"
-              className="min-h-11 w-full max-w-sm"
-              disabled={isLoadingMore}
-              onClick={onLoadMore}
-            >
-              {isLoadingMore ? (
-                <>
-                  <Spinner data-icon="inline-start" />
-                  {tLoadMore('loading')}
-                </>
-              ) : (
-                tLoadMore('cta')
-              )}
-            </Button>
-          </div>
-        ) : null}
-
-        {!hasMore && holdings.length > 0 ? (
-          <p className="py-2 text-center text-sm text-muted-foreground" role="status">
-            {tLoadMore('end')}
-          </p>
-        ) : null}
       </div>
     </section>
   );

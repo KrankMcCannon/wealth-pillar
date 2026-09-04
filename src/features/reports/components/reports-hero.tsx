@@ -3,7 +3,7 @@
 import { TrendingDown, TrendingUp } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
-import { stitchReports } from '@/styles/home-design-foundation';
+import { stitchReports, stitchStatMini } from '@/styles/home-design-foundation';
 import { useFormatCurrency } from '@/features/reports/hooks/use-format-currency';
 import type { NetSavingsResult } from '@/server/use-cases/shared/savings.logic';
 
@@ -11,8 +11,6 @@ interface ReportsHeroProps {
   netFlow: number;
   income: number;
   expenses: number;
-  totalSpendable?: number;
-  totalReserve?: number;
   netSavings?: NetSavingsResult;
   /** Delta vs previous window; `null` = no data to compare. Ignored when `omitComparison`. */
   comparisonPercent?: number | null;
@@ -25,8 +23,6 @@ export function ReportsHero({
   netFlow,
   income,
   expenses,
-  totalSpendable,
-  totalReserve,
   netSavings,
   comparisonPercent,
   comparisonLabel,
@@ -37,13 +33,14 @@ export function ReportsHero({
   const positive = netFlow >= 0;
   const pct = comparisonPercent ?? null;
   const trendUp = pct !== null && pct >= 0;
+  const savings = netSavings ?? { deposits: 0, withdrawals: 0, net: 0 };
 
   return (
-    <section aria-labelledby="reports-hero-heading" className="grid grid-cols-2 gap-2">
+    <section aria-labelledby="reports-hero-heading" className="flex flex-col gap-2">
       <h2 id="reports-hero-heading" className="sr-only">
         {t('srHeading')}
       </h2>
-      <div className={`${stitchReports.heroNetCard} col-span-2`}>
+      <div className={stitchReports.heroNetCard}>
         <div className={stitchReports.heroNetDecor} aria-hidden />
         <div className="relative z-1">
           <p className={stitchReports.heroEyebrow}>{t('netFlow')}</p>
@@ -73,36 +70,37 @@ export function ReportsHero({
             <p className="mt-1 text-[12px] text-muted-foreground">{t('noComparison')}</p>
           ) : null}
         </div>
-      </div>
-      <div className={stitchReports.heroSmallCard}>
-        <p className={stitchReports.heroEyebrow}>{t('income')}</p>
-        <p className={stitchReports.heroSmallAmount}>{formatMoney(income)}</p>
-      </div>
-      <div className={stitchReports.heroSmallCard}>
-        <p className={stitchReports.heroEyebrow}>{t('expense')}</p>
-        <p className={stitchReports.heroSmallAmount}>{formatMoney(expenses)}</p>
-      </div>
-      {totalSpendable !== undefined ? (
-        <div className={stitchReports.heroSmallCard}>
-          <p className={stitchReports.heroEyebrow}>{t('spendableBalance')}</p>
-          <p className={stitchReports.heroSmallAmount}>{formatMoney(totalSpendable)}</p>
+        <div className={stitchReports.kpiPair}>
+          <div className={cn(stitchStatMini.item, stitchStatMini.itemSuccess)}>
+            <p className={stitchStatMini.label}>{t('incomeThisPeriod')}</p>
+            <p className={stitchStatMini.valueSuccess}>{formatMoney(income)}</p>
+          </div>
+          <div className={cn(stitchStatMini.item, stitchStatMini.itemDestructive)}>
+            <p className={stitchStatMini.label}>{t('expenseThisPeriod')}</p>
+            <p className={stitchStatMini.valueDestructive}>{formatMoney(expenses)}</p>
+          </div>
         </div>
-      ) : null}
-      {totalReserve !== undefined ? (
-        <div className={stitchReports.heroSmallCard}>
-          <p className={stitchReports.heroEyebrow}>{t('reserveBalance')}</p>
-          <p className={stitchReports.heroSmallAmount}>{formatMoney(totalReserve)}</p>
+      </div>
+      <div>
+        <p className={cn(stitchReports.heroEyebrow, 'mb-2')}>{t('movedToSavings')}</p>
+        <div className={stitchReports.savingsGrid}>
+          <div className={stitchReports.heroSmallCard}>
+            <p className={stitchReports.heroEyebrow}>{t('deposits')}</p>
+            <p className={stitchReports.heroSmallAmount}>{formatMoney(savings.deposits)}</p>
+          </div>
+          <div className={stitchReports.heroSmallCard}>
+            <p className={stitchReports.heroEyebrow}>{t('withdrawals')}</p>
+            <p className={stitchReports.heroSmallAmount}>{formatMoney(savings.withdrawals)}</p>
+          </div>
+          <div className={stitchReports.heroSmallCard}>
+            <p className={stitchReports.heroEyebrow}>{t('movedToSavingsNet')}</p>
+            <p className={stitchReports.heroSmallAmount}>
+              {savings.net >= 0 ? '+' : ''}
+              {formatMoney(savings.net)}
+            </p>
+          </div>
         </div>
-      ) : null}
-      {netSavings !== undefined ? (
-        <div className={`${stitchReports.heroSmallCard} col-span-2`}>
-          <p className={stitchReports.heroEyebrow}>{t('savedThisPeriod')}</p>
-          <p className={stitchReports.heroSmallAmount}>
-            {netSavings.net >= 0 ? '+' : ''}
-            {formatMoney(netSavings.net)}
-          </p>
-        </div>
-      ) : null}
+      </div>
     </section>
   );
 }

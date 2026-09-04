@@ -388,7 +388,8 @@
     "home": "Back to home"
   },
   "ReportsContent": {
-    "headerTitle": "Reports"
+    "headerTitle": "Reports",
+    "incompleteData": "This period has more transactions than we can include. Totals may be incomplete."
   },
   "Reports": {
     "TimeFilter": {
@@ -406,9 +407,12 @@
     "Hero": {
       "srHeading": "Financial summary",
       "netFlow": "Net flow",
-      "income": "Income",
-      "expense": "Expense",
-      "savedThisPeriod": "Saved this period",
+      "incomeThisPeriod": "Income this period",
+      "expenseThisPeriod": "Expense this period",
+      "movedToSavings": "Moved to savings",
+      "movedToSavingsNet": "Net moved",
+      "deposits": "Deposits",
+      "withdrawals": "Withdrawals",
       "spendableBalance": "Available to spend",
       "reserveBalance": "Savings & reserve",
       "noComparison": "Not enough history to compare.",
@@ -418,13 +422,20 @@
       "vsPreviousRange": "vs previous range"
     },
     "TopExpenses": {
-      "title": "Top expenses",
-      "empty": "No expenses in this range."
+      "title": "Spending this period",
+      "empty": "No expenses in this range.",
+      "percentOfExpenses": "{percent}% of spend",
+      "other": "Other"
     },
     "AccountBreakdown": {
-      "title": "Account breakdown",
+      "title": "Accounts this period",
       "empty": "No accounts to show.",
-      "percentOfWealth": "{percent}% of wealth",
+      "periodNet": "Net this period",
+      "income": "Income",
+      "expense": "Expenses",
+      "balance": "Balance",
+      "ofWealth": "Of wealth",
+      "percentOfWealth": "{percent}%",
       "types": {
         "checking": "Checking",
         "savings": "Savings",
@@ -615,6 +626,7 @@
       "transactions": "Transactions",
       "recurrent": "Recurring"
     },
+    "tabsAria": "Transactions and recurring series",
     "empty": {
       "title": "No Transactions",
       "forUser": "No transactions for the selected user",
@@ -702,6 +714,7 @@
         "toolbarAria": "Transaction filters",
         "userToolbarAria": "Filter by group member",
         "filters": "Filters",
+        "import": "Import",
         "drawerTitle": "Advanced filters"
       },
       "customRange": {
@@ -783,6 +796,7 @@
       },
       "actions": {
         "edit": "Edit transaction",
+        "editAria": "Edit transaction: {description}, {amount}",
         "delete": "Delete transaction"
       },
       "pagination": {
@@ -877,11 +891,61 @@
         "updatedTitle": "Transaction updated",
         "updatedDescription": "Changes saved successfully."
       }
+    },
+    "ImportModal": {
+      "title": "Import transactions",
+      "description": "Upload a Revolut or Credem statement (CSV or Excel).",
+      "upload": {
+        "title": "Choose file",
+        "cta": "Select statement file",
+        "hint": "Supported: Revolut account statement, Credem lista movimenti"
+      },
+      "mapping": {
+        "fileLabel": "{file} · detected format: {format}",
+        "user": "Assign to member",
+        "accountForProduct": "Account for {product}",
+        "excludeProduct": "Exclude this product",
+        "rowsCount": "{count} rows importable · {excluded} excluded (pending/non-EUR)"
+      },
+      "preview": {
+        "summary": "{included} of {total} rows selected for import",
+        "includeRow": "Include row",
+        "typeIncome": "Income",
+        "typeExpense": "Expense",
+        "internalTransfer": "Likely internal transfer",
+        "recurringMatch": "Matches recurring: {description}",
+        "category": "Category"
+      },
+      "result": {
+        "inserted": "{count} transactions imported",
+        "skipped": "{count} rows skipped (duplicates or conflicts)"
+      },
+      "status": {
+        "new": "New",
+        "duplicate": "Duplicate",
+        "possible-duplicate": "Possible duplicate",
+        "excluded": "Excluded"
+      },
+      "actions": {
+        "back": "Back",
+        "continue": "Continue",
+        "import": "Import {count} rows",
+        "done": "Done"
+      },
+      "errors": {
+        "parseFailed": "Could not parse file",
+        "prepareFailed": "Could not prepare import",
+        "commitFailed": "Import failed",
+        "noRows": "No rows to import for the selected accounts",
+        "noRowsSelected": "Select at least one row to import",
+        "generic": "Please try again"
+      }
     }
   },
   "Recurring": {
     "Section": {
       "title": "Recurring Transactions",
+      "viewAll": "View All",
       "empty": {
         "title": "No recurring series",
         "forUser": "There are no recurring series for this user",
@@ -897,11 +961,18 @@
         "expensesPerMonth": "Expenses/month"
       },
       "summary": {
-        "totalMonthlyLabel": "Total monthly"
+        "totalMonthlyLabel": "Total monthly",
+        "netOutflowLabel": "Net outflow",
+        "netInflowLabel": "Net inflow",
+        "balancedLabel": "Balanced"
       },
       "groups": {
         "upcoming": "Upcoming",
         "upcomingEmpty": "No upcoming recurring entries.",
+        "monthly": "Monthly",
+        "yearly": "Yearly",
+        "overdue": "Overdue",
+        "paused": "Paused",
         "paid": "Already paid this month",
         "paidEmpty": "No paid recurring entries in this period."
       },
@@ -957,7 +1028,8 @@
         "delete": "Delete",
         "pauseAria": "Pause recurring series",
         "resumeAria": "Resume recurring series",
-        "deleteAria": "Delete recurring series"
+        "deleteAria": "Delete recurring series",
+        "editAria": "Edit recurring series: {description}, {amount}"
       }
     },
     "FormModal": {
@@ -1113,6 +1185,7 @@
   },
   "BottomNav": {
     "ariaNav": "Primary navigation",
+    "skipToContent": "Skip to content",
     "home": "Home",
     "transactions": "Transactions",
     "budgets": "Budgets",
@@ -1278,6 +1351,8 @@
       "spentPrefix": "Spent:",
       "totalPrefix": "Total:",
       "availablePrefix": "Available:",
+      "assignedPrefix": "Assigned:",
+      "progressAria": "{name} budget, {percent} percent used",
       "exceededPrefix": "Exceeded:",
       "empty": {
         "title": "No budgets configured",
@@ -1338,10 +1413,14 @@
       "hero": {
         "totalAvailable": "Total available to spend",
         "totalSpent": "Total spent",
-        "outOf": "of {total}"
+        "totalAssigned": "Assigned",
+        "outOf": "of {total}",
+        "srHeading": "Budget summary"
       },
       "closePeriod": "Close period",
       "editClosingDate": "Adjust last closing date",
+      "periodActionsAria": "Period actions",
+      "periodCloseSuccess": "Period closed. The next period has started.",
       "fabAddBudget": "Add budget",
       "categoryCard": {
         "ariaOpenDetail": "Open budget details: {name}",
@@ -1353,7 +1432,8 @@
         "footerPaidInFull": "Paid in full",
         "footerPercentUsed": "{percent}% used",
         "footerLeft": "{amount} left",
-        "footerOver": "{amount} over"
+        "footerOver": "{amount} over",
+        "progressAria": "{name}, {percent} percent of budget used"
       },
       "today": "Today",
       "transactionCount": "{count} {count, plural, one {transaction} other {transactions}}",
@@ -1381,6 +1461,7 @@
         "limit": "Limit",
         "remaining": "Remaining"
       },
+      "progressAria": "Budget remaining, {percent} percent used",
       "categoriesTitle": "Spending categories",
       "transactions": {
         "sectionTitle": "Budget transactions",
@@ -1484,6 +1565,9 @@
         "cannotReassignAsMember": "You cannot assign the budget to another user.",
         "noPermissionAssignUser": "You do not have permission to assign this budget to this user.",
         "updateFailed": "Failed to update budget",
+        "notFound": "Budget not found",
+        "permissionDenied": "Permission denied",
+        "loadFailed": "Failed to load budget",
         "noPermissionDelete": "You do not have permission to delete this budget.",
         "deleteFailed": "Failed to delete budget"
       }

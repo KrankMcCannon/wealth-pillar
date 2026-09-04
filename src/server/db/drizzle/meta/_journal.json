@@ -8,6 +8,20 @@
       "when": 1748822400000,
       "tag": "0000_baseline_existing_db",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1748822400001,
+      "tag": "0006_portfolio_value_snapshots",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1748822400002,
+      "tag": "0007_transactions_import_hash",
+      "breakpoints": true
     }
   ]
 }

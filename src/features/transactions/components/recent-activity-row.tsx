@@ -1,7 +1,7 @@
 'use client';
 
 import { memo } from 'react';
-import { Link } from '@/i18n/routing';
+import { useTranslations } from 'next-intl';
 import { CategoryBadge } from '@/components/ui';
 import { RowCard } from '@/components/ui/layout/row-card';
 import { transactionStyles } from '@/features/transactions/theme/transaction-styles';
@@ -14,6 +14,7 @@ interface RecentActivityRowProps {
   readonly categoryLabel: string;
   readonly categoryColor: string;
   readonly dateLabel: string | null;
+  readonly onEditTransaction: (transaction: Transaction) => void;
 }
 
 function RecentActivityRowInner({
@@ -21,7 +22,11 @@ function RecentActivityRowInner({
   categoryLabel,
   categoryColor,
   dateLabel,
+  onEditTransaction,
 }: RecentActivityRowProps) {
+  const t = useTranslations('Transactions.Table');
+  const primaryValue = formatCurrency(Math.abs(transaction.amount));
+
   const metadata = (
     <>
       <span className={stitchHome.rowMeta}>{categoryLabel}</span>
@@ -48,23 +53,26 @@ function RecentActivityRowInner({
         : 'text-muted-foreground';
 
   return (
-    <Link href="/transactions" className="block">
-      <RowCard
-        icon={<CategoryBadge categoryKey={transaction.category} color={categoryColor} size="md" />}
-        iconSize="sm"
-        iconColor="none"
-        iconClassName="!rounded-full !bg-transparent !p-0 !shadow-none ring-0"
-        title={transaction.description}
-        titleClassName={stitchHome.rowTitle}
-        metadata={metadata}
-        primaryValue={formatCurrency(Math.abs(transaction.amount))}
-        amountVariant={amountVariant}
-        valueClassName={valueClassName}
-        variant="regular"
-        className={cn(stitchHome.listRowInteractive, 'w-full')}
-        testId={`recent-activity-row-${transaction.id}`}
-      />
-    </Link>
+    <RowCard
+      icon={<CategoryBadge categoryKey={transaction.category} color={categoryColor} size="md" />}
+      iconSize="sm"
+      iconColor="none"
+      iconClassName="!rounded-full !bg-transparent !p-0 !shadow-none ring-0"
+      title={transaction.description}
+      titleClassName={stitchHome.rowTitle}
+      metadata={metadata}
+      primaryValue={primaryValue}
+      amountVariant={amountVariant}
+      valueClassName={valueClassName}
+      variant="regular"
+      onClick={() => onEditTransaction(transaction)}
+      interactiveAriaLabel={t('actions.editAria', {
+        description: transaction.description,
+        amount: primaryValue,
+      })}
+      className={cn(stitchHome.listRowInteractiveMinTouch, 'w-full')}
+      testId={`recent-activity-row-${transaction.id}`}
+    />
   );
 }
 

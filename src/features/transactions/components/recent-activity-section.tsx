@@ -10,13 +10,19 @@ import { formatDateSmart, toDateTime } from '@/lib/utils/date-utils';
 import type { Transaction, Category } from '@/lib/types';
 import { stitchDashboardGroupedList, stitchHome } from '@/styles/home-design-foundation';
 import { RecentActivityRow } from './recent-activity-row';
+import { cn } from '@/lib/utils';
 
 interface RecentActivitySectionProps {
   transactions: Transaction[];
   categories: Category[];
+  onEditTransaction: (transaction: Transaction) => void;
 }
 
-export function RecentActivitySection({ transactions, categories }: RecentActivitySectionProps) {
+export function RecentActivitySection({
+  transactions,
+  categories,
+  onEditTransaction,
+}: RecentActivitySectionProps) {
   const t = useTranslations('HomeContent');
   const locale = useLocale();
 
@@ -52,7 +58,7 @@ export function RecentActivitySection({ transactions, categories }: RecentActivi
       {transactions.length === 0 ? (
         <EmptyState variant="dashboard" title={t('recentActivityEmpty')} />
       ) : (
-        <div className={stitchDashboardGroupedList}>
+        <ul className={cn(stitchDashboardGroupedList, 'm-0 list-none p-0')}>
           {transactions.map((tx) => {
             const cat = categoryByKey.get(tx.category);
             const txDate = toDateTime(tx.date);
@@ -61,16 +67,18 @@ export function RecentActivitySection({ transactions, categories }: RecentActivi
               : null;
 
             return (
-              <RecentActivityRow
-                key={tx.id}
-                transaction={tx}
-                categoryLabel={cat?.label ?? tx.category}
-                categoryColor={cat?.color ?? ''}
-                dateLabel={dateLabel}
-              />
+              <li key={tx.id}>
+                <RecentActivityRow
+                  transaction={tx}
+                  categoryLabel={cat?.label ?? tx.category}
+                  categoryColor={cat?.color ?? ''}
+                  dateLabel={dateLabel}
+                  onEditTransaction={onEditTransaction}
+                />
+              </li>
             );
           })}
-        </div>
+        </ul>
       )}
     </HomeSectionCard>
   );
