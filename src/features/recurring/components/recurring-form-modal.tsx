@@ -27,9 +27,8 @@ import { useRouter } from '@/i18n/routing';
 import { toast } from '@/hooks/use-toast';
 import { useRecurringEditStore } from '../stores/recurring-edit-store';
 
-import { RecurrencePicker } from './recurrence-picker';
+import { RecurringFormFields } from './recurring-form-fields';
 import { calculateDefaultAccountId, formatDateForInput } from './recurring-form-helpers';
-import { RecurringDescriptionField, RecurringFormFields } from './recurring-form-fields';
 import {
   createRecurringSchema,
   type RecurringFormData,
@@ -150,10 +149,6 @@ function RecurringFormModalBody({
           t={t}
           isSubmitting={isSubmitting}
         />
-
-        <RecurrencePicker form={form} t={t} isSubmitting={isSubmitting} />
-
-        <RecurringDescriptionField form={form} t={t} isSubmitting={isSubmitting} />
       </div>
     </>
   );
@@ -317,16 +312,16 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
               confirmText: tDialogs('deleteRecurring.confirm'),
               cancelText: tDialogs('cancel'),
               onDelete: handleDeleteSeries,
+              testId: 'recurring-form-delete',
             },
           }
         : {})}
       onSubmit={handleSubmit}
-      footer={(_, isSubmitting, { openDeleteDialog }) => (
+      footer={(_, isSubmitting) => (
         <EntityFormFooter
-          isEditMode={Boolean(isEditMode && editId)}
           isSubmitting={isSubmitting}
           submitLabel={isEditMode ? t('buttons.saveChanges') : t('buttons.createSeries')}
-          showSubmitIcon={false}
+          onCancel={handleClose}
           secondaryAction={
             isEditMode && editId ? (
               <button
@@ -344,12 +339,6 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
               </button>
             ) : undefined
           }
-          {...(isEditMode && editId && openDeleteDialog
-            ? {
-                deleteLabel: tSeriesCard('actions.delete'),
-                onDelete: openDeleteDialog,
-              }
-            : {})}
         />
       )}
     >

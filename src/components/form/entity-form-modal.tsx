@@ -9,6 +9,7 @@ import {
   useForm,
 } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Trash2 } from 'lucide-react';
 import type { ZodType } from 'zod';
 import { cn } from '@/lib/utils';
 import {
@@ -34,6 +35,7 @@ export interface EntityFormModalDeletionProps {
   confirmText?: string;
   cancelText?: string;
   onDelete: () => Promise<void>;
+  testId?: string;
 }
 
 export interface EntityFormModalFooterActions {
@@ -126,11 +128,12 @@ export function EntityFormModal<T extends FieldValues>({
   });
 
   const footerActions: EntityFormModalFooterActions = deletion?.enabled ? { openDeleteDialog } : {};
+  const formOpen = isOpen && !deleteOpen;
 
   return (
     <>
       <ModalWrapper
-        isOpen={isOpen}
+        isOpen={formOpen}
         onOpenChange={onClose}
         title={title}
         {...(description !== undefined ? { description } : {})}
@@ -138,10 +141,24 @@ export function EntityFormModal<T extends FieldValues>({
         repositionInputs={repositionInputs}
         isLoading={isLoading}
         {...wrapperProps}
+        leadingAction={
+          deletion?.enabled ? (
+            <button
+              type="button"
+              data-testid={deletion.testId}
+              disabled={form.formState.isSubmitting || isDeleting}
+              onClick={openDeleteDialog}
+              className={formModalStyles.shell.leadingButton}
+              aria-label={deletion.title}
+            >
+              <Trash2 className="size-5" aria-hidden />
+            </button>
+          ) : undefined
+        }
       >
         <form onSubmit={handleSubmit} className={cn('flex min-h-0 flex-1 flex-col', formClassName)}>
           <ModalBody className={bodyClassName}>
-            <FieldGroup>
+            <FieldGroup className={formModalStyles.fieldsColumn}>
               {autoRootError && form.formState.errors.root?.message ? (
                 <ModalRootError message={form.formState.errors.root.message} />
               ) : null}

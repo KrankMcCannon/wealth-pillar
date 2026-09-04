@@ -3,7 +3,6 @@
 import type { UseFormReturn } from 'react-hook-form';
 import { useMemo } from 'react';
 import { useTranslations } from 'next-intl';
-import { PieChart } from 'lucide-react';
 import type { BudgetType, User } from '@/lib/types';
 import {
   ModalAmountField,
@@ -83,6 +82,31 @@ export function BudgetFormFields({
       />
 
       <div className={s.fieldStack}>
+        <ModalTextField
+          control={control}
+          name="description"
+          label={t('fields.description.label')}
+          placeholder={t('fields.description.placeholder')}
+          disabled={isSubmitting}
+        />
+
+        <ModalSelectField
+          control={control}
+          name="type"
+          label={t('fields.type.label')}
+          options={typeOptions}
+          disabled={isSubmitting}
+        />
+
+        <ModalMultiSelectField
+          control={control}
+          name="categories"
+          label={t('fields.categories.label')}
+          options={chipOptions}
+          shape="chips"
+          disabled={isSubmitting}
+        />
+
         <ModalSelectField
           control={control}
           name="user_id"
@@ -92,33 +116,7 @@ export function BudgetFormFields({
           disabled={shouldDisableUserField || isSubmitting}
           {...(userFieldHelperText !== undefined ? { hint: userFieldHelperText } : {})}
         />
-
-        <ModalSelectField
-          control={control}
-          name="type"
-          label={t('fields.type.label')}
-          options={typeOptions}
-          disabled={isSubmitting}
-          leadingIcon={<PieChart className="h-5 w-5 text-primary" aria-hidden />}
-        />
       </div>
-
-      <ModalTextField
-        control={control}
-        name="description"
-        label={t('fields.description.label')}
-        placeholder={t('fields.description.placeholder')}
-        disabled={isSubmitting}
-      />
-
-      <ModalMultiSelectField
-        control={control}
-        name="categories"
-        label={t('fields.categories.label')}
-        options={chipOptions}
-        shape="chips"
-        disabled={isSubmitting}
-      />
     </>
   );
 }

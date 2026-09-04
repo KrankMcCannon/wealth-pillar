@@ -3,7 +3,7 @@
 import * as React from 'react';
 import * as SelectPrimitive from '@radix-ui/react-select';
 import { cn } from '@/lib';
-import { Layers, Search, ChevronRight } from 'lucide-react';
+import { Search, ChevronRight } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Select, SelectContent, SelectItem, SelectValue } from '../ui';
 import { formModalStyles as s } from './form-modal-styles';
@@ -23,10 +23,8 @@ export interface FormSelectProps {
   disabled?: boolean;
   className?: string;
   renderIcon?: (option: SelectOption) => React.ReactNode;
-  /** Small uppercase caption above the selected value */
+  /** Label on the left of the grouped row */
   captionLabel?: string;
-  /** Leading icon inside the circular slot (defaults to a neutral glyph) */
-  leadingIcon?: React.ReactNode;
 }
 
 export function FormSelect({
@@ -38,7 +36,6 @@ export function FormSelect({
   className,
   renderIcon,
   captionLabel,
-  leadingIcon,
 }: Readonly<FormSelectProps>) {
   const t = useTranslations('Forms.Select');
   const [searchValue, setSearchValue] = React.useState('');
@@ -74,19 +71,14 @@ export function FormSelect({
         disabled={disabled}
         className={cn(s.selectorTrigger, className)}
       >
-        <div className="flex min-w-0 flex-1 items-center gap-3">
-          <div className={s.selectorIconWrap}>
-            {leadingIcon ?? <Layers className={s.selectorIcon} aria-hidden />}
-          </div>
-          <div className="min-w-0 flex-1 text-left">
-            {captionLabel ? <p className={s.selectorLabel}>{captionLabel}</p> : null}
-            <span aria-hidden className={selectedOption ? s.selectorValue : s.selectorValueMuted}>
-              {selectedOption?.label ?? resolvedPlaceholder}
-            </span>
-            <span className="sr-only">
-              <SelectValue placeholder={resolvedPlaceholder} />
-            </span>
-          </div>
+        <div className="flex min-w-0 flex-1 items-center justify-between gap-4">
+          {captionLabel ? <p className={s.selectorLabel}>{captionLabel}</p> : null}
+          <span aria-hidden className={selectedOption ? s.selectorValue : s.selectorValueMuted}>
+            {selectedOption?.label ?? resolvedPlaceholder}
+          </span>
+          <span className="sr-only">
+            <SelectValue placeholder={resolvedPlaceholder} />
+          </span>
         </div>
         <ChevronRight className={s.selectorChevron} aria-hidden />
       </SelectPrimitive.Trigger>

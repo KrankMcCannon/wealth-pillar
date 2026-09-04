@@ -297,18 +297,16 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
               confirmText: tContent('dialogs.delete.confirm'),
               cancelText: tContent('dialogs.delete.cancel'),
               onDelete: handleDelete,
+              testId: 'account-form-delete',
             },
           }
         : {})}
       onSubmit={handleSubmit}
-      footer={(_, isSubmitting, { openDeleteDialog }) => (
+      footer={(_, isSubmitting) => (
         <EntityFormFooter
-          isEditMode={isEditMode}
           isSubmitting={isSubmitting}
           submitLabel={isEditMode ? t('buttons.update') : t('buttons.create')}
-          deleteLabel={t('buttons.delete')}
-          deleteTestId="account-form-delete"
-          {...(openDeleteDialog ? { onDelete: openDeleteDialog } : {})}
+          onCancel={onClose}
         />
       )}
     >

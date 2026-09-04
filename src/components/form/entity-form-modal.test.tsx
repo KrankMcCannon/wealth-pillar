@@ -42,6 +42,7 @@ function TestHarness({
               confirmText: 'Delete',
               cancelText: 'Cancel',
               onDelete: vi.fn(async () => {}),
+              testId: 'entity-form-delete',
             },
           }
         : {})}
@@ -76,11 +77,10 @@ describe('EntityFormModal template defaults', () => {
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
-  it('opens delete confirmation dialog from footer action', async () => {
+  it('opens delete confirmation from header action', async () => {
     const user = userEvent.setup();
     render(<TestHarness withDeletion />);
-    await user.click(screen.getByRole('button', { name: 'Open delete' }));
-    expect(screen.getByRole('heading', { name: 'Delete item' })).toBeInTheDocument();
+    await user.click(screen.getByTestId('entity-form-delete'));
     expect(screen.getByText('Are you sure?')).toBeInTheDocument();
   });
 });

@@ -13,14 +13,12 @@ import { RecurringTransactionSeries } from '@/lib';
 import { SeriesCard } from './series-card';
 import { EmptyState } from '@/components/shared';
 import { Banknote, Plus, RefreshCw, TrendingDown, TrendingUp } from 'lucide-react';
-import { Button } from '@/components/ui';
 import { Amount } from '@/components/ui/primitives/amount';
 import { HomeSectionCard } from '@/components/home';
-import { SectionHeader } from '@/components/layout';
+import { PageFab, SectionHeader } from '@/components/layout';
 import { Link } from '@/i18n/routing';
 import {
   stitchDashboardGroupedList,
-  stitchFab,
   stitchHome,
   stitchRecurring,
   stitchSurface,
@@ -179,17 +177,11 @@ export function RecurringSeriesSection({
   const renderFab = () => {
     if (!onCreateRecurringSeries || filteredSeries.length === 0) return null;
     return (
-      <Button
-        type="button"
-        variant="default"
-        size="icon"
-        data-testid="recurring-fab-add"
+      <PageFab
         onClick={onCreateRecurringSeries}
-        className={stitchFab.pageAdd}
-        aria-label={t('empty.addButton')}
-      >
-        <Plus className={stitchFab.pageAddIcon} aria-hidden />
-      </Button>
+        ariaLabel={t('empty.addButton')}
+        testId="recurring-fab-add"
+      />
     );
   };
 

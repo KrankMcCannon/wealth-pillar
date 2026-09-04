@@ -1112,8 +1112,7 @@
         },
         "dueDay": {
           "label": "Billing day",
-          "placeholder": "1-31",
-          "helper": "Day of the month when this entry is recorded (1 = first day, 31 = last possible day)."
+          "placeholder": "1-31"
         },
         "startDate": {
           "label": "Start date"
@@ -1318,25 +1317,25 @@
       },
       "fields": {
         "name": {
-          "label": "Account Name",
+          "label": "Name",
           "placeholder": "e.g. Main Account"
         },
         "type": {
-          "label": "Account Type",
+          "label": "Type",
           "placeholder": "Select type"
         },
         "liquidity": {
-          "label": "Liquidity role",
-          "placeholder": "Select role",
-          "spendable": "Spendable (daily use)",
-          "reserve": "Reserve (savings)"
+          "label": "Liquidity",
+          "placeholder": "Select liquidity",
+          "spendable": "Spendable",
+          "reserve": "Reserve"
         },
         "owner": {
           "label": "Owner",
           "placeholder": "Select owner",
           "memberHelper": "Members can create and edit only their own data"
         },
-        "isDefault": "Set as default account for this user"
+        "isDefault": "Default"
       },
       "buttons": {
         "create": "Create",
@@ -1550,7 +1549,9 @@
           "placeholder": "e.g. Monthly expenses"
         },
         "categories": {
-          "label": "Select categories",
+          "label": "Categories",
+          "placeholder": "Select categories",
+          "selectedCount": "{count} selected",
           "searchPlaceholder": "Search categories…",
           "selectAll": "Select all",
           "clear": "Clear",
@@ -1882,7 +1883,8 @@
       "empty": "No category found"
     },
     "MultiUser": {
-      "currentUser": "(You)"
+      "currentUser": "(You)",
+      "placeholder": "Select users"
     },
     "Fields": {
       "User": {

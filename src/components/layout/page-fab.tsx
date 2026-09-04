@@ -1,7 +1,6 @@
 'use client';
 
 import { Plus } from 'lucide-react';
-import { Button } from '@/components/ui';
 import { stitchFab } from '@/styles/home-design-foundation';
 import { cn } from '@/lib';
 
@@ -17,16 +16,14 @@ export function PageFab({ onClick, ariaLabel, testId, className, hidden }: Reado
   if (hidden) return null;
 
   return (
-    <Button
+    <button
       type="button"
-      variant="default"
-      size="icon"
       data-testid={testId}
       onClick={onClick}
       className={cn(stitchFab.pageAdd, className)}
       aria-label={ariaLabel}
     >
       <Plus className={stitchFab.pageAddIcon} aria-hidden />
-    </Button>
+    </button>
   );
 }

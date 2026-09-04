@@ -4,7 +4,7 @@ import { useController, type Control, type FieldPath, type FieldValues } from 'r
 import { Checkbox } from '@/components/ui';
 import { cn } from '@/lib/utils';
 import { formModalStyles as s } from '@/components/form/form-modal-styles';
-import { ModalFormField } from './modal-form-field';
+import { ModalFieldError } from './modal-field-error';
 
 export interface ModalCheckboxFieldProps<T extends FieldValues> {
   control: Control<T>;
@@ -27,26 +27,22 @@ export function ModalCheckboxField<T extends FieldValues>({
   } = useController({ control, name });
 
   const checked = Boolean(field.value);
+  const fieldId = String(name);
 
   return (
-    <ModalFormField
-      {...(error?.message !== undefined ? { error: error.message } : {})}
-      {...(hint !== undefined ? { hint } : {})}
-    >
-      <label
-        className={cn(
-          s.multiUser.singleOption,
-          checked && s.multiUser.singleOptionActive,
-          disabled && 'pointer-events-none opacity-50'
-        )}
-      >
+    <div>
+      <label htmlFor={fieldId} className={s.field.textShell}>
+        <span className={cn(s.field.textLabel, 'min-w-0 flex-1 leading-snug')}>{label}</span>
         <Checkbox
+          id={fieldId}
           checked={checked}
           onCheckedChange={(value) => field.onChange(value === true)}
           disabled={disabled}
+          className={s.multiUser.checkbox}
         />
-        <span className={s.multiUser.name}>{label}</span>
       </label>
-    </ModalFormField>
+      {hint ? <p className="px-4 pb-2 text-xs text-muted-foreground">{hint}</p> : null}
+      {error?.message ? <ModalFieldError message={error.message} /> : null}
+    </div>
   );
 }

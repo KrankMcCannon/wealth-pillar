@@ -3,7 +3,6 @@
 import { useMemo } from 'react';
 import { useWatch, type UseFormReturn } from 'react-hook-form';
 import { useTranslations } from 'next-intl';
-import { ArrowLeftRight } from 'lucide-react';
 import type { Account, Category, TransactionType, User } from '@/lib/types';
 import {
   ModalAmountField,
@@ -53,8 +52,8 @@ export function TransactionFormFields({
 
   const typeOptions = useMemo(
     () => [
-      { value: 'income', label: t('typeOptions.income') },
       { value: 'expense', label: t('typeOptions.expense') },
+      { value: 'income', label: t('typeOptions.income') },
       { value: 'transfer', label: t('typeOptions.transfer') },
     ],
     [t]
@@ -100,12 +99,11 @@ export function TransactionFormFields({
       />
 
       <div className={s.fieldStack}>
-        <ModalCategoryField
+        <ModalTextField
           control={control}
-          name="category"
-          categories={categories}
-          label={t('fields.category.label')}
-          placeholder={t('fields.category.placeholder')}
+          name="description"
+          label={t('fields.description.label')}
+          placeholder={t('fields.description.placeholder')}
           disabled={isSubmitting}
         />
 
@@ -116,7 +114,15 @@ export function TransactionFormFields({
           options={typeOptions}
           placeholder={t('fields.type.placeholder')}
           disabled={isSubmitting}
-          leadingIcon={<ArrowLeftRight className="h-5 w-5 text-modal-ring" aria-hidden />}
+        />
+
+        <ModalCategoryField
+          control={control}
+          name="category"
+          categories={categories}
+          label={t('fields.category.label')}
+          placeholder={t('fields.category.placeholder')}
+          disabled={isSubmitting}
         />
 
         <ModalSelectField
@@ -153,14 +159,6 @@ export function TransactionFormFields({
             : userFieldHelperText !== undefined
               ? { hint: userFieldHelperText }
               : {})}
-        />
-
-        <ModalTextField
-          control={control}
-          name="description"
-          label={t('fields.description.label')}
-          placeholder={t('fields.description.placeholder')}
-          disabled={isSubmitting}
         />
       </div>
     </>

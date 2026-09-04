@@ -2,7 +2,6 @@
 
 import type { ReactNode } from 'react';
 import { Check, Loader2, Trash2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { formModalStyles as s } from '@/components/form/form-modal-styles';
 import { cn } from '@/lib/utils';
 
@@ -35,6 +34,7 @@ export interface ModalFooterDualProps extends ModalFooterActionsBase {
   submitVariant?: SubmitVariant;
   submitDisabled?: boolean;
   submitIcon?: ReactNode;
+  secondaryAction?: ReactNode;
 }
 
 export type ModalFooterActionsProps = ModalFooterStackedPrimaryProps | ModalFooterDualProps;
@@ -99,33 +99,38 @@ function DualFooter({
   submitVariant = 'default',
   submitDisabled = false,
   submitIcon,
+  secondaryAction,
   className,
 }: Readonly<ModalFooterDualProps>) {
   const busy = disabled || isSubmitting;
   const isConfirmDisabled = busy || submitDisabled;
 
   return (
-    <div className={cn(s.footer.dualRow, className)}>
-      <Button
-        type="button"
-        variant="outline"
-        onClick={onCancel}
-        disabled={isSubmitting}
-        className={s.footer.dualCancel}
-      >
-        {cancelLabel}
-      </Button>
-      <Button
-        type={submitType}
-        variant={submitVariant}
-        onClick={submitType === 'button' ? onSubmit : undefined}
-        disabled={isConfirmDisabled}
-        aria-busy={isSubmitting}
-        className={s.footer.dualSubmit}
-      >
-        {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : submitIcon}
-        {submitLabel}
-      </Button>
+    <div className={cn(s.footer.actionsStack, 'relative z-10', className)}>
+      {secondaryAction}
+      <div className={s.footer.dualRow}>
+        <button
+          type="button"
+          onClick={onCancel}
+          disabled={isSubmitting}
+          className={s.footer.dualCancel}
+        >
+          {cancelLabel}
+        </button>
+        <button
+          type={submitType}
+          onClick={submitType === 'button' ? onSubmit : undefined}
+          disabled={isConfirmDisabled}
+          aria-busy={isSubmitting}
+          className={cn(
+            s.footer.dualSubmit,
+            submitVariant === 'destructive' && s.footer.dualSubmitDanger
+          )}
+        >
+          {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : submitIcon}
+          {submitLabel}
+        </button>
+      </div>
     </div>
   );
 }

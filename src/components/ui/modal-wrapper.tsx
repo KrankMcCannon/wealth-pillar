@@ -10,7 +10,6 @@ import {
   DrawerClose,
   DrawerContent,
   DrawerDescription,
-  DrawerHandle,
   DrawerHeader,
   DrawerTitle,
 } from './drawer';
@@ -33,9 +32,11 @@ export interface ModalWrapperProps {
   repositionInputs?: boolean;
   /** When true, renders as Vaul NestedRoot (required when opening over another drawer). */
   nested?: boolean;
-  handleClassName?: string;
   drawerHeaderClassName?: string;
   drawerCloseClassName?: string;
+  /** Compact centered card for sequential confirmations. */
+  presentation?: 'sheet' | 'alert';
+  leadingAction?: React.ReactNode;
 }
 
 export function ModalWrapper({
@@ -52,12 +53,14 @@ export function ModalWrapper({
   disableOutsideClose = false,
   repositionInputs = false,
   nested = false,
-  handleClassName,
   drawerHeaderClassName,
   drawerCloseClassName,
+  presentation = 'sheet',
+  leadingAction,
 }: Readonly<ModalWrapperProps>) {
   const tCommon = useTranslations('Common');
   const DrawerRoot = nested ? DrawerNested : Drawer;
+  const isAlert = presentation === 'alert';
 
   const handleOpenChange = React.useCallback(
     (open: boolean) => {
@@ -77,18 +80,29 @@ export function ModalWrapper({
       repositionInputs={repositionInputs}
       shouldScaleBackground={false}
     >
-      <DrawerContent className={cn(modalS.shell.content, className)}>
-        <DrawerHandle className={cn(modalS.shell.handle, handleClassName)} aria-hidden />
+      <DrawerContent
+        className={cn(
+          isAlert ? modalS.drawerShell.alertContent : modalS.shell.formContent,
+          className
+        )}
+      >
         <DrawerHeader className={cn(modalS.shell.header, drawerHeaderClassName)}>
-          <div className="flex w-full min-w-0 items-center justify-between gap-3">
+          {isAlert ? (
             <DrawerTitle className={cn(modalS.shell.title, titleClassName)}>{title}</DrawerTitle>
-            {showCloseButton ? (
-              <DrawerClose className={cn(modalS.shell.closeButton, drawerCloseClassName)}>
-                <X aria-hidden />
-                <span className="sr-only">{tCommon('closeDialog')}</span>
-              </DrawerClose>
-            ) : null}
-          </div>
+          ) : (
+            <div className="flex w-full min-w-0 items-center gap-1">
+              {leadingAction ?? <span className="size-11 shrink-0" aria-hidden />}
+              <DrawerTitle className={cn(modalS.shell.title, titleClassName)}>{title}</DrawerTitle>
+              {showCloseButton ? (
+                <DrawerClose className={cn(modalS.shell.closeButton, drawerCloseClassName)}>
+                  <X aria-hidden />
+                  <span className="sr-only">{tCommon('closeDialog')}</span>
+                </DrawerClose>
+              ) : (
+                <span className="size-11 shrink-0" aria-hidden />
+              )}
+            </div>
+          )}
           {description ? (
             <DrawerDescription className={cn(modalS.shell.description, descriptionClassName)}>
               {description}
@@ -115,7 +129,12 @@ export function ModalBody({
   className,
 }: Readonly<{ children: React.ReactNode; className?: string }>) {
   return (
-    <div className={cn('flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto py-2', className)}>
+    <div
+      className={cn(
+        'flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain px-4 py-2',
+        className
+      )}
+    >
       {children}
     </div>
   );
@@ -129,7 +148,7 @@ export function ModalFooter({
     <div
       className={cn(
         stitchSurface.modalFooter,
-        'flex flex-col-reverse gap-3 px-4 py-4 pb-[max(env(safe-area-inset-bottom),0.75rem)]',
+        'flex flex-col gap-2 px-4 py-3 pb-[max(env(safe-area-inset-bottom),0.75rem)]',
         className
       )}
     >

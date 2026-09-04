@@ -50,9 +50,9 @@ function InlineAmountForm() {
 }
 
 describe('ModalAmountField', () => {
-  it('renders hero variant with currency and label', () => {
+  it('renders hero variant with currency and a visually hidden label', () => {
     render(<HeroAmountForm />);
-    expect(screen.getByText('Amount')).toBeInTheDocument();
+    expect(screen.getByText('Amount')).toHaveClass('sr-only');
     expect(screen.getByText('€')).toBeInTheDocument();
   });
 
@@ -62,5 +62,8 @@ describe('ModalAmountField', () => {
     const input = screen.getByPlaceholderText('0,00');
     await user.type(input, '42');
     expect(input).toHaveValue('42');
+    expect(screen.getByText('Limit')).toHaveClass('max-w-[70%]');
+    expect(input).toHaveClass('w-0', 'flex-1', 'text-right');
+    expect(document.querySelector('[data-slot="field"]')).not.toBeInTheDocument();
   });
 });

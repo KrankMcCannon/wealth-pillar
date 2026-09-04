@@ -44,5 +44,7 @@ describe('ModalFooterActions', () => {
     expect(onCancel).toHaveBeenCalled();
     await user.click(screen.getByRole('button', { name: 'Save' }));
     expect(onSubmit).toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: 'Save' })).toHaveClass('bg-foreground');
+    expect(screen.getByRole('button', { name: 'Save' })).not.toHaveClass('bg-primary');
   });
 });

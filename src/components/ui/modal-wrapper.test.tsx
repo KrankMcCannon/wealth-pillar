@@ -7,7 +7,7 @@ vi.mock('next-intl', () => ({
 }));
 
 describe('ModalWrapper accessibility', () => {
-  it('renders an accessible drawer title and card shell', () => {
+  it('renders an accessible drawer title and compact dialog shell', () => {
     render(
       <ModalWrapper
         isOpen
@@ -22,7 +22,9 @@ describe('ModalWrapper accessibility', () => {
     expect(screen.getByRole('heading', { name: 'Edit profile' })).toBeInTheDocument();
     expect(screen.getByText('Update details')).toBeInTheDocument();
     expect(screen.getByText('Form body')).toBeInTheDocument();
-    expect(document.querySelector('[data-slot="drawer-content"]')).toHaveClass('bg-card');
+    const content = document.querySelector('[data-slot="drawer-content"]');
+    expect(content).toHaveClass('bg-background');
+    expect(content).toHaveClass('max-w-lg');
   });
 
   it('blocks dismiss when disableOutsideClose is true', () => {

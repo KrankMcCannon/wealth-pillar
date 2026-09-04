@@ -2,16 +2,16 @@
 
 export const calendarDrawerStyles = {
   panel: {
-    container: 'space-y-0',
+    container: 'flex min-h-0 flex-1 flex-col',
   },
   header: {
-    container: 'flex items-center gap-2 px-3 py-3 mb-1',
+    container: 'flex items-center gap-2 px-4 py-3',
     pickerRow: 'flex min-w-0 flex-1 items-center gap-2',
     selectTrigger:
-      'min-h-11 rounded-xl border border-modal-border/30 bg-modal-elevated/90 text-sm font-semibold text-modal-fg shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)] focus:ring-2 focus:ring-modal-ring/25 focus:border-modal-ring/45',
+      'min-h-11 rounded-xl border border-foreground/10 bg-muted text-sm font-semibold text-foreground shadow-none focus:ring-2 focus:ring-foreground/20 focus:border-foreground/20',
     selectTriggerMonth: 'min-w-0 flex-1 [&>span]:truncate',
     selectTriggerYear: 'w-[5.25rem] shrink-0 tabular-nums',
-    selectContent: 'max-h-[240px]',
+    selectContent: 'max-h-[240px] border-foreground/10 bg-background text-foreground',
     selectItem: 'text-sm font-medium',
     selectItemYear: 'text-sm font-medium tabular-nums',
     navButton: {
@@ -19,10 +19,11 @@ export const calendarDrawerStyles = {
     },
   },
   weekdays: {
-    container: 'grid grid-cols-7 gap-1 pb-2 px-2',
-    label: 'text-xs font-bold text-primary uppercase text-center py-2 tracking-wider',
+    container: 'grid grid-cols-7 gap-1 px-4 pb-1',
+    label: 'py-1.5 text-center text-xs font-medium uppercase tracking-wider text-muted-foreground',
   },
   grid: {
-    container: 'grid grid-cols-7 gap-2 place-items-center pb-4 px-2',
+    container:
+      'grid grid-cols-7 gap-1 place-items-center px-4 pb-[max(env(safe-area-inset-bottom),0.75rem)]',
   },
 } as const;

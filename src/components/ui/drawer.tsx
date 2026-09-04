@@ -45,7 +45,7 @@ const DrawerOverlay = React.forwardRef<
   <DrawerPrimitive.Overlay
     ref={ref}
     data-slot="drawer-overlay"
-    className={cn('fixed inset-0 z-150 bg-[oklch(12%_0.01_250)]/60', className)}
+    className={cn('fixed inset-0 z-150 bg-[oklch(12%_0.01_250)]/55', className)}
     {...props}
   />
 ));
@@ -89,7 +89,7 @@ const DrawerTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DrawerPrimitive.Title
     ref={ref}
-    className={cn('text-lg font-semibold text-modal-fg', className)}
+    className={cn('text-lg font-semibold text-foreground', className)}
     {...props}
   />
 ));

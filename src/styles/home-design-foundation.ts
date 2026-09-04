@@ -12,7 +12,7 @@ export const stitchSurface = {
   card: 'rounded-xl border border-border/25 bg-card/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]',
   cardLg: 'rounded-2xl border border-border/20 bg-card/90 shadow-[0_16px_36px_rgba(0,7,30,0.28)]',
   modalFooter:
-    'mt-auto shrink-0 border-t border-border/30 bg-card/95 backdrop-blur-xl supports-backdrop-filter:bg-card/90',
+    'mt-auto shrink-0 border-t border-foreground/10 bg-background',
   primaryCta:
     'flex min-h-[52px] w-full items-center justify-center gap-2.5 rounded-2xl border border-primary/40 bg-primary px-5 py-4 text-sm font-semibold uppercase tracking-[0.22em] text-primary-foreground shadow-[0_10px_32px_rgba(0,16,70,0.45)] transition-all hover:border-primary/55 hover:bg-primary/90 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-45 motion-reduce:transition-none motion-reduce:active:scale-100',
   dangerButton:
@@ -22,7 +22,7 @@ export const stitchSurface = {
 /** Fixed page FAB — single source for home ActionMenu trigger and page-local add buttons. */
 export const stitchFab = {
   pageAdd:
-    'fixed bottom-24 right-5 z-30 flex h-14 w-14 min-h-11 min-w-11 items-center justify-center rounded-2xl bg-accent text-white shadow-[0_8px_32px_rgba(0,20,86,0.45)] transition-transform hover:scale-105 active:scale-95 motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45',
+    'fixed bottom-24 right-5 z-30 flex h-14 w-14 min-h-11 min-w-11 items-center justify-center rounded-2xl border-0 bg-foreground text-background shadow-[0_8px_24px_rgba(0,0,0,0.4)] transition-transform hover:scale-105 hover:bg-foreground/90 active:scale-95 motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/25',
   pageAddIcon: 'size-7',
 } as const;
 
@@ -245,13 +245,13 @@ export const stitchTransactions = {
   pageErrorRetry:
     'ml-2 font-semibold underline text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35 rounded-sm',
   paginationBar: 'flex items-center justify-between gap-3 border-t border-border/25 px-0 py-3.5',
-  dayHeaderRow: 'mb-2 flex items-center justify-between px-1',
-  dayHeaderTitle: 'text-[11px] font-semibold uppercase tracking-wide text-muted-foreground',
+  dayHeaderRow: 'flex items-end justify-between gap-3 border-b border-foreground/10 px-1 pb-1',
+  dayHeaderTitle: 'text-sm font-semibold uppercase tracking-wide leading-none text-muted-foreground',
   dayHeaderStats: 'text-right',
-  dayHeaderTotalRow: 'flex items-center gap-2 justify-end',
-  dayHeaderTotalLabel: 'text-xs text-muted-foreground',
-  dayHeaderTotalValue: 'text-xs font-bold tabular-nums',
-  dayHeaderCount: 'mt-0.5 text-xs text-muted-foreground',
+  dayHeaderTotalRow: 'flex items-baseline justify-end gap-1.5',
+  dayHeaderTotalLabel: 'text-sm font-medium uppercase tracking-wide leading-none text-muted-foreground',
+  dayHeaderTotalValue: 'text-sm font-medium tabular-nums leading-none text-muted-foreground',
+  dayHeaderCount: 'mt-0.5 text-sm text-muted-foreground',
   tabsStickyBar:
     'sticky z-30 w-full min-w-0 overflow-x-hidden border-b border-border/22 bg-background/88 pb-2 pt-1 backdrop-blur-xl',
   /** Padding orizzontale da `HomeDashboardMain` (px-4); qui solo gap verticale. */

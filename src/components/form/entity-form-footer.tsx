@@ -1,43 +1,38 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { useTranslations } from 'next-intl';
 import { ModalFooterActions } from '@/components/ui/modal-footer-actions';
 
 export interface EntityFormFooterProps {
-  isEditMode: boolean;
   isSubmitting: boolean;
   isDeleting?: boolean;
   submitLabel: string;
-  deleteLabel?: string;
-  onDelete?: () => void;
-  deleteTestId?: string;
-  showSubmitSpinner?: boolean;
-  showSubmitIcon?: boolean;
+  cancelLabel?: string;
+  onCancel: () => void;
   secondaryAction?: ReactNode;
 }
 
 export function EntityFormFooter({
-  isEditMode,
   isSubmitting,
   isDeleting = false,
   submitLabel,
-  deleteLabel,
-  onDelete,
-  deleteTestId,
-  showSubmitSpinner = false,
-  showSubmitIcon = true,
+  cancelLabel,
+  onCancel,
   secondaryAction,
 }: Readonly<EntityFormFooterProps>) {
+  const t = useTranslations('Common');
+
   return (
     <ModalFooterActions
-      variant="stacked-primary"
+      variant="dual"
       submitLabel={submitLabel}
+      cancelLabel={cancelLabel ?? t('cancel')}
+      onCancel={onCancel}
+      submitType="submit"
       isSubmitting={isSubmitting}
       disabled={isDeleting}
-      showSubmitSpinner={showSubmitSpinner}
-      showSubmitIcon={showSubmitIcon}
       secondaryAction={secondaryAction}
-      {...(isEditMode && onDelete && deleteLabel ? { deleteLabel, onDelete, deleteTestId } : {})}
     />
   );
 }

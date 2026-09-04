@@ -9,7 +9,6 @@ export interface ModalSelectorTriggerProps {
   label: string;
   value: string;
   valueMuted?: boolean;
-  icon?: ReactNode;
   disabled?: boolean;
   onClick?: () => void;
   className?: string;
@@ -20,7 +19,6 @@ export function ModalSelectorTrigger({
   label,
   value,
   valueMuted = false,
-  icon,
   disabled,
   onClick,
   className,
@@ -28,13 +26,8 @@ export function ModalSelectorTrigger({
 }: Readonly<ModalSelectorTriggerProps>) {
   const inner = (
     <>
-      <div className="flex min-w-0 flex-1 items-center gap-3">
-        {icon ? <div className={s.selectorIconWrap}>{icon}</div> : null}
-        <div className="min-w-0 flex-1 text-left">
-          <p className={s.selectorLabel}>{label}</p>
-          <span className={valueMuted ? s.selectorValueMuted : s.selectorValue}>{value}</span>
-        </div>
-      </div>
+      <p className={s.selectorLabel}>{label}</p>
+      <span className={valueMuted ? s.selectorValueMuted : s.selectorValue}>{value}</span>
       <ChevronRight className={s.selectorChevron} aria-hidden />
       {children}
     </>

@@ -37,8 +37,12 @@ export interface FormCurrencyInputProps {
   disabled?: boolean | undefined;
   /** Additional CSS classes */
   className?: string | undefined;
+  /** Optional input id for label association */
+  id?: string | undefined;
   /** Show currency symbol */
   showSymbol?: boolean | undefined;
+  /** Skip Input chrome — composer amount hero */
+  bare?: boolean | undefined;
   /** Minimum allowed value */
   min?: number | undefined;
   /** Maximum allowed value */
@@ -57,7 +61,9 @@ export function FormCurrencyInput({
   placeholder = '0.00',
   disabled = false,
   className,
+  id,
   showSymbol = true,
+  bare = false,
   min,
   max,
   decimals = 2,
@@ -114,6 +120,22 @@ export function FormCurrencyInput({
     }
   };
 
+  if (bare) {
+    return (
+      <input
+        id={id}
+        type="text"
+        inputMode="decimal"
+        value={stringValue}
+        onChange={handleChange}
+        onBlur={handleBlur}
+        disabled={disabled}
+        placeholder={placeholder}
+        className={className}
+      />
+    );
+  }
+
   return (
     <div className={formStyles.currencyInput.wrapper}>
       {showSymbol && (
@@ -134,6 +156,7 @@ export function FormCurrencyInput({
           showSymbol && formStyles.currencyInput.inputWithIcon,
           className
         )}
+        {...(id !== undefined ? { id } : {})}
       />
     </div>
   );

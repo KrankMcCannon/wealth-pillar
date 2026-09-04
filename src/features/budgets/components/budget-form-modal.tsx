@@ -14,6 +14,7 @@ import {
 import {
   EntityFormModal,
   EntityFormFooter,
+  formModalStyles,
   useEntityFormPermissions,
   useEntityFormRowReset,
   useEntityFormSubmit,
@@ -264,7 +265,7 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
       defaultValues={createDefaults}
       resetValues={resetValues ?? createDefaults}
       isLoading={Boolean(editId) && (isLoading || !isReady)}
-      bodyClassName={cn('overflow-x-hidden')}
+      bodyClassName={cn(formModalStyles.scrollBody, 'overflow-x-hidden')}
       {...(isEditMode && editId
         ? {
             deletion: {
@@ -274,19 +275,16 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
               confirmText: t('buttons.deleteBudget'),
               cancelText: t('buttons.cancel'),
               onDelete: handleDelete,
+              testId: 'budget-form-delete',
             },
           }
         : {})}
       onSubmit={handleSubmit}
-      footer={(_, isSubmitting, { openDeleteDialog }) => (
+      footer={(_, isSubmitting) => (
         <EntityFormFooter
-          isEditMode={isEditMode}
           isSubmitting={isSubmitting}
           submitLabel={isEditMode ? t('buttons.confirmChanges') : t('buttons.create')}
-          deleteLabel={t('buttons.deleteBudget')}
-          deleteTestId="budget-form-delete"
-          showSubmitSpinner
-          {...(openDeleteDialog ? { onDelete: openDeleteDialog } : {})}
+          onCancel={onClose}
         />
       )}
     >

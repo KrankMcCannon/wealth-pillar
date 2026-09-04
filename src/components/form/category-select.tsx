@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import * as SelectPrimitive from '@radix-ui/react-select';
-import { Search, Clock, TrendingUp, ChevronRight, LayoutGrid } from 'lucide-react';
+import { Search, Clock, TrendingUp, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLocale, useTranslations } from 'next-intl';
 import { cn } from '@/lib';
@@ -175,20 +175,11 @@ export const CategorySelect = React.memo<CategorySelectProps>(
           className={cn(s.selectorTrigger, className)}
           aria-label={resolvedPlaceholder}
         >
-          <div className="flex min-w-0 flex-1 items-center gap-3">
-            <div className={s.selectorIconWrap}>
-              {selectedCategory ? (
-                <CategoryIcon categoryKey={selectedCategory.key} size={22} className="shrink-0" />
-              ) : (
-                <LayoutGrid className={s.selectorIcon} aria-hidden />
-              )}
-            </div>
-            <div className="min-w-0 flex-1">
-              {captionLabel ? <p className={s.selectorLabel}>{captionLabel}</p> : null}
-              <p className={selectedCategory ? s.selectorValue : s.selectorValueMuted}>
-                {selectedCategory ? selectedCategory.label : resolvedPlaceholder}
-              </p>
-            </div>
+          <div className="flex min-w-0 flex-1 items-center justify-between gap-4">
+            {captionLabel ? <p className={s.selectorLabel}>{captionLabel}</p> : null}
+            <p className={selectedCategory ? s.selectorValue : s.selectorValueMuted}>
+              {selectedCategory ? selectedCategory.label : resolvedPlaceholder}
+            </p>
           </div>
           <ChevronRight className={s.selectorChevron} aria-hidden />
         </SelectPrimitive.Trigger>

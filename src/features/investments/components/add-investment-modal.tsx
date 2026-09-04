@@ -11,7 +11,6 @@ import {
 import { EntityFormModal, useEntityFormRowReset, useEntityFormSubmit } from '@/components/form';
 import { ModalFooterActions } from '@/components/ui/modal-footer-actions';
 import { toast } from '@/hooks/use-toast';
-import { transactionStyles } from '@/features/transactions/theme/transaction-styles';
 import { InvestmentFormFields, type InvestmentFormData } from './investment-form-fields';
 import {
   buildInvestmentPayload,
@@ -141,7 +140,6 @@ export default function AddInvestmentModal({
       resetValues={resetValues ?? createDefaults}
       repositionInputs={false}
       isLoading={Boolean(editId) && (isLoading || !isReady)}
-      formClassName={transactionStyles.form.container}
       onSubmit={handleSubmit}
       footer={(_, isSubmitting) => (
         <ModalFooterActions

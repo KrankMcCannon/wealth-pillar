@@ -31,9 +31,9 @@ export const badgeStyles = {
 
 export const drawerStyles = {
   content:
-    'fixed bottom-0 left-0 right-0 z-150 flex max-h-[96dvh] flex-col gap-0 overflow-hidden rounded-t-3xl border-t border-border/22 bg-card pb-[env(safe-area-inset-bottom)] shadow-xl',
-  header: 'flex flex-col gap-2 border-b border-border/22 px-4 py-3 text-left',
-  footer: 'mt-auto flex flex-col gap-3 p-4 pb-[max(env(safe-area-inset-bottom),0.75rem)]',
+    'fixed bottom-0 left-0 right-0 z-150 flex max-h-[96dvh] flex-col gap-0 overflow-hidden rounded-t-3xl border-t border-border/15 bg-background shadow-xl',
+  header: 'flex flex-col gap-1 border-b border-border/15 px-3 pt-2 pb-2 text-center',
+  footer: 'mt-auto flex flex-col gap-2 p-4 pb-[max(env(safe-area-inset-bottom),0.75rem)]',
 } as const;
 
 export const selectStyles = {

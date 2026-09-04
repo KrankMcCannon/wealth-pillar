@@ -14,7 +14,6 @@ import {
 } from '@/components/form/modal-fields';
 import { formModalStyles as s } from '@/components/form/form-modal-styles';
 import { Input } from '@/components/ui/input';
-import { ModalSection } from '@/components/ui/modal-wrapper';
 
 export type CategoryFormData = {
   label: string;
@@ -51,85 +50,87 @@ export function CategoryFormFields({ form, isEditMode }: CategoryFormFieldsProps
   }, [watchedLabel, isEditMode, setValue]);
 
   return (
-    <ModalSection>
+    <>
       {errors.root?.message ? <ModalRootError message={errors.root.message} /> : null}
 
-      <ModalTextField
-        control={control}
-        name="label"
-        label={t('fields.label.label')}
-        placeholder={t('fields.label.placeholder')}
-        disabled={isSubmitting}
-      />
+      <div className={s.fieldStack}>
+        <ModalTextField
+          control={control}
+          name="label"
+          label={t('fields.label.label')}
+          placeholder={t('fields.label.placeholder')}
+          disabled={isSubmitting}
+        />
 
-      <ModalIconField
-        control={control}
-        name="icon"
-        label={t('fields.icon.label')}
-        disabled={isSubmitting}
-      />
+        <ModalIconField
+          control={control}
+          name="icon"
+          label={t('fields.icon.label')}
+          disabled={isSubmitting}
+        />
 
-      <div className={s.noteShell}>
-        <p className={s.noteLabel}>{t('fields.color.label')}</p>
-        <div className={categoryStyles.formModal.colorSection}>
-          <div className={categoryStyles.formModal.palette}>
-            {colorPalette.map((color) => {
-              const isSelected = normalizedSelectedColor === color.value.toUpperCase();
+        <div className={s.noteShell}>
+          <p className={s.noteLabel}>{t('fields.color.label')}</p>
+          <div className={categoryStyles.formModal.colorSection}>
+            <div className={categoryStyles.formModal.palette}>
+              {colorPalette.map((color) => {
+                const isSelected = normalizedSelectedColor === color.value.toUpperCase();
 
-              return (
-                <button
-                  key={color.value}
-                  type="button"
-                  onClick={() =>
-                    setValue('color', color.value, { shouldDirty: true, shouldTouch: true })
-                  }
+                return (
+                  <button
+                    key={color.value}
+                    type="button"
+                    onClick={() =>
+                      setValue('color', color.value, { shouldDirty: true, shouldTouch: true })
+                    }
+                    disabled={isSubmitting}
+                    aria-pressed={isSelected}
+                    aria-label={color.name}
+                    className={cn(
+                      categoryStyles.formModal.colorButton,
+                      isSelected
+                        ? categoryStyles.formModal.colorActive
+                        : categoryStyles.formModal.colorIdle,
+                      isSubmitting && categoryStyles.formModal.colorDisabled
+                    )}
+                    style={getCategoryColorStyle(color.value)}
+                    title={color.name}
+                  >
+                    {isSelected ? (
+                      <div className={categoryStyles.formModal.checkWrap}>
+                        <svg
+                          className={categoryStyles.formModal.checkIcon}
+                          fill="none"
+                          strokeWidth="3"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                          aria-hidden
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                    ) : null}
+                  </button>
+                );
+              })}
+            </div>
+            <Controller
+              control={control}
+              name="color"
+              render={({ field }) => (
+                <Input
+                  {...field}
+                  value={field.value ?? ''}
+                  placeholder={t('fields.color.placeholder')}
                   disabled={isSubmitting}
-                  aria-pressed={isSelected}
-                  aria-label={color.name}
-                  className={cn(
-                    categoryStyles.formModal.colorButton,
-                    isSelected
-                      ? categoryStyles.formModal.colorActive
-                      : categoryStyles.formModal.colorIdle,
-                    isSubmitting && categoryStyles.formModal.colorDisabled
-                  )}
-                  style={getCategoryColorStyle(color.value)}
-                  title={color.name}
-                >
-                  {isSelected ? (
-                    <div className={categoryStyles.formModal.checkWrap}>
-                      <svg
-                        className={categoryStyles.formModal.checkIcon}
-                        fill="none"
-                        strokeWidth="3"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                        aria-hidden
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
-                  ) : null}
-                </button>
-              );
-            })}
+                  className={s.noteInput}
+                />
+              )}
+            />
           </div>
-          <Controller
-            control={control}
-            name="color"
-            render={({ field }) => (
-              <Input
-                {...field}
-                value={field.value ?? ''}
-                placeholder={t('fields.color.placeholder')}
-                disabled={isSubmitting}
-                className={s.noteInput}
-              />
-            )}
-          />
+          {errors.color?.message ? <ModalFieldError message={errors.color.message} /> : null}
         </div>
-        {errors.color?.message ? <ModalFieldError message={errors.color.message} /> : null}
       </div>
-    </ModalSection>
+    </>
   );
 }

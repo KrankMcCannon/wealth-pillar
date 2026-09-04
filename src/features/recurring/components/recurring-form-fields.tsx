@@ -11,6 +11,7 @@ import {
   ModalTextField,
 } from '@/components/form';
 import { toSelectOptions, sortSelectOptions } from '@/components/form/form-select';
+import { RecurrencePicker } from './recurrence-picker';
 import type { RecurringFormData } from './recurring-form-schema';
 
 export interface RecurringFormFieldsProps {
@@ -44,6 +45,25 @@ export function RecurringFormFields({
 
   return (
     <>
+      <ModalTextField
+        control={control}
+        name="description"
+        label={t('fields.description.label')}
+        placeholder={t('fields.description.placeholder')}
+        disabled={isSubmitting}
+      />
+
+      <ModalSelectField
+        control={control}
+        name="type"
+        label={t('fields.type.label')}
+        options={[
+          { value: 'expense', label: t('typeOptions.expense') },
+          { value: 'income', label: t('typeOptions.income') },
+        ]}
+        disabled={isSubmitting}
+      />
+
       <ModalCategoryField
         control={control}
         name="category"
@@ -81,28 +101,8 @@ export function RecurringFormFields({
         currentUserId={currentUserId}
         disabled={isSubmitting}
       />
+
+      <RecurrencePicker form={form} t={t} isSubmitting={isSubmitting} />
     </>
-  );
-}
-
-export function RecurringDescriptionField({
-  form,
-  t,
-  isSubmitting,
-}: {
-  form: UseFormReturn<RecurringFormData>;
-  t: ReturnType<typeof useTranslations<'Recurring.FormModal'>>;
-  isSubmitting: boolean;
-}) {
-  const { control } = form;
-
-  return (
-    <ModalTextField
-      control={control}
-      name="description"
-      label={t('fields.description.label')}
-      placeholder={t('fields.description.placeholder')}
-      disabled={isSubmitting}
-    />
   );
 }

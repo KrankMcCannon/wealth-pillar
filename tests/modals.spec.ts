@@ -26,7 +26,7 @@ test.describe('entity modals (mobile)', () => {
     await expect(page.locator('text=Nuova transazione')).toBeVisible();
     await expect(page.locator('.text-modal-fg-muted').first()).toBeVisible();
     await expect(page.locator('input[placeholder="0,00"]').first()).toBeVisible();
-    await expect(page.getByRole('button', { name: /annulla|cancel/i })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: /annulla|cancel/i })).toBeVisible();
   });
 
   test('budget-create opens drawer with modal fields', async ({ page }) => {

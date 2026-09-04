@@ -428,18 +428,16 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
               confirmText: tPage('dialogs.deleteTransaction.confirm'),
               cancelText: tPage('dialogs.cancel'),
               onDelete: handleDelete,
+              testId: 'transaction-form-delete',
             },
           }
         : {})}
       onSubmit={handleSubmit}
-      footer={(_, isSubmitting, { openDeleteDialog }) => (
+      footer={(_, isSubmitting) => (
         <EntityFormFooter
-          isEditMode={isEditMode}
           isSubmitting={isSubmitting}
           submitLabel={isEditMode ? t('buttons.saveTransaction') : t('buttons.create')}
-          deleteLabel={t('buttons.delete')}
-          deleteTestId="transaction-form-delete"
-          {...(openDeleteDialog ? { onDelete: openDeleteDialog } : {})}
+          onCancel={handleClose}
         />
       )}
     >

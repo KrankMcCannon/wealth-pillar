@@ -4,6 +4,7 @@ import { useController, type Control, type FieldPath, type FieldValues } from 'r
 import { FormCurrencyInput } from '@/components/form/form-currency-input';
 import { formModalStyles as s } from '@/components/form/form-modal-styles';
 import { ModalFormField } from './modal-form-field';
+import { ModalFieldError } from './modal-field-error';
 
 export interface ModalAmountFieldProps<T extends FieldValues> {
   control: Control<T>;
@@ -13,6 +14,7 @@ export interface ModalAmountFieldProps<T extends FieldValues> {
   variant?: 'hero' | 'inline';
   disabled?: boolean;
   placeholder?: string;
+  decimals?: number;
 }
 
 export function ModalAmountField<T extends FieldValues>({
@@ -23,34 +25,42 @@ export function ModalAmountField<T extends FieldValues>({
   variant = 'hero',
   disabled,
   placeholder,
+  decimals,
 }: Readonly<ModalAmountFieldProps<T>>) {
   const {
     field,
     fieldState: { error },
   } = useController({ control, name });
   const resolvedLabel = label ?? '';
-  const handleChange = field.onChange;
+  const fieldId = String(name);
 
   const input = (
     <FormCurrencyInput
       value={field.value ?? ''}
-      onChange={handleChange}
+      onChange={field.onChange}
       placeholder={placeholder}
       disabled={disabled}
-      className={s.amountInput}
+      className={variant === 'inline' ? s.field.textInput : s.amountInput}
       showSymbol={false}
+      bare
+      {...(variant === 'inline' ? { id: fieldId } : {})}
+      {...(decimals !== undefined ? { decimals } : {})}
     />
   );
 
   if (variant === 'inline') {
     return (
-      <ModalFormField
-        {...(resolvedLabel ? { label: resolvedLabel } : {})}
-        variant="inline"
-        {...(error?.message !== undefined ? { error: error.message } : {})}
-      >
-        {input}
-      </ModalFormField>
+      <div>
+        <div className={s.field.textShell}>
+          {resolvedLabel ? (
+            <label htmlFor={fieldId} className={s.field.textLabel}>
+              {resolvedLabel}
+            </label>
+          ) : null}
+          {input}
+        </div>
+        {error?.message ? <ModalFieldError message={error.message} /> : null}
+      </div>
     );
   }
 
@@ -59,12 +69,9 @@ export function ModalAmountField<T extends FieldValues>({
       variant="hero"
       {...(error?.message !== undefined ? { error: error.message } : {})}
     >
-      <section
-        className={`${s.amountSection} group/amount`}
-        aria-labelledby={`${String(name)}-label`}
-      >
+      <section className={s.amountSection} aria-labelledby={`${fieldId}-label`}>
         {resolvedLabel ? (
-          <p id={`${String(name)}-label`} className={s.amountEyebrow}>
+          <p id={`${fieldId}-label`} className={s.amountEyebrow}>
             {resolvedLabel}
           </p>
         ) : null}
@@ -73,9 +80,6 @@ export function ModalAmountField<T extends FieldValues>({
             {currency}
           </span>
           {input}
-        </div>
-        <div className={s.amountTrack} aria-hidden>
-          <div className={s.amountTrackFill} />
         </div>
       </section>
     </ModalFormField>

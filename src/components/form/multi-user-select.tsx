@@ -1,60 +1,24 @@
 'use client';
 
 /**
- * MultiUserSelect Component
- *
- * Allows selection of multiple users via checkboxes.
- * Each user is displayed with their avatar color and name.
- * Always maintains at least the current user selected.
+ * MultiUserSelect — checkbox list for the nested users picker.
+ * Always keeps at least the current user selected.
  */
 
 import type { User } from '@/lib/types';
 import { useTranslations } from 'next-intl';
 import { Checkbox } from '@/components/ui';
 import { cn } from '@/lib/utils';
-import { getMultiUserAvatarStyle } from './theme/form-styles';
 import { formModalStyles as s } from './form-modal-styles';
 
 interface MultiUserSelectProps {
-  /**
-   * Array of selected user IDs
-   */
   value: string[];
-
-  /**
-   * Callback when selection changes
-   */
   onChange: (value: string[]) => void;
-
-  /**
-   * All available users to select from
-   */
   users: User[];
-
-  /**
-   * Current user ID (always kept selected)
-   */
   currentUserId: string;
-
-  /**
-   * Additional CSS classes
-   */
   className?: string;
 }
 
-/**
- * MultiUserSelect - Multi-user selection with checkboxes
- *
- * @example
- * ```tsx
- * <MultiUserSelect
- *   value={formData.user_ids}
- *   onChange={(value) => setFormData({ ...formData, user_ids: value })}
- *   users={groupUsers}
- *   currentUserId={currentUser.id}
- * />
- * ```
- */
 export function MultiUserSelect({
   value,
   onChange,
@@ -64,57 +28,35 @@ export function MultiUserSelect({
 }: Readonly<MultiUserSelectProps>) {
   const t = useTranslations('Forms.MultiUser');
 
-  /**
-   * Toggle user selection
-   * Always maintains at least the current user selected
-   */
   const handleToggle = (userId: string) => {
     if (value.includes(userId)) {
-      // Remove user
-      const newValue = value.filter((id) => id !== userId);
-
-      // Keep at least current user selected
-      if (newValue.length === 0) {
-        onChange([currentUserId]);
-      } else {
-        onChange(newValue);
-      }
-    } else {
-      // Add user
-      onChange([...value, userId]);
+      const next = value.filter((id) => id !== userId);
+      onChange(next.length === 0 ? [currentUserId] : next);
+      return;
     }
+    onChange([...value, userId]);
   };
 
   return (
-    <div className={cn(s.multiUser.container, className)}>
-      {users.map((user) => (
-        <label
-          key={user.id}
-          className={cn(s.multiUser.row, value.includes(user.id) && s.multiUser.rowActive)}
-        >
-          <Checkbox
-            checked={value.includes(user.id)}
-            onCheckedChange={() => handleToggle(user.id)}
-          />
-          <div className={s.multiUser.userRow}>
-            {/* User avatar */}
-            <div
-              className={cn(s.multiUser.avatar, user.theme_color && 'text-white')}
-              style={getMultiUserAvatarStyle(user.theme_color || undefined)}
-            >
-              {(user.name ?? '?').charAt(0).toUpperCase()}
-            </div>
-
-            {/* User name */}
-            <span className={s.multiUser.name}>{user.name ?? ''}</span>
-
-            {/* Current user indicator */}
-            {user.id === currentUserId && (
-              <span className={s.multiUser.current}>{t('currentUser')}</span>
-            )}
-          </div>
-        </label>
-      ))}
+    <div className={cn(s.multiUser.container, className)} role="group">
+      {users.map((user) => {
+        const checked = value.includes(user.id);
+        return (
+          <label key={user.id} className={s.multiUser.row}>
+            <span className={s.multiUser.userRow}>
+              <span className={s.multiUser.name}>{user.name ?? ''}</span>
+              {user.id === currentUserId ? (
+                <span className={s.multiUser.current}>{t('currentUser')}</span>
+              ) : null}
+            </span>
+            <Checkbox
+              checked={checked}
+              onCheckedChange={() => handleToggle(user.id)}
+              className={s.multiUser.checkbox}
+            />
+          </label>
+        );
+      })}
     </div>
   );
 }

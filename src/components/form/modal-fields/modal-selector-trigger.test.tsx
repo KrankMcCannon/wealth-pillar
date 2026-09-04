@@ -5,9 +5,11 @@ import { ModalSelectorTrigger } from './modal-selector-trigger';
 
 describe('ModalSelectorTrigger', () => {
   it('renders label and value', () => {
-    render(<ModalSelectorTrigger label="Account" value="Checking" />);
+    const { container } = render(<ModalSelectorTrigger label="Account" value="Checking" />);
     expect(screen.getByText('Account')).toBeInTheDocument();
     expect(screen.getByText('Checking')).toBeInTheDocument();
+    expect(container.querySelectorAll('svg')).toHaveLength(1);
+    expect(screen.getByText('Checking')).not.toHaveClass('truncate');
   });
 
   it('renders muted placeholder value', () => {

@@ -22,4 +22,27 @@ describe('ModalTextField', () => {
     await user.type(input, 'hello');
     expect(input).toHaveValue('hello');
   });
+
+  it('keeps numeric inputs as decimal text in the leftover space beside the label', () => {
+    function NumberForm() {
+      const form = useForm({ defaultValues: { shares: '10' } });
+      return (
+        <form>
+          <ModalTextField
+            control={form.control}
+            name="shares"
+            label="Quote acquisite"
+            type="number"
+          />
+        </form>
+      );
+    }
+
+    render(<NumberForm />);
+    const input = screen.getByLabelText('Quote acquisite');
+    expect(input).toHaveAttribute('inputMode', 'decimal');
+    expect(input).not.toHaveAttribute('type', 'number');
+    expect(input).toHaveClass('w-0', 'flex-1', 'text-right');
+    expect(screen.getByText('Quote acquisite')).toHaveClass('max-w-[70%]');
+  });
 });

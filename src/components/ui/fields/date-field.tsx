@@ -8,11 +8,9 @@ import { useState, useMemo } from 'react';
 import { format, isValid, isSameDay, startOfDay } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { useTranslations } from 'next-intl';
-import { Calendar as CalendarIcon } from 'lucide-react';
 import { MobileCalendarDrawer } from '../mobile-calendar-drawer';
 import { ModalSelectorTrigger } from '@/components/form/modal-fields/modal-selector-trigger';
 import { ModalFieldError } from '@/components/form/modal-fields/modal-field-error';
-import { formModalStyles as s } from '@/components/form/form-modal-styles';
 
 export interface DateFieldProps {
   value: string;
@@ -49,7 +47,6 @@ export function DateField({ value, onChange, error, label }: Readonly<DateFieldP
         label={resolvedLabel}
         value={displayText || t('placeholder')}
         valueMuted={!displayText}
-        icon={<CalendarIcon className={s.selectorIcon} aria-hidden />}
         onClick={openCalendar}
       />
       <MobileCalendarDrawer

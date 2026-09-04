@@ -26,6 +26,7 @@ export function TransactionsLedger(props: TransactionsLedgerProps) {
   const locale = useLocale();
   const tChips = useTranslations('Transactions.Filters.FilterChips');
   const tLoadMore = useTranslations('Transactions.LoadMore');
+  const tDayList = useTranslations('Transactions.DayList');
   const tTable = useTranslations('Transactions.Table');
   const tUsers = useTranslations('UserSelector');
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -201,12 +202,12 @@ export function TransactionsLedger(props: TransactionsLedgerProps) {
         </div>
 
         {props.transactions.length === 0 && !props.isNavigatingFilters ? (
-          <div className={stitchTransactions.emptyState} role="status">
+          <div className={cn(stitchTransactions.emptyState, 'mt-3')} role="status">
             <p className={stitchTransactions.emptyTitle}>{props.emptyTitle}</p>
             <p className={stitchTransactions.emptyDescription}>{props.emptyDescription}</p>
           </div>
         ) : (
-          <div className={cn('flex flex-col gap-4', props.isNavigatingFilters && 'opacity-50')}>
+          <div className={cn('mt-3 flex flex-col gap-4', props.isNavigatingFilters && 'opacity-50')}>
             {dayGroups.map((group) => (
               <section
                 key={group.isoDate}
@@ -214,18 +215,18 @@ export function TransactionsLedger(props: TransactionsLedgerProps) {
                   if (node) dayEls.current.set(group.isoDate, node);
                   else dayEls.current.delete(group.isoDate);
                 }}
-                className="flex flex-col gap-2"
+                className="flex flex-col"
               >
-                <div className="flex items-baseline justify-between gap-3 px-1">
+                <div className={stitchTransactions.dayHeaderRow}>
                   <h3 className={stitchTransactions.dayHeaderTitle}>{group.formattedDate}</h3>
-                  <p
-                    className={cn(
-                      'text-xs font-semibold tabular-nums',
-                      group.net >= 0 ? stitchHome.amountIncome : stitchHome.amountExpense
-                    )}
-                  >
-                    {group.net >= 0 ? '+' : '−'}
-                    {formatCurrency(Math.abs(group.net))}
+                  <p className={stitchTransactions.dayHeaderTotalRow} data-testid="day-group-total">
+                    <span className={stitchTransactions.dayHeaderTotalLabel}>
+                      {tDayList('totalLabel')}
+                    </span>
+                    <span className={stitchTransactions.dayHeaderTotalValue}>
+                      {group.net >= 0 ? '+' : '−'}
+                      {formatCurrency(Math.abs(group.net))}
+                    </span>
                   </p>
                 </div>
                 <ul className={stitchHome.plainList}>

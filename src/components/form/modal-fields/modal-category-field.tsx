@@ -30,7 +30,7 @@ export function ModalCategoryField<T extends FieldValues>({
   const handleValueChange = field.onChange;
 
   return (
-    <div className="space-y-1">
+    <div>
       <CategorySelect
         value={field.value ?? ''}
         onValueChange={handleValueChange}

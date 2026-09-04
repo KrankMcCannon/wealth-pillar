@@ -3,7 +3,6 @@
 import { useEffect, useRef } from 'react';
 import type { UseFormReturn } from 'react-hook-form';
 import { useTranslations } from 'next-intl';
-import { Landmark } from 'lucide-react';
 import type { User, AccountLiquidity, AccountType } from '@/lib/types';
 import { defaultLiquidityForType } from '@/lib/utils/account-classification';
 import {
@@ -81,7 +80,6 @@ export function AccountFormFields({
         options={[...accountTypes]}
         placeholder={t('fields.type.placeholder')}
         disabled={isSubmitting}
-        leadingIcon={<Landmark className="h-5 w-5 text-primary" aria-hidden />}
       />
 
       <ModalSelectField

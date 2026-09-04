@@ -47,8 +47,9 @@ export function ConfirmationDialog({
       onOpenChange={(open) => !open && onCancel()}
       title={title}
       {...(description !== undefined ? { description } : {})}
-      showCloseButton={!isLoading}
+      showCloseButton={false}
       disableOutsideClose={isLoading}
+      presentation="alert"
     >
       <ModalBody>
         {children}

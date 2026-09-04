@@ -30,6 +30,7 @@ export function MobileCalendarDrawer({
       title={t('drawerTitle')}
       nested
       repositionInputs
+      className="min-h-0 overflow-hidden"
     >
       <CalendarPanel value={value} onChange={onChange} onClose={onClose} />
     </ModalWrapper>

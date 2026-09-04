@@ -1,7 +1,6 @@
 'use client';
 
 import { useController, type Control, type FieldPath, type FieldValues } from 'react-hook-form';
-import { Input } from '@/components/ui/input';
 import { formModalStyles as s } from '@/components/form/form-modal-styles';
 import { ModalFieldError } from './modal-field-error';
 
@@ -31,19 +30,20 @@ export function ModalTextField<T extends FieldValues>({
     fieldState: { error },
   } = useController({ control, name });
   const fieldId = String(name);
+  const isNumeric = type === 'number';
 
   return (
-    <div className="space-y-1">
-      {hint ? <p className="px-1 text-xs text-modal-fg-muted">{hint}</p> : null}
+    <div>
       <div className={s.field.textShell}>
         {label ? (
           <label htmlFor={fieldId} className={s.field.textLabel}>
             {label}
           </label>
         ) : null}
-        <Input
+        <input
           id={fieldId}
-          type={type}
+          type={isNumeric ? 'text' : type}
+          inputMode={isNumeric ? 'decimal' : undefined}
           placeholder={placeholder}
           disabled={disabled}
           autoComplete={autoComplete}
@@ -53,6 +53,7 @@ export function ModalTextField<T extends FieldValues>({
           value={field.value ?? ''}
         />
       </div>
+      {hint ? <p className="px-4 pb-2 text-xs text-muted-foreground">{hint}</p> : null}
       {error?.message ? <ModalFieldError message={error.message} /> : null}
     </div>
   );

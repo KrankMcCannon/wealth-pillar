@@ -1112,8 +1112,7 @@
         },
         "dueDay": {
           "label": "Giorno addebito",
-          "placeholder": "1-31",
-          "helper": "Giorno del mese in cui viene registrata l'operazione (1 = primo giorno, 31 = ultimo giorno possibile)."
+          "placeholder": "1-31"
         },
         "startDate": {
           "label": "Data inizio"
@@ -1318,25 +1317,25 @@
       },
       "fields": {
         "name": {
-          "label": "Nome Account",
+          "label": "Nome",
           "placeholder": "Es. Conto Principale"
         },
         "type": {
-          "label": "Tipo Account",
+          "label": "Tipo",
           "placeholder": "Seleziona tipo"
         },
         "liquidity": {
-          "label": "Ruolo liquidità",
-          "placeholder": "Seleziona ruolo",
-          "spendable": "Spendibile (uso quotidiano)",
-          "reserve": "Riserva (risparmi)"
+          "label": "Liquidità",
+          "placeholder": "Seleziona liquidità",
+          "spendable": "Spendibile",
+          "reserve": "Riserva"
         },
         "owner": {
           "label": "Proprietario",
           "placeholder": "Seleziona proprietario",
           "memberHelper": "I membri possono creare e modificare solo i propri dati"
         },
-        "isDefault": "Imposta come account predefinito per questo utente"
+        "isDefault": "Predefinito"
       },
       "buttons": {
         "create": "Crea",
@@ -1550,7 +1549,9 @@
           "placeholder": "es. Spese mensili"
         },
         "categories": {
-          "label": "Seleziona categorie",
+          "label": "Categorie",
+          "placeholder": "Seleziona categorie",
+          "selectedCount": "{count} selezionate",
           "searchPlaceholder": "Cerca categorie…",
           "selectAll": "Seleziona tutto",
           "clear": "Pulisci",
@@ -1882,7 +1883,8 @@
       "empty": "Nessuna categoria trovata"
     },
     "MultiUser": {
-      "currentUser": "(Tu)"
+      "currentUser": "(Tu)",
+      "placeholder": "Seleziona utenti"
     },
     "Fields": {
       "User": {

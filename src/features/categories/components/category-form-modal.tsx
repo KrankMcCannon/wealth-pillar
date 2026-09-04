@@ -278,19 +278,16 @@ function CategoryFormModal({ isOpen, onClose, editId }: Readonly<CategoryFormMod
               confirmText: t('buttons.delete'),
               cancelText: t('buttons.cancel'),
               onDelete: handleDelete,
+              testId: 'category-form-delete',
             },
           }
         : {})}
       onSubmit={handleSubmit}
-      footer={(_, isSubmitting, { openDeleteDialog }) => (
+      footer={(_, isSubmitting) => (
         <EntityFormFooter
-          isEditMode={isEditMode}
           isSubmitting={isSubmitting}
           submitLabel={isEditMode ? t('buttons.save') : t('buttons.create')}
-          deleteLabel={t('buttons.delete')}
-          deleteTestId="category-form-delete"
-          showSubmitSpinner
-          {...(canDelete && openDeleteDialog ? { onDelete: openDeleteDialog } : {})}
+          onCancel={onClose}
         />
       )}
     >

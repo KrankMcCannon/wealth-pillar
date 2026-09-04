@@ -75,18 +75,18 @@ describe('CVA Variants', () => {
     it('should return valid classes for default variant', () => {
       const className = dayButtonVariants({ state: 'default' });
       expect(className).toContain('rounded-xl');
-      expect(className).toBeTruthy();
+      expect(className).toContain('hover:bg-muted');
     });
 
     it('should return valid classes for selected variant', () => {
       const className = dayButtonVariants({ state: 'selected' });
-      expect(className).toContain('bg-primary');
-      expect(className).toBeTruthy();
+      expect(className).toContain('bg-foreground');
+      expect(className).not.toContain('bg-primary');
     });
 
     it('should return valid classes for today variant', () => {
       const className = dayButtonVariants({ state: 'today' });
-      expect(className).toContain('ring-2');
+      expect(className).toContain('ring-1');
     });
 
     it('should return valid classes for disabled variant', () => {
@@ -108,7 +108,8 @@ describe('CVA Variants', () => {
   describe('monthNavButtonVariants', () => {
     it('should return valid classes when enabled', () => {
       const className = monthNavButtonVariants({ disabled: false });
-      expect(className).toContain('hover:bg-primary');
+      expect(className).toContain('hover:bg-muted');
+      expect(className).not.toContain('hover:bg-primary');
     });
 
     it('should return valid classes when disabled', () => {
@@ -120,12 +121,13 @@ describe('CVA Variants', () => {
   describe('weekdayLabelVariants', () => {
     it('should return valid classes for weekday', () => {
       const className = weekdayLabelVariants({ isWeekend: false });
-      expect(className).toContain('text-primary');
+      expect(className).toContain('text-muted-foreground');
+      expect(className).not.toContain('text-primary');
     });
 
     it('should return valid classes for weekend', () => {
       const className = weekdayLabelVariants({ isWeekend: true });
-      expect(className).toContain('text-primary/80');
+      expect(className).toContain('text-muted-foreground');
     });
   });
 });
