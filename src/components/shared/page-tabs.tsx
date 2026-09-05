@@ -24,8 +24,8 @@ export function PageTabs({ value, items, ariaLabel, onValueChange, className }: 
   return (
     <Tabs
       value={value}
-      onValueChange={onValueChange}
       className={cn(stitchPageTabs.wrap, 'w-full', className)}
+      {...(onValueChange ? { onValueChange } : {})}
     >
       <TabsList className={stitchPageTabs.list} aria-label={ariaLabel}>
         {items.map((item) => (
