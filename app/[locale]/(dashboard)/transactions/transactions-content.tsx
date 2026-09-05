@@ -44,9 +44,6 @@ export default function TransactionsContent({
 
   const t = useTranslations('TransactionsContent');
 
-  const showUserPicker =
-    (currentUser.role === 'admin' || currentUser.role === 'superadmin') && groupUsers.length > 1;
-
   usePageHeader({
     title: t('headerTitle'),
     showBack: true,
@@ -100,6 +97,10 @@ export default function TransactionsContent({
     <TransactionsWorkspace
       activeTab={activeTab}
       onTabChange={setActiveTab}
+      currentUser={currentUser}
+      groupUsers={groupUsers}
+      selectedUserId={selectedUserId}
+      onUserFilterChange={handleUserFilterChange}
       seriesPromise={recurringSeriesPromise}
       ledger={{
         accounts,
@@ -121,20 +122,14 @@ export default function TransactionsContent({
           : selectedUserId
             ? t('empty.forUser')
             : t('empty.noTransactionsYet'),
-        showUserPicker,
-        groupUsers,
         selectedUserId,
-        onUserFilterChange: handleUserFilterChange,
         ...(selectedBudget?.description !== undefined
           ? { budgetName: selectedBudget.description }
           : {}),
         ...(selectedBudget ? { onClearBudgetFilter: handleClearBudgetFilter } : {}),
       }}
       recurring={{
-        showUserPicker,
-        groupUsers,
         selectedUserId,
-        onUserFilterChange: handleUserFilterChange,
         onCreateRecurringSeries: () => openModal('recurring'),
         onEditRecurringSeries: handleEditRecurringSeries,
       }}

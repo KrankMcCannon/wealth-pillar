@@ -1,22 +1,21 @@
 import { stitchSurface } from '@/styles/home-design-foundation';
 
 /**
- * Shared form-modal layout tokens.
- * Chrome: adaptive dialog (prototype C). Palette: composer (prototype B).
+ * Shared form-modal layout tokens. Surfaces use semantic modal/background tokens.
  */
 export const formModalStyles = {
   drawerShell: {
     content:
       'fixed bottom-0 left-0 right-0 z-150 flex max-h-[96dvh] flex-col gap-0 overflow-hidden rounded-t-3xl border-t border-foreground/10 bg-background shadow-xl',
     alertContent:
-      'bottom-auto left-1/2 right-auto top-1/2 max-h-[90dvh] w-[min(100%-2rem,24rem)] max-w-none -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-foreground/10 bg-background shadow-[0_24px_64px_rgba(0,8,40,0.35)]',
+      'bottom-auto left-1/2 right-auto top-1/2 max-h-[90dvh] w-[min(100%-2rem,24rem)] max-w-none -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-foreground/10 bg-background shadow-xl',
     header: 'flex flex-col gap-1 border-b border-foreground/10 px-3 pt-2 pb-2 text-center',
     footer: 'mt-auto flex flex-col gap-2 p-4 pb-[max(env(safe-area-inset-bottom),0.75rem)]',
   },
   shell: {
     content: 'gap-0 bg-background px-0 pb-0',
     formContent:
-      'mx-auto h-auto max-h-[90dvh] min-h-0 w-full max-w-lg gap-0 border border-foreground/10 bg-background px-0 pb-0 shadow-[0_24px_64px_rgba(0,8,40,0.45)] md:bottom-auto md:left-1/2 md:right-auto md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-2xl',
+      'mx-auto h-auto max-h-[90dvh] min-h-0 w-full max-w-lg gap-0 border border-foreground/10 bg-background px-0 pb-0 shadow-xl md:bottom-auto md:left-1/2 md:right-auto md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-2xl',
     handle:
       'mx-auto mt-3 mb-1 h-1.5 w-12 shrink-0 rounded-full border-0 bg-muted-foreground/35 opacity-100',
     header: 'flex shrink-0 flex-col gap-1 px-3 pt-3 pb-2 text-center',
@@ -28,14 +27,16 @@ export const formModalStyles = {
     leadingButton:
       'inline-flex size-11 shrink-0 items-center justify-center rounded-full text-expense transition-colors hover:bg-expense/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-expense/40',
     loadingWrap: 'flex min-h-40 items-center justify-center bg-background py-8',
-    sectionEyebrow: 'text-xs font-semibold uppercase tracking-wider text-muted-foreground',
+    sectionEyebrow: 'text-xs font-semibold uppercase tracking-wide text-muted-foreground',
   },
   field: {
-    textShell: 'flex min-h-12 items-center justify-between gap-3 px-4 py-2',
+    textShell: 'flex min-h-12 items-center justify-between gap-3 px-3 py-2.5',
     textLabel:
-      'mb-0 min-w-0 max-w-[70%] shrink-0 text-[15px] font-normal leading-snug text-muted-foreground',
+      'mb-0 min-w-0 max-w-[70%] shrink-0 text-base font-medium leading-snug text-foreground',
     textInput:
-      'h-auto w-0 min-w-0 flex-1 border-0 bg-transparent p-0 text-right text-[15px] font-medium tabular-nums text-foreground shadow-none placeholder:text-foreground/35 focus-visible:border-0 focus-visible:ring-0 dark:bg-transparent',
+      'h-auto w-0 min-w-0 flex-1 border-0 bg-transparent p-0 text-right text-base font-medium tabular-nums text-foreground shadow-none outline-none placeholder:text-foreground/35 focus:outline-none focus:ring-0 focus-visible:border-0 focus-visible:ring-0 dark:bg-transparent',
+    textInputPlain:
+      'h-auto w-full min-w-0 flex-1 border-0 bg-transparent p-0 text-left text-base font-medium text-foreground shadow-none outline-none placeholder:text-foreground/35 focus:outline-none focus:ring-0 focus-visible:border-0 focus-visible:ring-0 dark:bg-transparent',
   },
   footer: {
     actionsStack: 'flex w-full flex-col gap-2',
@@ -63,10 +64,11 @@ export const formModalStyles = {
     'w-[8ch] max-w-full border-0 bg-transparent p-0 text-center text-5xl font-semibold tabular-nums tracking-tight text-foreground shadow-none outline-none placeholder:text-foreground/35 focus:ring-0 focus-visible:border-0 focus-visible:ring-0 dark:bg-transparent',
   fieldStack: 'divide-y divide-foreground/10',
   selectorTrigger:
-    'flex min-h-12 w-full items-center justify-between gap-3 bg-transparent px-4 py-2 text-left transition-colors hover:bg-muted/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-foreground/20',
+    'flex min-h-12 w-full items-center justify-between gap-3 bg-transparent px-4 py-2 text-left transition-colors hover:bg-muted/60 focus:outline-none focus-visible:ring-0',
   selectorLabel: 'min-w-0 max-w-[70%] shrink-0 text-[15px] leading-snug text-muted-foreground',
   selectorValue: 'min-w-0 flex-1 text-right text-[15px] font-medium leading-snug text-foreground',
-  selectorValueMuted: 'min-w-0 flex-1 text-right text-[15px] font-medium leading-snug text-foreground/40',
+  selectorValueMuted:
+    'min-w-0 flex-1 text-right text-[15px] font-medium leading-snug text-foreground/40',
   selectorChevron: 'h-4 w-4 shrink-0 text-foreground/35',
   noteShell: 'flex min-h-12 items-center justify-between gap-3 px-4 py-2',
   noteLabel: 'mb-0 shrink-0 text-[15px] font-normal text-muted-foreground',
@@ -81,53 +83,50 @@ export const formModalStyles = {
     'mt-0 shrink-0 border-t border-foreground/10 bg-background px-4 pt-2 pb-[max(env(safe-area-inset-bottom),0.75rem)]',
   primaryCta: stitchSurface.primaryCta,
   categoryShell:
-    'rounded-xl border border-transparent bg-modal-elevated/85 p-4 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]',
+    'rounded-xl border border-transparent bg-modal-elevated/85 p-4 ring-1 ring-inset ring-border/40',
   categoryToolbar: 'flex flex-col gap-3',
   categorySearchWrap: 'relative min-w-0 flex-1',
   categorySearchIcon:
     'pointer-events-none absolute left-3 top-1/2 z-[1] h-4 w-4 -translate-y-1/2 text-modal-fg-muted/65',
   categorySearchInput:
-    'h-11 w-full rounded-xl border border-modal-border/35 bg-modal-input-bg pl-10 pr-3 text-base text-modal-fg placeholder:text-modal-fg-muted/45 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)] transition-colors focus-visible:border-modal-ring/55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-modal-ring/25',
+    'h-11 w-full rounded-xl border border-modal-border/35 bg-modal-input-bg pl-10 pr-3 text-base text-modal-fg placeholder:text-modal-fg-muted/45 ring-1 ring-inset ring-border/30 transition-colors focus-visible:border-modal-border/35 focus-visible:outline-none focus-visible:ring-0',
   categoryQuickActions: 'flex shrink-0 items-center gap-2',
   categoryQuickBtn:
     'inline-flex min-h-9 flex-1 items-center justify-center rounded-xl bg-muted px-3 text-[13px] font-semibold text-foreground transition-colors hover:bg-muted/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/25 disabled:pointer-events-none disabled:opacity-35',
-  categoryPicker:
-    'flex min-h-0 flex-1 flex-col overflow-hidden max-h-[calc(90dvh-5rem)]',
-  categoryPickerToolbar:
-    'shrink-0 space-y-3 border-b border-foreground/10 bg-background px-4 py-3',
+  categoryPicker: 'flex min-h-0 flex-1 flex-col overflow-hidden max-h-[calc(90dvh-5rem)]',
+  categoryPickerToolbar: 'shrink-0 space-y-3 border-b border-foreground/10 bg-background px-4 py-3',
   categoryPickerSearchIcon:
     'pointer-events-none absolute left-3 top-1/2 z-[1] h-4 w-4 -translate-y-1/2 text-muted-foreground',
   categoryPickerSearchInput:
-    'h-11 w-full rounded-xl border border-foreground/10 bg-muted pl-10 pr-3 text-base text-foreground placeholder:text-foreground/35 shadow-none transition-colors focus-visible:border-foreground/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/20',
+    'h-11 w-full rounded-xl border border-foreground/10 bg-muted pl-10 pr-3 text-base text-foreground placeholder:text-foreground/35 shadow-none outline-none transition-colors focus-visible:border-foreground/20 focus-visible:outline-none focus-visible:ring-0',
   categoryPickerList:
     'min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[max(env(safe-area-inset-bottom),0.75rem)]',
   categoryColorDot: 'h-2.5 w-2.5 shrink-0 rounded-full',
   categoryEmpty: 'px-4 py-6 text-center text-sm text-muted-foreground',
-  selectedSection:
-    'rounded-xl border border-modal-ring/20 bg-modal-elevated/35 p-3 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]',
+  selectedSection: 'rounded-xl border border-modal-ring/20 bg-modal-elevated/35 p-3',
   selectedSectionTitle:
     'mb-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-modal-fg-muted',
   selectedPillList: 'm-0 flex list-none flex-wrap gap-2 p-0',
   selectedPill:
-    'inline-flex max-w-full min-h-[40px] min-w-0 items-center gap-2 rounded-xl border border-modal-ring/50 bg-modal-elevated/90 py-1.5 pl-3 pr-1 text-sm font-medium text-modal-fg shadow-[0_0_0_1px_rgba(107,159,255,0.18)] ring-1 ring-modal-ring/22',
+    'inline-flex max-w-full min-h-[40px] min-w-0 items-center gap-2 rounded-xl border border-modal-ring/50 bg-modal-elevated/90 py-1.5 pl-3 pr-1 text-sm font-medium text-modal-fg ring-1 ring-modal-ring/22',
   selectedPillLabel: 'min-w-0 flex-1 truncate text-left leading-snug',
   selectedPillRemove:
-    'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-modal-fg-muted transition-colors hover:bg-white/[0.12] hover:text-modal-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-modal-ring/45 disabled:pointer-events-none disabled:opacity-35',
+    'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-modal-fg-muted transition-colors hover:bg-accent hover:text-modal-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-modal-ring/45 disabled:pointer-events-none disabled:opacity-35',
   categoryChipGrid: 'flex flex-wrap gap-2',
   categoryChip:
-    'inline-flex min-h-[44px] max-w-full items-center gap-2 rounded-xl border border-white/[0.08] bg-modal-input-bg/50 px-3 py-2 text-left text-sm font-medium text-modal-fg shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)] transition-all hover:border-modal-border/40 hover:bg-modal-elevated-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-modal-ring/35 disabled:pointer-events-none disabled:opacity-45 active:scale-[0.98] motion-reduce:active:scale-100',
+    'inline-flex min-h-[44px] max-w-full items-center gap-2 rounded-xl border border-border/30 bg-modal-input-bg/50 px-3 py-2 text-left text-sm font-medium text-modal-fg ring-1 ring-inset ring-border/30 transition-all hover:border-modal-border/40 hover:bg-modal-elevated-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-modal-ring/35 disabled:pointer-events-none disabled:opacity-45 active:scale-[0.98] motion-reduce:active:scale-100',
   categoryChipSelected: 'border-modal-ring/50 bg-modal-elevated/90 ring-1 ring-modal-ring/22',
   categoryChipLabel: 'min-w-0 truncate',
   categoryChipCheck: 'h-4 w-4 shrink-0 text-modal-fg',
   select: {
     content:
-      'relative z-[10000] max-h-96 min-w-[8rem] overflow-hidden rounded-xl border border-foreground/10 bg-background p-0 text-foreground shadow-[0_12px_40px_rgba(0,8,40,0.45)] ring-1 ring-inset ring-white/8 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
+      'relative z-[10000] max-h-96 min-w-[8rem] overflow-hidden rounded-xl border border-foreground/10 bg-background p-0 text-foreground shadow-lg ring-1 ring-inset ring-border/40 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
     searchWrap: 'sticky top-0 z-10 border-b border-foreground/10 bg-background p-2',
     searchFieldWrap: 'relative',
     searchIcon:
       'pointer-events-none absolute left-2 top-1/2 z-[1] h-4 w-4 -translate-y-1/2 text-modal-fg-muted/65',
     searchInput:
-      'h-10 w-full rounded-xl border border-foreground/10 bg-muted pl-8 pr-3 text-base text-foreground placeholder:text-foreground/35 shadow-none transition-colors focus-visible:border-foreground/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/20',
+      'h-10 w-full rounded-xl border border-foreground/10 bg-muted pl-8 pr-3 text-base text-foreground placeholder:text-foreground/35 shadow-none outline-none transition-colors focus-visible:border-foreground/20 focus-visible:outline-none focus-visible:ring-0',
     optionsWrap: 'px-2 py-1',
     empty: 'py-6 text-center text-sm text-muted-foreground',
     optionRow: 'flex items-center gap-2 text-foreground',
@@ -135,7 +134,7 @@ export const formModalStyles = {
   },
   categoryDropdown: {
     content:
-      'relative z-[10000] overflow-hidden rounded-xl border border-foreground/10 bg-background text-foreground shadow-[0_12px_40px_rgba(0,8,40,0.45)] ring-1 ring-inset ring-white/8',
+      'relative z-[10000] overflow-hidden rounded-xl border border-foreground/10 bg-background text-foreground shadow-lg ring-1 ring-inset ring-border/40',
     contentAnim:
       'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95',
     searchWrap: 'border-b border-foreground/10 bg-background p-3',
@@ -167,7 +166,7 @@ export const formModalStyles = {
     row: 'flex min-h-12 cursor-pointer items-center justify-between gap-3 px-4 py-2 transition-colors hover:bg-muted/60',
     rowActive: 'bg-muted/60',
     singleOption:
-      'flex w-full cursor-pointer items-center gap-3 rounded-xl border border-modal-border/30 bg-modal-elevated/35 p-3 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)] transition-colors hover:bg-modal-elevated-hover',
+      'flex w-full cursor-pointer items-center gap-3 rounded-xl border border-modal-border/30 bg-modal-elevated/35 p-3 ring-1 ring-inset ring-border/30 transition-colors hover:bg-modal-elevated-hover',
     singleOptionActive: 'border-modal-ring/30 bg-modal-ring/12',
     userRow: 'flex min-w-0 flex-1 items-baseline gap-1.5',
     avatar:
@@ -178,23 +177,22 @@ export const formModalStyles = {
       'border-foreground/25 shadow-none data-[state=checked]:border-foreground data-[state=checked]:bg-foreground data-[state=checked]:text-background',
   },
   preference: {
-    list: 'space-y-2',
+    list: 'overflow-hidden rounded-xl border border-border/25 bg-card',
     itemBase:
-      'flex w-full items-start gap-3 rounded-xl border border-transparent bg-modal-elevated/85 px-4 py-3 text-left shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)] transition-all hover:border-modal-ring/35 hover:bg-modal-elevated-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-modal-ring/25 disabled:cursor-not-allowed disabled:opacity-50',
-    itemActive: 'border-modal-ring/45 bg-modal-elevated ring-1 ring-modal-ring/22',
-    itemIdle: 'border-transparent',
+      'flex w-full min-h-12 items-start gap-2.5 border-b border-border/25 px-3 py-2.5 text-left last:border-b-0 hover:bg-muted/40',
+    itemActive: 'bg-accent',
+    itemIdle: '',
     radioBase:
-      'mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 border-modal-border/40 bg-modal-input-bg transition-all',
-    radioActive: 'border-modal-ring/55 bg-modal-ring',
-    radioIdle: 'border-modal-border/40 bg-modal-input-bg',
-    radioIcon: 'h-3 w-3 text-modal-fg',
+      'mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full border transition-colors',
+    radioActive: 'border-primary bg-primary',
+    radioIdle: 'border-border/35 bg-background',
+    radioIcon: 'size-2.5 text-primary-foreground',
     content: 'min-w-0 flex-1',
-    titleRow: 'flex items-center gap-2',
-    title: 'text-sm font-semibold text-modal-fg',
-    titleActive: 'text-modal-fg',
-    titleIdle: 'text-modal-fg',
-    currentBadge:
-      'rounded-full bg-modal-ring/20 px-2 py-0.5 text-xs font-medium text-modal-fg-muted',
-    description: 'mt-0.5 break-words text-sm text-modal-fg-muted',
+    titleRow: 'flex flex-wrap items-center gap-2',
+    title: 'text-base font-medium text-foreground',
+    titleActive: 'text-foreground',
+    titleIdle: 'text-foreground',
+    currentBadge: 'text-sm font-medium text-muted-foreground',
+    description: 'mt-0.5 text-sm text-muted-foreground',
   },
 } as const;

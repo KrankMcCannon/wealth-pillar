@@ -10,7 +10,7 @@ import type { RecurringTransactionSeries } from '@/lib/types';
 import { stitchHome } from '@/styles/home-design-foundation';
 import { cn } from '@/lib/utils';
 
-const UPCOMING_MAX_ITEMS = 5;
+const UPCOMING_MAX_ITEMS = 3;
 
 interface HomeUpcomingSectionProps {
   series: RecurringTransactionSeries[];
@@ -34,12 +34,9 @@ export function HomeUpcomingSection({
   }, [selectedUserId, series]);
 
   return (
-    <section aria-labelledby="home-upcoming-heading" className="flex flex-col gap-1.5">
-      <div className="flex items-center justify-between gap-3">
-        <h2
-          id="home-upcoming-heading"
-          className="text-sm font-semibold tracking-tight text-foreground"
-        >
+    <section aria-labelledby="home-upcoming-heading" className={stitchHome.scanSection}>
+      <div className={stitchHome.scanSectionHeader}>
+        <h2 id="home-upcoming-heading" className={stitchHome.scanSectionTitle}>
           {t('upcomingTitle')}
         </h2>
         <Link
@@ -72,7 +69,7 @@ export function HomeUpcomingSection({
                 >
                   <Amount
                     type={item.type === 'income' ? 'income' : 'expense'}
-                    size="sm"
+                    size="md"
                     emphasis="strong"
                   >
                     {item.type === 'expense' ? -Math.abs(item.amount) : Math.abs(item.amount)}

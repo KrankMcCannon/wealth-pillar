@@ -1,6 +1,5 @@
 'use client';
 
-import { useMemo } from 'react';
 import { Link } from '@/i18n/routing';
 import { useLocale, useTranslations } from 'next-intl';
 import { Amount } from '@/components/ui/primitives/amount';
@@ -18,27 +17,15 @@ interface RecentActivitySectionProps {
 
 export function RecentActivitySection({
   transactions,
-  categories,
   onEditTransaction,
 }: RecentActivitySectionProps) {
   const t = useTranslations('HomeContent');
   const locale = useLocale();
 
-  const categoryByKey = useMemo(() => {
-    const map = new Map<string, Category>();
-    for (const category of categories) {
-      map.set(category.key, category);
-    }
-    return map;
-  }, [categories]);
-
   return (
-    <section aria-labelledby="home-recent-heading" className="flex flex-col gap-1.5">
-      <div className="flex items-center justify-between gap-3">
-        <h2
-          id="home-recent-heading"
-          className="text-sm font-semibold tracking-tight text-foreground"
-        >
+    <section aria-labelledby="home-recent-heading" className={stitchHome.scanSection}>
+      <div className={stitchHome.scanSectionHeader}>
+        <h2 id="home-recent-heading" className={stitchHome.scanSectionTitle}>
           {t('recentActivityTitle')}
         </h2>
         {transactions.length > 0 ? (
@@ -53,17 +40,15 @@ export function RecentActivitySection({
       ) : (
         <ul className={stitchHome.plainList}>
           {transactions.map((tx) => {
-            const category = categoryByKey.get(tx.category);
             const txDate = toDateTime(tx.date);
             const dateLabel = txDate?.isValid
               ? formatDateSmart(txDate.toISODate() || '', locale)
-              : null;
-            const meta = [category?.label ?? tx.category, dateLabel].filter(Boolean).join(' · ');
+              : undefined;
             return (
               <li key={tx.id}>
                 <PlainListRow
                   title={tx.description}
-                  meta={meta}
+                  {...(dateLabel ? { meta: dateLabel } : {})}
                   onClick={() => onEditTransaction(tx)}
                 >
                   <Amount
@@ -74,7 +59,7 @@ export function RecentActivitySection({
                           ? 'expense'
                           : 'neutral'
                     }
-                    size="sm"
+                    size="md"
                     emphasis="strong"
                   >
                     {tx.type === 'expense' ? -Math.abs(tx.amount) : Math.abs(tx.amount)}

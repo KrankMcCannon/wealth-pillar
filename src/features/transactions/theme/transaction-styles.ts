@@ -172,10 +172,10 @@ export const transactionTokens = {
       button: `text-primary hover:bg-primary hover:text-primary-foreground ${radiusStyles.md} ${animationStyles.classes.transition} p-2 sm:p-3 min-w-[44px] min-h-[44px] flex items-center justify-center`,
     },
     userSelector: {
-      container: `sticky top-[60px] ${zIndexStyles.classes.raised} bg-card/80 backdrop-blur-sm border-b border-primary/20 px-3 sm:px-4 py-2`,
+      container: `sticky top-[60px] ${zIndexStyles.classes.raised} bg-background border-b border-border/25 px-3 sm:px-4 py-2`,
     },
     tabNavigation: {
-      container: 'flex gap-2 border-b border-primary/20 px-3 sm:px-4 py-2',
+      container: 'flex gap-2 border-b border-border/25 px-3 sm:px-4 py-2',
       tab: `px-4 py-2 ${typographyStyles.sm} font-medium rounded-t-lg`,
       tabActive: 'text-primary border-b-2 border-primary',
       tabInactive: 'text-primary/60 hover:text-foreground',
@@ -205,7 +205,7 @@ export const transactionStyles = {
   layout: {
     controlsStack: 'px-3 pt-2 pb-3 sm:px-4 sm:pt-3 sm:pb-3',
     controlsCard:
-      'rounded-2xl border border-border/60 bg-card/95 sm:bg-card/80 sm:backdrop-blur-sm shadow-sm shadow-muted/20 space-y-3 p-2.5 sm:space-y-4 sm:p-3.5',
+      'rounded-2xl border border-border/60 bg-card shadow-sm space-y-3 p-2.5 sm:space-y-4 sm:p-3.5',
     contentStack: 'space-y-4 sm:space-y-5',
     listBlock:
       'sm:rounded-2xl sm:border sm:border-border/50 sm:bg-card sm:p-4 sm:shadow-sm sm:shadow-muted/15',
@@ -231,15 +231,14 @@ export const transactionStyles = {
     wrapper: 'w-full',
   },
   dayGroup: {
-    header:
-      'flex items-end justify-between gap-3 border-b border-foreground/10 px-1 pb-1',
-    title: 'text-sm font-semibold uppercase tracking-wide leading-none text-muted-foreground',
+    header: 'flex items-end justify-between gap-3 border-b border-foreground/10 px-1 pb-1',
+    title: 'text-base font-semibold leading-tight text-foreground',
     stats: 'text-right',
     statsTotal: 'flex items-baseline justify-end gap-1.5',
-    statsTotalLabel: 'text-sm font-medium uppercase tracking-wide leading-none text-muted-foreground',
-    statsTotalValue: 'text-sm font-medium tabular-nums leading-none text-muted-foreground',
-    statsTotalValuePositive: 'text-muted-foreground',
-    statsTotalValueNegative: 'text-muted-foreground',
+    statsTotalLabel: 'text-sm font-medium text-muted-foreground',
+    statsTotalValue: 'text-base font-semibold tabular-nums leading-none text-foreground',
+    statsTotalValuePositive: 'text-foreground',
+    statsTotalValueNegative: 'text-foreground',
     statsCount: 'mt-0.5 text-sm text-muted-foreground',
   },
   modal: {
@@ -263,18 +262,18 @@ export const transactionStyles = {
   },
   skeletons: {
     header:
-      'sticky top-0 z-20 bg-background/90 backdrop-blur-xl border-b border-primary/20 px-3 sm:px-4 py-2 sm:py-3 shadow-sm',
+      'sticky top-0 z-20 bg-background border-b border-border/25 px-3 sm:px-4 py-2 sm:py-3 shadow-sm',
     headerRow: 'flex items-center justify-between',
     headerIcon: 'w-10 h-10 bg-primary/20 rounded-xl',
     headerTitle: 'h-6 bg-primary/15 rounded w-24',
     userSelector:
-      'sticky top-[60px] z-10 bg-background/90 backdrop-blur-sm border-b border-primary/20 px-3 sm:px-4 py-2',
+      'sticky top-[60px] z-10 bg-background border-b border-border/25 px-3 sm:px-4 py-2',
     userSelectorListSpacing: 'flex items-center gap-2',
     userSelectorChip: 'shrink-0 flex items-center gap-2 px-3 py-2 rounded-2xl bg-primary/15',
     userSelectorDot: 'w-5 h-5 bg-primary/25 rounded-full',
     userSelectorText: 'w-12 h-3 bg-primary/20 rounded',
     userSelectorListStyle: { height: 44 } satisfies CSSProperties,
-    card: 'p-3 rounded-lg border border-primary/20 bg-card/85',
+    card: 'p-3 rounded-lg border border-primary/20 bg-card',
     cardRow: 'flex items-center gap-3',
     cardIcon: 'w-10 h-10 bg-primary/20 rounded-lg shrink-0',
     cardBody: 'flex-1',
@@ -289,12 +288,12 @@ export const transactionStyles = {
     dayGroupTotal: 'text-right',
     dayGroupTotalLine: 'h-4 bg-primary/20 rounded w-16 mb-1',
     dayGroupTotalSub: 'h-3 bg-primary/10 rounded w-12',
-    tabNav: 'flex gap-2 border-b border-primary/20 px-3 py-2',
+    tabNav: 'flex gap-2 border-b border-border/25 px-3 py-2',
     tabListSpacing: 'flex gap-2 w-full',
     tabPill: 'bg-primary/15 rounded-lg',
     tabPillHeight: 'h-10',
     tabPillWidth: 'w-24',
-    recurring: 'p-4 rounded-lg border border-primary/20 bg-card/85 space-y-4',
+    recurring: 'p-4 rounded-lg border border-primary/20 bg-card space-y-4',
     recurringListSpacing: 'space-y-4',
     recurringRow: 'flex items-center gap-3',
     recurringIcon: 'w-10 h-10 bg-primary/20 rounded-lg shrink-0',
@@ -313,10 +312,8 @@ export const transactionStyles = {
     },
   },
   groupedCard: {
-    variantRegular:
-      'overflow-hidden rounded-xl border border-border/25 bg-card/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]',
-    variantRecurrent:
-      'overflow-hidden rounded-xl border border-border/25 bg-muted/60 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]',
+    variantRegular: 'overflow-hidden rounded-xl border border-border/25 bg-card',
+    variantRecurrent: 'overflow-hidden rounded-xl border border-border/25 bg-muted/60',
     headerRegular: 'border-b border-border/25 px-3 py-2',
     headerRecurrent: 'border-b border-border/25 bg-muted/40 px-3 py-2',
     headerContent: 'flex items-center justify-between',
@@ -346,15 +343,15 @@ export const transactionStyles = {
     searchIconActive: 'text-primary',
     searchIconInactive: 'text-muted-foreground',
     searchInput:
-      'min-h-11 w-full rounded-2xl border border-border/35 bg-muted/85 py-3 pl-12 pr-10 text-sm font-medium text-foreground shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)] placeholder:text-muted-foreground/55 transition-colors focus-visible:border-border/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/25 motion-reduce:transition-none',
+      'min-h-11 w-full rounded-2xl border border-border/35 bg-muted/85 py-3 pl-12 pr-10 text-sm font-medium text-foreground ring-1 ring-inset ring-border/40 placeholder:text-muted-foreground/55 transition-colors outline-none focus-visible:border-border/45 focus-visible:outline-none focus-visible:ring-0 motion-reduce:transition-none',
     quickPeriodRow: 'flex flex-wrap gap-1.5 sm:gap-2',
     quickPeriodPill:
       'inline-flex min-h-10 shrink-0 items-center rounded-full border px-3 py-1.5 text-xs font-semibold tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35 sm:min-h-11 sm:text-sm',
     quickPeriodPillIdle: 'border-border/35 bg-muted/80 text-muted-foreground hover:bg-accent',
     quickPeriodPillActive:
-      'border-transparent bg-accent text-foreground shadow-[inset_0_0_0_1px_rgba(143,176,255,0.28)]',
+      'border-transparent bg-accent text-foreground ring-1 ring-inset ring-primary/35',
     searchClear:
-      'absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-white/10 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35',
+      'absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35',
     searchClearIcon: 'h-4 w-4 text-foreground',
     chipsRow: 'flex items-center gap-2 overflow-x-auto pb-0.5 pl-0.5 pr-1 scrollbar-hide sm:pl-0',
     advancedControlsRow:
@@ -372,13 +369,13 @@ export const transactionStyles = {
     chip: {
       wrapper: 'relative inline-flex',
       buttonActive:
-        'inline-flex min-h-11 items-center gap-2 rounded-full bg-accent py-2 pl-3 pr-8 text-sm font-medium whitespace-nowrap text-foreground shadow-[inset_0_0_0_1px_rgba(143,176,255,0.28)] transition-all duration-200 select-none hover:bg-accent/95 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100',
+        'inline-flex min-h-11 items-center gap-2 rounded-full bg-accent py-2 pl-3 pr-8 text-sm font-medium whitespace-nowrap text-foreground ring-1 ring-inset ring-primary/35 transition-all duration-200 select-none hover:bg-accent/95 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100',
       clearButton:
-        'absolute right-1 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 transition-colors hover:bg-white/18 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40',
+        'absolute right-1 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full bg-accent/80 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40',
       clearIcon: 'h-3 w-3 text-foreground',
       buttonBase:
         'inline-flex min-h-10 items-center gap-1.5 rounded-full border border-border/35 bg-muted/80 px-3 py-2 text-sm font-medium whitespace-nowrap transition-all duration-200 select-none hover:bg-accent active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 sm:min-h-11',
-      buttonOpen: 'bg-accent text-foreground shadow-[inset_0_0_0_1px_rgba(143,176,255,0.28)]',
+      buttonOpen: 'bg-accent text-foreground ring-1 ring-inset ring-primary/35',
       buttonIdle: 'text-muted-foreground',
       chevron: 'h-3.5 w-3.5 transition-transform duration-200',
       chevronOpen: 'rotate-180',
@@ -396,7 +393,7 @@ export const transactionStyles = {
     typeButton:
       'flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold transition-all duration-200 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100',
     typeButtonActive:
-      'border-transparent bg-accent text-foreground shadow-[inset_0_0_0_1px_rgba(143,176,255,0.28)]',
+      'border-transparent bg-accent text-foreground ring-1 ring-inset ring-primary/35',
     typeButtonIdle: 'border-border/35 bg-muted/80 text-muted-foreground hover:bg-accent',
     typeCheck: 'h-4 w-4',
     dateSection: 'space-y-4',
@@ -404,7 +401,7 @@ export const transactionStyles = {
     dateButton:
       'flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold transition-all duration-200 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100',
     dateButtonActive:
-      'border-transparent bg-accent text-foreground shadow-[inset_0_0_0_1px_rgba(143,176,255,0.28)]',
+      'border-transparent bg-accent text-foreground ring-1 ring-inset ring-primary/35',
     dateButtonIdle: 'border-border/35 bg-muted/80 text-muted-foreground hover:bg-accent',
     dateCustom: 'space-y-3 border-t border-border/25 pt-2',
     dateTitle: 'text-sm font-medium text-foreground',
@@ -421,7 +418,7 @@ export const transactionStyles = {
     categoryButton:
       'flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition-all duration-200 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100',
     categoryButtonActive:
-      'border-transparent bg-accent text-foreground shadow-[inset_0_0_0_1px_rgba(143,176,255,0.28)]',
+      'border-transparent bg-accent text-foreground ring-1 ring-inset ring-primary/35',
     categoryButtonIdle: 'border-border/35 bg-muted/80 text-muted-foreground hover:bg-accent',
     categoryLabel: 'truncate',
     categoryLabelLeft: 'flex-1 truncate text-left',
@@ -470,7 +467,7 @@ export const transactionStyles = {
       groupTotal: 'text-right',
       groupTotalLine: 'h-4 w-16 rounded animate-pulse bg-muted/60',
       groupTotalSub: 'mt-1 h-3 w-20 rounded animate-pulse bg-muted/50',
-      card: 'space-y-3 rounded-xl border border-border/25 bg-card/90 p-3',
+      card: 'space-y-3 rounded-xl border border-border/25 bg-card p-3',
       row: 'flex items-center gap-3',
       rowIcon: 'h-10 w-10 shrink-0 rounded-xl animate-pulse bg-muted/60',
       rowBody: 'flex-1 space-y-2',

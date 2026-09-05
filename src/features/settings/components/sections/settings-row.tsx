@@ -15,6 +15,9 @@ export interface SettingsRowProps {
   divider?: boolean | undefined;
   trailing?: ReactNode | undefined;
   className?: string | undefined;
+  pressed?: boolean | undefined;
+  /** Skip the circular icon well (category badges already have their own shape). */
+  bareIcon?: boolean | undefined;
 }
 
 export function SettingsRow({
@@ -27,13 +30,17 @@ export function SettingsRow({
   divider = true,
   trailing,
   className,
+  pressed,
+  bareIcon = false,
 }: Readonly<SettingsRowProps>) {
   const rowClassName = cn(s.row, divider && s.rowDivider, className);
+  const valueText = typeof value === 'string' && value.trim() ? value.trim() : undefined;
+  const ariaLabel = valueText ? `${label}, ${valueText}` : undefined;
 
   const content = (
     <>
       <div className={s.rowLeft}>
-        <div className={s.rowIconWrap}>{icon}</div>
+        {bareIcon ? icon : <div className={s.rowIconWrap}>{icon}</div>}
         <span className={s.rowLabel}>{label}</span>
       </div>
       <div className="flex shrink-0 items-center gap-2">
@@ -45,7 +52,13 @@ export function SettingsRow({
 
   if (href) {
     return (
-      <a href={href} className={rowClassName} target="_blank" rel="noopener noreferrer">
+      <a
+        href={href}
+        className={rowClassName}
+        target="_blank"
+        rel="noopener noreferrer"
+        {...(ariaLabel ? { 'aria-label': ariaLabel } : {})}
+      >
         {content}
       </a>
     );
@@ -53,7 +66,13 @@ export function SettingsRow({
 
   if (onClick) {
     return (
-      <button type="button" className={rowClassName} onClick={onClick}>
+      <button
+        type="button"
+        className={rowClassName}
+        onClick={onClick}
+        {...(ariaLabel ? { 'aria-label': ariaLabel } : {})}
+        {...(pressed !== undefined ? { 'aria-pressed': pressed } : {})}
+      >
         {content}
       </button>
     );

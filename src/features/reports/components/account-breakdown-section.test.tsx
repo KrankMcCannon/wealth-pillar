@@ -14,7 +14,7 @@ vi.mock('@/features/reports/hooks/use-format-currency', () => ({
 }));
 
 describe('AccountBreakdownSection', () => {
-  it('shows labeled period metrics, not concatenated meta, and omits transactionCount', () => {
+  it('leads with balance per type and keeps spendable/reserve as one meta line', () => {
     render(
       <AccountBreakdownSection
         totalWealth={200}
@@ -32,20 +32,17 @@ describe('AccountBreakdownSection', () => {
       />
     );
 
-    expect(screen.getByText('spendableBalance')).toBeTruthy();
+    expect(screen.getByText(/spendableBalance/)).toBeTruthy();
     expect(screen.getByText('€80')).toBeTruthy();
-    expect(screen.getByText('reserveBalance')).toBeTruthy();
+    expect(screen.getByText(/reserveBalance/)).toBeTruthy();
     expect(screen.getByText('€120')).toBeTruthy();
     expect(screen.getByRole('heading', { name: 'types.checking' })).toBeTruthy();
-    expect(screen.getByText('income')).toBeTruthy();
-    expect(screen.getByText('€40')).toBeTruthy();
-    expect(screen.getByText('expense')).toBeTruthy();
-    expect(screen.getByText('€10')).toBeTruthy();
-    expect(screen.getByText('balance')).toBeTruthy();
     expect(screen.getByText('€150')).toBeTruthy();
-    expect(screen.getByText('ofWealth')).toBeTruthy();
-    expect(screen.getByText('75%')).toBeTruthy();
-    expect(screen.getByText('+€30')).toBeTruthy();
+    expect(screen.getByText(/75%/)).toBeTruthy();
+    expect(screen.getByRole('meter')).toBeTruthy();
+    expect(screen.queryByText(/\+€30/)).toBeNull();
+    expect(screen.queryByText('income')).toBeNull();
+    expect(screen.queryByText('expense')).toBeNull();
     expect(screen.queryByText('99')).toBeNull();
   });
 });

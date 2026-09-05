@@ -1,18 +1,17 @@
 'use client';
 
-import { use, useMemo, useState, type ReactNode } from 'react';
+import { use, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { HomeDashboardMain, PageFab } from '@/components/layout';
 import { Amount } from '@/components/ui/primitives/amount';
 import { PlainListRow } from '@/components/ui/layout/plain-list-row';
 import { RecurringSeriesSkeleton } from '@/features/transactions/components/transaction-skeletons';
 import { buildRecurringView, type DecoratedRecurringSeries } from '@/lib/recurring/recurring-view';
-import { calculateMonthlyAmount } from '@/lib/recurring/recurring-calculations';
 import { formatCurrency, cn } from '@/lib/utils';
 import type { RecurringTransactionSeries } from '@/lib/types';
 import { stitchHome, stitchTransactions } from '@/styles/home-design-foundation';
-import { CompactSegments, FilterDock, PeopleChips } from './filter-dock';
-import { PageTabsBar, StickyTotal } from './sticky-total';
+import { CompactSegments, FilterDock } from './filter-dock';
+import { StickyTotal } from './sticky-total';
 import type { RecurringLedgerProps } from './transactions-workspace-props';
 
 type StatusFilter = 'all' | 'active' | 'paused';
@@ -31,7 +30,6 @@ export function RecurringLedger(props: RecurringLedgerProps) {
   const tLedger = useTranslations('TransactionsContent.Ledger');
   const tSection = useTranslations('Recurring.Section');
   const tCard = useTranslations('Recurring.SeriesCard');
-  const tUsers = useTranslations('UserSelector');
   const [status, setStatus] = useState<StatusFilter>('all');
 
   const view = useMemo(
@@ -67,12 +65,11 @@ export function RecurringLedger(props: RecurringLedgerProps) {
 
   return (
     <>
-      <PageTabsBar>{props.tabs}</PageTabsBar>
       <StickyTotal>
         <section aria-labelledby="recurring-net-label">
           <p
             id="recurring-net-label"
-            className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground"
+            className="text-xs font-semibold uppercase tracking-wide text-muted-foreground"
           >
             {tLedger('monthlyNet')}
           </p>
@@ -91,7 +88,7 @@ export function RecurringLedger(props: RecurringLedgerProps) {
         <section>
           <dl className="grid grid-cols-2 gap-3">
             <div>
-              <dt className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+              <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 {tLedger('monthlyEarn')}
               </dt>
               <dd
@@ -104,7 +101,7 @@ export function RecurringLedger(props: RecurringLedgerProps) {
               </dd>
             </div>
             <div>
-              <dt className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+              <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 {tLedger('monthlySpend')}
               </dt>
               <dd
@@ -120,19 +117,7 @@ export function RecurringLedger(props: RecurringLedgerProps) {
         </section>
 
         <FilterDock>
-          {props.showUserPicker ? (
-            <PeopleChips
-              label={tLedger('filterWho')}
-              ariaLabel={tLedger('usersAria')}
-              allLabel={tUsers('all')}
-              peopleAria={(name) => tUsers('selectUserAria', { name })}
-              groupUsers={props.groupUsers}
-              selectedUserId={props.selectedUserId}
-              onUserFilterChange={props.onUserFilterChange}
-            />
-          ) : null}
           <CompactSegments
-            label={tLedger('filterStatus')}
             ariaLabel={tLedger('statusAria')}
             selected={status}
             onSelect={setStatus}
@@ -158,14 +143,12 @@ export function RecurringLedger(props: RecurringLedgerProps) {
             <SeriesGroup
               title={tSection('groups.upcoming')}
               items={upcoming}
-              frequencyLabel={(item) => frequencyLabel(item.frequency, tCard)}
               dueLabel={(item) => dueLabel(item.daysUntilDue, tCard)}
               onEdit={props.onEditRecurringSeries}
             />
             <SeriesGroup
               title={tSection('groups.later')}
               items={rest}
-              frequencyLabel={(item) => frequencyLabel(item.frequency, tCard)}
               dueLabel={(item) => dueLabel(item.daysUntilDue, tCard)}
               onEdit={props.onEditRecurringSeries}
             />
@@ -181,27 +164,22 @@ export function RecurringLedger(props: RecurringLedgerProps) {
   );
 }
 
-export function RecurringLedgerFallback({ tabs }: { tabs: ReactNode }) {
+export function RecurringLedgerFallback() {
   return (
-    <>
-      <PageTabsBar>{tabs}</PageTabsBar>
-      <div className="px-4 pt-4">
-        <RecurringSeriesSkeleton />
-      </div>
-    </>
+    <div className="px-4 pt-4">
+      <RecurringSeriesSkeleton />
+    </div>
   );
 }
 
 function SeriesGroup({
   title,
   items,
-  frequencyLabel: frequencyOf,
   dueLabel: dueOf,
   onEdit,
 }: {
   title: string;
   items: DecoratedRecurringSeries[];
-  frequencyLabel: (item: DecoratedRecurringSeries) => string;
   dueLabel: (item: DecoratedRecurringSeries) => string;
   onEdit: (series: RecurringTransactionSeries) => void;
 }) {
@@ -213,32 +191,12 @@ function SeriesGroup({
       <ul className={stitchHome.plainList}>
         {items.map((item) => (
           <li key={item.id}>
-            <SeriesRow
-              item={item}
-              frequencyLabel={frequencyOf(item)}
-              dueLabel={dueOf(item)}
-              onClick={() => onEdit(item)}
-            />
+            <SeriesRow item={item} dueLabel={dueOf(item)} onClick={() => onEdit(item)} />
           </li>
         ))}
       </ul>
     </section>
   );
-}
-
-function frequencyLabel(frequency: string, t: ReturnType<typeof useTranslations>): string {
-  switch (frequency) {
-    case 'weekly':
-      return t('frequency.weekly');
-    case 'biweekly':
-      return t('frequency.biweekly');
-    case 'monthly':
-      return t('frequency.monthly');
-    case 'yearly':
-      return t('frequency.yearly');
-    default:
-      return frequency;
-  }
 }
 
 function dueLabel(days: number, t: ReturnType<typeof useTranslations>): string {
@@ -250,27 +208,16 @@ function dueLabel(days: number, t: ReturnType<typeof useTranslations>): string {
 
 function SeriesRow({
   item,
-  frequencyLabel: frequency,
   dueLabel: due,
   onClick,
 }: {
   item: DecoratedRecurringSeries;
-  frequencyLabel: string;
   dueLabel: string;
   onClick: () => void;
 }) {
   const t = useTranslations('Recurring.SeriesCard');
   const amount = Math.abs(Number(item.amount));
-  const monthly = calculateMonthlyAmount(item);
-  const showMonthlyHint = item.frequency !== 'monthly' && item.is_active;
-  const meta = [
-    frequency,
-    due,
-    item.is_active ? undefined : t('status.stopped'),
-    showMonthlyHint ? `${formatCurrency(Math.abs(monthly))}/m` : undefined,
-  ]
-    .filter(Boolean)
-    .join(' · ');
+  const meta = item.is_active ? due : t('status.stopped');
 
   return (
     <PlainListRow
@@ -285,7 +232,7 @@ function SeriesRow({
     >
       <Amount
         type={item.type === 'income' ? 'income' : item.type === 'expense' ? 'expense' : 'neutral'}
-        size="sm"
+        size="md"
         emphasis="strong"
       >
         {item.type === 'expense' ? -amount : amount}

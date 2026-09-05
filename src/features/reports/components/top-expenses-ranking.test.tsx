@@ -59,6 +59,24 @@ describe('TopExpensesRanking', () => {
     expect(screen.getByText('30% of spend')).toBeTruthy();
     expect(screen.getByText('20% of spend')).toBeTruthy();
     expect(screen.queryByText('100% of spend')).toBeNull();
+    expect(screen.getByRole('progressbar', { name: /Food/ })).toHaveAttribute('aria-valuenow', '40');
+  });
+
+  it('folds named rows after five into Other', () => {
+    const items: TopExpenseRow[] = Array.from({ length: 8 }, (_, i) => ({
+      id: `id-${i}`,
+      key: `k${i}`,
+      name: `Cat ${i}`,
+      total: 10,
+      color: '#000000',
+    }));
+    render(<TopExpensesRanking items={items} periodExpenses={100} />);
+
+    expect(screen.getByText('Cat 0')).toBeTruthy();
+    expect(screen.getByText('Cat 4')).toBeTruthy();
+    expect(screen.queryByText('Cat 5')).toBeNull();
+    const other = screen.getByTestId('reports-other-remainder');
+    expect(other.textContent).toContain('€50');
   });
 
   it('does not throw or show Other when period expenses are zero', () => {

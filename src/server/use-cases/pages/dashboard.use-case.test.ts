@@ -91,8 +91,8 @@ describe('getDashboardPageData', () => {
     expect(result.recentActivityByScope).toEqual({ all: [], byUserId: { u1: [] } });
   });
 
-  it('slices recent activity to 5 per scope from the year window', async () => {
-    const txs = Array.from({ length: 6 }, (_, i) => ({
+  it('slices recent activity to 3 per scope from the year window', async () => {
+    const txs = Array.from({ length: 4 }, (_, i) => ({
       id: `tx${i}`,
       user_id: 'u1',
       group_id: 'g1',
@@ -107,14 +107,14 @@ describe('getDashboardPageData', () => {
     }));
     vi.mocked(getTransactionsByGroupUseCase).mockResolvedValue({
       data: txs,
-      total: 6,
+      total: 4,
       hasMore: false,
     });
 
     const result = await getDashboardPageData('g1', groupUsers[0]);
 
-    expect(result.recentActivityByScope.all).toHaveLength(5);
-    expect(result.recentActivityByScope.byUserId.u1).toHaveLength(5);
+    expect(result.recentActivityByScope.all).toHaveLength(3);
+    expect(result.recentActivityByScope.byUserId.u1).toHaveLength(3);
     expect(result.recentActivityByScope.all[0]?.id).toBe('tx0');
   });
 });

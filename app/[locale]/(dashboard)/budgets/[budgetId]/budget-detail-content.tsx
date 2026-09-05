@@ -12,13 +12,12 @@ import { BudgetProgressBar } from '@/features/budgets/components/budget-progress
 import { TransactionDayList } from '@/features/transactions';
 import { useTransactionEditStore } from '@/features/transactions/stores/transaction-edit-store';
 import { useModalState } from '@/lib/navigation/url-state';
-import { useIdNameMap } from '@/hooks';
-import { formatDateShort, toDateTime } from '@/lib/utils/date-utils';
+import { toDateTime } from '@/lib/utils/date-utils';
 import { formatCurrencyLocale } from '@/lib/utils/currency-formatter';
 import type { User } from '@/lib/types';
 import type { BudgetDetailPageData } from '@/server/use-cases/pages/budget-detail-page.types';
 import { formatGroupedTransactionsForClient } from '@/features/budgets/utils/format-budget-detail-transactions';
-import { stitchBudgets } from '@/styles/home-design-foundation';
+import { stitchBudgets, stitchHome } from '@/styles/home-design-foundation';
 import { cn } from '@/lib/utils';
 import { useRouter } from '@/i18n/routing';
 
@@ -36,7 +35,6 @@ export default function BudgetDetailContent({ pageDataPromise }: BudgetDetailCon
     periodEnd,
     categoryBreakdown,
     groupedTransactions,
-    accounts,
     categories,
   } = pageData;
 
@@ -45,17 +43,9 @@ export default function BudgetDetailContent({ pageDataPromise }: BudgetDetailCon
   const router = useRouter();
   const { openModal } = useModalState();
   const setTransactionEditSeed = useTransactionEditStore((state) => state.setSeed);
-  const accountNamesMap = useIdNameMap(accounts);
 
   const status = getBudgetCategoryStatus(progress);
   const categoryKey = progress.categories[0] ?? '';
-
-  const periodSubtitle = useMemo(() => {
-    if (!periodStart) return '';
-    const startFormatted = formatDateShort(periodStart, locale);
-    const endFormatted = periodEnd ? formatDateShort(periodEnd, locale) : t('today');
-    return `${startFormatted} - ${endFormatted}`;
-  }, [periodStart, periodEnd, locale, t]);
 
   const formattedGroups = useMemo(
     () => formatGroupedTransactionsForClient(groupedTransactions, locale),
@@ -104,54 +94,25 @@ export default function BudgetDetailContent({ pageDataPromise }: BudgetDetailCon
                 </span>
                 <h2 className={stitchBudgets.categoryTitle}>{budget.description}</h2>
               </div>
-              {status === 'onTrack' ? (
-                <span className={stitchBudgets.badgeOnTrack}>{t('badgeOnTrack')}</span>
-              ) : null}
-              {status === 'fixed' ? (
-                <span className={stitchBudgets.badgeFixed}>{t('badgeFixed')}</span>
-              ) : null}
-              {status === 'over' ? (
-                <span className={stitchBudgets.badgeOver}>{t('badgeOver')}</span>
-              ) : null}
+              <p
+                className={cn(stitchBudgets.spentStrong, progress.remaining < 0 && 'text-expense')}
+              >
+                {formatCurrencyLocale(progress.remaining, locale)}
+              </p>
             </div>
-
-            <div className={stitchBudgets.heroMetricsRow}>
-              <div>
-                <p className={stitchBudgets.heroMetricLabel}>{t('metrics.remaining')}</p>
-                <p
-                  className={cn(
-                    stitchBudgets.heroMetricValue,
-                    progress.remaining < 0 && 'text-expense'
-                  )}
-                >
-                  {formatCurrencyLocale(progress.remaining, locale)}
-                </p>
-              </div>
-              <div>
-                <p className={stitchBudgets.heroMetricLabel}>{t('metrics.spent')}</p>
-                <p className={stitchBudgets.heroMetricValue}>
-                  {formatCurrencyLocale(progress.spent, locale)}
-                </p>
-              </div>
-              <div>
-                <p className={stitchBudgets.heroMetricLabel}>{t('metrics.limit')}</p>
-                <p className={stitchBudgets.heroMetricValue}>
-                  {formatCurrencyLocale(progress.amount, locale)}
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-4">
-              <BudgetProgressBar
-                percent={progress.percentage}
-                label={t('progressAria', { percent: Math.round(progress.percentage) })}
-                fillClassName={cn(
-                  status === 'over' && stitchBudgets.progressFillOver,
-                  status === 'fixed' && stitchBudgets.progressFillFixed,
-                  status === 'onTrack' && stitchBudgets.progressFillPrimary
-                )}
-              />
-            </div>
+            <p className="text-sm tabular-nums text-muted-foreground">
+              {formatCurrencyLocale(progress.spent, locale)} {t('metrics.spent')} ·{' '}
+              {formatCurrencyLocale(progress.amount, locale)} {t('metrics.limit')}
+            </p>
+            <BudgetProgressBar
+              percent={progress.percentage}
+              label={t('progressAria', { percent: Math.round(progress.percentage) })}
+              fillClassName={cn(
+                status === 'over' && stitchBudgets.progressFillOver,
+                status === 'fixed' && stitchBudgets.progressFillFixed,
+                status === 'onTrack' && stitchBudgets.progressFillPrimary
+              )}
+            />
           </section>
 
           {categoryBreakdown.length > 0 ? (
@@ -159,13 +120,10 @@ export default function BudgetDetailContent({ pageDataPromise }: BudgetDetailCon
               <h2 id="budget-categories-heading" className={stitchBudgets.heroEyebrow}>
                 {t('categoriesTitle')}
               </h2>
-              <ul className={`${stitchBudgets.listStack} mt-3`}>
+              <ul className={`${stitchHome.plainList} mt-2`}>
                 {categoryBreakdown.map((item) => (
-                  <li
-                    key={item.key}
-                    className="flex items-center justify-between gap-3 rounded-xl border border-border/25 bg-card/90 px-4 py-3"
-                  >
-                    <div className="flex min-w-0 items-center gap-2.5">
+                  <li key={item.key} className={stitchHome.plainRow}>
+                    <span className="flex min-w-0 items-center gap-2">
                       <span className={stitchBudgets.iconWrapOnTrack} aria-hidden>
                         <BudgetCategoryLucideIcon
                           categoryIdentifier={item.key}
@@ -173,11 +131,9 @@ export default function BudgetDetailContent({ pageDataPromise }: BudgetDetailCon
                           className="h-5 w-5 shrink-0"
                         />
                       </span>
-                      <span className="truncate text-sm font-medium text-foreground">
-                        {item.label}
-                      </span>
-                    </div>
-                    <span className="shrink-0 text-sm font-semibold tabular-nums text-foreground">
+                      <span className={stitchHome.plainRowTitle}>{item.label}</span>
+                    </span>
+                    <span className="shrink-0 text-base font-semibold tabular-nums text-foreground">
                       {formatCurrencyLocale(item.spent, locale)}
                     </span>
                   </li>
@@ -188,13 +144,10 @@ export default function BudgetDetailContent({ pageDataPromise }: BudgetDetailCon
 
           <TransactionDayList
             groupedTransactions={formattedGroups}
-            accountNames={accountNamesMap}
             categories={categories}
             sectionTitle={t('transactions.sectionTitle')}
-            sectionSubtitle={periodSubtitle}
             emptyTitle={t('transactions.emptyTitle')}
             emptyDescription={t('transactions.emptyDescription')}
-            expensesOnly
             showViewAll
             viewAllLabel={t('transactions.viewAll')}
             onViewAll={() => {

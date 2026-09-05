@@ -9,6 +9,5 @@ export {
   type TopExpenseRow,
   AccountBreakdownSection,
   BudgetPeriodSection,
-  BudgetPeriodCard,
   derivePeriodOnTrack,
 } from './components';

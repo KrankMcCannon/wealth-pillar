@@ -1,5 +1,6 @@
 import { Skeleton } from '@/components/ui/skeleton';
 import { SkeletonList } from '@/components/ui/primitives';
+import { PageTabsSkeleton } from '@/components/shared/page-tabs';
 
 export const TransactionHeaderSkeleton = () => (
   <header className="border-b border-border px-4 py-3">
@@ -12,14 +13,14 @@ export const TransactionHeaderSkeleton = () => (
 );
 
 export const UserSelectorSkeleton = () => (
-  <section className="px-4 py-3">
+  <section className="px-4 py-1.5">
     <SkeletonList
       count={3}
-      spacing="flex gap-2 overflow-x-auto"
+      spacing="flex gap-1.5 overflow-x-auto"
       renderItem={() => (
-        <div className="flex shrink-0 items-center gap-2 rounded-full border border-border bg-card px-3 py-2">
-          <Skeleton className="size-2 rounded-full" />
-          <Skeleton className="h-3 w-16" />
+        <div className="flex h-8 shrink-0 items-center gap-1.5 rounded-full border border-border bg-card px-2 py-1">
+          <Skeleton className="size-5 rounded-full" />
+          <Skeleton className="h-3 w-12" />
         </div>
       )}
     />
@@ -58,23 +59,15 @@ export const TransactionListSkeleton = () => (
   />
 );
 
-export const TabNavigationSkeleton = () => (
-  <div className="px-4 py-2">
-    <SkeletonList
-      count={2}
-      spacing="grid h-12 grid-cols-2 gap-1 rounded-full border border-border/35 bg-card/95 p-1"
-      renderItem={() => <Skeleton className="h-9 w-full rounded-full" />}
-    />
-  </div>
-);
+export const TabNavigationSkeleton = () => <PageTabsSkeleton className="py-2" />;
 
 export const TransactionsToolbarSkeleton = () => (
   <div className="flex flex-col gap-2 px-4">
     <Skeleton className="h-11 w-full rounded-2xl" />
-    <div className="flex gap-2">
-      <Skeleton className="h-9 w-16 rounded-full" />
-      <Skeleton className="h-9 w-20 rounded-full" />
-      <Skeleton className="h-9 w-24 rounded-full" />
+    <div className="flex gap-1.5">
+      <Skeleton className="h-7 w-14 rounded-full" />
+      <Skeleton className="h-7 w-16 rounded-full" />
+      <Skeleton className="h-7 w-20 rounded-full" />
     </div>
   </div>
 );

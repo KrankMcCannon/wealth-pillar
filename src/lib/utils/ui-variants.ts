@@ -276,18 +276,18 @@ export const progressFillVariants = cva(
  * </Card>
  * ```
  */
-export const transactionCardVariants = cva('py-0 backdrop-blur-sm transition-all duration-300', {
+export const transactionCardVariants = cva('py-0 transition-all duration-300', {
   variants: {
     context: {
-      regular: 'bg-card border border-primary/20 shadow-lg hover:shadow-xl',
-      recurring: 'bg-card/90 border border-border/25',
+      regular: 'bg-card border border-border/20 shadow-lg hover:shadow-xl',
+      recurring: 'bg-card border border-border/25',
       due: '', // Determined by urgency
     },
     urgency: {
       none: '',
-      low: 'bg-card/90 border border-border/25 hover:shadow-md',
-      medium: 'bg-card/90 border border-warning/30 hover:shadow-md',
-      high: 'bg-card/90 border border-expense/35 hover:shadow-md',
+      low: 'bg-card border border-border/25 hover:shadow-md',
+      medium: 'bg-card border border-warning/30 hover:shadow-md',
+      high: 'bg-card border border-expense/35 hover:shadow-md',
     },
   },
   compoundVariants: [

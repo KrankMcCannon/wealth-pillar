@@ -13,7 +13,7 @@ interface HomeSectionCardProps {
 }
 
 /**
- * Contenitore sezione Home (card blu Stitch): bordo, fondo, ombra coerenti.
+ * Contenitore sezione Home: carta Daylight (bordo, fondo, ombra).
  */
 export function HomeSectionCard({
   children,

@@ -2,9 +2,8 @@
 
 import { useLocale } from 'next-intl';
 import type { UserBudgetSummary } from '@/lib/types';
-import { stitchBudgets, stitchStatMini } from '@/styles/home-design-foundation';
+import { stitchBudgets } from '@/styles/home-design-foundation';
 import { formatCurrencyLocale } from '@/lib/utils/currency-formatter';
-import { cn } from '@/lib/utils';
 
 export interface BudgetsSummaryHeroProps {
   readonly summary: UserBudgetSummary;
@@ -45,14 +44,12 @@ export function BudgetsSummaryHero({ summary, labels }: Readonly<BudgetsSummaryH
         </div>
 
         <div className={stitchBudgets.heroStatMiniRow}>
-          <div className={cn(stitchStatMini.item, stitchStatMini.itemDestructive)}>
-            <p className={stitchStatMini.label}>{labels.totalSpent}</p>
-            <p className={stitchStatMini.valueDestructive}>{spentFormatted}</p>
-          </div>
-          <div className={cn(stitchStatMini.item, stitchStatMini.itemPrimary)}>
-            <p className={stitchStatMini.label}>{labels.totalAssigned}</p>
-            <p className={stitchStatMini.valuePrimary}>{budgetFormatted}</p>
-          </div>
+          <p className="text-sm text-muted-foreground">
+            <span className="text-expense">{spentFormatted}</span>
+            {` ${labels.totalSpent} · `}
+            {budgetFormatted}
+            {` ${labels.totalAssigned}`}
+          </p>
         </div>
       </div>
       <div className={stitchBudgets.heroGradientBar} aria-hidden />

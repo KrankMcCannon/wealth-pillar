@@ -6,10 +6,6 @@ vi.mock('next-intl', () => ({
   useTranslations: () => (key: string) => key,
 }));
 
-vi.mock('@/providers/user-provider', () => ({
-  useCurrentUser: () => ({ id: 'u1', name: 'Alex Mercer', role: 'member' }),
-}));
-
 vi.mock('@/components/layout/bottom-navigation', () => ({
   BottomNavigation: () => <nav aria-label="bottom-nav">Bottom Nav</nav>,
 }));

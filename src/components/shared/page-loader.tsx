@@ -6,7 +6,8 @@ import { TransactionListSkeleton } from '@/components/ui/primitives/skeletons';
 import { HomePageSectionsSkeleton } from '@/components/ui/primitives/skeletons/dashboard-skeletons';
 import { cn } from '@/lib/utils';
 import { HomeDashboardMain } from '@/components/layout';
-import { stitchTransactions, stitchTransactionPageSearch } from '@/styles/home-design-foundation';
+import { PageTabsSkeleton } from '@/components/shared/page-tabs';
+import { stitchTransactions, stitchTransactionPageSearch, stitchPageTabs } from '@/styles/home-design-foundation';
 
 const pageLoaderStyles = {
   page: 'relative flex w-full min-h-[100svh] flex-col bg-card',
@@ -42,15 +43,20 @@ function ListPageSkeleton() {
 function TransactionsPageSkeleton() {
   return (
     <div className="px-4 pt-1 pb-24" aria-busy="true">
-      <div className={stitchTransactions.tabsStickyBar}>
-        <Skeleton className={cn(stitchTransactions.tabsList, 'h-12')} />
+      <div className={cn(stitchPageTabs.stickyBar, '-mx-4')}>
+        <div className={stitchPageTabs.stickyStack}>
+          <div className={stitchPageTabs.leading}>
+            <Skeleton className="h-8 w-48 rounded-full" />
+          </div>
+          <PageTabsSkeleton />
+        </div>
       </div>
       <div className={cn(stitchTransactions.mainStack, 'mt-3')}>
         <Skeleton className={cn(stitchTransactionPageSearch.input, 'h-11')} />
         <div className={stitchTransactions.chipRow}>
-          <Skeleton className="h-9 w-16 shrink-0 rounded-full" />
-          <Skeleton className="h-9 w-20 shrink-0 rounded-full" />
-          <Skeleton className="h-9 w-24 shrink-0 rounded-full" />
+          <Skeleton className="h-7 w-14 shrink-0 rounded-full" />
+          <Skeleton className="h-7 w-16 shrink-0 rounded-full" />
+          <Skeleton className="h-7 w-20 shrink-0 rounded-full" />
         </div>
         <TransactionListSkeleton />
       </div>

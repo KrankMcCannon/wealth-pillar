@@ -5,10 +5,7 @@ import type { Transaction } from '@/lib/types';
 import type { TransactionFiltersState } from '@/server/use-cases/transactions/transaction.logic';
 
 vi.mock('next-intl', () => ({
-  useTranslations: (ns: string) => (key: string) => {
-    if (ns === 'Transactions.DayList' && key === 'totalLabel') return 'Total:';
-    return key;
-  },
+  useTranslations: () => (key: string) => key,
   useLocale: () => 'en',
 }));
 
@@ -29,10 +26,10 @@ vi.mock('@/features/transactions', () => ({
 
 vi.mock('@/components/ui/filters', () => ({
   FilterDrawer: () => null,
+  FilterChip: ({ label }: { label: string }) => <button type="button">{label}</button>,
 }));
 
 vi.mock('./sticky-total', () => ({
-  PageTabsBar: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   StickyTotal: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
@@ -59,7 +56,6 @@ describe('TransactionsLedger day totals', () => {
   it('renders the daily net as a caption, not as a row amount', () => {
     render(
       <TransactionsLedger
-        tabs={null}
         accounts={[]}
         transactions={[
           tx({ id: 'tx-1', amount: 240.91, description: 'Bollo Auto' }),
@@ -78,18 +74,15 @@ describe('TransactionsLedger day totals', () => {
         onImport={vi.fn()}
         emptyTitle="Empty"
         emptyDescription="None"
-        showUserPicker={false}
-        groupUsers={[]}
         selectedUserId={undefined}
-        onUserFilterChange={vi.fn()}
       />
     );
 
     const dayTotal = screen.getByTestId('day-group-total');
-    expect(dayTotal).toHaveTextContent('Total:');
     expect(dayTotal).toHaveTextContent('−553,19 €');
-    expect(dayTotal.querySelector('span:last-child')).toHaveClass('text-sm');
-    expect(dayTotal.querySelector('span:last-child')).toHaveClass('text-muted-foreground');
+    expect(dayTotal).not.toHaveTextContent('Total:');
+    expect(dayTotal.querySelector('span:last-child')).toHaveClass('text-base');
+    expect(dayTotal.querySelector('span:last-child')).toHaveClass('text-foreground');
 
     const header = dayTotal.parentElement;
     expect(header).not.toHaveClass('mb-1');

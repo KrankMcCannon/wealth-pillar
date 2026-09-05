@@ -80,71 +80,28 @@ export function BudgetCategoryCard({
           </span>
           <h3 className={stitchBudgets.categoryTitle}>{progress.description}</h3>
         </div>
-
-        {status === 'onTrack' ? (
-          <span className={stitchBudgets.badgeOnTrack}>{t('categoryCard.badgeOnTrack')}</span>
-        ) : null}
-        {status === 'fixed' ? (
-          <span className={stitchBudgets.badgeFixed}>{t('categoryCard.badgeFixed')}</span>
-        ) : null}
-        {status === 'over' ? (
-          <span className={stitchBudgets.badgeOver}>{t('categoryCard.badgeOver')}</span>
-        ) : null}
+        <span className={cn(stitchBudgets.spentStrong, status === 'over' && 'text-expense')}>
+          {remainingFormatted}
+        </span>
       </div>
 
-      <div className={stitchBudgets.spentRow}>
-        <div className={stitchBudgets.spentAmountRow}>
-          <div className="flex items-baseline gap-1">
-            <span className={cn(stitchBudgets.spentStrong, status === 'over' && 'text-expense')}>
-              {spentFormatted}
-            </span>
-            <span className={stitchBudgets.spentLabel}>{t('categoryCard.spentLabel')}</span>
-          </div>
-          <span className={stitchBudgets.spentOf}>
-            {t('categoryCard.of')} {limitFormatted}
-          </span>
-        </div>
+      <p className="text-sm tabular-nums text-muted-foreground">
+        {spentFormatted} {t('categoryCard.of')} {limitFormatted}
+      </p>
 
-        <BudgetProgressBar
-          percent={progress.percentage}
-          label={t('categoryCard.progressAria', {
-            name: progress.description,
-            percent: Math.round(progress.percentage),
-          })}
-          fillClassName={cn(
-            status === 'over' && stitchBudgets.progressFillOver,
-            status === 'fixed' && stitchBudgets.progressFillFixed,
-            status === 'onTrack' && stitchBudgets.progressFillPrimary
-          )}
-          limitMarkerLeftPct={status === 'over' ? limitMarkerLeftPct : null}
-        />
-
-        <div className={stitchBudgets.footerRow}>
-          <span
-            className={cn(
-              stitchBudgets.footerMuted,
-              status === 'over' && 'font-medium text-expense'
-            )}
-          >
-            {status === 'fixed'
-              ? t('categoryCard.footerPaidInFull')
-              : t('categoryCard.footerPercentUsed', { percent: Math.round(progress.percentage) })}
-          </span>
-          <span
-            className={cn(
-              status === 'over' && stitchBudgets.footerDanger,
-              status === 'fixed' && stitchBudgets.footerMuted,
-              status === 'onTrack' && stitchBudgets.footerAccent
-            )}
-          >
-            {status === 'over'
-              ? t('categoryCard.footerOver', {
-                  amount: formatCurrencyLocale(progress.remaining, locale),
-                })
-              : t('categoryCard.footerLeft', { amount: remainingFormatted })}
-          </span>
-        </div>
-      </div>
+      <BudgetProgressBar
+        percent={progress.percentage}
+        label={t('categoryCard.progressAria', {
+          name: progress.description,
+          percent: Math.round(progress.percentage),
+        })}
+        fillClassName={cn(
+          status === 'over' && stitchBudgets.progressFillOver,
+          status === 'fixed' && stitchBudgets.progressFillFixed,
+          status === 'onTrack' && stitchBudgets.progressFillPrimary
+        )}
+        limitMarkerLeftPct={status === 'over' ? limitMarkerLeftPct : null}
+      />
     </button>
   );
 }

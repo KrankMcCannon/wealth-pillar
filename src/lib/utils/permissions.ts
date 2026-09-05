@@ -171,3 +171,18 @@ export function requiresAdmin(route: string): boolean {
   const adminRoutes = ['/settings/members', '/settings/group', '/admin'];
   return adminRoutes.some((adminRoute) => route.startsWith(adminRoute));
 }
+
+const ROLE_SORT_RANK: Record<string, number> = {
+  superadmin: 0,
+  admin: 1,
+  member: 2,
+};
+
+/** Admins first, then members; name is the tie-breaker. */
+export function sortUsersByRole(users: User[]): User[] {
+  return [...users].sort((a, b) => {
+    const byRole = (ROLE_SORT_RANK[a.role ?? ''] ?? 9) - (ROLE_SORT_RANK[b.role ?? ''] ?? 9);
+    if (byRole !== 0) return byRole;
+    return (a.name ?? '').localeCompare(b.name ?? '', undefined, { sensitivity: 'base' });
+  });
+}

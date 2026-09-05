@@ -9,25 +9,18 @@ import { PlainListRow } from '@/components/ui/layout/plain-list-row';
 
 interface TransactionRowProps {
   transaction: Transaction;
-  accountNames: Record<string, string>;
   onEditTransaction?: ((transaction: Transaction) => void) | undefined;
   getCategoryLabel: (key: string) => string;
 }
 
 export const TransactionRow = memo(function TransactionRow({
   transaction,
-  accountNames,
   onEditTransaction,
   getCategoryLabel,
 }: TransactionRowProps) {
   const t = useTranslations('Transactions.Table');
   const amountLabel = formatCurrency(Math.abs(transaction.amount));
-  const meta = [
-    getCategoryLabel(transaction.category),
-    transaction.account_id ? accountNames[transaction.account_id] : undefined,
-  ]
-    .filter(Boolean)
-    .join(' · ');
+  const meta = getCategoryLabel(transaction.category);
 
   return (
     <PlainListRow
@@ -48,7 +41,7 @@ export const TransactionRow = memo(function TransactionRow({
               ? 'expense'
               : 'neutral'
         }
-        size="sm"
+        size="md"
         emphasis="strong"
       >
         {transaction.type === 'expense'

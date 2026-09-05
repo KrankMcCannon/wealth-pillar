@@ -5,10 +5,9 @@ import { useLocale, useTranslations } from 'next-intl';
 import { Search, SlidersHorizontal, Upload, X } from 'lucide-react';
 import { HomeDashboardMain, PageFab } from '@/components/layout';
 import { Button, Input, Spinner } from '@/components/ui';
-import { Amount } from '@/components/ui/primitives/amount';
-import { PlainListRow } from '@/components/ui/layout/plain-list-row';
 import { FilterDrawer } from '@/components/ui/filters';
 import { TransactionFilters } from '@/features/transactions';
+import { TransactionRow } from './transaction-row';
 import { groupByDay } from '@/features/transactions/utils/group-by-day';
 import { currentSpendable, spendableByDay } from '@/features/transactions/utils/spendable';
 import { getCategoryLabel } from '@/server/use-cases/categories/category.logic';
@@ -16,8 +15,8 @@ import { useInfiniteScrollSentinel } from '@/hooks/use-infinite-scroll-sentinel'
 import { formatCurrency, cn } from '@/lib/utils';
 import { stitchHome, stitchTransactions } from '@/styles/home-design-foundation';
 import type { TransactionTypeFilter } from '@/server/use-cases/transactions/transaction.logic';
-import { CompactSegments, FilterDock, PeopleChips } from './filter-dock';
-import { PageTabsBar, StickyTotal } from './sticky-total';
+import { CompactSegments, FilterDock } from './filter-dock';
+import { StickyTotal } from './sticky-total';
 import type { TransactionsLedgerProps } from './transactions-workspace-props';
 
 export function TransactionsLedger(props: TransactionsLedgerProps) {
@@ -26,9 +25,7 @@ export function TransactionsLedger(props: TransactionsLedgerProps) {
   const locale = useLocale();
   const tChips = useTranslations('Transactions.Filters.FilterChips');
   const tLoadMore = useTranslations('Transactions.LoadMore');
-  const tDayList = useTranslations('Transactions.DayList');
   const tTable = useTranslations('Transactions.Table');
-  const tUsers = useTranslations('UserSelector');
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   const dayGroups = useMemo(
@@ -105,12 +102,11 @@ export function TransactionsLedger(props: TransactionsLedgerProps) {
 
   return (
     <>
-      <PageTabsBar>{props.tabs}</PageTabsBar>
       <StickyTotal totalRef={totalRef}>
         <section aria-labelledby="spendable-total-label">
           <p
             id="spendable-total-label"
-            className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground"
+            className="text-xs font-semibold uppercase tracking-wide text-muted-foreground"
           >
             {caption}
           </p>
@@ -129,19 +125,7 @@ export function TransactionsLedger(props: TransactionsLedgerProps) {
 
       <HomeDashboardMain id="main-transactions" className="gap-2.5 pt-1.5">
         <FilterDock>
-          {props.showUserPicker ? (
-            <PeopleChips
-              label={tLedger('filterWho')}
-              ariaLabel={tLedger('usersAria')}
-              allLabel={tUsers('all')}
-              peopleAria={(name) => tUsers('selectUserAria', { name })}
-              groupUsers={props.groupUsers}
-              selectedUserId={props.selectedUserId}
-              onUserFilterChange={props.onUserFilterChange}
-            />
-          ) : null}
           <CompactSegments
-            label={tLedger('filterType')}
             ariaLabel={tLedger('typesAria')}
             selected={props.filters.type}
             onSelect={(type: TransactionTypeFilter) => props.setFilters({ ...props.filters, type })}
@@ -207,7 +191,9 @@ export function TransactionsLedger(props: TransactionsLedgerProps) {
             <p className={stitchTransactions.emptyDescription}>{props.emptyDescription}</p>
           </div>
         ) : (
-          <div className={cn('mt-3 flex flex-col gap-4', props.isNavigatingFilters && 'opacity-50')}>
+          <div
+            className={cn('mt-3 flex flex-col gap-4', props.isNavigatingFilters && 'opacity-50')}
+          >
             {dayGroups.map((group) => (
               <section
                 key={group.isoDate}
@@ -220,9 +206,6 @@ export function TransactionsLedger(props: TransactionsLedgerProps) {
                 <div className={stitchTransactions.dayHeaderRow}>
                   <h3 className={stitchTransactions.dayHeaderTitle}>{group.formattedDate}</h3>
                   <p className={stitchTransactions.dayHeaderTotalRow} data-testid="day-group-total">
-                    <span className={stitchTransactions.dayHeaderTotalLabel}>
-                      {tDayList('totalLabel')}
-                    </span>
                     <span className={stitchTransactions.dayHeaderTotalValue}>
                       {group.net >= 0 ? '+' : '−'}
                       {formatCurrency(Math.abs(group.net))}
@@ -232,18 +215,10 @@ export function TransactionsLedger(props: TransactionsLedgerProps) {
                 <ul className={stitchHome.plainList}>
                   {group.transactions.map((transaction) => (
                     <li key={transaction.id}>
-                      <DayRow
-                        id={transaction.id}
-                        description={transaction.description}
-                        amount={transaction.amount}
-                        type={transaction.type}
-                        categoryLabel={getCategoryLabel(props.categories, transaction.category)}
-                        accountLabel={
-                          transaction.account_id
-                            ? props.accountNames[transaction.account_id]
-                            : undefined
-                        }
-                        onClick={() => props.onEditTransaction(transaction)}
+                      <TransactionRow
+                        transaction={transaction}
+                        getCategoryLabel={(key) => getCategoryLabel(props.categories, key)}
+                        onEditTransaction={props.onEditTransaction}
                       />
                     </li>
                   ))}
@@ -307,45 +282,5 @@ export function TransactionsLedger(props: TransactionsLedgerProps) {
         testId="transactions-fab-add"
       />
     </>
-  );
-}
-
-function DayRow({
-  id,
-  description,
-  amount,
-  type,
-  categoryLabel,
-  accountLabel,
-  onClick,
-}: {
-  id: string;
-  description: string;
-  amount: number;
-  type: 'income' | 'expense' | 'transfer';
-  categoryLabel: string;
-  accountLabel?: string | undefined;
-  onClick: () => void;
-}) {
-  const t = useTranslations('Transactions.Table');
-  const amountLabel = formatCurrency(Math.abs(amount));
-  const meta = accountLabel ? `${categoryLabel} · ${accountLabel}` : categoryLabel;
-
-  return (
-    <PlainListRow
-      title={description}
-      meta={meta}
-      onClick={onClick}
-      testId={`transaction-row-${id}`}
-      ariaLabel={t('actions.editAria', { description, amount: amountLabel })}
-    >
-      <Amount
-        type={type === 'income' ? 'income' : type === 'expense' ? 'expense' : 'neutral'}
-        size="sm"
-        emphasis="strong"
-      >
-        {type === 'expense' ? -Math.abs(amount) : Math.abs(amount)}
-      </Amount>
-    </PlainListRow>
   );
 }

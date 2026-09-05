@@ -3,7 +3,7 @@
 import { CreditCard, Globe, Moon, Languages } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useTheme } from 'next-themes';
-import { stitchSettings as s } from '@/styles/home-design-foundation';
+import { stitchHome, stitchSettings as s } from '@/styles/home-design-foundation';
 import { useMounted } from '@/hooks';
 import { usePreferenceOptions } from '@/features/settings/utils/preference-options';
 import { getLanguagePreferenceForLocale } from '@/features/settings/utils/language-preference';
@@ -57,7 +57,7 @@ export function PreferencesSection({
   );
 
   return (
-    <section className="flex flex-col gap-2">
+    <section className={stitchHome.scanSection}>
       <h3 className={s.sectionEyebrow}>{t('title')}</h3>
       <div className={s.sectionCard}>
         <SettingsRow
@@ -78,22 +78,19 @@ export function PreferencesSection({
           value={timezoneLabel}
           onClick={onOpenTimezone}
         />
-        <button
-          type="button"
-          className={cn(s.row, 'cursor-default hover:bg-transparent')}
+        <SettingsRow
+          icon={<Moon className={s.rowIcon} aria-hidden />}
+          label={t('darkModeLabel')}
           onClick={() => setTheme(isDark ? 'light' : 'dark')}
-          aria-pressed={isDark}
-        >
-          <div className={s.rowLeft}>
-            <div className={s.rowIconWrap}>
-              <Moon className={s.rowIcon} aria-hidden />
+          showChevron={false}
+          divider={false}
+          pressed={isDark}
+          trailing={
+            <div className={cn(s.darkModeTrack, isDark && s.darkModeTrackOn)} aria-hidden>
+              <div className={cn(s.darkModeKnob, isDark && s.darkModeKnobOn)} />
             </div>
-            <span className={s.rowLabel}>{t('darkModeLabel')}</span>
-          </div>
-          <div className={cn(s.darkModeTrack, isDark && s.darkModeTrackOn)} aria-hidden>
-            <div className={cn(s.darkModeKnob, isDark && s.darkModeKnobOn)} />
-          </div>
-        </button>
+          }
+        />
       </div>
     </section>
   );

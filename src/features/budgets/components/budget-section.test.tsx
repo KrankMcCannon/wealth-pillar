@@ -49,4 +49,18 @@ describe('BudgetSection', () => {
     expect(screen.queryByText('spentPrefix')).toBeNull();
     expect(screen.queryByText('assignedPrefix')).toBeNull();
   });
+
+  it('shows household avatars when more than one member has a budget', () => {
+    const other: UserBudgetSummary = {
+      ...summary,
+      user: { id: 'u2', name: 'Ivana' } as UserBudgetSummary['user'],
+      overallPercentage: 10,
+    };
+    render(<BudgetSection budgetsByUser={{ u1: summary, u2: other }} />);
+
+    expect(screen.getByText('Ada')).toBeTruthy();
+    expect(screen.getByText('Ivana')).toBeTruthy();
+    expect(screen.getByText('AD')).toBeTruthy();
+    expect(screen.getByText('IV')).toBeTruthy();
+  });
 });

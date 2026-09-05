@@ -12,8 +12,6 @@ interface HeaderProps {
   showBack?: boolean;
   isDashboard?: boolean;
   className?: string;
-  currentUser?: { name?: string; role?: string };
-  onAvatarClick?: (() => void) | undefined;
   onBack?: () => void;
 }
 
@@ -22,8 +20,6 @@ export function Header({
   showBack = false,
   isDashboard = false,
   className,
-  currentUser,
-  onAvatarClick,
   onBack,
 }: Readonly<HeaderProps>) {
   const router = useRouter();
@@ -44,21 +40,8 @@ export function Header({
   return (
     <header className={cn(STICKY_HEADER_BASE, headerStyles.container, className)}>
       <div className={headerStyles.inner}>
-        {/* LEFT */}
         <div className={headerStyles.slotLeft}>
-          {isDashboard ? (
-            <button
-              type="button"
-              onClick={onAvatarClick}
-              disabled={!onAvatarClick}
-              aria-label={t('aria.userPicker')}
-              className={cn(headerStyles.avatarButton, !onAvatarClick && 'cursor-default')}
-            >
-              <div className={headerStyles.avatar}>
-                {currentUser?.name?.substring(0, 2).toUpperCase() ?? '?'}
-              </div>
-            </button>
-          ) : showBack ? (
+          {showBack ? (
             <button
               type="button"
               aria-label={t('aria.back')}
@@ -70,7 +53,6 @@ export function Header({
           ) : null}
         </div>
 
-        {/* CENTER */}
         <div className={headerStyles.slotCenter}>
           <div>
             <h1 className={isDashboard ? headerStyles.appName : headerStyles.pageTitle}>
@@ -79,7 +61,6 @@ export function Header({
           </div>
         </div>
 
-        {/* RIGHT */}
         <div className={headerStyles.slotRight}>
           {!isSettingsPage && (
             <button

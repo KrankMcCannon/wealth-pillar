@@ -8,7 +8,6 @@
  * // Basic usage in Transactions page
  * <TransactionDayList
  *   groupedTransactions={dayTotals}
- *   accountNames={accountNames}
  *   categories={categories}
  *   onEditTransaction={handleEdit}
  * />
@@ -17,7 +16,6 @@
  * // With header in Budgets page
  * <TransactionDayList
  *   groupedTransactions={groupedTransactions}
- *   accountNames={accountNames}
  *   categories={categories}
  *   sectionTitle="Transazioni Budget"
  *   sectionSubtitle="01/12/2024 - 31/12/2024"
@@ -34,7 +32,7 @@ import { EmptyState } from '@/components/shared';
 import { Transaction, Category } from '@/lib';
 import { GroupedTransactionCard } from './grouped-transaction-card';
 import { transactionStyles } from '@/features/transactions/theme/transaction-styles';
-import { stitchHome } from '@/styles/home-design-foundation';
+import { stitchHome, stitchTransactions } from '@/styles/home-design-foundation';
 import { Skeleton } from '@/components/ui/skeleton';
 import { TransactionDayGroupSkeleton } from '@/components/ui/primitives/skeletons';
 import { formatCurrency, cn } from '@/lib/utils';
@@ -69,8 +67,6 @@ export interface GroupedTransaction {
 export interface TransactionDayListProps {
   /** Array of transactions grouped by day */
   groupedTransactions: GroupedTransaction[];
-  /** Map of account IDs to account names for display */
-  accountNames: Record<string, string>;
   /** Categories for displaying labels and icons */
   categories: Category[];
 
@@ -102,9 +98,6 @@ export interface TransactionDayListProps {
   /** Variant for transaction cards */
   variant?: 'regular' | 'recurrent';
 
-  // Style customization
-  /** Whether totals are always negative (expenses only, like budgets) */
-  expensesOnly?: boolean;
   /** Custom container className */
   className?: string;
 
@@ -115,7 +108,6 @@ export interface TransactionDayListProps {
 
 export function TransactionDayList({
   groupedTransactions,
-  accountNames,
   categories,
   sectionTitle,
   sectionSubtitle,
@@ -127,7 +119,6 @@ export function TransactionDayList({
   viewAllLabel,
   onViewAll,
   variant = 'regular',
-  expensesOnly = false,
   className,
   onEditTransaction,
 }: Readonly<TransactionDayListProps>) {
@@ -142,33 +133,22 @@ export function TransactionDayList({
   const headerClassName = cn(transactionStyles.dayList.sectionHeader, sectionHeaderClassName);
 
   const renderGroup = (group: GroupedTransaction) => {
-    const count = group.count ?? group.transactions.length;
     const total = group.total;
     return (
       <section key={group.date}>
-        <div className={transactionStyles.dayGroup.header}>
-          <DayHeadingTag className={transactionStyles.dayGroup.title}>
+        <div className={stitchTransactions.dayHeaderRow}>
+          <DayHeadingTag className={stitchTransactions.dayHeaderTitle}>
             {group.formattedDate ?? group.date}
           </DayHeadingTag>
-          <div className={transactionStyles.dayGroup.stats}>
-            <div className={transactionStyles.dayGroup.statsTotal}>
-              <span className={transactionStyles.dayGroup.statsTotalLabel}>{t('totalLabel')}</span>
-              <span
-                className={`${transactionStyles.dayGroup.statsTotalValue} ${
-                  expensesOnly || total < 0
-                    ? transactionStyles.dayGroup.statsTotalValueNegative
-                    : transactionStyles.dayGroup.statsTotalValuePositive
-                }`}
-              >
-                {formatCurrency(Math.abs(total))}
-              </span>
-            </div>
-            <div className={transactionStyles.dayGroup.statsCount}>{t('count', { count })}</div>
-          </div>
+          <p className={stitchTransactions.dayHeaderTotalRow} data-testid="day-group-total">
+            <span className={stitchTransactions.dayHeaderTotalValue}>
+              {total >= 0 ? '+' : '−'}
+              {formatCurrency(Math.abs(total))}
+            </span>
+          </p>
         </div>
         <GroupedTransactionCard
           transactions={group.transactions}
-          accountNames={accountNames}
           categories={categories}
           variant={variant}
           onEditTransaction={onEditTransaction}

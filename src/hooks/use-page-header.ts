@@ -19,9 +19,6 @@ export function usePageHeader(config: DashboardHeaderConfig): void {
     config.title,
     config.showBack,
     config.isDashboard,
-    config.headerUser?.name,
-    config.headerUser?.role,
-    config.onAvatarClick,
     config.onBack,
     config,
   ]);

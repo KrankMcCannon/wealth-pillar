@@ -6,36 +6,30 @@ import { Users } from 'lucide-react';
 import { useUserFilter } from '@/hooks';
 import { User } from '@/lib/types';
 import { initialsFromName } from '@/lib/utils/string-formatter';
+import { cn } from '@/lib/utils';
 import type { CSSProperties } from 'react';
 
 const userSelectorStyles = {
   container: 'border-0 bg-transparent px-0 pb-0 pt-0 backdrop-blur-none',
-  heading: 'mb-2.5 text-[11px] font-bold uppercase tracking-wide text-primary',
-  list: 'flex touch-pan-x items-stretch gap-2 overflow-x-auto overscroll-x-contain scroll-pl-1 pb-0.5 [-webkit-overflow-scrolling:touch] scrollbar-thin scrollbar-thumb-border/30 scrollbar-track-transparent',
+  heading: 'mb-2.5 text-xs font-bold uppercase tracking-wide text-primary',
+  list: 'flex touch-pan-x items-stretch gap-1.5 overflow-x-auto overscroll-x-contain scroll-pl-1 pb-0.5 [-webkit-overflow-scrolling:touch] scrollbar-thin scrollbar-thumb-border/30 scrollbar-track-transparent',
   listStyle: {
     scrollbarWidth: 'thin',
   } satisfies CSSProperties,
   item: {
-    base: 'group flex min-h-11 min-w-[44px] shrink-0 items-center gap-2.5 rounded-full border px-3 py-2 text-left text-[12px] font-medium tracking-wide outline-none transition-[background-color,border-color,box-shadow] duration-200 focus-visible:ring-2 focus-visible:ring-ring/35 focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none',
-    active:
-      'border-transparent bg-accent text-foreground shadow-[inset_0_0_0_1px_rgba(143,176,255,0.28)]',
+    base: 'group flex min-h-8 min-w-0 shrink-0 items-center gap-1.5 rounded-full border px-2 py-1 text-left text-xs font-medium tracking-wide outline-none transition-[background-color,border-color,box-shadow] duration-200 focus-visible:ring-2 focus-visible:ring-ring/35 focus-visible:ring-offset-0 focus-visible:ring-offset-background motion-reduce:transition-none',
+    active: 'border-transparent bg-accent text-foreground ring-1 ring-inset ring-primary/35',
     inactive:
       'border-border/35 bg-muted/80 text-muted-foreground active:bg-accent active:text-foreground',
   },
   avatar: {
-    base: 'flex size-8 shrink-0 items-center justify-center rounded-full border text-[11px] font-bold tabular-nums transition-colors duration-200',
+    base: 'flex size-5 shrink-0 items-center justify-center rounded-full border text-[10px] font-bold tabular-nums transition-colors duration-200',
     active: 'border-border/35 bg-muted text-primary',
     inactive: 'border-border/35 bg-muted text-muted-foreground',
-    allIcon: 'size-4 text-primary',
+    allIcon: 'size-3 text-primary',
   },
   initials: 'leading-none',
-  label: 'max-w-[7.5rem] truncate text-foreground',
-  dots: {
-    container: 'mt-2 flex max-w-full justify-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-hide',
-    base: 'h-1 rounded-full transition-all duration-300',
-    active: 'w-4 bg-primary/80',
-    inactive: 'w-1.5 bg-border/40',
-  },
+  label: 'max-w-[5rem] truncate text-foreground',
 } as const;
 
 const displayInitials = (name: string) =>
@@ -68,13 +62,10 @@ const UserSelector = memo(
   }: UserSelectorProps) => {
     const headingId = useId();
     const t = useTranslations('UserSelector');
-    // Read from props instead of stores
     const { selectedGroupFilter, setSelectedGroupFilter } = useUserFilter();
 
-    // Determine current selection: Controlled (value) > Uncontrolled (store)
     const currentSelection = value ?? selectedGroupFilter;
 
-    // Memoized user list with "All Members" option
     const membersList = useMemo(() => {
       const list: Array<{ id: string; name: string; isSpecial: boolean }> = users.map((user) => ({
         id: user.id,
@@ -92,10 +83,8 @@ const UserSelector = memo(
       return list;
     }, [users, showAllOption, t]);
 
-    // Memoized click handler
     const handleMemberClick = useCallback(
       (memberId: string) => {
-        // If controlled, call onChange
         if (onChange) {
           if (memberId !== value) {
             onChange(memberId);
@@ -103,7 +92,6 @@ const UserSelector = memo(
           return;
         }
 
-        // Default: use store
         if (memberId !== selectedGroupFilter) {
           setSelectedGroupFilter(memberId);
         }
@@ -111,12 +99,10 @@ const UserSelector = memo(
       [selectedGroupFilter, setSelectedGroupFilter, onChange, value]
     );
 
-    // Early return for non-admin users
     if (currentUser.role !== 'admin' && currentUser.role !== 'superadmin') {
       return null;
     }
 
-    // Hide if only 1 user in group
     if (users.length === 1) {
       return null;
     }
@@ -142,18 +128,20 @@ const UserSelector = memo(
                 key={member.id}
                 type="button"
                 onClick={() => handleMemberClick(member.id)}
-                className={`${userSelectorStyles.item.base} ${
+                className={cn(
+                  userSelectorStyles.item.base,
                   isSelected ? userSelectorStyles.item.active : userSelectorStyles.item.inactive
-                }`}
+                )}
                 aria-pressed={isSelected}
                 aria-label={t('selectUserAria', { name: member.name })}
               >
                 <div
-                  className={`${userSelectorStyles.avatar.base} ${
+                  className={cn(
+                    userSelectorStyles.avatar.base,
                     isSelected
                       ? userSelectorStyles.avatar.active
                       : userSelectorStyles.avatar.inactive
-                  }`}
+                  )}
                   aria-hidden
                 >
                   {isAll ? (
@@ -170,22 +158,6 @@ const UserSelector = memo(
             );
           })}
         </div>
-
-        {membersList.length > 3 && (
-          <div className={userSelectorStyles.dots.container}>
-            {membersList.map((member) => (
-              <div
-                key={`dot-${member.id}`}
-                className={`${userSelectorStyles.dots.base} ${
-                  member.id === currentSelection
-                    ? userSelectorStyles.dots.active
-                    : userSelectorStyles.dots.inactive
-                }`}
-                aria-hidden
-              />
-            ))}
-          </div>
-        )}
       </section>
     );
   }

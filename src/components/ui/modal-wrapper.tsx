@@ -167,7 +167,7 @@ export function ModalSection({
   className?: string;
 }>) {
   return (
-    <div className={cn('flex flex-col gap-3', className)}>
+    <div className={cn('flex flex-col gap-1.5', className)}>
       {title ? <h3 className={modalS.shell.sectionEyebrow}>{title}</h3> : null}
       {children}
     </div>

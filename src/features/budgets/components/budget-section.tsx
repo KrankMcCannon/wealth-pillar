@@ -9,6 +9,7 @@ import { deriveUserBudgetStatus } from '@/features/budgets/utils/budget-status';
 import { formatDateShort } from '@/lib/utils/date-utils';
 import { Link } from '@/i18n/routing';
 import { cn } from '@/lib/utils';
+import { initialsFromName } from '@/lib/utils/string-formatter';
 import { stitchBudgets, stitchHome } from '@/styles/home-design-foundation';
 
 interface BudgetSectionProps {
@@ -34,12 +35,9 @@ export const BudgetSection = ({ budgetsByUser, selectedViewUserId }: BudgetSecti
   const showNames = budgetEntries.length > 1;
 
   return (
-    <section aria-labelledby="home-budget-heading" className="flex flex-col gap-1.5">
-      <div className="flex items-center justify-between gap-3">
-        <h2
-          id="home-budget-heading"
-          className="text-sm font-semibold tracking-tight text-foreground"
-        >
+    <section aria-labelledby="home-budget-heading" className={stitchHome.scanSection}>
+      <div className={stitchHome.scanSectionHeader}>
+        <h2 id="home-budget-heading" className={stitchHome.scanSectionTitle}>
           {t('budgetTitle')}
         </h2>
         <Link href="/budgets" className={cn(stitchHome.viewAllLink, 'min-h-8 min-w-0 py-0')}>
@@ -59,11 +57,10 @@ export const BudgetSection = ({ budgetsByUser, selectedViewUserId }: BudgetSecti
           </Link>
         </div>
       ) : (
-        <ul className="m-0 flex list-none flex-col gap-4 p-0">
+        <ul className={stitchHome.plainList}>
           {budgetEntries.map((entry) => {
             const status = deriveUserBudgetStatus(entry);
             const over = status === 'over';
-            const remainingLabel = over ? t('budgetOverLabel') : t('budgetLeft');
             const periodLabel =
               entry.activePeriod && entry.periodStart
                 ? `${formatDateShort(entry.periodStart, locale)} – ${
@@ -72,49 +69,44 @@ export const BudgetSection = ({ budgetsByUser, selectedViewUserId }: BudgetSecti
                       : tHome('periodOngoing')
                   }`
                 : tHome('periodOngoing');
+            const title = showNames
+              ? (entry.user.name ?? '')
+              : over
+                ? t('budgetOverLabel')
+                : t('budgetLeft');
 
             return (
               <li key={entry.user.id}>
                 <Link
                   href={`/budgets?user=${encodeURIComponent(entry.user.id)}`}
-                  className="flex flex-col gap-1 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45"
+                  className={cn(
+                    stitchHome.plainRow,
+                    'flex-col items-stretch gap-1.5 py-2 focus-visible:rounded-md'
+                  )}
                 >
-                  <p
-                    className={
-                      showNames
-                        ? 'truncate text-sm text-muted-foreground'
-                        : 'truncate text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground'
-                    }
-                  >
-                    {showNames ? entry.user.name : remainingLabel}
-                  </p>
-                  {showNames ? (
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                      {remainingLabel}
-                    </p>
-                  ) : null}
-                  <Amount
-                    type={entry.totalRemaining < 0 ? 'expense' : 'income'}
-                    size="2xl"
-                    emphasis="strong"
-                    className="block text-[1.75rem] leading-none"
-                  >
-                    {entry.totalRemaining}
-                  </Amount>
-                  <div className="flex items-baseline justify-between gap-3">
-                    <p className="min-w-0 truncate text-xs text-muted-foreground">
-                      <Amount type="expense" size="sm" className="inline">
-                        {entry.totalSpent}
-                      </Amount>
-                      {` ${over ? t('overOfConnector') : t('spentOfConnector')} `}
-                      <Amount type="neutral" size="sm" className="inline">
-                        {entry.totalBudget}
-                      </Amount>
-                    </p>
-                    <p className="shrink-0 text-xs tabular-nums text-muted-foreground">
-                      {periodLabel}
-                    </p>
-                  </div>
+                  <span className="flex items-center justify-between gap-3">
+                    <span className="flex min-w-0 items-center gap-2">
+                      {showNames ? (
+                        <span className={stitchHome.budgetRowAvatar} aria-hidden>
+                          {initialsFromName(entry.user.name ?? '', {
+                            emptyFallback: '?',
+                            singleWord: 'two',
+                          })}
+                        </span>
+                      ) : null}
+                      <span className="min-w-0">
+                        <span className={stitchHome.plainRowTitle}>{title}</span>
+                        <span className={stitchHome.plainRowMeta}>{periodLabel}</span>
+                      </span>
+                    </span>
+                    <Amount
+                      type={entry.totalRemaining < 0 ? 'expense' : 'income'}
+                      size="md"
+                      emphasis="strong"
+                    >
+                      {entry.totalRemaining}
+                    </Amount>
+                  </span>
                   <BudgetProgressBar
                     percent={entry.overallPercentage}
                     label={tHome('progressAria', {

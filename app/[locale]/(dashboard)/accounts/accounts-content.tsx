@@ -72,7 +72,6 @@ export default function AccountsContent({
     <HomeDashboardMain id="main-accounts" className="gap-5 pt-3">
       {showUserPicker ? (
         <PeopleChips
-          label={tLedger('filterWho')}
           ariaLabel={tLedger('usersAria')}
           allLabel={tUsers('all')}
           peopleAria={(name) => tUsers('selectUserAria', { name })}
@@ -90,7 +89,7 @@ export default function AccountsContent({
 
       <header className="flex flex-col gap-1">
         <div className="flex items-center justify-between gap-3">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             {t('spendableBalanceLabel')}
           </p>
           <button

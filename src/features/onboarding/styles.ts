@@ -26,9 +26,9 @@ export const onboardingStyles = {
   label: 'text-sm font-medium text-foreground',
   primaryLabel: 'text-sm font-medium text-foreground',
   input:
-    'h-11 border border-border/35 bg-input/30 text-foreground placeholder:text-muted-foreground/60 focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50',
+    'h-11 border border-border/35 bg-input/30 text-foreground placeholder:text-muted-foreground/60 outline-none focus-visible:border-border/35 focus-visible:ring-0',
   select:
-    'h-11 border border-border/35 bg-input/30 focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50',
+    'h-11 border border-border/35 bg-input/30 outline-none focus-visible:border-border/35 focus-visible:ring-0',
   selectContent: 'border border-border/35 bg-popover',
   alert:
     'mx-4 mb-3 flex shrink-0 items-start gap-2 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive',
@@ -52,8 +52,7 @@ export const onboardingStyles = {
     labelRow: 'flex items-center gap-2',
   },
   budgets: {
-    infoBanner:
-      'rounded-xl border border-border/25 bg-muted/35 p-4 text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]',
+    infoBanner: 'rounded-xl border border-border/25 bg-muted/35 p-4 text-foreground',
     infoRow: 'flex flex-col gap-3',
     infoContent: 'flex min-w-0 flex-1 gap-3',
     infoIcon: 'mt-0.5 size-5 shrink-0 text-muted-foreground',

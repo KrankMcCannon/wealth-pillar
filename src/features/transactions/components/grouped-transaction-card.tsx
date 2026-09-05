@@ -15,7 +15,6 @@ import {
 
 interface GroupedTransactionCardProps {
   transactions: Transaction[];
-  accountNames: Record<string, string>;
   variant?: 'regular' | 'recurrent';
   showHeader?: boolean;
   totalAmount?: number;
@@ -25,7 +24,6 @@ interface GroupedTransactionCardProps {
 
 function GroupedTransactionCardInner({
   transactions,
-  accountNames,
   variant = 'regular',
   showHeader = false,
   totalAmount,
@@ -58,7 +56,6 @@ function GroupedTransactionCardInner({
     <li key={transaction.id ?? `temp-${transaction.date ?? 'unknown'}-${index}`}>
       <TransactionRow
         transaction={transaction}
-        accountNames={accountNames}
         onEditTransaction={onEditTransaction}
         getCategoryLabel={getCategoryLabel}
       />

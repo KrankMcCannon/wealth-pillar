@@ -33,6 +33,12 @@ describe('SettingsRow', () => {
     expect(link).toHaveAttribute('target', '_blank');
   });
 
+  it('includes the current value in the accessible name', () => {
+    render(<SettingsRow icon={<span />} label="Currency" value="Euro (€)" onClick={vi.fn()} />);
+
+    expect(screen.getByRole('button', { name: 'Currency, Euro (€)' })).toBeInTheDocument();
+  });
+
   it('renders a static div when no href or onClick', () => {
     render(<SettingsRow icon={<span />} label="Static row" showChevron={false} />);
     expect(screen.queryByRole('button')).not.toBeInTheDocument();

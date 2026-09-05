@@ -46,6 +46,8 @@ describe('EditProfileModal', () => {
       />
     );
     expect(screen.getByTestId('entity-form-modal')).toBeInTheDocument();
+    expect(screen.getByText('nameLabel')).toBeInTheDocument();
+    expect(screen.getByText('emailLabel')).toBeInTheDocument();
     expect(container.querySelector('.text-modal-fg-muted')).toBeInTheDocument();
   });
 });

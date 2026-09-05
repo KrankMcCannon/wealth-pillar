@@ -12,7 +12,7 @@
 
 /* -----------------------------------------------------------------------------
    @theme — scala tipografica, raggio, ombre, palette semantica
-   Neutri leggermente tintati (hue ~90) per coesione col brand caldo.
+   Light: Daylight (prototype C) — airy paper, sky-blue brand (hue 240).
    ----------------------------------------------------------------------------- */
 
 @theme {
@@ -24,67 +24,68 @@
   --radius-lg: 1rem;
   --radius-xl: 1.5rem;
 
-  --shadow-xs: 0 1px 2px 0 oklch(0% 0 0 / 0.05);
-  --shadow-sm: 0 1px 3px 0 oklch(0% 0 0 / 0.08), 0 1px 2px 0 oklch(0% 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px oklch(0% 0 0 / 0.08), 0 2px 4px -1px oklch(0% 0 0 / 0.05);
-  --shadow-lg: 0 10px 15px -3px oklch(0% 0 0 / 0.08), 0 4px 6px -2px oklch(0% 0 0 / 0.04);
-  --shadow-xl: 0 20px 25px -5px oklch(0% 0 0 / 0.08), 0 10px 10px -5px oklch(0% 0 0 / 0.03);
-  --shadow-2xl: 0 25px 50px -12px oklch(0% 0 0 / 0.2);
+  --shadow-xs: 0 1px 2px 0 oklch(0.35 0.03 240 / 0.06);
+  --shadow-sm: 0 1px 3px 0 oklch(0.35 0.03 240 / 0.08), 0 1px 2px 0 oklch(0.35 0.03 240 / 0.05);
+  --shadow-md: 0 4px 10px -2px oklch(0.35 0.03 240 / 0.1), 0 2px 4px -1px oklch(0.35 0.03 240 / 0.06);
+  --shadow-lg: 0 12px 24px -8px oklch(0.35 0.03 240 / 0.12), 0 4px 8px -4px oklch(0.35 0.03 240 / 0.06);
+  --shadow-xl: 0 20px 25px -5px oklch(0.35 0.03 240 / 0.1), 0 10px 10px -5px oklch(0.35 0.03 240 / 0.05);
+  --shadow-2xl: 0 25px 50px -12px oklch(0.35 0.03 240 / 0.16);
 
-  /* Light — superfici */
-  --color-background: oklch(0.94 0.008 90);
-  --color-foreground: oklch(0.25 0.015 90);
-  --color-card: oklch(0.985 0.003 90);
+  /* Light — Daylight C: page is C's card (cool-white paper). Sky chroma lives on
+     primary/ring and muted/accent wells — not a full-viewport fill. */
+  --color-background: oklch(0.995 0.006 230);
+  --color-foreground: oklch(0.24 0.03 245);
+  --color-card: oklch(1 0.003 230);
   --color-card-foreground: var(--color-foreground);
-  --color-popover: oklch(0.985 0.003 90);
+  --color-popover: oklch(1 0.003 230);
   --color-popover-foreground: var(--color-foreground);
 
-  /* Brand */
-  --color-primary: oklch(0.595 0.178 270);
-  --color-primary-foreground: oklch(0.99 0.004 270);
-  --color-secondary: oklch(0.68 0.08 235);
-  --color-secondary-foreground: oklch(0.15 0.02 90);
-  --color-accent: oklch(0.68 0.16 270);
-  --color-accent-foreground: oklch(0.15 0.02 90);
+  /* Brand — sky, not ink / not violet */
+  --color-primary: oklch(0.52 0.1 240);
+  --color-primary-foreground: oklch(0.99 0.008 230);
+  --color-secondary: oklch(0.93 0.02 230);
+  --color-secondary-foreground: oklch(0.24 0.03 245);
+  --color-accent: oklch(0.94 0.03 220);
+  --color-accent-foreground: oklch(0.24 0.03 245);
 
-  --color-muted: oklch(0.88 0.008 90);
-  --color-muted-foreground: oklch(0.45 0.015 90);
+  --color-muted: oklch(0.94 0.018 230);
+  --color-muted-foreground: oklch(0.48 0.025 245);
 
-  --color-destructive: oklch(0.55 0.22 25);
-  --color-destructive-foreground: oklch(0.99 0.004 25);
-  --color-warning: oklch(0.75 0.15 85);
-  --color-warning-foreground: oklch(0.15 0.02 90);
+  --color-destructive: oklch(0.5 0.12 22);
+  --color-destructive-foreground: oklch(0.99 0.008 230);
+  --color-warning: oklch(0.7 0.1 80);
+  --color-warning-foreground: oklch(0.24 0.025 245);
 
-  --color-success: oklch(0.7 0.15 150);
-  --color-success-light: oklch(0.95 0.08 150);
-  --color-success-dark: oklch(0.4 0.12 150);
-  --color-success-foreground: oklch(0.99 0.004 150);
+  --color-success: oklch(0.52 0.1 165);
+  --color-success-light: oklch(0.94 0.04 165);
+  --color-success-dark: oklch(0.4 0.08 165);
+  --color-success-foreground: oklch(0.99 0.008 230);
 
-  --color-income: oklch(0.45 0.12 155);
-  --color-expense: oklch(0.5 0.1 25);
-  --color-teal-accent: oklch(0.55 0.14 175);
+  --color-income: oklch(0.46 0.09 165);
+  --color-expense: oklch(0.5 0.1 22);
+  --color-teal-accent: oklch(0.52 0.08 200);
 
-  --color-border: oklch(0.85 0.01 90);
-  --color-input: oklch(0.98 0.004 90);
-  --color-ring: oklch(0.595 0.178 270);
+  --color-border: oklch(0.88 0.02 230);
+  --color-input: oklch(0.99 0.006 230);
+  --color-ring: oklch(0.52 0.1 240);
 
-  --color-chart-1: oklch(0.595 0.178 270);
-  --color-chart-2: oklch(0.68 0.16 270);
-  --color-chart-3: oklch(0.78 0.15 270);
-  --color-chart-4: oklch(0.55 0.16 270);
-  --color-chart-5: oklch(0.5 0.18 270);
+  --color-chart-1: oklch(0.55 0.09 240);
+  --color-chart-2: oklch(0.52 0.08 165);
+  --color-chart-3: oklch(0.58 0.05 230);
+  --color-chart-4: oklch(0.62 0.08 80);
+  --color-chart-5: oklch(0.5 0.08 22);
 
   /* Modal surfaces (light — aligned with card) */
-  --color-modal-surface: oklch(0.985 0.003 90);
-  --color-modal-elevated: oklch(0.96 0.008 250);
-  --color-modal-elevated-hover: oklch(0.92 0.01 250);
-  --color-modal-input-bg: oklch(0.98 0.004 90);
-  --color-modal-border: oklch(0.85 0.02 250);
-  --color-modal-ring: oklch(0.595 0.178 270);
-  --color-modal-handle: oklch(0.75 0.06 250);
-  --color-modal-fg: oklch(0.25 0.015 90);
-  --color-modal-fg-muted: oklch(0.45 0.015 90);
-  --color-modal-fg-subtle: oklch(0.55 0.015 90);
+  --color-modal-surface: var(--color-card);
+  --color-modal-elevated: var(--color-muted);
+  --color-modal-elevated-hover: var(--color-accent);
+  --color-modal-input-bg: var(--color-input);
+  --color-modal-border: var(--color-border);
+  --color-modal-ring: var(--color-ring);
+  --color-modal-handle: var(--color-muted-foreground);
+  --color-modal-fg: var(--color-foreground);
+  --color-modal-fg-muted: var(--color-muted-foreground);
+  --color-modal-fg-subtle: var(--color-muted-foreground);
   --color-modal-error-bg: oklch(0.97 0.01 25);
   --color-modal-error-border: oklch(0.75 0.12 25);
   --color-modal-error-fg: oklch(0.45 0.12 25);
@@ -103,54 +104,60 @@
 }
 
 /* -----------------------------------------------------------------------------
-   Dark — Stitch navy palette (Tailwind v4 @layer theme so utilities pick it up)
+   Dark — Daylight inverted (sky brand, cool night paper)
    ----------------------------------------------------------------------------- */
 
 @layer theme {
   :root,
   :host {
     @variant dark {
-      --color-background: oklch(0.141 0.036 271);
-      --color-foreground: oklch(0.944 0.026 272);
-      --color-card: oklch(0.257 0.092 264);
+      --shadow-xs: 0 1px 2px 0 oklch(0% 0 0 / 0.2);
+      --shadow-sm: 0 1px 3px 0 oklch(0% 0 0 / 0.28), 0 1px 2px 0 oklch(0% 0 0 / 0.18);
+      --shadow-md: 0 4px 6px -1px oklch(0% 0 0 / 0.32), 0 2px 4px -1px oklch(0% 0 0 / 0.18);
+      --shadow-lg: 0 10px 15px -3px oklch(0% 0 0 / 0.36), 0 4px 6px -2px oklch(0% 0 0 / 0.16);
+      --shadow-xl: 0 20px 25px -5px oklch(0% 0 0 / 0.4), 0 10px 10px -5px oklch(0% 0 0 / 0.2);
+      --shadow-2xl: 0 25px 50px -12px oklch(0% 0 0 / 0.5);
+
+      --color-background: oklch(0.22 0.01 240);
+      --color-foreground: oklch(0.94 0.012 240);
+      --color-card: oklch(0.27 0.012 240);
       --color-card-foreground: var(--color-foreground);
-      --color-popover: oklch(0.257 0.092 264);
+      --color-popover: oklch(0.27 0.012 240);
       --color-popover-foreground: var(--color-foreground);
 
-      --color-primary: oklch(0.764 0.12 266);
-      --color-primary-foreground: oklch(0.141 0.036 271);
-      --color-secondary: oklch(0.298 0.101 264);
-      --color-secondary-foreground: oklch(0.944 0.026 272);
-      --color-accent: oklch(0.326 0.098 263);
-      --color-accent-foreground: oklch(0.944 0.026 272);
+      --color-primary: oklch(0.72 0.09 240);
+      --color-primary-foreground: oklch(0.22 0.01 240);
+      --color-secondary: oklch(0.30 0.014 240);
+      --color-secondary-foreground: oklch(0.94 0.012 240);
+      --color-accent: oklch(0.30 0.016 230);
+      --color-accent-foreground: oklch(0.94 0.012 240);
 
-      --color-muted: oklch(0.298 0.101 264);
-      --color-muted-foreground: oklch(0.758 0.059 267);
+      --color-muted: oklch(0.28 0.012 240);
+      --color-muted-foreground: oklch(0.72 0.015 240);
 
-      /* Rose Stitch — freddo, leggibile sul navy (non marrone/salmone) */
-      --color-destructive: oklch(0.8 0.09 22);
-      --color-destructive-foreground: oklch(0.944 0.026 272);
-      --color-warning: oklch(0.78 0.1 85);
-      --color-warning-foreground: oklch(0.15 0.025 270);
+      --color-destructive: oklch(0.72 0.1 22);
+      --color-destructive-foreground: oklch(0.22 0.01 240);
+      --color-warning: oklch(0.78 0.09 80);
+      --color-warning-foreground: oklch(0.22 0.01 240);
 
-      --color-success: oklch(0.75 0.1 150);
-      --color-success-light: oklch(0.87 0.11 175);
-      --color-success-dark: oklch(0.5 0.08 150);
-      --color-success-foreground: oklch(0.15 0.025 270);
+      --color-success: oklch(0.7 0.08 165);
+      --color-success-light: oklch(0.30 0.03 165);
+      --color-success-dark: oklch(0.52 0.07 165);
+      --color-success-foreground: oklch(0.22 0.01 240);
 
-      --color-income: oklch(0.86 0.13 155);
-      --color-expense: oklch(0.8 0.09 22);
-      --color-teal-accent: oklch(0.87 0.11 175);
+      --color-income: oklch(0.72 0.08 165);
+      --color-expense: oklch(0.72 0.09 22);
+      --color-teal-accent: oklch(0.7 0.07 200);
 
-      --color-border: oklch(0.5 0.174 266);
-      --color-input: oklch(0.298 0.101 264);
-      --color-ring: oklch(0.764 0.12 266);
+      --color-border: oklch(0.36 0.012 240);
+      --color-input: oklch(0.26 0.012 240);
+      --color-ring: oklch(0.72 0.09 240);
 
-      --color-chart-1: oklch(0.72 0.168 270);
-      --color-chart-2: oklch(0.78 0.15 270);
-      --color-chart-3: oklch(0.82 0.13 270);
-      --color-chart-4: oklch(0.65 0.16 270);
-      --color-chart-5: oklch(0.6 0.17 270);
+      --color-chart-1: oklch(0.7 0.08 240);
+      --color-chart-2: oklch(0.68 0.07 165);
+      --color-chart-3: oklch(0.66 0.04 230);
+      --color-chart-4: oklch(0.72 0.07 80);
+      --color-chart-5: oklch(0.68 0.07 22);
 
       --category-utilities-blue: oklch(0.68 0.15 240);
       --category-utilities-red: oklch(0.68 0.13 30);
@@ -174,16 +181,16 @@
       --color-red-800: oklch(0.35 0.1 25);
       --color-red-900: oklch(0.25 0.08 25);
 
-      --color-emerald-500: oklch(0.75 0.1 150);
-      --color-emerald-600: oklch(0.65 0.08 150);
-      --color-green-500: oklch(0.75 0.1 140);
-      --color-green-600: oklch(0.65 0.08 140);
-      --color-blue-500: oklch(0.75 0.08 240);
-      --color-blue-600: oklch(0.65 0.06 240);
-      --color-amber-500: oklch(0.78 0.1 85);
-      --color-yellow-500: oklch(0.82 0.1 90);
-      --color-purple-500: oklch(0.72 0.12 280);
-      --color-violet-500: oklch(0.72 0.12 270);
+      --color-emerald-500: oklch(0.72 0.07 170);
+      --color-emerald-600: oklch(0.62 0.06 170);
+      --color-green-500: oklch(0.72 0.07 140);
+      --color-green-600: oklch(0.62 0.06 140);
+      --color-blue-500: oklch(0.7 0.08 240);
+      --color-blue-600: oklch(0.6 0.08 240);
+      --color-amber-500: oklch(0.78 0.09 80);
+      --color-yellow-500: oklch(0.8 0.08 90);
+      --color-purple-500: oklch(0.68 0.04 240);
+      --color-violet-500: oklch(0.72 0.09 240);
 
       --color-modal-surface: var(--color-card);
       --color-modal-elevated: var(--color-muted);
@@ -195,9 +202,9 @@
       --color-modal-fg: var(--color-foreground);
       --color-modal-fg-muted: var(--color-muted-foreground);
       --color-modal-fg-subtle: var(--color-muted-foreground);
-      --color-modal-error-bg: oklch(0.22 0.05 22);
-      --color-modal-error-border: oklch(0.48 0.1 22);
-      --color-modal-error-fg: oklch(0.8 0.09 22);
+      --color-modal-error-bg: oklch(0.22 0.04 22);
+      --color-modal-error-border: oklch(0.42 0.08 22);
+      --color-modal-error-fg: oklch(0.72 0.09 22);
     }
   }
 }
@@ -230,7 +237,7 @@
   --font-weight-normal: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
-  --color-black: oklch(0.141 0.036 271);
+  --color-black: oklch(0.22 0.01 240);
 }
 
 /* -----------------------------------------------------------------------------
@@ -284,6 +291,19 @@ body {
   select,
   textarea {
     font-size: max(16px, 1em);
+  }
+}
+
+/* Text fields: caret + border only — no focus ring. */
+input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']):not(
+    [type='file']
+  ):not([type='button']):not([type='submit']):not([type='reset']):not([type='hidden']),
+select,
+textarea {
+  &:focus,
+  &:focus-visible {
+    --tw-ring-shadow: 0 0 #0000 !important;
+    outline: none;
   }
 }
 
@@ -373,8 +393,7 @@ div[data-turnstile],
 
 @layer utilities {
   .liquid-glass {
-    background: color-mix(in oklch, var(--color-card) 72%, transparent);
-    backdrop-filter: blur(16px) saturate(1.2);
+    background: var(--color-card);
     border: 1px solid color-mix(in oklch, var(--color-border) 45%, transparent);
     box-shadow: var(--shadow-md);
   }

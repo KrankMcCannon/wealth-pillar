@@ -15,6 +15,7 @@ import {
   getUserFieldHelperText,
   filterByUserPermissions,
   requiresAdmin,
+  sortUsersByRole,
 } from './permissions';
 
 // Factory helper for creating test users
@@ -323,6 +324,19 @@ describe('permissions', () => {
       expect(requiresAdmin('/dashboard')).toBe(false);
       expect(requiresAdmin('/transactions')).toBe(false);
       expect(requiresAdmin('/settings')).toBe(false);
+    });
+  });
+
+  describe('sortUsersByRole', () => {
+    it('orders superadmin, admin, then member, and ties by name', () => {
+      const users = [
+        createMockUser({ id: 'm2', name: 'Zoe', role: 'member' }),
+        createMockUser({ id: 'a1', name: 'Ivana', role: 'admin' }),
+        createMockUser({ id: 'm1', name: 'Alex', role: 'member' }),
+        createMockUser({ id: 's1', name: 'Pat', role: 'superadmin' }),
+      ];
+
+      expect(sortUsersByRole(users).map((user) => user.id)).toEqual(['s1', 'a1', 'm1', 'm2']);
     });
   });
 });

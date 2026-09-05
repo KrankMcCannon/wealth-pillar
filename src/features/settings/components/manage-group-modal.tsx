@@ -8,14 +8,14 @@ import { EntityFormModal } from '@/components/form';
 import { ModalTextField } from '@/components/form/modal-fields';
 import { ModalFooterActions } from '@/components/ui/modal-footer-actions';
 import { ModalSection } from '@/components/ui/modal-wrapper';
-import { Button } from '@/components/ui';
 import { toast } from '@/hooks/use-toast';
 import { updateGroupAction } from '@/features/settings';
 import { useSettingsModalsContextOptional } from '@/features/settings/context/settings-modals-context';
 import { useRequiredGroupUsers } from '@/hooks';
 import { useModalState } from '@/lib/navigation/url-state';
 import { formModalStyles as s } from '@/components/form/form-modal-styles';
-import { cn } from '@/lib/utils';
+import { stitchSettings as sSettings } from '@/styles/home-design-foundation';
+import { cn, sortUsersByRole } from '@/lib/utils';
 import { initialsFromName } from '@/lib/utils/string-formatter';
 
 const createManageGroupSchema = (t: ReturnType<typeof useTranslations>) =>
@@ -70,29 +70,29 @@ export function ManageGroupModal({
       defaultValues={defaultValues}
       resetValues={defaultValues}
       repositionInputs={false}
+      bodyClassName={sSettings.modalFormBody}
       {...(isAdmin
         ? {
             footer: (form) => (
-              <div className="flex flex-col gap-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="min-h-11 w-full"
-                  onClick={handleInvite}
-                  disabled={form.formState.isSubmitting}
-                >
-                  <UserPlus data-icon="inline-start" aria-hidden />
-                  {t('inviteButton')}
-                </Button>
-                <ModalFooterActions
-                  variant="dual"
-                  cancelLabel={t('cancelButton')}
-                  submitLabel={t('saveButton')}
-                  onCancel={onClose}
-                  submitType="submit"
-                  isSubmitting={form.formState.isSubmitting}
-                />
-              </div>
+              <ModalFooterActions
+                variant="dual"
+                cancelLabel={t('cancelButton')}
+                submitLabel={t('saveButton')}
+                onCancel={onClose}
+                submitType="submit"
+                isSubmitting={form.formState.isSubmitting}
+                secondaryAction={
+                  <button
+                    type="button"
+                    className={s.footer.secondaryAction}
+                    onClick={handleInvite}
+                    disabled={form.formState.isSubmitting}
+                  >
+                    <UserPlus className="size-4 shrink-0" aria-hidden />
+                    {t('inviteButton')}
+                  </button>
+                }
+              />
             ),
           }
         : {})}
@@ -139,43 +139,35 @@ export function ManageGroupModal({
     >
       {(form) => (
         <>
-          <ModalTextField
-            control={form.control}
-            name="name"
-            label={t('nameLabel')}
-            placeholder={t('namePlaceholder')}
-            disabled={!isAdmin || form.formState.isSubmitting}
-          />
+          <div className={sSettings.sectionCard}>
+            <ModalTextField
+              control={form.control}
+              name="name"
+              label={t('nameLabel')}
+              placeholder={t('namePlaceholder')}
+              disabled={!isAdmin || form.formState.isSubmitting}
+            />
+          </div>
 
           <ModalSection title={t('membersTitle')}>
-            <ul className={cn(s.noteShell, 'flex flex-col gap-0 p-0')}>
-              {groupUsers.map((member, index) => {
+            <ul className={cn(sSettings.sectionCard, 'flex flex-col p-0')}>
+              {sortUsersByRole(groupUsers).map((member, index, members) => {
                 const roleKey =
                   member.role === 'admin' || member.role === 'superadmin' ? 'admin' : 'member';
-                const isLast = index === groupUsers.length - 1;
+                const isLast = index === members.length - 1;
 
                 return (
                   <li
                     key={member.id}
-                    className={cn(
-                      'flex min-h-11 items-center gap-3 px-3 py-2.5',
-                      !isLast && 'border-b border-border/20'
-                    )}
+                    className={cn(sSettings.memberRow, !isLast && sSettings.rowDivider)}
                   >
-                    <div
-                      className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border/35 bg-muted text-[11px] font-bold tabular-nums text-primary"
-                      aria-hidden
-                    >
-                      {displayInitials(member.name ?? '')}
+                    <div className={sSettings.rowLeft}>
+                      <div className={sSettings.memberAvatar} aria-hidden>
+                        {displayInitials(member.name ?? '')}
+                      </div>
+                      <span className={sSettings.memberName}>{member.name}</span>
                     </div>
-                    <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                      <span className="truncate text-sm font-medium text-foreground">
-                        {member.name}
-                      </span>
-                      <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                        {t(`roles.${roleKey}`)}
-                      </span>
-                    </div>
+                    <span className={sSettings.memberRole}>{t(`roles.${roleKey}`)}</span>
                   </li>
                 );
               })}

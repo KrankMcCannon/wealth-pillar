@@ -9,7 +9,7 @@ import { ModalTextField } from '@/components/form/modal-fields';
 import { ModalFooterActions } from '@/components/ui/modal-footer-actions';
 import { toast } from '@/hooks/use-toast';
 import { sendGroupInvitationAction } from '@/features/settings';
-import { formModalStyles as s } from '@/components/form/form-modal-styles';
+import { stitchSettings as s } from '@/styles/home-design-foundation';
 
 const createInviteMemberSchema = (t: ReturnType<typeof useTranslations>) =>
   z.object({
@@ -57,6 +57,7 @@ export function InviteMemberModal({
       defaultValues={defaultValues}
       resetValues={defaultValues}
       repositionInputs={false}
+      bodyClassName={s.modalFormBody}
       footer={(form) => (
         <ModalFooterActions
           variant="dual"
@@ -91,23 +92,18 @@ export function InviteMemberModal({
       }}
     >
       {(form) => (
-        <>
+        <div className={s.sectionCard}>
           <ModalTextField
             control={form.control}
             name="email"
+            layout="plain"
             label={t('emailLabel')}
             type="email"
             placeholder={t('emailPlaceholder')}
             autoComplete="email"
             disabled={form.formState.isSubmitting}
           />
-
-          <div className={s.noteShell}>
-            <p className={s.noteLabel}>
-              <strong>{t('noteLabel')}</strong> {t('noteText')}
-            </p>
-          </div>
-        </>
+        </div>
       )}
     </EntityFormModal>
   );

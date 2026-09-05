@@ -99,7 +99,7 @@ export const AccountCard = memo(function AccountCard({
       testId={`account-card-${account.id}`}
       className={className}
     >
-      <Amount type={isNegative ? 'expense' : 'balance'} size="sm" emphasis="strong">
+      <Amount type={isNegative ? 'expense' : 'balance'} size="md" emphasis="strong">
         {accountBalance}
       </Amount>
     </PlainListRow>

@@ -3,7 +3,12 @@ import { render, screen } from '@testing-library/react';
 import { ReportsHero } from './reports-hero';
 
 vi.mock('next-intl', () => ({
-  useTranslations: () => (key: string) => key,
+  useTranslations: () => (key: string, values?: Record<string, unknown>) => {
+    if (key === 'savingsMeta' && values) {
+      return `${values.deposits} · ${values.withdrawals}`;
+    }
+    return key;
+  },
 }));
 
 vi.mock('@/features/reports/hooks/use-format-currency', () => ({
@@ -23,17 +28,19 @@ describe('ReportsHero', () => {
       />
     );
 
+    expect(screen.getByRole('heading', { name: 'netFlow' })).toBeTruthy();
     expect(screen.getByText('€100')).toBeTruthy();
     expect(screen.getByText('€40')).toBeTruthy();
     expect(screen.getByText('+€60')).toBeTruthy();
+    expect(screen.getByRole('meter')).toBeTruthy();
     expect(screen.queryByText('incomeMinusExpenses')).toBeNull();
     expect(screen.queryByText('savedThisPeriod')).toBeNull();
     expect(screen.getByText('movedToSavings')).toBeTruthy();
-    expect(screen.getByText('€99')).toBeTruthy();
-    expect(screen.getByText('+€89')).toBeTruthy();
+    expect(screen.getByText(/€99/)).toBeTruthy();
+    expect(screen.getByText(/€89/)).toBeTruthy();
   });
 
-  it('shows savings deposits, withdrawals, and net including zeros', () => {
+  it('hides savings when nothing moved to reserve', () => {
     render(
       <ReportsHero
         netFlow={50}
@@ -45,9 +52,9 @@ describe('ReportsHero', () => {
       />
     );
 
-    expect(screen.getByText('deposits')).toBeTruthy();
-    expect(screen.getByText('withdrawals')).toBeTruthy();
-    expect(screen.getByText('+€0')).toBeTruthy();
+    expect(screen.queryByText('movedToSavings')).toBeNull();
+    expect(screen.queryByText('deposits')).toBeNull();
+    expect(screen.queryByText('withdrawals')).toBeNull();
     expect(screen.queryByText('spendableBalance')).toBeNull();
     expect(screen.queryByText('reserveBalance')).toBeNull();
   });
@@ -64,7 +71,7 @@ describe('ReportsHero', () => {
     );
 
     expect(screen.getByText('noComparison')).toBeTruthy();
-    expect(screen.getByText('€5')).toBeTruthy();
-    expect(screen.getByText('€1')).toBeTruthy();
+    expect(screen.getByText(/€5/)).toBeTruthy();
+    expect(screen.getByText(/€4/)).toBeTruthy();
   });
 });

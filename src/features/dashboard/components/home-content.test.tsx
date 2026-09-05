@@ -17,7 +17,11 @@ vi.mock('@/i18n/routing', () => ({
 }));
 
 vi.mock('@/hooks', () => ({
-  useUserFilter: () => ({ selectedGroupFilter: 'all', selectedUserId: undefined }),
+  useUserFilter: () => ({
+    selectedGroupFilter: 'all',
+    selectedUserId: undefined,
+    setSelectedGroupFilter: vi.fn(),
+  }),
   usePermissions: () => ({ effectiveUserId: 'u1', isMember: true }),
 }));
 
@@ -35,18 +39,6 @@ vi.mock('@/components/layout', () => ({
   ),
 }));
 
-vi.mock('@/components/ui', () => ({
-  Drawer: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  DrawerContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  DrawerHeader: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  DrawerTitle: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  DrawerDescription: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-}));
-
-vi.mock('@/components/shared/user-selector', () => ({
-  default: () => <div data-testid="user-selector" />,
-}));
-
 const currentUser = {
   id: 'u1',
   name: 'Alex',
@@ -56,6 +48,9 @@ const currentUser = {
   created_at: '2024-01-01',
   updated_at: '2024-01-01',
 };
+
+const adminUser = { ...currentUser, role: 'admin' };
+const otherUser = { ...currentUser, id: 'u2', name: 'Sam', email: 'sam@example.com' };
 
 const dashboardData: DashboardPageData = {
   accounts: [],
@@ -71,8 +66,8 @@ const dashboardData: DashboardPageData = {
         type: 'expense',
         account_id: 'a1',
         description: 'Lunch',
-        created_at: '2024-06-01',
-        updated_at: '2024-06-01',
+        created_at: '2024-01-01',
+        updated_at: '2024-01-01',
       },
     ],
     byUserId: {
@@ -87,8 +82,8 @@ const dashboardData: DashboardPageData = {
           type: 'expense',
           account_id: 'a1',
           description: 'Lunch',
-          created_at: '2024-06-01',
-          updated_at: '2024-06-01',
+          created_at: '2024-01-01',
+          updated_at: '2024-01-01',
         },
       ],
     },
@@ -108,23 +103,28 @@ const dashboardData: DashboardPageData = {
   },
 };
 
+async function renderHome(user: typeof currentUser, groupUsers: Array<typeof currentUser>) {
+  const dashboardDataPromise = Promise.resolve(dashboardData);
+  await act(async () => {
+    render(
+      <Suspense fallback={<div data-testid="loading" />}>
+        <HomeContent
+          currentUser={user as never}
+          groupUsers={groupUsers as never}
+          dashboardDataPromise={dashboardDataPromise}
+        />
+      </Suspense>
+    );
+  });
+}
+
 describe('HomeContent', () => {
-  it('renders the briefing sections', async () => {
-    const dashboardDataPromise = Promise.resolve(dashboardData);
-    await act(async () => {
-      render(
-        <Suspense fallback={<div data-testid="loading" />}>
-          <HomeContent
-            currentUser={currentUser as never}
-            groupUsers={[currentUser as never]}
-            dashboardDataPromise={dashboardDataPromise}
-          />
-        </Suspense>
-      );
-    });
+  it('renders the briefing sections without a header user picker', async () => {
+    await renderHome(currentUser, [currentUser]);
 
     expect(await screen.findByTestId('home-main')).toBeInTheDocument();
     expect(screen.getByText('spendableLabel')).toBeInTheDocument();
+    expect(screen.getByText('spendableHint')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /spendableViewAll/ }).getAttribute('href')).toBe(
       '/accounts'
     );
@@ -134,5 +134,16 @@ describe('HomeContent', () => {
       'recentActivityTitle',
     ]);
     expect(screen.queryByTestId('action-menu')).not.toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'contextLabel' })).not.toBeInTheDocument();
+  });
+
+  it('shows the shared user filter chips for an admin with multiple members', async () => {
+    await renderHome(adminUser, [adminUser, otherUser]);
+
+    expect(await screen.findByRole('region', { name: 'contextLabel' })).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: 'selectUserAria' })).toHaveLength(3);
+    expect(screen.getByText('all')).toBeInTheDocument();
+    expect(screen.getByText('Alex')).toBeInTheDocument();
+    expect(screen.getByText('Sam')).toBeInTheDocument();
   });
 });

@@ -8,7 +8,7 @@ export const calendarDrawerStyles = {
     container: 'flex items-center gap-2 px-4 py-3',
     pickerRow: 'flex min-w-0 flex-1 items-center gap-2',
     selectTrigger:
-      'min-h-11 rounded-xl border border-foreground/10 bg-muted text-sm font-semibold text-foreground shadow-none focus:ring-2 focus:ring-foreground/20 focus:border-foreground/20',
+      'min-h-11 rounded-xl border border-foreground/10 bg-muted text-sm font-semibold text-foreground shadow-none outline-none focus:ring-0 focus:border-foreground/20',
     selectTriggerMonth: 'min-w-0 flex-1 [&>span]:truncate',
     selectTriggerYear: 'w-[5.25rem] shrink-0 tabular-nums',
     selectContent: 'max-h-[240px] border-foreground/10 bg-background text-foreground',

@@ -5,7 +5,7 @@ import { dashboardContentBottomPadding } from '@/styles/home-design-foundation';
 export { dashboardContentBottomPadding };
 
 const homeDashboardLayoutStyles = {
-  main: `flex min-h-0 w-full flex-col gap-6 px-4 pt-4 ${dashboardContentBottomPadding}`,
+  main: `flex min-h-0 w-full flex-col gap-4 px-4 pt-3 ${dashboardContentBottomPadding}`,
 };
 
 interface HomeDashboardMainProps {

@@ -75,7 +75,7 @@ function SelectionModalContent<V extends string>({
                 key={option.value}
                 className={cn(
                   modalS.preference.itemBase,
-                  'block min-w-0 cursor-pointer',
+                  'min-w-0 cursor-pointer',
                   isSelected ? modalS.preference.itemActive : modalS.preference.itemIdle,
                   isSaving && 'pointer-events-none cursor-not-allowed opacity-50'
                 )}
@@ -89,7 +89,7 @@ function SelectionModalContent<V extends string>({
                   disabled={isSaving}
                   className="peer sr-only"
                 />
-                <span className="flex w-full min-w-0 items-start gap-3 rounded-[inherit] peer-focus-visible:ring-2 peer-focus-visible:ring-modal-ring/25 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-modal-surface">
+                <span className="flex w-full min-w-0 items-start gap-2.5 rounded-sm">
                   <div
                     className={cn(
                       modalS.preference.radioBase,
@@ -101,10 +101,7 @@ function SelectionModalContent<V extends string>({
                   </div>
 
                   {option.icon ? (
-                    <div
-                      className="mr-3 h-8 w-8 shrink-0 overflow-hidden rounded-full border border-modal-border/35"
-                      aria-hidden
-                    >
+                    <div className="size-8 shrink-0 overflow-hidden rounded-full" aria-hidden>
                       {option.icon}
                     </div>
                   ) : null}

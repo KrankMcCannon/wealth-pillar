@@ -56,5 +56,8 @@ export interface InvestmentListItem {
   tax_paid?: number;
   totalPaid?: number;
   net_earn?: number;
+  currentPrice?: number;
+  currentValue?: number;
+  totalGain?: number;
   created_at: Date | string | null;
 }

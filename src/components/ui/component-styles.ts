@@ -12,7 +12,7 @@ export const cardStyles = {
 } as const;
 
 export const tabStyles = {
-  list: 'inline-flex h-12 items-center justify-center rounded-2xl bg-muted p-1',
+  list: 'flex h-12 w-full items-center justify-center rounded-2xl bg-muted p-1',
   trigger:
     'inline-flex items-center justify-center whitespace-nowrap rounded-xl px-4 py-2 text-sm font-semibold transition-all data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-md hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50',
   content: 'mt-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
@@ -38,7 +38,7 @@ export const drawerStyles = {
 
 export const selectStyles = {
   trigger:
-    'flex h-10 w-full items-center justify-between rounded-xl border border-border bg-input px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1',
+    'flex h-10 w-full items-center justify-between rounded-xl border border-border bg-input px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:outline-none focus:ring-0 focus:border-border disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1',
   icon: 'h-4 w-4 text-muted-foreground',
   content:
     'relative z-[10000] max-h-96 min-w-[8rem] overflow-hidden rounded-xl border border-border bg-popover text-popover-foreground shadow-lg data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',

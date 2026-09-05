@@ -3,57 +3,50 @@
 import { Link, usePathname } from '@/i18n/routing';
 import { useTranslations } from 'next-intl';
 import { Home, CreditCard, TrendingUp, BarChart3, Wallet } from 'lucide-react';
-import { stitchDashboardShell } from '@/styles/home-design-foundation';
+import { cn } from '@/lib';
+import { stitchDashboardShell as shell } from '@/styles/home-design-foundation';
 
-const bottomNavigationStyles = {
-  container: `${stitchDashboardShell.bottomBar} px-2 pt-1 pb-[calc(theme(spacing.1)+env(safe-area-inset-bottom))]`,
-  inner:
-    'mx-auto grid max-w-xl grid-cols-5 items-end gap-x-0.5 gap-y-0 overflow-visible px-0.5 pb-0.5 pt-0',
-  item: 'relative z-0 flex min-h-11 min-w-0 flex-col items-center justify-end gap-0 rounded-xl px-1 py-0.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none active:bg-primary/5',
-  itemActive: 'bg-primary/20 text-primary shadow-sm ring-1 ring-inset ring-primary/20',
-  itemInactive:
-    'text-primary/75 hover:bg-primary/10 hover:text-primary motion-reduce:transition-none',
-  icon: 'h-5 w-5 shrink-0',
-  caption:
-    'min-w-0 max-w-[5.25rem] text-center text-[clamp(0.625rem,2.6vw,0.75rem)] font-medium leading-none text-current [overflow-wrap:anywhere]',
-} as const;
+const NAV_ITEMS = [
+  { href: '/home', icon: Home, labelKey: 'home' as const },
+  { href: '/transactions', icon: CreditCard, labelKey: 'transactions' as const },
+  { href: '/budgets', icon: Wallet, labelKey: 'budgets' as const },
+  { href: '/investments', icon: TrendingUp, labelKey: 'investments' as const },
+  { href: '/reports', icon: BarChart3, labelKey: 'reports' as const },
+] as const;
 
 export function BottomNavigation() {
   const pathname = usePathname();
   const t = useTranslations('BottomNav');
 
-  const navItems = [
-    { href: '/home', icon: Home, labelKey: 'home' as const },
-    { href: '/transactions', icon: CreditCard, labelKey: 'transactions' as const },
-    { href: '/budgets', icon: Wallet, labelKey: 'budgets' as const },
-    { href: '/investments', icon: TrendingUp, labelKey: 'investments' as const },
-    { href: '/reports', icon: BarChart3, labelKey: 'reports' as const },
-  ];
-
   return (
-    <div className={bottomNavigationStyles.container}>
-      <nav className={bottomNavigationStyles.inner} aria-label={t('ariaNav')}>
-        {navItems.map((item) => {
-          const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
-          const IconComponent = item.icon;
-          const label = t(item.labelKey);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              prefetch
-              className={`${bottomNavigationStyles.item} ${
-                isActive ? bottomNavigationStyles.itemActive : bottomNavigationStyles.itemInactive
-              }`}
-              aria-current={isActive ? 'page' : undefined}
-              title={label}
+    <nav
+      className={cn(shell.bottomBar, shell.bottomBarPad, shell.bottomNav)}
+      aria-label={t('ariaNav')}
+    >
+      {NAV_ITEMS.map((item) => {
+        const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+        const Icon = item.icon;
+        const label = t(item.labelKey);
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            prefetch
+            className={cn(shell.bottomNavItem, isActive && shell.bottomNavItemActive)}
+            aria-current={isActive ? 'page' : undefined}
+            title={label}
+          >
+            <span
+              className={cn(shell.bottomNavIconWell, isActive && shell.bottomNavIconWellActive)}
             >
-              <IconComponent className={bottomNavigationStyles.icon} aria-hidden />
-              <span className={bottomNavigationStyles.caption}>{label}</span>
-            </Link>
-          );
-        })}
-      </nav>
-    </div>
+              <Icon className={shell.bottomNavIcon} aria-hidden />
+            </span>
+            <span className={cn(shell.bottomNavLabel, isActive && shell.bottomNavLabelActive)}>
+              {label}
+            </span>
+          </Link>
+        );
+      })}
+    </nav>
   );
 }

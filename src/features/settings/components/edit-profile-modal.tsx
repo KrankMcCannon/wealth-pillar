@@ -9,6 +9,7 @@ import { ModalFooterActions } from '@/components/ui/modal-footer-actions';
 import { toast } from '@/hooks/use-toast';
 import { updateUserProfileAction } from '@/features/settings';
 import { useSettingsModalsContextOptional } from '@/features/settings/context/settings-modals-context';
+import { stitchSettings as s } from '@/styles/home-design-foundation';
 
 const createEditProfileSchema = (t: ReturnType<typeof useTranslations>) =>
   z.object({
@@ -59,6 +60,7 @@ export function EditProfileModal({
       defaultValues={defaultValues}
       resetValues={defaultValues}
       repositionInputs={false}
+      bodyClassName={s.modalFormBody}
       footer={(form) => (
         <ModalFooterActions
           variant="dual"
@@ -112,7 +114,7 @@ export function EditProfileModal({
       }}
     >
       {(form) => (
-        <>
+        <div className={s.formCard}>
           <ModalTextField
             control={form.control}
             name="name"
@@ -130,7 +132,7 @@ export function EditProfileModal({
             autoComplete="email"
             disabled={form.formState.isSubmitting}
           />
-        </>
+        </div>
       )}
     </EntityFormModal>
   );

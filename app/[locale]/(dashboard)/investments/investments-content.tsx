@@ -8,10 +8,10 @@ import { usePathname, useRouter } from '@/i18n/routing';
 import { HomeDashboardMain, PageFab } from '@/components/layout';
 import { usePageHeader } from '@/hooks/use-page-header';
 import UserSelector from '@/components/shared/user-selector';
+import { PageTabsSticky } from '@/components/shared/page-tabs';
 import { User } from '@/lib';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui';
 import { PersonalInvestmentTab } from '@/features/investments/components/personal-investment-tab';
-import { stitchInvestments, stitchTransactions } from '@/styles/home-design-foundation';
+import { stitchInvestments } from '@/styles/home-design-foundation';
 import { useModalState, useTabState } from '@/lib/navigation/url-state';
 import type { InvestmentsPageData } from '@/server/use-cases/pages/investments-page.use-case';
 
@@ -35,14 +35,8 @@ export default function InvestmentsContent({
   pageDataPromise,
 }: InvestmentsContentProps) {
   const pageData = use(pageDataPromise);
-  const {
-    summary,
-    assetAllocation,
-    portfolioHistory,
-    indexData,
-    currentIndex,
-    holdings,
-  } = pageData;
+  const { summary, assetAllocation, portfolioHistory, indexData, currentIndex, holdings } =
+    pageData;
 
   const t = useTranslations('InvestmentsContent');
   const tActionMenu = useTranslations('Header.ActionMenu');
@@ -79,50 +73,45 @@ export default function InvestmentsContent({
 
   return (
     <>
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex min-h-0 flex-col">
-        <div className={stitchTransactions.tabsStickyBar}>
-          <div className="flex flex-col gap-3 px-4 pt-1">
-            <UserSelector
-              hideTitle
-              currentUser={currentUser}
-              users={groupUsers}
-              value={selectedUser}
-              onChange={handleUserChange}
-            />
-            <TabsList className={stitchTransactions.tabsList} aria-label={t('mainLandmark')}>
-              <TabsTrigger className={stitchTransactions.tabsTrigger} value="personal">
-                {t('tabs.personal')}
-              </TabsTrigger>
-              <TabsTrigger className={stitchTransactions.tabsTrigger} value="sandbox">
-                {t('tabs.sandbox')}
-              </TabsTrigger>
-            </TabsList>
+      <PageTabsSticky
+        value={activeTab}
+        onValueChange={setActiveTab}
+        ariaLabel={t('mainLandmark')}
+        items={[
+          { value: 'personal', label: t('tabs.personal') },
+          { value: 'sandbox', label: t('tabs.sandbox') },
+        ]}
+        leading={
+          <UserSelector
+            hideTitle
+            currentUser={currentUser}
+            users={groupUsers}
+            value={selectedUser}
+            onChange={handleUserChange}
+          />
+        }
+      />
+
+      <HomeDashboardMain id="main-investments">
+        {activeTab === 'sandbox' ? (
+          <div className={stitchInvestments.mainStack}>
+            <Suspense fallback={null}>
+              <SandboxForecastTab />
+            </Suspense>
           </div>
-        </div>
-
-        <HomeDashboardMain id="main-investments" aria-label={t('mainLandmark')}>
-          <TabsContent value="personal" className="mt-0">
-            <div className={stitchInvestments.mainStack}>
-              <PersonalInvestmentTab
-                summary={summary}
-                assetAllocation={assetAllocation}
-                portfolioHistory={portfolioHistory}
-                indexData={indexData}
-                currentIndex={currentIndex}
-                holdings={holdings}
-              />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="sandbox" className="mt-0">
-            <div className={stitchInvestments.mainStack}>
-              <Suspense fallback={null}>
-                <SandboxForecastTab />
-              </Suspense>
-            </div>
-          </TabsContent>
-        </HomeDashboardMain>
-      </Tabs>
+        ) : (
+          <div className={stitchInvestments.mainStack}>
+            <PersonalInvestmentTab
+              summary={summary}
+              assetAllocation={assetAllocation}
+              portfolioHistory={portfolioHistory}
+              indexData={indexData}
+              currentIndex={currentIndex}
+              holdings={holdings}
+            />
+          </div>
+        )}
+      </HomeDashboardMain>
       <PageFab
         onClick={() => openModal('investment')}
         ariaLabel={tActionMenu('newInvestment')}

@@ -32,7 +32,6 @@ describe('TransactionRow', () => {
     render(
       <TransactionRow
         transaction={transaction}
-        accountNames={{ a1: 'Checking' }}
         getCategoryLabel={(key) => (key === 'food' ? 'Food' : key)}
         onEditTransaction={onEdit}
       />
@@ -41,7 +40,7 @@ describe('TransactionRow', () => {
     const row = screen.getByTestId('transaction-row-tx-1');
     expect(row.tagName).toBe('BUTTON');
     expect(screen.getByText('Lunch')).toBeInTheDocument();
-    expect(screen.getByText('Food · Checking')).toBeInTheDocument();
+    expect(screen.getByText('Food')).toBeInTheDocument();
     fireEvent.click(row);
     expect(onEdit).toHaveBeenCalledWith(transaction);
   });

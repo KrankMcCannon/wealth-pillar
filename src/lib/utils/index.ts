@@ -58,6 +58,7 @@ export {
   getUserFieldHelperText,
   filterByUserPermissions,
   requiresAdmin,
+  sortUsersByRole,
 } from './permissions';
 
 // String

@@ -1,14 +1,17 @@
 'use client';
 
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+  type RefObject,
+} from 'react';
 import { cn } from '@/lib/utils';
 
 /** App header is `fixed` + PageContainer `pt-[64px]`. */
 export const APP_HEADER_PX = 64;
-
-export function PageTabsBar({ children }: { children: ReactNode }) {
-  return <div className="px-4 pt-1 pb-1">{children}</div>;
-}
 
 export function StickyTotal({
   children,
@@ -54,7 +57,7 @@ export function StickyTotal({
       <div
         ref={barRef}
         className={cn(
-          'z-30 border-b border-border/22 bg-background/95 px-4 py-2 backdrop-blur-xl',
+          'z-30 border-b border-border/22 bg-background px-4 py-2',
           pinned ? 'fixed inset-x-0' : 'relative'
         )}
         style={pinned ? { top: APP_HEADER_PX } : undefined}

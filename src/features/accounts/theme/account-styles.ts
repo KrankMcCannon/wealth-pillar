@@ -54,7 +54,7 @@ export const accountStyles = {
     container: accountTokens.components.slider.container,
     inner: accountTokens.components.slider.inner,
     cardWrapper: accountTokens.components.slider.cardWrapper,
-    card: 'flex h-[4.125rem] w-max min-w-[8.75rem] shrink-0 flex-col justify-center rounded-lg border border-border/55 bg-card/80 px-2.5 py-0 shadow-sm backdrop-blur-[2px] overflow-hidden sm:min-w-[9rem] sm:px-3',
+    card: 'flex h-[4.125rem] w-max min-w-[8.75rem] shrink-0 flex-col justify-center rounded-lg border border-border/55 bg-card px-2.5 py-0 shadow-sm overflow-hidden sm:min-w-[9rem] sm:px-3',
     addPlaceholder: accountTokens.components.slider.addPlaceholder,
     addPromptIcon: accountTokens.components.slider.addPromptIcon,
     addPromptLabel: accountTokens.components.slider.addPromptLabel,

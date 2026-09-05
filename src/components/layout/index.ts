@@ -2,7 +2,6 @@
  * Layout Components - App-wide layouts
  */
 
-export * from './app-page';
 export * from './dashboard-shell';
 export * from './bottom-navigation';
 export * from './page-fab';

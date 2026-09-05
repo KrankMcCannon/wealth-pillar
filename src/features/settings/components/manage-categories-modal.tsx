@@ -12,7 +12,6 @@ import { useRequiredCurrentUser } from '@/hooks';
 import { useCategories, useUsedCategoryKeys } from '@/stores/reference-data-store';
 import { useModalState } from '@/lib/navigation/url-state';
 import { isSystemCategory } from '@/features/categories/utils/category-helpers';
-import { cn } from '@/lib/utils';
 
 export interface ManageCategoriesModalProps {
   isOpen: boolean;
@@ -47,16 +46,17 @@ export function ManageCategoriesModal({ isOpen, onClose }: Readonly<ManageCatego
       title={t('modalTitle')}
       description={t('modalDescription')}
     >
-      <ModalBody className="flex flex-col gap-4 pb-4">
+      <ModalBody className="flex flex-col gap-5 pb-4">
         <ModalSection title={t('customTitle')}>
           <div className={s.sectionCard}>
             <SettingsRow
               icon={<Plus className={s.rowIcon} aria-hidden />}
               label={t('addLabel')}
               onClick={() => openModal('category')}
+              divider={customCategories.length > 0}
             />
             {customCategories.length === 0 ? (
-              <p className="px-4 py-3 text-sm text-muted-foreground">{t('emptyCustom')}</p>
+              <p className={s.emptyHint}>{t('emptyCustom')}</p>
             ) : (
               customCategories.map((category, index) => {
                 const isUsed = usedSet.has(category.key);
@@ -65,6 +65,7 @@ export function ManageCategoriesModal({ isOpen, onClose }: Readonly<ManageCatego
                 return (
                   <SettingsRow
                     key={category.id}
+                    bareIcon
                     icon={
                       <CategoryBadge
                         categoryKey={category.icon}
@@ -78,7 +79,7 @@ export function ManageCategoriesModal({ isOpen, onClose }: Readonly<ManageCatego
                     divider={!isLast}
                     trailing={
                       isUsed ? (
-                        <Badge variant="secondary" className="shrink-0 text-[10px] uppercase">
+                        <Badge variant="secondary" className="shrink-0 text-xs font-medium">
                           {t('inUseBadge')}
                         </Badge>
                       ) : undefined
@@ -93,33 +94,28 @@ export function ManageCategoriesModal({ isOpen, onClose }: Readonly<ManageCatego
         <ModalSection title={t('systemTitle')}>
           <div className={s.sectionCard}>
             {systemCategories.length === 0 ? (
-              <p className="px-4 py-3 text-sm text-muted-foreground">{t('emptySystem')}</p>
+              <p className={s.emptyHint}>{t('emptySystem')}</p>
             ) : (
               systemCategories.map((category, index) => {
                 const isLast = index === systemCategories.length - 1;
 
                 return (
-                  <div
+                  <SettingsRow
                     key={category.id}
-                    className={cn(
-                      s.row,
-                      !isLast && s.rowDivider,
-                      'cursor-default hover:bg-transparent'
-                    )}
-                  >
-                    <div className={s.rowLeft}>
-                      <div className={s.rowIconWrap}>
-                        <CategoryBadge
-                          categoryKey={category.icon}
-                          color={category.color}
-                          size="xs"
-                          className="size-8 rounded-lg"
-                        />
-                      </div>
-                      <span className={s.rowLabel}>{category.label}</span>
-                    </div>
-                    <Tag className="size-4 shrink-0 text-muted-foreground/60" aria-hidden />
-                  </div>
+                    bareIcon
+                    icon={
+                      <CategoryBadge
+                        categoryKey={category.icon}
+                        color={category.color}
+                        size="xs"
+                        className="size-8 rounded-lg"
+                      />
+                    }
+                    label={category.label}
+                    showChevron={false}
+                    divider={!isLast}
+                    trailing={<Tag className="size-4 shrink-0 text-muted-foreground" aria-hidden />}
+                  />
                 );
               })
             )}

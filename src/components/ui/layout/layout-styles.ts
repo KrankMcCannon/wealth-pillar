@@ -10,8 +10,8 @@ export const layoutStyles = {
     actions: 'flex items-center gap-2',
     surface: {
       plain: 'bg-transparent',
-      card: 'bg-card border border-primary/15 rounded-2xl',
-      muted: 'bg-card/40 border border-border/60 rounded-2xl backdrop-blur-sm',
+      card: 'bg-card border border-border/20 rounded-2xl',
+      muted: 'bg-muted border border-border/60 rounded-2xl',
     },
     padding: {
       none: '',
@@ -29,6 +29,6 @@ export const layoutStyles = {
     base: 'w-full flex items-center justify-between gap-3',
     static: 'mt-auto px-4 py-3 pb-[calc(theme(spacing.3)+env(safe-area-inset-bottom))]',
     sticky:
-      'sticky bottom-0 bg-card/90 backdrop-blur border-t border-primary/15 px-4 py-3 pb-[calc(theme(spacing.3)+env(safe-area-inset-bottom))]',
+      'sticky bottom-0 bg-card border-t border-border/22 px-4 py-3 pb-[calc(theme(spacing.3)+env(safe-area-inset-bottom))]',
   },
 } as const;

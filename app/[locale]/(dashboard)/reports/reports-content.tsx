@@ -147,11 +147,21 @@ export default function ReportsContent({
           setCustomRange({ start, end });
           pushTimeParams({ preset: 'custom', customStart: start, customEnd: end });
         }}
-      />
+      >
+        <UserSelector
+          hideTitle
+          currentUser={currentUser}
+          users={groupUsers}
+          value={userSelectorValue}
+          onChange={handleScopeChange}
+          showAllOption
+        />
+      </ReportsTimeFilter>
 
       <HomeDashboardMain
         id="main-reports"
-        {...(isPending ? { className: 'opacity-70 transition-opacity' } : {})}
+        ariaBusy={isPending}
+        className={isPending ? 'pt-2 opacity-70 transition-opacity' : 'pt-2'}
       >
         <div className={stitchReports.sectionStack}>
           {data.transactionsTruncated ? (
@@ -159,15 +169,6 @@ export default function ReportsContent({
               {t('incompleteData')}
             </p>
           ) : null}
-
-          <UserSelector
-            hideTitle
-            currentUser={currentUser}
-            users={groupUsers}
-            value={userSelectorValue}
-            onChange={handleScopeChange}
-            showAllOption
-          />
 
           <ReportsHero
             netFlow={section.netFlow}

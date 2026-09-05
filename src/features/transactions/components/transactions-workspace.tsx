@@ -2,47 +2,63 @@
 
 import { Suspense } from 'react';
 import { useTranslations } from 'next-intl';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui';
-import { stitchTransactions } from '@/styles/home-design-foundation';
+import { PageTabsSticky } from '@/components/shared/page-tabs';
+import UserSelector from '@/components/shared/user-selector';
+import type { RecurringTransactionSeries, User } from '@/lib/types';
 import { TransactionsLedger } from './transactions-ledger';
 import { RecurringLedgerFallback, RecurringLedgerWithSeries } from './recurring-ledger';
 import type { RecurringLedgerProps, TransactionsLedgerProps } from './transactions-workspace-props';
-import type { RecurringTransactionSeries } from '@/lib/types';
 
 export function TransactionsWorkspace({
   activeTab,
   onTabChange,
+  currentUser,
+  groupUsers,
+  selectedUserId,
+  onUserFilterChange,
   seriesPromise,
   recurring,
   ledger,
 }: {
   activeTab: string;
   onTabChange: (tab: string) => void;
+  currentUser: User;
+  groupUsers: User[];
+  selectedUserId: string | undefined;
+  onUserFilterChange: (userId: string) => void;
   seriesPromise: Promise<RecurringTransactionSeries[]>;
-  ledger: Omit<TransactionsLedgerProps, 'tabs'>;
-  recurring: Omit<RecurringLedgerProps, 'tabs' | 'series'>;
+  ledger: TransactionsLedgerProps;
+  recurring: Omit<RecurringLedgerProps, 'series'>;
 }) {
   const t = useTranslations('TransactionsContent');
-  const tabs = (
-    <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
-      <TabsList className={stitchTransactions.tabsList} aria-label={t('tabsAria')}>
-        <TabsTrigger className={stitchTransactions.tabsTrigger} value="Transactions">
-          {t('tabs.transactions')}
-        </TabsTrigger>
-        <TabsTrigger className={stitchTransactions.tabsTrigger} value="Recurrent">
-          {t('tabs.recurrent')}
-        </TabsTrigger>
-      </TabsList>
-    </Tabs>
+
+  return (
+    <>
+      <PageTabsSticky
+        value={activeTab}
+        onValueChange={onTabChange}
+        ariaLabel={t('tabsAria')}
+        items={[
+          { value: 'Transactions', label: t('tabs.transactions') },
+          { value: 'Recurrent', label: t('tabs.recurrent') },
+        ]}
+        leading={
+          <UserSelector
+            hideTitle
+            currentUser={currentUser}
+            users={groupUsers}
+            value={selectedUserId ?? 'all'}
+            onChange={onUserFilterChange}
+          />
+        }
+      />
+      {activeTab === 'Recurrent' ? (
+        <Suspense fallback={<RecurringLedgerFallback />}>
+          <RecurringLedgerWithSeries {...recurring} seriesPromise={seriesPromise} />
+        </Suspense>
+      ) : (
+        <TransactionsLedger {...ledger} />
+      )}
+    </>
   );
-
-  if (activeTab === 'Recurrent') {
-    return (
-      <Suspense fallback={<RecurringLedgerFallback tabs={tabs} />}>
-        <RecurringLedgerWithSeries {...recurring} tabs={tabs} seriesPromise={seriesPromise} />
-      </Suspense>
-    );
-  }
-
-  return <TransactionsLedger {...ledger} tabs={tabs} />;
 }

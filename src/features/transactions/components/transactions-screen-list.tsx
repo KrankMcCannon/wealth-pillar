@@ -13,7 +13,6 @@ import { Button, Spinner } from '@/components/ui';
 
 export interface TransactionsScreenListProps {
   transactions: Transaction[];
-  accountNames: Record<string, string>;
   categories: Category[];
   hasMore: boolean;
   isLoadingMore: boolean;
@@ -38,7 +37,6 @@ function ListSkeleton() {
 
 function TransactionsScreenListInner({
   transactions,
-  accountNames,
   categories,
   hasMore,
   isLoadingMore,
@@ -115,7 +113,6 @@ function TransactionsScreenListInner({
               total: group.net,
               count: group.transactions.length,
             }))}
-            accountNames={accountNames}
             categories={categories}
             className="flex flex-col gap-5"
             onEditTransaction={onEditTransaction}

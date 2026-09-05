@@ -48,6 +48,9 @@ function mapOverviewToHoldings(rows: EnrichedInvestment[]): InvestmentListItem[]
       tax_paid: row.tax_paid,
       totalPaid: row.totalPaid,
       net_earn: row.net_earn,
+      currentPrice: row.currentPrice,
+      currentValue: row.currentValue,
+      totalGain: row.totalGain,
       created_at: row.created_at,
     }));
 }

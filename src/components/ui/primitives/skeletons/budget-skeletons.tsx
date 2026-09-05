@@ -4,7 +4,7 @@ import { HomeDashboardMain } from '@/components/layout/home-dashboard-layout';
 import { stitchBudgets } from '@/styles/home-design-foundation';
 
 export const BudgetCardSkeleton = () => (
-  <div className="rounded-xl border border-border/25 bg-card/90 p-4">
+  <div className="rounded-xl border border-border/25 bg-card p-4">
     <div className="flex items-center justify-between gap-2">
       <div className="flex items-center gap-2.5">
         <Skeleton className="size-10 shrink-0 rounded-full" />
@@ -52,7 +52,7 @@ export const TransactionListSkeleton = () => (
     count={4}
     spacing="flex flex-col gap-3"
     renderItem={() => (
-      <div className="rounded-xl border border-border/25 bg-card/90 p-3">
+      <div className="rounded-xl border border-border/25 bg-card p-3">
         <div className="flex items-center gap-3">
           <Skeleton className="size-10 shrink-0 rounded-xl" />
           <div className="min-w-0 flex-1 flex flex-col gap-2">
@@ -72,7 +72,7 @@ export const TransactionListSkeleton = () => (
 export const BudgetPageSkeleton = () => (
   <HomeDashboardMain id="main-budgets-skeleton">
     <div className={stitchBudgets.mainStack}>
-      <Skeleton className="h-11 w-full rounded-full" />
+      <Skeleton className="h-8 w-full rounded-full" />
       <div className={stitchBudgets.periodHeader}>
         <Skeleton className="h-4 w-36" />
         <Skeleton className="size-11 rounded-lg" />
@@ -80,10 +80,7 @@ export const BudgetPageSkeleton = () => (
       <div className={stitchBudgets.heroSection}>
         <Skeleton className="h-3 w-40" />
         <Skeleton className="mt-2 h-8 w-48" />
-        <div className="mt-4 grid grid-cols-2 gap-2">
-          <Skeleton className="h-16 rounded-xl" />
-          <Skeleton className="h-16 rounded-xl" />
-        </div>
+        <Skeleton className="mt-2 h-4 w-56" />
       </div>
       <BudgetListSkeleton />
       <div className={stitchBudgets.detailChartCard}>

@@ -1,14 +1,6 @@
 'use client';
 
-import { use, useCallback, useMemo, useState } from 'react';
-import { useTranslations } from 'next-intl';
-import {
-  Drawer,
-  DrawerContent,
-  DrawerDescription,
-  DrawerHeader,
-  DrawerTitle,
-} from '@/components/ui';
+import { use, useMemo } from 'react';
 import { HomeDashboardMain } from '@/components/layout';
 import { usePageHeader } from '@/hooks/use-page-header';
 import { useDashboardContent } from '@/features/dashboard';
@@ -44,11 +36,6 @@ export default function HomeContent({
     },
   } = dashboardData;
 
-  const t = useTranslations('HomeContent');
-  const [userPickerOpen, setUserPickerOpen] = useState(false);
-
-  const openUserPicker = useCallback(() => setUserPickerOpen(true), []);
-
   const {
     isMember,
     selectedGroupFilter,
@@ -63,12 +50,8 @@ export default function HomeContent({
     balanceViewModel,
   });
 
-  const showUserPicker =
-    (currentUser.role === 'admin' || currentUser.role === 'superadmin') && groupUsers.length > 1;
-
   usePageHeader({
     isDashboard: true,
-    ...(showUserPicker ? { onAvatarClick: openUserPicker } : {}),
   });
 
   const recurringSeriesUserId = selectedGroupFilter === 'all' ? undefined : effectiveUserId;
@@ -90,35 +73,21 @@ export default function HomeContent({
   const selectedViewUserId = isMember ? currentUser.id : selectedUserId;
 
   return (
-    <>
-      {showUserPicker ? (
-        <Drawer open={userPickerOpen} onOpenChange={setUserPickerOpen}>
-          <DrawerContent>
-            <DrawerHeader>
-              <DrawerTitle>{t('userPickerTitle')}</DrawerTitle>
-              <DrawerDescription className="sr-only">
-                {t('userPickerDescription')}
-              </DrawerDescription>
-            </DrawerHeader>
-            <UserSelector currentUser={currentUser} users={groupUsers} hideTitle />
-          </DrawerContent>
-        </Drawer>
-      ) : null}
-      <HomeDashboardMain className="gap-0 pt-3">
-        <HomeBriefing
-          spendableBalance={spendableBalance}
-          reserveBalance={reserveBalance}
-          selectedUserId={selectedUserId}
-          budgetsByUser={budgetsByUser}
-          selectedViewUserId={selectedViewUserId}
-          recurringSeries={recurringSeries}
-          recurringFilterUserId={recurringFilterUserId}
-          recentTransactions={recentTransactions}
-          categories={categories}
-          onEditRecurringSeries={handleEditRecurringSeries}
-          onEditTransaction={handleEditTransaction}
-        />
-      </HomeDashboardMain>
-    </>
+    <HomeDashboardMain className="pt-1">
+      <UserSelector currentUser={currentUser} users={groupUsers} hideTitle />
+      <HomeBriefing
+        spendableBalance={spendableBalance}
+        reserveBalance={reserveBalance}
+        selectedUserId={selectedUserId}
+        budgetsByUser={budgetsByUser}
+        selectedViewUserId={selectedViewUserId}
+        recurringSeries={recurringSeries}
+        recurringFilterUserId={recurringFilterUserId}
+        recentTransactions={recentTransactions}
+        categories={categories}
+        onEditRecurringSeries={handleEditRecurringSeries}
+        onEditTransaction={handleEditTransaction}
+      />
+    </HomeDashboardMain>
   );
 }

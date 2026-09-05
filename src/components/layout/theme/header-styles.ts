@@ -5,10 +5,6 @@ export const headerStyles = {
   slotLeft: 'flex flex-1 items-center justify-start',
   slotCenter: 'flex shrink-0 items-center justify-center px-2',
   slotRight: 'flex flex-1 items-center justify-end',
-  avatar:
-    'flex h-9 w-9 min-h-11 min-w-11 items-center justify-center rounded-full border border-primary/20 bg-primary/10 text-sm font-semibold text-primary',
-  avatarButton:
-    'flex min-h-11 min-w-11 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
   appName: 'text-base font-semibold text-foreground',
   pageTitle: 'text-base font-semibold text-foreground',
   backButton:

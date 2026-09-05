@@ -45,4 +45,27 @@ describe('ModalTextField', () => {
     expect(input).toHaveClass('w-0', 'flex-1', 'text-right');
     expect(screen.getByText('Quote acquisite')).toHaveClass('max-w-[70%]');
   });
+
+  it('uses a full-width start-aligned input when layout is plain', () => {
+    function PlainForm() {
+      const form = useForm({ defaultValues: { email: '' } });
+      return (
+        <form>
+          <ModalTextField
+            control={form.control}
+            name="email"
+            layout="plain"
+            label="Email"
+            placeholder="Email"
+          />
+        </form>
+      );
+    }
+
+    render(<PlainForm />);
+    const input = screen.getByPlaceholderText('Email');
+    expect(input).toHaveClass('text-left');
+    expect(input).not.toHaveClass('text-right');
+    expect(screen.getByText('Email')).toHaveClass('sr-only');
+  });
 });

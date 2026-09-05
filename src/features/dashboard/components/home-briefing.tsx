@@ -56,9 +56,9 @@ export function HomeBriefing({
 
   return (
     <div className="flex flex-col gap-5">
-      <header className="flex flex-col gap-1">
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+      <section className={stitchHome.balanceSection} aria-labelledby="home-spendable-heading">
+        <div className={stitchHome.scanSectionHeader}>
+          <p id="home-spendable-heading" className={stitchHome.sectionEyebrow}>
             {t('spendableLabel')}
           </p>
           <Link
@@ -78,14 +78,14 @@ export function HomeBriefing({
             size="2xl"
             emphasis="strong"
             className={cn(
-              'text-[2.75rem] leading-none tracking-[-0.04em]',
-              isNegative ? 'text-expense' : 'text-primary'
+              isNegative ? stitchHome.balanceHeroNegative : stitchHome.balanceHero,
+              'text-[2.75rem]'
             )}
           >
             {spendableBalance}
           </Amount>
           {reserveBalance !== 0 ? (
-            <p className="text-sm text-muted-foreground">
+            <p className={stitchHome.rowMeta}>
               {t('reserveLabel')}:{' '}
               <Amount type="balance" size="sm" className="inline text-foreground">
                 {reserveBalance}
@@ -93,7 +93,7 @@ export function HomeBriefing({
             </p>
           ) : null}
         </Link>
-      </header>
+      </section>
 
       <BudgetSection budgetsByUser={budgetsByUser} selectedViewUserId={selectedViewUserId} />
 

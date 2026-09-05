@@ -59,7 +59,7 @@ export const iconPickerStyles = {
   popoverContent: 'flex w-[calc(100vw-40px)] max-w-[450px] flex-col bg-modal-surface p-0',
 
   dialogOverlay:
-    'fixed inset-0 z-50 bg-[oklch(12%_0.01_250)]/60 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
+    'fixed inset-0 z-50 bg-foreground/55 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
   dialogContent:
     'modal-chrome fixed top-1/2 left-1/2 z-50 flex w-[calc(100vw-40px)] max-w-[500px] -translate-x-1/2 -translate-y-1/2 flex-col rounded-2xl border border-modal-border/40 bg-modal-surface shadow-2xl duration-300 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95',
   dialogHandle: 'mx-auto mt-3 mb-2 h-1.5 w-16 shrink-0 rounded-full bg-modal-handle/35',

@@ -3,8 +3,8 @@
 import type { ReportPeriodSummary } from '@/server/use-cases/reports/reports.use-cases';
 import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
-import { stitchReports } from '@/styles/home-design-foundation';
-import { BudgetPeriodCard } from './budget-period-card';
+import { stitchHome, stitchReports } from '@/styles/home-design-foundation';
+import { useFormatCurrency } from '@/features/reports/hooks/use-format-currency';
 
 interface BudgetPeriodSectionProps {
   periods: ReportPeriodSummary[];
@@ -12,28 +12,44 @@ interface BudgetPeriodSectionProps {
 
 export function BudgetPeriodSection({ periods }: BudgetPeriodSectionProps) {
   const t = useTranslations('Reports.BudgetPeriods');
-
-  if (periods.length === 0) {
-    return (
-      <section aria-labelledby="reports-budget-periods-heading">
-        <h3 id="reports-budget-periods-heading" className={cn(stitchReports.sectionTitle, 'mb-3')}>
-          {t('title')}
-        </h3>
-        <div className={stitchReports.emptyWell}>{t('empty')}</div>
-      </section>
-    );
-  }
+  const { format: formatMoney } = useFormatCurrency();
 
   return (
-    <section aria-labelledby="reports-budget-periods-heading">
-      <h3 id="reports-budget-periods-heading" className={cn(stitchReports.sectionTitle, 'mb-3')}>
+    <section aria-labelledby="reports-budget-periods-heading" className={stitchHome.scanSection}>
+      <h3 id="reports-budget-periods-heading" className={stitchHome.scanSectionTitle}>
         {t('title')}
       </h3>
-      <div className="flex flex-col gap-2">
-        {periods.map((p) => (
-          <BudgetPeriodCard key={p.id} period={p} />
-        ))}
-      </div>
+      {periods.length === 0 ? (
+        <div className={stitchReports.emptyWell}>{t('empty')}</div>
+      ) : (
+        <ul className={stitchHome.plainList}>
+          {periods.map((period) => {
+            const delta = period.spendable.endBalance - period.spendable.startBalance;
+            const positive = delta >= 0;
+            return (
+              <li key={period.id} className={stitchHome.plainRow}>
+                <span className="min-w-0">
+                  <h4 className={stitchHome.plainRowTitle}>{period.name}</h4>
+                  <span className={stitchHome.plainRowMeta}>
+                    {formatMoney(period.spendable.startBalance)}
+                    {' → '}
+                    {formatMoney(period.spendable.endBalance)}
+                  </span>
+                </span>
+                <span
+                  className={cn(
+                    'shrink-0 text-base font-semibold tabular-nums',
+                    positive ? 'text-income' : 'text-expense'
+                  )}
+                >
+                  {positive ? '+' : ''}
+                  {formatMoney(delta)}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </section>
   );
 }

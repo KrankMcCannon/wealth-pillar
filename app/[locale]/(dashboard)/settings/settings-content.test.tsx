@@ -39,13 +39,6 @@ vi.mock('@/hooks/use-page-header', () => ({
   usePageHeader: vi.fn(),
 }));
 
-vi.mock('@/components/layout', () => ({
-  toAppPageHeaderUser: (user: { name?: string; role?: string }) => ({
-    name: user.name,
-    role: user.role,
-  }),
-}));
-
 vi.mock('@/features/settings/context/settings-modals-context', () => ({
   SettingsModalsProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));

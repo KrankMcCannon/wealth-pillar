@@ -151,6 +151,7 @@ describe('getBudgetDetailPageData', () => {
     expect(data.categoryBreakdown[0]?.key).toBe('food');
     expect(data.categoryBreakdown[0]?.spent).toBe(100);
     expect(data.groupedTransactions).toHaveLength(1);
+    expect(data.groupedTransactions[0]?.total).toBe(-100);
     expect(getTransactionsByUserUseCase).toHaveBeenCalledWith(
       'user-1',
       expect.objectContaining({
@@ -188,5 +189,17 @@ describe('getBudgetDetailPageData', () => {
       'NOT_FOUND'
     );
     expect(notFound).toHaveBeenCalled();
+  });
+
+  it('stores daily net as income minus expenses', async () => {
+    const txDate = luxonToday().toISODate() ?? '';
+    vi.mocked(getTransactionsByUserUseCase).mockResolvedValue([
+      tx({ id: 'in', type: 'income', amount: 9.89, category: 'food', date: txDate }),
+      tx({ id: 'out', type: 'expense', amount: 0.8, category: 'food', date: txDate }),
+    ]);
+
+    const data = await getBudgetDetailPageData('group-1', 'b-1', owner);
+
+    expect(data.groupedTransactions[0]?.total).toBeCloseTo(9.09);
   });
 });

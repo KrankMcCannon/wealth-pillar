@@ -1,7 +1,6 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { toAppPageHeaderUser } from '@/components/layout';
 import { usePageHeader } from '@/hooks/use-page-header';
 import { useRouter } from '@/i18n/routing';
 import { stitchSettings } from '@/styles/home-design-foundation';
@@ -46,16 +45,7 @@ export default function SettingsContent({
 
   const router = useRouter();
 
-  const settingsHeaderUser = {
-    ...toAppPageHeaderUser(currentUser),
-    role:
-      currentUser.role === 'superadmin' || currentUser.role === 'admin'
-        ? 'admin'
-        : ((currentUser.role || 'member') as 'admin' | 'member'),
-  };
-
   usePageHeader({
-    headerUser: settingsHeaderUser,
     title: t('headerTitle'),
     showBack: true,
     isDashboard: false,

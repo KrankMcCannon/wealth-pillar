@@ -44,8 +44,8 @@ function groupTransactionsByDay(transactions: Transaction[]): GroupedBudgetTrans
         return dtB.toMillis() - dtA.toMillis();
       }),
       total: txs.reduce((sum, tx) => {
-        if (tx.type === 'income') return sum - tx.amount;
-        if (tx.type === 'expense') return sum + tx.amount;
+        if (tx.type === 'income') return sum + tx.amount;
+        if (tx.type === 'expense') return sum - tx.amount;
         return sum;
       }, 0),
     }));
