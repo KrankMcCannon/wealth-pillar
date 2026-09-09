@@ -1,6 +1,5 @@
 'use server';
 
-import { revalidateBudgetRelatedPaths } from '@/lib/cache/revalidation-paths';
 import { getTranslations } from 'next-intl/server';
 import { runAuthorizedMutation } from '@/lib/server-action/run-authorized-mutation';
 
@@ -63,18 +62,9 @@ export async function createBudgetAction(
       };
     }
 
-    // Resolve group_id (BudgetService handles default logic but we can do it here explicitly if needed)
-    // BudgetService.createBudget handles permission/group resolution too, but we keep this action as a wrapper
-    // Actually, let's delegate to service which now has robust validation
-
-    // We can just call createBudgetUseCase - it handles validation.
-    // However, the action is responsible for revalidating paths that might not be known to service (though service does tags)
-
     const budget = await createBudgetUseCase(input);
 
     if (budget) {
-      revalidateBudgetRelatedPaths();
-
       return { data: budget, error: null };
     }
 
@@ -145,8 +135,6 @@ export async function updateBudgetAction(
     const budget = await updateBudgetUseCase(id, input);
 
     if (budget) {
-      revalidateBudgetRelatedPaths();
-
       return { data: budget, error: null };
     }
 
@@ -216,7 +204,6 @@ export async function deleteBudgetAction(
       if (!result) {
         throw new Error(t('errors.deleteFailed'));
       }
-      revalidateBudgetRelatedPaths();
       return { id };
     },
     formatError: (error) => (error instanceof Error ? error.message : t('errors.deleteFailed')),

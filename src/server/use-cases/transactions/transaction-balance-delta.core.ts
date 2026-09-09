@@ -1,3 +1,5 @@
+import { roundMoney } from '@/lib/utils/money';
+
 export type BalanceAdjustableRow = {
   amount: string | number | null;
   type: string | null;
@@ -25,4 +27,13 @@ export function computeBalanceDeltas(
   }
 
   return deltas;
+}
+
+/** Rebuild stored account balance from all related transactions (ignores the current stored total). */
+export function sumAccountBalanceFromRows(accountId: string, rows: BalanceAdjustableRow[]): number {
+  let balance = 0;
+  for (const row of rows) {
+    balance += computeBalanceDeltas(row, 1).get(accountId) ?? 0;
+  }
+  return roundMoney(balance);
 }

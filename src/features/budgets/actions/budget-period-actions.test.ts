@@ -2,10 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { editClosingDateAction, getLatestClosedPeriodAction } from './budget-period-actions';
 import type { BudgetPeriod, User } from '@/lib/types';
 
-vi.mock('@/lib/cache/revalidation-paths', () => ({
-  revalidateBudgetPeriodRelatedPaths: vi.fn(),
-}));
-
 vi.mock('@/lib/auth/cached-auth', () => ({
   getCurrentUser: vi.fn(),
 }));

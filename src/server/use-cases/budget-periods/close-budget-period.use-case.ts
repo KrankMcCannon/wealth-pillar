@@ -6,6 +6,7 @@ import { createBudgetPeriodUseCase } from './create-budget-period.use-case';
 import { DateTime } from 'luxon';
 import { revalidateTag } from 'next/cache';
 import { CACHE_TAGS } from '@/lib/cache/config';
+import { invalidateBudgetPeriodCaches } from '@/lib/utils/cache-utils';
 import { getTransactionsByUserUseCase } from '../transactions/get-transactions.use-case';
 import {
   computePeriodLiquidityAmounts,
@@ -66,6 +67,7 @@ export const closeBudgetPeriodUseCase = async (
   });
 
   revalidateTag(CACHE_TAGS.USER_PREFERENCE(userId), 'max');
+  invalidateBudgetPeriodCaches({ userId, periodId });
 
   await autoCreateNextPeriod(userId, endDt);
 

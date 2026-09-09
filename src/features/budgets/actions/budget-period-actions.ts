@@ -1,6 +1,5 @@
 'use server';
 
-import { revalidateBudgetPeriodRelatedPaths } from '@/lib/cache/revalidation-paths';
 import { getTranslations } from 'next-intl/server';
 import {
   denyUnlessCanViewUser,
@@ -69,8 +68,6 @@ export async function startPeriodAction(
     // Create new period
     const result = await createBudgetPeriodUseCase(userId, startDate);
 
-    revalidateBudgetPeriodRelatedPaths();
-
     return { data: result, error: null };
   } catch (error) {
     return {
@@ -110,7 +107,6 @@ export async function closePeriodAction(
     const result = await closeBudgetPeriodUseCase(userId, periodId, endDate);
 
     if (result) {
-      revalidateBudgetPeriodRelatedPaths();
       return { data: result, error: null };
     }
 
@@ -149,8 +145,6 @@ export async function editClosingDateAction(
     if (isAuthDenial(auth)) return auth;
 
     const result = await editBudgetPeriodClosingDateUseCase(userId, periodId, newEndDate);
-
-    revalidateBudgetPeriodRelatedPaths();
 
     return { data: result.closedPeriod, error: null };
   } catch (error) {
@@ -236,8 +230,6 @@ export async function deletePeriodAction(
 
     // Delete period
     await deleteBudgetPeriodUseCase(userId, periodId);
-
-    revalidateBudgetPeriodRelatedPaths();
 
     return { data: { id: periodId }, error: null };
   } catch (error) {

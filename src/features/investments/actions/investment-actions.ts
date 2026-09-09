@@ -1,6 +1,5 @@
 'use server';
 
-import { revalidateInvestmentRelatedPaths } from '@/lib/cache/revalidation-paths';
 import { invalidateInvestmentCaches } from '@/lib/utils/cache-utils';
 import { getCurrentUser } from '@/lib/auth/cached-auth';
 import * as useCases from '@/server/use-cases';
@@ -10,14 +9,6 @@ import type { ServiceResult } from '@/lib/types/service-result';
 
 type InvestmentInsert = Database['public']['Tables']['investments']['Insert'];
 type InvestmentRow = typeof investments.$inferSelect;
-
-function invalidateAfterInvestmentMutation(groupId: string | null | undefined, userId: string) {
-  if (groupId) {
-    invalidateInvestmentCaches({ groupId, userId });
-  } else {
-    revalidateInvestmentRelatedPaths();
-  }
-}
 
 export async function getInvestmentByIdAction(id: string): Promise<ServiceResult<InvestmentRow>> {
   try {
@@ -66,7 +57,7 @@ export async function updateInvestmentAction(input: {
 
     if (!updated) return { data: null, error: 'NOT_FOUND' };
 
-    invalidateAfterInvestmentMutation(currentUser.group_id, currentUser.id);
+    invalidateInvestmentCaches({ groupId: currentUser.group_id, userId: currentUser.id });
     return { data: updated, error: null };
   } catch (error) {
     console.error('Error updating investment:', error);
@@ -110,7 +101,7 @@ export async function createInvestmentAction(
 
     if (!data) return { data: null, error: 'Failed to create investment' };
 
-    invalidateAfterInvestmentMutation(currentUser.group_id, currentUser.id);
+    invalidateInvestmentCaches({ groupId: currentUser.group_id, userId: currentUser.id });
 
     return { data, error: null };
   } catch (error) {

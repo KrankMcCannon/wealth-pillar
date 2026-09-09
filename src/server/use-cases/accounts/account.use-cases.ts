@@ -10,6 +10,8 @@ import {
 } from '@/lib/utils/validation-utils';
 import { invalidateAccountCaches } from '@/lib/utils/cache-utils';
 import { deleteTransactionsByAccountUseCase } from '@/server/use-cases/transactions/delete-transaction.use-case';
+import { TransactionsRepository } from '@/server/repositories/transactions.repository';
+import { sumAccountBalanceFromRows } from '@/server/use-cases/transactions/transaction-balance-delta.core';
 import type { Account, AccountLiquidity } from '@/lib/types';
 import { defaultLiquidityForType } from '@/lib/utils/account-classification';
 
@@ -150,6 +152,26 @@ export const updateAccountUseCase = async (
   }
 
   const account = await AccountsRepository.update(accountId, updatePayload);
+
+  if (!account) throw new Error('Failed to update account');
+
+  invalidateAccountCaches({
+    accountId,
+    groupId: account.group_id ?? undefined,
+    userIds: account.user_ids,
+  });
+
+  return serialize(serializeAccountRow(account));
+};
+
+export const recalculateAccountBalanceUseCase = async (accountId: string): Promise<Account> => {
+  validateId(accountId, 'Account ID');
+
+  const rows = await TransactionsRepository.getByAccount(accountId);
+  const balance = sumAccountBalanceFromRows(accountId, rows);
+  const account = await AccountsRepository.update(accountId, {
+    balance: balance.toFixed(2),
+  });
 
   if (!account) throw new Error('Failed to update account');
 

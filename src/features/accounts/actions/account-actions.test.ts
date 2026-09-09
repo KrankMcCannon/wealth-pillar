@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { updateAccountAction, deleteAccountAction } from './account-actions';
+import {
+  updateAccountAction,
+  deleteAccountAction,
+  recalculateAccountBalanceAction,
+} from './account-actions';
 import type { Account, User } from '@/lib/types';
-
-vi.mock('@/lib/cache/revalidation-paths', () => ({
-  revalidateAccountRelatedPaths: vi.fn(),
-}));
 
 vi.mock('next-intl/server', () => ({
   getTranslations: vi.fn(async () => (key: string) => key),
@@ -18,6 +18,7 @@ vi.mock('@/server/use-cases/accounts/account.use-cases', () => ({
   getAccountByIdUseCase: vi.fn(),
   updateAccountUseCase: vi.fn(),
   deleteAccountUseCase: vi.fn(),
+  recalculateAccountBalanceUseCase: vi.fn(),
 }));
 
 import { getCurrentUser } from '@/lib/auth/cached-auth';
@@ -25,6 +26,7 @@ import {
   getAccountByIdUseCase,
   updateAccountUseCase,
   deleteAccountUseCase,
+  recalculateAccountBalanceUseCase,
 } from '@/server/use-cases/accounts/account.use-cases';
 
 const member = {
@@ -69,5 +71,13 @@ describe('account-actions member access', () => {
     expect(result.data).toBeNull();
     expect(result.error).toBe('errors.noPermissionDelete');
     expect(deleteAccountUseCase).not.toHaveBeenCalled();
+  });
+
+  it('recalculateAccountBalanceAction denies member recalculating another user account', async () => {
+    const result = await recalculateAccountBalanceAction('a2');
+
+    expect(result.data).toBeNull();
+    expect(result.error).toBe('errors.noPermissionUpdate');
+    expect(recalculateAccountBalanceUseCase).not.toHaveBeenCalled();
   });
 });

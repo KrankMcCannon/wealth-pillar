@@ -45,7 +45,9 @@ export default function AccountsContent({
     sortedAccounts,
     filteredBalances,
     handleEditAccount,
+    handleRecalculateAccount,
     handleUserFilterChange,
+    recalculatingId,
     openModal,
   } = useAccountsContent({
     accountBalances,
@@ -118,6 +120,8 @@ export default function AccountsContent({
         accounts={sortedAccounts}
         accountBalances={filteredBalances}
         onAccountClick={handleEditAccount}
+        onRecalculateAccount={handleRecalculateAccount}
+        recalculatingId={recalculatingId}
         onAddAccount={onAddAccount}
       />
     </HomeDashboardMain>

@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { invalidateTransactionCaches, invalidateTransactionUpdateCaches } from './cache-utils';
+import {
+  invalidateInvestmentCaches,
+  invalidateTransactionCaches,
+  invalidateTransactionUpdateCaches,
+} from './cache-utils';
 import { revalidatePath, revalidateTag } from 'next/cache';
 
 vi.mock('next/cache', () => ({
@@ -56,6 +60,22 @@ describe('invalidateTransactionUpdateCaches', () => {
     expect(tags).toContain('account:a3');
     expect(tags).toContain('group:g1:accounts');
     expect(tags).toContain('transaction:t1');
+    expect(revalidatePath).not.toHaveBeenCalled();
+  });
+});
+
+describe('invalidateInvestmentCaches', () => {
+  beforeEach(() => {
+    vi.mocked(revalidateTag).mockClear();
+    vi.mocked(revalidatePath).mockClear();
+  });
+
+  it('invalidates investment tags without revalidatePath', () => {
+    invalidateInvestmentCaches({ groupId: 'g1', userId: 'u1' });
+
+    const tags = vi.mocked(revalidateTag).mock.calls.map((c) => c[0]);
+    expect(tags).toContain('group:g1:investments');
+    expect(tags).toContain('user:u1:investments');
     expect(revalidatePath).not.toHaveBeenCalled();
   });
 });

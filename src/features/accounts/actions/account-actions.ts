@@ -1,6 +1,5 @@
 'use server';
 
-import { revalidateAccountRelatedPaths } from '@/lib/cache/revalidation-paths';
 import { getTranslations } from 'next-intl/server';
 import { runAuthorizedMutation } from '@/lib/server-action/run-authorized-mutation';
 import { getCurrentUser } from '@/lib/auth/cached-auth';
@@ -8,6 +7,7 @@ import {
   createAccountUseCase,
   updateAccountUseCase,
   deleteAccountUseCase,
+  recalculateAccountBalanceUseCase,
   getAccountByIdUseCase,
   type CreateAccountInput,
   type UpdateAccountInput,
@@ -59,8 +59,6 @@ export async function createAccountAction(
 
     const defaultUserId = defaultAccountUserId(isDefault, input.user_ids, currentUser.id);
     if (defaultUserId) await setUserDefaultAccountUseCase(defaultUserId, account.id);
-
-    revalidateAccountRelatedPaths();
 
     return { data: account, error: null };
   } catch (error) {
@@ -123,8 +121,6 @@ export async function updateAccountAction(
     );
     if (defaultUserId) await setUserDefaultAccountUseCase(defaultUserId, accountId);
 
-    revalidateAccountRelatedPaths();
-
     return { data: account, error: null };
   } catch (error) {
     return {
@@ -159,9 +155,34 @@ export async function deleteAccountAction(
     },
     mutate: async () => {
       await deleteAccountUseCase(accountId);
-      revalidateAccountRelatedPaths();
       return true;
     },
     formatError: (error) => (error instanceof Error ? error.message : t('errors.deleteFailed')),
+  });
+}
+
+/**
+ * Rebuilds the stored account balance from all related transactions.
+ */
+export async function recalculateAccountBalanceAction(
+  accountId: string,
+  locale?: string
+): Promise<ServiceResult<Account>> {
+  const t = await getAccountsActionTranslator(locale);
+  return runAuthorizedMutation({
+    unauthenticatedError: t('errors.unauthenticated'),
+    authorize: async (currentUser) => {
+      const existingAccount = await getAccountByIdUseCase(accountId);
+      if (currentUser.group_id !== existingAccount.group_id) {
+        return { data: null, error: t('errors.noPermissionUpdate') };
+      }
+      if (!AccessScope.for(currentUser).canViewShared(existingAccount)) {
+        return { data: null, error: t('errors.noPermissionUpdate') };
+      }
+      return null;
+    },
+    mutate: async () => recalculateAccountBalanceUseCase(accountId),
+    formatError: (error) =>
+      error instanceof Error ? error.message : t('errors.recalculateFailed'),
   });
 }

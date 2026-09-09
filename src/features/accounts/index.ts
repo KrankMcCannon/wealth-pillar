@@ -23,4 +23,5 @@ export {
   createAccountAction,
   updateAccountAction,
   deleteAccountAction,
+  recalculateAccountBalanceAction,
 } from './actions/account-actions';
