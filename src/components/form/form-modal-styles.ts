@@ -9,7 +9,7 @@ export const formModalStyles = {
       'fixed bottom-0 left-0 right-0 z-150 flex max-h-[96dvh] flex-col gap-0 overflow-hidden rounded-t-3xl border-t border-foreground/10 bg-background shadow-xl',
     alertContent:
       'bottom-auto left-1/2 right-auto top-1/2 max-h-[90dvh] w-[min(100%-2rem,24rem)] max-w-none -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-foreground/10 bg-background shadow-xl',
-    header: 'flex flex-col gap-1 border-b border-foreground/10 px-3 pt-2 pb-2 text-center',
+    header: 'flex flex-col gap-1 border-b border-foreground/10 px-4 pt-2 pb-3 text-center',
     footer: 'mt-auto flex flex-col gap-2 p-4 pb-[max(env(safe-area-inset-bottom),0.75rem)]',
   },
   shell: {
@@ -18,7 +18,7 @@ export const formModalStyles = {
       'mx-auto h-auto max-h-[90dvh] min-h-0 w-full max-w-lg gap-0 border border-foreground/10 bg-background px-0 pb-0 shadow-xl md:bottom-auto md:left-1/2 md:right-auto md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-2xl',
     handle:
       'mx-auto mt-3 mb-1 h-1.5 w-12 shrink-0 rounded-full border-0 bg-muted-foreground/35 opacity-100',
-    header: 'flex shrink-0 flex-col gap-1 px-3 pt-3 pb-2 text-center',
+    header: 'flex shrink-0 flex-col gap-1 px-4 pt-3 pb-3 text-center',
     title: 'min-w-0 flex-1 text-center text-base font-semibold leading-snug text-foreground',
     description: 'text-center text-sm leading-relaxed text-muted-foreground',
     body: 'flex min-h-0 flex-1 flex-col overflow-hidden bg-background',
@@ -42,10 +42,11 @@ export const formModalStyles = {
     actionsStack: 'flex w-full flex-col gap-2',
     dualRow: 'grid w-full grid-cols-2 gap-2',
     dualCancel:
-      'inline-flex min-h-11 w-full items-center justify-center rounded-xl border-0 bg-muted text-sm font-semibold text-foreground shadow-none hover:bg-muted/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/25 disabled:pointer-events-none disabled:opacity-45',
+      'inline-flex min-h-11 w-full items-center justify-center rounded-xl border-0 bg-muted px-2 text-center text-sm font-semibold leading-snug text-foreground shadow-none hover:bg-muted/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/25 disabled:pointer-events-none disabled:opacity-45',
     dualSubmit:
-      'inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border-0 bg-foreground text-sm font-semibold text-background shadow-none hover:bg-foreground/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/25 disabled:pointer-events-none disabled:opacity-45',
-    dualSubmitDanger: 'bg-expense text-destructive-foreground hover:bg-expense/90 focus-visible:ring-expense/50',
+      'inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border-0 bg-foreground px-2 text-center text-sm font-semibold leading-snug text-background shadow-none hover:bg-foreground/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/25 disabled:pointer-events-none disabled:opacity-45',
+    dualSubmitDanger:
+      'bg-expense text-destructive-foreground hover:bg-expense/90 focus-visible:ring-expense/50',
     secondaryAction:
       'flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-muted px-4 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-muted/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/25 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-45 motion-reduce:active:scale-100',
     confirmMessage: 'text-sm leading-relaxed text-muted-foreground',
@@ -56,6 +57,10 @@ export const formModalStyles = {
   fieldsColumn: 'flex flex-col gap-3',
   scrollBody:
     'flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain px-0 pb-0 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
+  /** Hint + few fields: keep ModalBody px-4 instead of full-bleed rows. */
+  paddedBody:
+    'px-4 py-3 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
+  paddedBodyBleed: '-mx-4',
   amountSection: 'flex flex-col items-center py-2',
   amountEyebrow: 'sr-only',
   amountRow: 'flex items-baseline justify-center gap-1 text-foreground/45',
@@ -80,7 +85,7 @@ export const formModalStyles = {
   deleteButton: `flex min-h-[52px] w-full items-center justify-center gap-2.5 rounded-2xl px-5 py-4 text-sm font-semibold uppercase tracking-[0.18em] ${stitchSurface.dangerButton} active:scale-[0.98] motion-reduce:active:scale-100`,
   footerActionsStack: 'flex w-full flex-col gap-3', // alias — prefer footer.actionsStack
   stickyFooter:
-    'mt-0 shrink-0 border-t border-foreground/10 bg-background px-4 pt-2 pb-[max(env(safe-area-inset-bottom),0.75rem)]',
+    'mt-0 shrink-0 border-t border-foreground/10 bg-background px-4 pt-3 pb-[max(env(safe-area-inset-bottom),0.75rem)]',
   primaryCta: stitchSurface.primaryCta,
   categoryShell:
     'rounded-xl border border-transparent bg-modal-elevated/85 p-4 ring-1 ring-inset ring-border/40',

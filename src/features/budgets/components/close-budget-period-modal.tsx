@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { z } from 'zod';
 import { useLocale, useTranslations } from 'next-intl';
 import type { UseFormReturn } from 'react-hook-form';
-import { EntityFormModal, useEntityFormSubmit } from '@/components/form';
+import { EntityFormModal, formModalStyles, useEntityFormSubmit } from '@/components/form';
 import { ModalDateField } from '@/components/form/modal-fields';
 import { ModalFooterActions } from '@/components/ui/modal-footer-actions';
 import { closePeriodAction, getActivePeriodAction } from '@/features/budgets';
@@ -43,7 +43,9 @@ function CloseBudgetPeriodFields({
   return (
     <>
       <p className="text-sm leading-relaxed text-modal-fg-muted">{salaryHint}</p>
-      <ModalDateField control={form.control} name="end_date" label={endDateLabel} required />
+      <div className={formModalStyles.paddedBodyBleed}>
+        <ModalDateField control={form.control} name="end_date" label={endDateLabel} required />
+      </div>
     </>
   );
 }
@@ -169,6 +171,7 @@ function CloseBudgetPeriodModal({
       defaultValues={defaultValues}
       resetValues={defaultValues}
       isLoading={isLoadingPeriod}
+      bodyClassName={formModalStyles.paddedBody}
       onSubmit={wrappedSubmit}
       footer={(_, isSubmitting) => (
         <ModalFooterActions

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { z } from 'zod';
 import { useLocale, useTranslations } from 'next-intl';
 import type { UseFormReturn } from 'react-hook-form';
-import { EntityFormModal, useEntityFormSubmit } from '@/components/form';
+import { EntityFormModal, formModalStyles, useEntityFormSubmit } from '@/components/form';
 import { ModalDateField } from '@/components/form/modal-fields';
 import { ModalFooterActions } from '@/components/ui/modal-footer-actions';
 import {
@@ -36,13 +36,11 @@ function toDateOnlyString(date: string | Date): string {
 function EditClosingDateFields({
   form,
   periodStartDate,
-  editHint,
   endDateLabel,
   noClosedPeriodAlert,
 }: Readonly<{
   form: UseFormReturn<EditClosingDateFormData>;
   periodStartDate: string | null;
-  editHint: string;
   endDateLabel: string;
   noClosedPeriodAlert: string;
 }>) {
@@ -51,10 +49,9 @@ function EditClosingDateFields({
   }
 
   return (
-    <>
-      <p className="text-sm leading-relaxed text-modal-fg-muted">{editHint}</p>
+    <div className={formModalStyles.paddedBodyBleed}>
       <ModalDateField control={form.control} name="end_date" label={endDateLabel} required />
-    </>
+    </div>
   );
 }
 
@@ -164,6 +161,7 @@ function EditClosingDateModal({ isOpen, onClose, userId }: Readonly<EditClosingD
       defaultValues={defaultValues}
       resetValues={defaultValues}
       isLoading={isLoadingPeriod}
+      bodyClassName={formModalStyles.paddedBody}
       onSubmit={wrappedSubmit}
       footer={(_, isSubmitting) => (
         <ModalFooterActions
@@ -181,7 +179,6 @@ function EditClosingDateModal({ isOpen, onClose, userId }: Readonly<EditClosingD
         <EditClosingDateFields
           form={form}
           periodStartDate={periodStartDate}
-          editHint={t('editClosingDateHint')}
           endDateLabel={t('fields.endDate.label')}
           noClosedPeriodAlert={t('noClosedPeriodAlert')}
         />
