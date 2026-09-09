@@ -34,9 +34,9 @@ export const formModalStyles = {
     textLabel:
       'mb-0 min-w-0 max-w-[70%] shrink-0 text-base font-medium leading-snug text-foreground',
     textInput:
-      'h-auto w-0 min-w-0 flex-1 border-0 bg-transparent p-0 text-right text-base font-medium tabular-nums text-foreground shadow-none outline-none placeholder:text-foreground/35 focus:outline-none focus:ring-0 focus-visible:border-0 focus-visible:ring-0 dark:bg-transparent',
+      'h-auto w-0 min-w-0 flex-1 border-0 bg-transparent p-0 text-right text-base font-medium tabular-nums text-foreground shadow-none outline-none placeholder:text-foreground/35 focus:outline-none focus:ring-0 focus-visible:border-0 focus-visible:ring-0',
     textInputPlain:
-      'h-auto w-full min-w-0 flex-1 border-0 bg-transparent p-0 text-left text-base font-medium text-foreground shadow-none outline-none placeholder:text-foreground/35 focus:outline-none focus:ring-0 focus-visible:border-0 focus-visible:ring-0 dark:bg-transparent',
+      'h-auto w-full min-w-0 flex-1 border-0 bg-transparent p-0 text-left text-base font-medium text-foreground shadow-none outline-none placeholder:text-foreground/35 focus:outline-none focus:ring-0 focus-visible:border-0 focus-visible:ring-0',
   },
   footer: {
     actionsStack: 'flex w-full flex-col gap-2',
@@ -45,7 +45,7 @@ export const formModalStyles = {
       'inline-flex min-h-11 w-full items-center justify-center rounded-xl border-0 bg-muted text-sm font-semibold text-foreground shadow-none hover:bg-muted/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/25 disabled:pointer-events-none disabled:opacity-45',
     dualSubmit:
       'inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border-0 bg-foreground text-sm font-semibold text-background shadow-none hover:bg-foreground/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/25 disabled:pointer-events-none disabled:opacity-45',
-    dualSubmitDanger: 'bg-expense text-white hover:bg-expense/90 focus-visible:ring-expense/50',
+    dualSubmitDanger: 'bg-expense text-destructive-foreground hover:bg-expense/90 focus-visible:ring-expense/50',
     secondaryAction:
       'flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-muted px-4 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-muted/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/25 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-45 motion-reduce:active:scale-100',
     confirmMessage: 'text-sm leading-relaxed text-muted-foreground',
@@ -61,7 +61,7 @@ export const formModalStyles = {
   amountRow: 'flex items-baseline justify-center gap-1 text-foreground/45',
   amountCurrency: 'text-3xl font-medium tabular-nums',
   amountInput:
-    'w-[8ch] max-w-full border-0 bg-transparent p-0 text-center text-5xl font-semibold tabular-nums tracking-tight text-foreground shadow-none outline-none placeholder:text-foreground/35 focus:ring-0 focus-visible:border-0 focus-visible:ring-0 dark:bg-transparent',
+    'w-[8ch] max-w-full border-0 bg-transparent p-0 text-center text-5xl font-semibold tabular-nums tracking-tight text-foreground shadow-none outline-none placeholder:text-foreground/35 focus:ring-0 focus-visible:border-0 focus-visible:ring-0',
   fieldStack: 'divide-y divide-foreground/10',
   selectorTrigger:
     'flex min-h-12 w-full items-center justify-between gap-3 bg-transparent px-4 py-2 text-left transition-colors hover:bg-muted/60 focus:outline-none focus-visible:ring-0',
@@ -73,7 +73,7 @@ export const formModalStyles = {
   noteShell: 'flex min-h-12 items-center justify-between gap-3 px-4 py-2',
   noteLabel: 'mb-0 shrink-0 text-[15px] font-normal text-muted-foreground',
   noteInput:
-    'min-w-0 flex-1 border-0 bg-transparent p-0 text-right text-[15px] font-medium text-foreground placeholder:text-foreground/35 focus:outline-none focus:ring-0 dark:bg-transparent',
+    'min-w-0 flex-1 border-0 bg-transparent p-0 text-right text-[15px] font-medium text-foreground placeholder:text-foreground/35 focus:outline-none focus:ring-0',
   errorBanner:
     'rounded-xl border border-modal-error-border/35 bg-modal-error-bg/35 px-3 py-2 text-sm text-modal-error-fg',
   fieldError: 'px-1 text-xs text-modal-error-fg',

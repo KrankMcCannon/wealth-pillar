@@ -99,6 +99,17 @@ describe('calculatePeriodSummariesUseCase', () => {
     expect(summary!.remaining).toBe(3901);
   });
 
+  it('skips transactions with no user_id', () => {
+    const [summary] = calculatePeriodSummariesUseCase(
+      [makePeriod({ snapshot_at: '2024-07-01', reserve_saved: 0 })],
+      [tx({ amount: 99, user_id: null })],
+      [spendable, reserve],
+      [budget({ amount: 4000 })]
+    );
+
+    expect(summary!.spendableSpent).toBe(0);
+  });
+
   it('nets a same-category refund so a bank round-trip is zero spent', () => {
     const [summary] = calculatePeriodSummariesUseCase(
       [

@@ -24,7 +24,7 @@ export function rechartsTooltipContentStyle(): CSSProperties {
     color: 'var(--color-popover-foreground)',
     borderRadius: '12px',
     border: '1px solid var(--color-border)',
-    boxShadow: '0 4px 16px oklch(0 0 0 / 0.08)',
+    boxShadow: 'var(--shadow-md)',
   };
 }
 

@@ -89,7 +89,7 @@ export function computeCategoryStats(
         name: category?.label || formatCategoryFallback(catId),
         type: tx.type,
         total: 0,
-        color: category?.color || 'oklch(var(--color-muted-foreground))',
+        color: category?.color || 'var(--color-muted-foreground)',
       });
     }
 

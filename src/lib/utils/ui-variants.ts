@@ -321,8 +321,8 @@ export const amountVariants = cva('font-bold tabular-nums', {
   variants: {
     type: {
       income: 'text-income',
-      expense: 'text-destructive',
-      transfer: 'text-secondary',
+      expense: 'text-expense',
+      transfer: 'text-foreground',
       balance: 'text-primary',
       neutral: 'text-muted-foreground',
     },

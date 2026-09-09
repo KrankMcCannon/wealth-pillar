@@ -343,7 +343,7 @@ export const transactionStyles = {
     searchIconActive: 'text-primary',
     searchIconInactive: 'text-muted-foreground',
     searchInput:
-      'min-h-11 w-full rounded-2xl border border-border/35 bg-muted/85 py-3 pl-12 pr-10 text-sm font-medium text-foreground ring-1 ring-inset ring-border/40 placeholder:text-muted-foreground/55 transition-colors outline-none focus-visible:border-border/45 focus-visible:outline-none focus-visible:ring-0 motion-reduce:transition-none',
+      'min-h-11 w-full rounded-2xl border border-border/35 bg-input py-3 pl-12 pr-10 text-sm font-medium text-foreground ring-1 ring-inset ring-border/40 placeholder:text-muted-foreground/55 transition-colors outline-none focus-visible:border-border/45 focus-visible:outline-none focus-visible:ring-0 motion-reduce:transition-none',
     quickPeriodRow: 'flex flex-wrap gap-1.5 sm:gap-2',
     quickPeriodPill:
       'inline-flex min-h-10 shrink-0 items-center rounded-full border px-3 py-1.5 text-xs font-semibold tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35 sm:min-h-11 sm:text-sm',
@@ -408,12 +408,12 @@ export const transactionStyles = {
     dateInputs: 'grid grid-cols-2 gap-3',
     dateField: 'space-y-1.5',
     dateLabel: 'text-xs text-muted-foreground',
-    dateInput: 'rounded-xl border border-border/35 bg-muted/85 text-sm',
+    dateInput: 'rounded-xl border border-border/35 bg-input text-sm',
     dateApply: 'w-full rounded-xl',
     categorySection: 'space-y-3',
     categorySearchWrap: 'relative',
     categorySearchIcon: 'absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground',
-    categorySearchInput: 'rounded-xl border border-border/35 bg-muted/85 pl-10',
+    categorySearchInput: 'rounded-xl border border-border/35 bg-input pl-10',
     categoryGrid: 'grid max-h-64 grid-cols-2 gap-2 overflow-y-auto pr-1',
     categoryButton:
       'flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition-all duration-200 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100',

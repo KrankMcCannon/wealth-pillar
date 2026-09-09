@@ -164,7 +164,7 @@ export const stitchBudgets = {
   iconWrapOnTrack:
     'flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-primary/35 bg-primary/12 text-primary',
   iconWrapFixed:
-    'flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border/35 bg-secondary/35 text-primary-foreground',
+    'flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border/35 bg-secondary/35 text-primary',
   iconWrapOver:
     'flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-expense/35 bg-expense/15 text-expense',
   categoryTitle:
@@ -423,7 +423,7 @@ export const stitchReports = {
   accountMetricLabel: 'text-xs font-medium text-muted-foreground',
   accountMetricValue: 'mt-0.5 text-base font-semibold tabular-nums leading-tight text-foreground',
   accountIconWrap:
-    'flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-primary/25 bg-primary/12 text-primary-foreground',
+    'flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-primary/25 bg-primary/12 text-primary',
   accountIconWrapMuted:
     'flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border/35 bg-muted/80 text-muted-foreground',
   accountMeta: 'text-xs text-muted-foreground',
@@ -447,7 +447,7 @@ export const stitchTransactionPageSearch = {
   icon: 'pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground transition-colors',
   iconActive: 'text-primary',
   input:
-    'min-h-11 w-full rounded-2xl border border-border/35 bg-muted/85 py-2 pl-10 pr-10 text-sm font-medium text-foreground ring-1 ring-inset ring-border/40 placeholder:text-muted-foreground/55 transition-colors outline-none focus-visible:border-border/45 focus-visible:outline-none focus-visible:ring-0',
+    'min-h-11 w-full rounded-2xl border border-border/35 bg-input py-2 pl-10 pr-10 text-sm font-medium text-foreground ring-1 ring-inset ring-border/40 placeholder:text-muted-foreground/55 transition-colors outline-none focus-visible:border-border/45 focus-visible:outline-none focus-visible:ring-0',
   clear:
     'absolute right-2.5 top-1/2 -translate-y-1/2 rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35',
   clearIcon: 'h-4 w-4',

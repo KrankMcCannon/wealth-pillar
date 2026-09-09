@@ -12,7 +12,8 @@
 
 /* -----------------------------------------------------------------------------
    @theme — scala tipografica, raggio, ombre, palette semantica
-   Light: Daylight (prototype C) — airy paper, sky-blue brand (hue 240).
+   One family in both modes (hue 240 paper/brand). Only L (and paper chroma)
+   flips. Semantic hues: income 165, expense 22, warning 80, teal 200.
    ----------------------------------------------------------------------------- */
 
 @theme {
@@ -31,51 +32,48 @@
   --shadow-xl: 0 20px 25px -5px oklch(0.35 0.03 240 / 0.1), 0 10px 10px -5px oklch(0.35 0.03 240 / 0.05);
   --shadow-2xl: 0 25px 50px -12px oklch(0.35 0.03 240 / 0.16);
 
-  /* Light — Daylight C: page is C's card (cool-white paper). Sky chroma lives on
-     primary/ring and muted/accent wells — not a full-viewport fill. */
-  --color-background: oklch(0.995 0.006 230);
-  --color-foreground: oklch(0.24 0.03 245);
-  --color-card: oklch(1 0.003 230);
+  /* Light — high-L paper, same hues as dark. */
+  --color-background: oklch(0.995 0.008 240);
+  --color-foreground: oklch(0.24 0.03 240);
+  --color-card: oklch(1 0.004 240);
   --color-card-foreground: var(--color-foreground);
-  --color-popover: oklch(1 0.003 230);
+  --color-popover: oklch(1 0.004 240);
   --color-popover-foreground: var(--color-foreground);
 
-  /* Brand — sky, not ink / not violet */
   --color-primary: oklch(0.52 0.1 240);
-  --color-primary-foreground: oklch(0.99 0.008 230);
-  --color-secondary: oklch(0.93 0.02 230);
-  --color-secondary-foreground: oklch(0.24 0.03 245);
-  --color-accent: oklch(0.94 0.03 220);
-  --color-accent-foreground: oklch(0.24 0.03 245);
+  --color-primary-foreground: oklch(0.99 0.008 240);
+  --color-secondary: oklch(0.93 0.02 240);
+  --color-secondary-foreground: oklch(0.24 0.03 240);
+  --color-accent: oklch(0.94 0.025 240);
+  --color-accent-foreground: oklch(0.24 0.03 240);
 
-  --color-muted: oklch(0.94 0.018 230);
-  --color-muted-foreground: oklch(0.48 0.025 245);
+  --color-muted: oklch(0.94 0.018 240);
+  --color-muted-foreground: oklch(0.48 0.02 240);
 
-  --color-destructive: oklch(0.5 0.12 22);
-  --color-destructive-foreground: oklch(0.99 0.008 230);
+  --color-destructive: oklch(0.5 0.1 22);
+  --color-destructive-foreground: oklch(0.99 0.008 240);
   --color-warning: oklch(0.7 0.1 80);
-  --color-warning-foreground: oklch(0.24 0.025 245);
+  --color-warning-foreground: oklch(0.24 0.03 240);
 
   --color-success: oklch(0.52 0.1 165);
   --color-success-light: oklch(0.94 0.04 165);
   --color-success-dark: oklch(0.4 0.08 165);
-  --color-success-foreground: oklch(0.99 0.008 230);
+  --color-success-foreground: oklch(0.99 0.008 240);
 
   --color-income: oklch(0.46 0.09 165);
   --color-expense: oklch(0.5 0.1 22);
   --color-teal-accent: oklch(0.52 0.08 200);
 
-  --color-border: oklch(0.88 0.02 230);
-  --color-input: oklch(0.99 0.006 230);
+  --color-border: oklch(0.88 0.02 240);
+  --color-input: oklch(0.96 0.012 240);
   --color-ring: oklch(0.52 0.1 240);
 
   --color-chart-1: oklch(0.55 0.09 240);
   --color-chart-2: oklch(0.52 0.08 165);
-  --color-chart-3: oklch(0.58 0.05 230);
+  --color-chart-3: oklch(0.58 0.05 240);
   --color-chart-4: oklch(0.62 0.08 80);
   --color-chart-5: oklch(0.5 0.08 22);
 
-  /* Modal surfaces (light — aligned with card) */
   --color-modal-surface: var(--color-card);
   --color-modal-elevated: var(--color-muted);
   --color-modal-elevated-hover: var(--color-accent);
@@ -86,11 +84,10 @@
   --color-modal-fg: var(--color-foreground);
   --color-modal-fg-muted: var(--color-muted-foreground);
   --color-modal-fg-subtle: var(--color-muted-foreground);
-  --color-modal-error-bg: oklch(0.97 0.01 25);
-  --color-modal-error-border: oklch(0.75 0.12 25);
-  --color-modal-error-fg: oklch(0.45 0.12 25);
+  --color-modal-error-bg: oklch(0.97 0.01 22);
+  --color-modal-error-border: oklch(0.75 0.1 22);
+  --color-modal-error-fg: oklch(0.45 0.12 22);
 
-  /* Categorie */
   --category-utilities-blue: oklch(0.6 0.15 240);
   --category-utilities-red: oklch(0.6 0.18 30);
   --category-transportation-purple: oklch(0.58 0.16 290);
@@ -104,19 +101,19 @@
 }
 
 /* -----------------------------------------------------------------------------
-   Dark — Daylight inverted (sky brand, cool night paper)
+   Dark — same hues as light, inverted L
    ----------------------------------------------------------------------------- */
 
 @layer theme {
   :root,
   :host {
     @variant dark {
-      --shadow-xs: 0 1px 2px 0 oklch(0% 0 0 / 0.2);
-      --shadow-sm: 0 1px 3px 0 oklch(0% 0 0 / 0.28), 0 1px 2px 0 oklch(0% 0 0 / 0.18);
-      --shadow-md: 0 4px 6px -1px oklch(0% 0 0 / 0.32), 0 2px 4px -1px oklch(0% 0 0 / 0.18);
-      --shadow-lg: 0 10px 15px -3px oklch(0% 0 0 / 0.36), 0 4px 6px -2px oklch(0% 0 0 / 0.16);
-      --shadow-xl: 0 20px 25px -5px oklch(0% 0 0 / 0.4), 0 10px 10px -5px oklch(0% 0 0 / 0.2);
-      --shadow-2xl: 0 25px 50px -12px oklch(0% 0 0 / 0.5);
+      --shadow-xs: 0 1px 2px 0 oklch(0.12 0.03 240 / 0.35);
+      --shadow-sm: 0 1px 3px 0 oklch(0.12 0.03 240 / 0.4), 0 1px 2px 0 oklch(0.12 0.03 240 / 0.28);
+      --shadow-md: 0 4px 10px -2px oklch(0.12 0.03 240 / 0.45), 0 2px 4px -1px oklch(0.12 0.03 240 / 0.28);
+      --shadow-lg: 0 12px 24px -8px oklch(0.12 0.03 240 / 0.5), 0 4px 8px -4px oklch(0.12 0.03 240 / 0.28);
+      --shadow-xl: 0 20px 25px -5px oklch(0.12 0.03 240 / 0.5), 0 10px 10px -5px oklch(0.12 0.03 240 / 0.3);
+      --shadow-2xl: 0 25px 50px -12px oklch(0.12 0.03 240 / 0.55);
 
       --color-background: oklch(0.22 0.01 240);
       --color-foreground: oklch(0.94 0.012 240);
@@ -125,42 +122,42 @@
       --color-popover: oklch(0.27 0.012 240);
       --color-popover-foreground: var(--color-foreground);
 
-      --color-primary: oklch(0.72 0.09 240);
+      --color-primary: oklch(0.72 0.1 240);
       --color-primary-foreground: oklch(0.22 0.01 240);
-      --color-secondary: oklch(0.30 0.014 240);
+      --color-secondary: oklch(0.3 0.02 240);
       --color-secondary-foreground: oklch(0.94 0.012 240);
-      --color-accent: oklch(0.30 0.016 230);
+      --color-accent: oklch(0.32 0.025 240);
       --color-accent-foreground: oklch(0.94 0.012 240);
 
-      --color-muted: oklch(0.28 0.012 240);
-      --color-muted-foreground: oklch(0.72 0.015 240);
+      --color-muted: oklch(0.28 0.018 240);
+      --color-muted-foreground: oklch(0.72 0.02 240);
 
       --color-destructive: oklch(0.72 0.1 22);
       --color-destructive-foreground: oklch(0.22 0.01 240);
-      --color-warning: oklch(0.78 0.09 80);
+      --color-warning: oklch(0.78 0.1 80);
       --color-warning-foreground: oklch(0.22 0.01 240);
 
-      --color-success: oklch(0.7 0.08 165);
-      --color-success-light: oklch(0.30 0.03 165);
-      --color-success-dark: oklch(0.52 0.07 165);
+      --color-success: oklch(0.7 0.1 165);
+      --color-success-light: oklch(0.3 0.04 165);
+      --color-success-dark: oklch(0.52 0.08 165);
       --color-success-foreground: oklch(0.22 0.01 240);
 
-      --color-income: oklch(0.72 0.08 165);
-      --color-expense: oklch(0.72 0.09 22);
-      --color-teal-accent: oklch(0.7 0.07 200);
+      --color-income: oklch(0.72 0.09 165);
+      --color-expense: oklch(0.72 0.1 22);
+      --color-teal-accent: oklch(0.7 0.08 200);
 
-      --color-border: oklch(0.36 0.012 240);
+      --color-border: oklch(0.36 0.02 240);
       --color-input: oklch(0.26 0.012 240);
-      --color-ring: oklch(0.72 0.09 240);
+      --color-ring: oklch(0.72 0.1 240);
 
-      --color-chart-1: oklch(0.7 0.08 240);
-      --color-chart-2: oklch(0.68 0.07 165);
-      --color-chart-3: oklch(0.66 0.04 230);
-      --color-chart-4: oklch(0.72 0.07 80);
-      --color-chart-5: oklch(0.68 0.07 22);
+      --color-chart-1: oklch(0.7 0.09 240);
+      --color-chart-2: oklch(0.68 0.08 165);
+      --color-chart-3: oklch(0.66 0.05 240);
+      --color-chart-4: oklch(0.72 0.08 80);
+      --color-chart-5: oklch(0.68 0.08 22);
 
       --category-utilities-blue: oklch(0.68 0.15 240);
-      --category-utilities-red: oklch(0.68 0.13 30);
+      --category-utilities-red: oklch(0.68 0.18 30);
       --category-transportation-purple: oklch(0.66 0.16 290);
       --category-transportation-orange: oklch(0.72 0.16 55);
       --category-health-cyan: oklch(0.72 0.12 210);
@@ -169,28 +166,6 @@
       --category-food-green: oklch(0.68 0.14 140);
       --category-shopping-purple: oklch(0.68 0.18 285);
       --category-shopping-orange: oklch(0.75 0.15 60);
-
-      --color-red-50: oklch(0.97 0.01 25);
-      --color-red-100: oklch(0.93 0.02 25);
-      --color-red-200: oklch(0.88 0.04 25);
-      --color-red-300: oklch(0.82 0.08 25);
-      --color-red-400: oklch(0.75 0.12 25);
-      --color-red-500: oklch(0.65 0.15 25);
-      --color-red-600: oklch(0.55 0.14 25);
-      --color-red-700: oklch(0.45 0.12 25);
-      --color-red-800: oklch(0.35 0.1 25);
-      --color-red-900: oklch(0.25 0.08 25);
-
-      --color-emerald-500: oklch(0.72 0.07 170);
-      --color-emerald-600: oklch(0.62 0.06 170);
-      --color-green-500: oklch(0.72 0.07 140);
-      --color-green-600: oklch(0.62 0.06 140);
-      --color-blue-500: oklch(0.7 0.08 240);
-      --color-blue-600: oklch(0.6 0.08 240);
-      --color-amber-500: oklch(0.78 0.09 80);
-      --color-yellow-500: oklch(0.8 0.08 90);
-      --color-purple-500: oklch(0.68 0.04 240);
-      --color-violet-500: oklch(0.72 0.09 240);
 
       --color-modal-surface: var(--color-card);
       --color-modal-elevated: var(--color-muted);
@@ -204,7 +179,7 @@
       --color-modal-fg-subtle: var(--color-muted-foreground);
       --color-modal-error-bg: oklch(0.22 0.04 22);
       --color-modal-error-border: oklch(0.42 0.08 22);
-      --color-modal-error-fg: oklch(0.72 0.09 22);
+      --color-modal-error-fg: oklch(0.72 0.1 22);
     }
   }
 }

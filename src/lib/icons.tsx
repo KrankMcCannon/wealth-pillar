@@ -53,11 +53,11 @@ import {
 
 export const designSystemColors = {
   primary: 'var(--color-primary)',
-  secondary: 'var(--color-secondary)',
-  success: 'var(--color-accent)', // Using accent color for success (mint green)
+  secondary: 'var(--color-muted-foreground)',
+  success: 'var(--color-success)',
   warning: 'var(--color-warning)',
   error: 'var(--color-destructive)',
-  info: 'var(--color-secondary)', // Using secondary color for info
+  info: 'var(--color-teal-accent)',
   neutral: 'var(--color-primary)',
 };
 
@@ -131,46 +131,46 @@ const categoryColors: Record<string, string> = {
   // Utilities
   bolletta_luce: designSystemColors.warning,
   bolletta_gas: designSystemColors.error,
-  bolletta_acqua: 'oklch(var(--category-utilities-blue))',
-  bolletta_tim: 'oklch(var(--category-utilities-red))',
+  bolletta_acqua: 'var(--category-utilities-blue)',
+  bolletta_tim: 'var(--category-utilities-red)',
   bolletta_tari: 'var(--color-destructive)',
   ricarica_telefono: designSystemColors.info,
   abbonamenti_tv: designSystemColors.primary,
   abbonamenti_necessari: designSystemColors.secondary,
-  bolletta_depuratore: 'oklch(var(--category-utilities-blue))',
+  bolletta_depuratore: 'var(--category-utilities-blue)',
 
   // Transportation
-  bollo_auto: 'oklch(var(--category-transportation-purple))',
-  tagliando_auto: 'oklch(var(--category-transportation-purple))',
-  rata_auto: 'oklch(var(--category-transportation-purple))',
-  benzina: 'oklch(var(--category-transportation-orange))',
+  bollo_auto: 'var(--category-transportation-purple)',
+  tagliando_auto: 'var(--category-transportation-purple)',
+  rata_auto: 'var(--category-transportation-purple)',
+  benzina: 'var(--category-transportation-orange)',
 
   // Health
-  medicine: 'oklch(var(--category-health-cyan))',
-  medicine_thor: 'oklch(var(--category-health-cyan))',
-  visite_mediche: 'oklch(var(--category-health-cyan))',
-  analisi_mediche: 'oklch(var(--category-health-cyan))',
-  veterinario: 'var(--color-secondary)',
-  palestra: 'oklch(var(--category-health-teal))',
+  medicine: 'var(--category-health-cyan)',
+  medicine_thor: 'var(--category-health-cyan)',
+  visite_mediche: 'var(--category-health-cyan)',
+  analisi_mediche: 'var(--category-health-cyan)',
+  veterinario: 'var(--color-muted-foreground)',
+  palestra: 'var(--category-health-teal)',
 
   // Beauty & Lifestyle
-  parrucchiere: 'oklch(var(--category-beauty-pink))',
-  estetista: 'oklch(var(--category-beauty-pink))',
-  skincare: 'oklch(var(--category-beauty-pink))',
-  haircare: 'oklch(var(--category-beauty-pink))',
-  taglio_thor: 'oklch(var(--category-beauty-pink))',
+  parrucchiere: 'var(--category-beauty-pink)',
+  estetista: 'var(--category-beauty-pink)',
+  skincare: 'var(--category-beauty-pink)',
+  haircare: 'var(--category-beauty-pink)',
+  taglio_thor: 'var(--category-beauty-pink)',
 
   // Food
-  spesa: 'oklch(var(--category-food-green))',
-  cibo_fuori: 'oklch(var(--category-food-green))',
-  cibo_asporto: 'oklch(var(--category-food-green))',
-  cibo_thor: 'oklch(var(--category-food-green))',
+  spesa: 'var(--category-food-green)',
+  cibo_fuori: 'var(--category-food-green)',
+  cibo_asporto: 'var(--category-food-green)',
+  cibo_thor: 'var(--category-food-green)',
 
   // Shopping
   vestiti: designSystemColors.secondary,
-  regali: 'oklch(var(--category-shopping-purple))',
+  regali: 'var(--category-shopping-purple)',
   eventi: designSystemColors.warning,
-  yuup_thor: 'oklch(var(--category-shopping-orange))',
+  yuup_thor: 'var(--category-shopping-orange)',
 
   // Default
   altro: designSystemColors.neutral,

@@ -16,7 +16,9 @@ describe('theme semantic tokens', () => {
     render(<Input aria-label="Email" placeholder="you@example.com" />);
     const input = screen.getByLabelText('Email');
     expect(input.className).toContain('text-foreground');
+    expect(input.className).toContain('bg-input');
     expect(input.className.replace(/selection:[^\s]+/g, '')).not.toMatch(/\btext-primary\b/);
+    expect(input.className).not.toMatch(/\bdark:/);
     expect(input.className).toContain('border-input');
   });
 

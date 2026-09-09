@@ -4,7 +4,7 @@ import { AccountsRepository } from '@/server/repositories/accounts.repository';
 import { CategoriesRepository } from '@/server/repositories/categories.repository';
 import { UsersRepository } from '@/server/repositories/users.repository';
 import { transactions } from '@/server/db/schema';
-import { toDateTime, formatDateShort } from '@/lib/utils';
+import { toDateTime, formatDateShort, toDateString } from '@/lib/utils';
 import { roundMoney } from '@/lib/utils/money';
 import { isReserveAccount } from '@/lib/utils/account-classification';
 import type { Transaction, Account, Budget, BudgetPeriod, User } from '@/lib/types';
@@ -236,7 +236,9 @@ export function calculatePeriodSummariesUseCase(
   }
 
   for (const tx of transactions) {
-    const slots = slotsByUser.get(tx.user_id);
+    const userId = tx.user_id;
+    if (!userId) continue;
+    const slots = slotsByUser.get(userId);
     if (!slots) continue;
     const t = toDateTime(tx.date)?.toMillis();
     if (t == null) continue;
@@ -249,7 +251,7 @@ export function calculatePeriodSummariesUseCase(
     }
     if (!slot) continue;
 
-    const cats = catsByUser.get(tx.user_id);
+    const cats = catsByUser.get(userId);
     if (cats?.has(tx.category)) {
       if (tx.type === 'expense') slot.spent += tx.amount;
       else if (tx.type === 'income') slot.spent -= tx.amount;
@@ -279,8 +281,8 @@ export function calculatePeriodSummariesUseCase(
       summaries.push({
         id: period.id,
         name: `${formatDateShort(period.start_date)} - ${period.end_date ? formatDateShort(period.end_date) : 'Present'}`,
-        startDate: period.start_date,
-        endDate: period.end_date || now.toISOString().split('T')[0],
+        startDate: toDateString(period.start_date),
+        endDate: toDateString(period.end_date ?? now),
         spendableSpent: spent,
         reserveSaved,
         allocated,

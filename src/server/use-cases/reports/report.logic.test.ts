@@ -410,7 +410,7 @@ describe('buildReportsSectionViewModel', () => {
         key: 'unknown-key',
         name: 'Unknown Key',
         total: 12,
-        color: 'oklch(var(--color-muted-foreground))',
+        color: 'var(--color-muted-foreground)',
       },
     ]);
   });
