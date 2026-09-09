@@ -121,7 +121,7 @@ The system explicitly rejects generic AI-startup purple glow, personal-finance r
 - OKLCH-only token pipeline in Tailwind v4 `@theme`; no raw `#000` or `#fff`
 - Solid Daylight surfaces: `border-border/20–35`, no decorative gradients
 - Tabular-nums financial figures with semantic income/expense color used sparingly
-- shadcn new-york primitives extended by `home-design-foundation.ts` class-string layer
+- shadcn new-york primitives own their classes (colocated CVA/strings). Dashboard chrome lives in `home-design-foundation.ts` (`stitch*`). Tokens stay in `app/globals.css`.
 - Motion: framer-motion for swipe/auth; CSS transitions elsewhere; always `prefers-reduced-motion` safe
 - Touch targets ≥ 44×44pt on mobile shell; focus rings at `ring-ring/35–50`
 
@@ -199,7 +199,7 @@ The `.liquid-glass` utility exists but is not the default surface treatment. Pre
 
 ## 5. Components
 
-Product-shaped, mobile-first. shadcn new-york base in `src/components/ui/`; Daylight class-string layer in `src/styles/home-design-foundation.ts` for dashboard pages.
+Product-shaped, mobile-first. Three layers: tokens in `app/globals.css`; shadcn primitives own their classes in `src/components/ui/`; dashboard chrome in `src/styles/home-design-foundation.ts`.
 
 ### Buttons
 

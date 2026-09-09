@@ -3,7 +3,11 @@
 import * as React from 'react';
 import * as TabsPrimitive from '@radix-ui/react-tabs';
 import { cn } from '@/lib/utils';
-import { tabStyles } from '@/components/ui/component-styles';
+
+const tabList = 'flex h-12 w-full items-center justify-center rounded-2xl bg-muted p-1';
+const tabTrigger =
+  'inline-flex items-center justify-center whitespace-nowrap rounded-xl px-4 py-2 text-sm font-semibold transition-all data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-md hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50';
+const tabContent = 'mt-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
 
 const Tabs = TabsPrimitive.Root;
 
@@ -14,7 +18,7 @@ const TabsList = React.forwardRef<
   <TabsPrimitive.List
     ref={ref}
     data-slot="tabs-list"
-    className={cn(tabStyles.list, className)}
+    className={cn(tabList, className)}
     {...props}
   />
 ));
@@ -27,7 +31,7 @@ const TabsTrigger = React.forwardRef<
   <TabsPrimitive.Trigger
     ref={ref}
     data-slot="tabs-trigger"
-    className={cn(tabStyles.trigger, className)}
+    className={cn(tabTrigger, className)}
     {...props}
   />
 ));
@@ -40,7 +44,7 @@ const TabsContent = React.forwardRef<
   <TabsPrimitive.Content
     ref={ref}
     data-slot="tabs-content"
-    className={cn(tabStyles.content, className)}
+    className={cn(tabContent, className)}
     {...props}
   />
 ));

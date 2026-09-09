@@ -10,7 +10,6 @@ import { resolveAccountLiquidity } from '@/lib/utils/account-classification';
 import { Amount } from '@/components/ui/primitives/amount';
 import { PlainListRow } from '@/components/ui/layout/plain-list-row';
 import { RowCard } from '@/components/ui/layout/row-card';
-import { cardStyles } from '@/components/cards/theme/card-styles';
 
 interface AccountCardProps {
   account: Account;
@@ -63,7 +62,7 @@ export const AccountCard = memo(function AccountCard({
   if (balancePresentation === 'dashboard') {
     return (
       <RowCard
-        icon={<Building2 className={cardStyles.account.sliderIcon} />}
+        icon={<Building2 className="h-3.5 w-3.5" />}
         iconSize="xs"
         iconColor="primary"
         title={account.name}
@@ -80,7 +79,10 @@ export const AccountCard = memo(function AccountCard({
             : undefined
         }
         compact
-        className={cn(cardStyles.account.container, cardStyles.account.sliderTight, className)}
+        className={cn(
+          'min-w-[180px] shrink-0 px-3 !w-max !min-w-[8.75rem] py-0 sm:!min-w-[9rem]',
+          className
+        )}
         testId={`account-card-${account.id}`}
       />
     );

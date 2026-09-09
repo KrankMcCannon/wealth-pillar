@@ -5,7 +5,22 @@ import { useTranslations } from 'next-intl';
 import { ArrowLeft, Settings } from 'lucide-react';
 import { cn } from '@/lib';
 import { STICKY_HEADER_BASE } from '@/lib/utils/ui-constants';
-import { headerStyles } from './theme/header-styles';
+
+const headerStyles = {
+  container: 'px-4 py-2',
+  inner: 'flex h-11 items-center',
+  slotLeft: 'flex flex-1 items-center justify-start',
+  slotCenter: 'flex shrink-0 items-center justify-center px-2',
+  slotRight: 'flex flex-1 items-center justify-end',
+  appName: 'text-base font-semibold text-foreground',
+  pageTitle: 'text-base font-semibold text-foreground',
+  backButton:
+    'flex h-9 w-9 min-h-11 min-w-11 items-center justify-center rounded-full text-foreground/70 hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+  backIcon: 'h-5 w-5',
+  iconButton:
+    'flex h-9 w-9 min-h-11 min-w-11 items-center justify-center rounded-full text-foreground/70 hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+  icon: 'h-5 w-5',
+} as const;
 
 interface HeaderProps {
   title?: string;

@@ -2,7 +2,6 @@
  * Auth layout tokens — mobile-first, aligned with onboarding shell.
  */
 
-import { typographyStyles } from '@/features/budgets/theme/budget-styles';
 import { stitchSurface } from '@/styles/home-design-foundation';
 
 export const authStyles = {
@@ -15,11 +14,11 @@ export const authStyles = {
     main: 'flex min-h-0 w-full flex-1 flex-col',
     footer:
       'mt-auto w-full px-4 pb-[calc(theme(spacing.3)+env(safe-area-inset-bottom))] pt-2 text-center',
-    footerText: `${typographyStyles.xs} text-muted-foreground`,
+    footerText: 'text-xs text-muted-foreground',
   },
   errorPage: {
     container: 'flex flex-col gap-4',
-    description: `${typographyStyles.sm} text-center text-muted-foreground`,
+    description: 'text-sm text-center text-muted-foreground',
   },
   card: {
     container: 'w-full',

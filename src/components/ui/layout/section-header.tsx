@@ -4,7 +4,11 @@ import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { Text } from '@/components/ui/primitives';
 import { Badge } from '@/components/ui/badge';
-import { layoutStyles } from '@/components/ui/layout/layout-styles';
+
+const headerRow = 'flex items-center justify-between gap-3';
+const headerTitle = 'text-lg font-semibold text-primary';
+const headerSubtitle = 'text-sm text-muted-foreground';
+const headerActions = 'flex items-center gap-2';
 
 export interface SectionHeaderProps {
   title: React.ReactNode;
@@ -43,19 +47,19 @@ export function SectionHeader({
   children,
 }: Readonly<SectionHeaderProps>) {
   return (
-    <div className={cn(layoutStyles.section.headerRow, className)}>
+    <div className={cn(headerRow, className)}>
       <div className="flex flex-col gap-1">
-        <Text as={titleAs} id={titleId} className={cn(layoutStyles.section.title, titleClassName)}>
+        <Text as={titleAs} id={titleId} className={cn(headerTitle, titleClassName)}>
           {title}
         </Text>
         {subtitle && (
-          <Text as="p" className={cn(layoutStyles.section.subtitle, subtitleClassName)}>
+          <Text as="p" className={cn(headerSubtitle, subtitleClassName)}>
             {subtitle}
           </Text>
         )}
       </div>
       {(Icon || leading || badge || actions || children) && (
-        <div className={layoutStyles.section.actions}>
+        <div className={headerActions}>
           {Icon && <Icon className={iconClassName} />}
           {leading}
           {badge && <Badge className={badge.className}>{badge.text}</Badge>}

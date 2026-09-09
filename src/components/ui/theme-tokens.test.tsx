@@ -4,14 +4,8 @@ import { Button } from './button';
 import { Input } from './input';
 import { Card, CardTitle, CardDescription } from './card';
 import { Alert, AlertTitle } from './alert';
-import { cardStyles } from './component-styles';
 
 describe('theme semantic tokens', () => {
-  it('uses foreground tokens for card copy in component-styles', () => {
-    expect(cardStyles.title).toContain('text-foreground');
-    expect(cardStyles.description).toContain('text-muted-foreground');
-  });
-
   it('renders Input with semantic foreground classes', () => {
     render(<Input aria-label="Email" placeholder="you@example.com" />);
     const input = screen.getByLabelText('Email');

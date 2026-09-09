@@ -123,7 +123,7 @@ export const stitchPageTabs = {
 export const stitchBudgets = {
   /** Spaziatura hero → lista. */
   mainStack: 'flex flex-col gap-5 pt-1',
-  heroSection: 'relative overflow-hidden rounded-xl border border-border/25 bg-card p-4',
+  heroSection: `${stitchSurface.card} relative overflow-hidden p-4`,
   heroInner: 'relative z-[1]',
   heroTopRow: 'flex items-end justify-between gap-3',
   heroPrimaryBlock: 'min-w-0 flex-1 flex flex-col gap-1',
@@ -188,7 +188,7 @@ export const stitchBudgets = {
   detailsSection: 'flex flex-col gap-4 pt-4',
 
   /** Grafico andamento spese. */
-  detailChartCard: 'relative rounded-xl border border-border/25 bg-card',
+  detailChartCard: `${stitchSurface.card} relative`,
   detailChartHeader: 'border-b border-border/25 px-4 pb-3 pt-4',
   detailChartHeaderLabel: 'text-[11px] font-semibold uppercase tracking-wide text-muted-foreground',
   detailChartHeaderAmount:
@@ -214,7 +214,7 @@ export const stitchBudgetsChartSvg = {
  */
 export const stitchInvestments = {
   mainStack: 'flex flex-col gap-5 pt-1',
-  heroSection: 'relative overflow-hidden rounded-xl border border-border/25 bg-card p-4',
+  heroSection: stitchBudgets.heroSection,
   heroInner: 'relative z-[1] flex gap-3',
   heroPrimaryColumn: 'flex min-w-0 flex-1 flex-col justify-between gap-1',
   heroReturnColumn:
@@ -231,7 +231,7 @@ export const stitchInvestments = {
   chartCardTitle: 'text-[11px] font-semibold uppercase tracking-wide text-muted-foreground',
   chartCardDescription: 'mt-1 text-sm text-muted-foreground',
   chartCardContent: 'p-4',
-  emptyState: 'rounded-xl border border-border/25 bg-card p-6 text-center',
+  emptyState: `${stitchSurface.card} p-6 text-center`,
   emptyTitle: 'text-base font-medium text-foreground',
   emptyDescription: 'mt-2 text-sm text-muted-foreground',
   emptyActions: 'mt-6 flex flex-col gap-2',
@@ -255,11 +255,11 @@ export const stitchTransactions = {
   filtersChipIcon: 'mr-1 inline h-3 w-3 shrink-0',
   /** Row list wrapper — layout only; surface lives on section card + individual rows. */
   dayCard: 'flex flex-col gap-2',
-  emptyState: 'rounded-xl border border-border/25 bg-card p-6 text-center',
-  emptyTitle: 'text-base font-medium text-foreground',
-  emptyDescription: 'mt-2 text-sm text-muted-foreground',
-  emptyActions: 'mt-6 flex flex-col gap-2',
-  emptyCtaPrimary: stitchSurface.primaryCta,
+  emptyState: stitchInvestments.emptyState,
+  emptyTitle: stitchInvestments.emptyTitle,
+  emptyDescription: stitchInvestments.emptyDescription,
+  emptyActions: stitchInvestments.emptyActions,
+  emptyCtaPrimary: stitchInvestments.emptyCtaPrimary,
   emptyCtaSecondary:
     'flex min-h-11 w-full items-center justify-center rounded-xl border border-border/40 bg-muted/80 px-4 py-3 text-sm font-medium text-foreground transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35',
   pageErrorBanner:
@@ -393,7 +393,7 @@ export const stitchReports = {
   trendRow: 'mt-1 flex items-center gap-1 text-sm font-medium',
   trendPositive: 'text-income',
   trendNegative: 'text-expense',
-  rankingCard: 'rounded-xl border border-border/25 bg-card p-3',
+  rankingCard: `${stitchSurface.card} p-3`,
   rankingRow: 'relative space-y-1 py-1',
   rankingRowLink:
     'relative block space-y-1 rounded-md px-0 py-1 text-left transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45',
@@ -430,8 +430,7 @@ export const stitchReports = {
   periodRangeLabel: 'text-sm font-medium text-foreground',
   periodMetricLabel: 'text-xs text-muted-foreground',
   periodMetricValue: 'text-base font-semibold tabular-nums text-foreground',
-  emptyWell:
-    'rounded-xl bg-muted/60 px-4 py-6 text-center text-sm text-muted-foreground ring-1 ring-inset ring-border/40',
+  emptyWell: stitchHome.emptyWell,
 } as const;
 
 /**
@@ -481,8 +480,8 @@ export const stitchTransactionFilterTriggers = {
 export const stitchSettings = {
   pageMain: 'flex flex-col gap-5',
   sectionEyebrow: 'px-0.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground',
-  sectionCard: 'overflow-hidden rounded-xl border border-border/25 bg-card',
-  formCard: 'overflow-hidden rounded-xl border border-border/25 bg-card divide-y divide-border/25',
+  sectionCard: `${stitchSurface.card} overflow-hidden`,
+  formCard: `${stitchSurface.card} overflow-hidden divide-y divide-border/25`,
   modalFormBody: '[-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
   row: 'flex min-h-12 w-full items-center justify-between gap-3 px-3 py-2.5 text-left transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45',
   rowDivider: 'border-b border-border/25',

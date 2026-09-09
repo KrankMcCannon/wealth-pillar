@@ -1,91 +1,6 @@
 import type { CSSProperties } from 'react';
 import type { Transaction } from '@/lib';
-
-export const typographyStyles = {
-  xs: 'text-xs',
-  sm: 'text-sm',
-  base: 'text-base',
-  lg: 'text-lg',
-  xl: 'text-xl',
-  '2xl': 'text-2xl',
-  '3xl': 'text-3xl',
-  heading: 'text-lg sm:text-xl font-bold tracking-tight',
-  subheading: 'text-base font-semibold',
-  body: 'text-sm',
-  bodySmall: 'text-xs',
-  label: 'text-xs font-medium',
-  caption: 'text-xs text-primary/60',
-  amount: 'text-lg sm:text-xl font-bold tracking-tight',
-  amountLarge: 'text-2xl sm:text-3xl font-bold tracking-tight',
-} as const;
-
-export const spacingStyles = {
-  page: {
-    mobile: 'p-3',
-    tablet: 'sm:p-4',
-    desktop: 'md:p-6',
-  },
-  section: {
-    mobile: 'px-3 py-4',
-    tablet: 'sm:px-4 sm:py-6',
-    desktop: 'md:px-6 md:py-8',
-  },
-  card: {
-    compact: 'p-3',
-    default: 'p-4',
-    comfortable: 'p-6',
-    large: 'p-8',
-  },
-} as const;
-
-export const radiusStyles = {
-  sm: 'rounded-lg',
-  md: 'rounded-xl',
-  lg: 'rounded-2xl',
-  xl: 'rounded-3xl',
-  full: 'rounded-full',
-  raw: {
-    sm: '0.5rem',
-    md: '0.75rem',
-    lg: '1rem',
-    xl: '1.5rem',
-  },
-} as const;
-
-export const shadowStyles = {
-  xs: 'shadow-xs',
-  sm: 'shadow-sm',
-  md: 'shadow-md',
-  lg: 'shadow-lg',
-  xl: 'shadow-xl',
-  '2xl': 'shadow-2xl',
-  card: 'shadow-sm',
-  elevated: 'shadow-lg',
-  modal: 'shadow-xl',
-} as const;
-
-export const zIndexStyles = {
-  classes: {
-    raised: 'z-10',
-    dropdown: 'z-20',
-    sticky: 'z-30',
-    bottomNav: 'z-[48]',
-    modal: 'z-[150]',
-    popover: 'z-[160]',
-    tooltip: 'z-[170]',
-  },
-} as const;
-
-export const animationStyles = {
-  classes: {
-    fast: 'duration-150',
-    normal: 'duration-200',
-    slow: 'duration-300',
-    transition: 'transition-all duration-200',
-    transitionFast: 'transition-all duration-150',
-    transitionSlow: 'transition-all duration-300',
-  },
-} as const;
+import { stitchSurface, stitchTransactionFilterTriggers } from '@/styles/home-design-foundation';
 
 export const transactionTokens = {
   type: {
@@ -125,14 +40,14 @@ export const transactionTokens = {
       deleteLayer: 'absolute right-0 top-0 bottom-0 flex items-center justify-end',
     },
     icon: {
-      container: `flex size-9 items-center justify-center ${radiusStyles.md} ${shadowStyles.sm} shrink-0`,
+      container: 'flex size-9 items-center justify-center rounded-xl shadow-sm shrink-0',
       hover: '',
     },
     text: {
       title: 'font-semibold truncate text-[15px] text-foreground',
-      metadata: `${typographyStyles.xs} text-muted-foreground font-medium`,
-      metadataSecondary: `${typographyStyles.xs} text-muted-foreground`,
-      separator: `${typographyStyles.xs} text-border`,
+      metadata: 'text-xs text-muted-foreground font-medium',
+      metadataSecondary: 'text-xs text-muted-foreground',
+      separator: 'text-xs text-border',
       amount: 'text-[15px] font-bold tracking-tight',
       amountSecondary: 'mt-0.5 text-[10px] font-medium text-muted-foreground',
     },
@@ -146,11 +61,11 @@ export const transactionTokens = {
   },
   cardVariants: {
     regular: {
-      card: `py-0 bg-card ${shadowStyles.sm} ${radiusStyles.lg} overflow-hidden`,
+      card: 'py-0 bg-card shadow-sm rounded-2xl overflow-hidden',
       header: 'bg-primary/5 px-4 py-2',
     },
     recurrent: {
-      card: `py-0 bg-primary/5 ${shadowStyles.md} ${radiusStyles.lg} overflow-hidden`,
+      card: 'py-0 bg-primary/5 shadow-md rounded-2xl overflow-hidden',
       header: 'bg-primary/10 px-4 py-2',
     },
   },
@@ -168,15 +83,16 @@ export const transactionTokens = {
   },
   components: {
     header: {
-      title: typographyStyles.heading,
-      button: `text-primary hover:bg-primary hover:text-primary-foreground ${radiusStyles.md} ${animationStyles.classes.transition} p-2 sm:p-3 min-w-[44px] min-h-[44px] flex items-center justify-center`,
+      title: 'text-lg sm:text-xl font-bold tracking-tight',
+      button:
+        'text-primary hover:bg-primary hover:text-primary-foreground rounded-xl transition-all duration-200 p-2 sm:p-3 min-w-[44px] min-h-[44px] flex items-center justify-center',
     },
     userSelector: {
-      container: `sticky top-[60px] ${zIndexStyles.classes.raised} bg-background border-b border-border/25 px-3 sm:px-4 py-2`,
+      container: 'sticky top-[60px] z-10 bg-background border-b border-border/25 px-3 sm:px-4 py-2',
     },
     tabNavigation: {
       container: 'flex gap-2 border-b border-border/25 px-3 sm:px-4 py-2',
-      tab: `px-4 py-2 ${typographyStyles.sm} font-medium rounded-t-lg`,
+      tab: 'px-4 py-2 text-sm font-medium rounded-t-lg',
       tabActive: 'text-primary border-b-2 border-primary',
       tabInactive: 'text-primary/60 hover:text-foreground',
     },
@@ -199,7 +115,7 @@ export const transactionTokens = {
 export const transactionStyles = {
   page: {
     container: 'relative flex w-full min-h-[100svh] flex-col bg-background',
-    main: `flex-1 ${spacingStyles.page.mobile} space-y-6 sm:space-y-8 pb-14`,
+    main: 'flex-1 p-3 space-y-6 sm:space-y-8 pb-14',
     loadingContent: 'space-y-6',
   },
   layout: {
@@ -312,7 +228,7 @@ export const transactionStyles = {
     },
   },
   groupedCard: {
-    variantRegular: 'overflow-hidden rounded-xl border border-border/25 bg-card',
+    variantRegular: `${stitchSurface.card} overflow-hidden`,
     variantRecurrent: 'overflow-hidden rounded-xl border border-border/25 bg-muted/60',
     headerRegular: 'border-b border-border/25 px-3 py-2',
     headerRecurrent: 'border-b border-border/25 bg-muted/40 px-3 py-2',
@@ -363,8 +279,7 @@ export const transactionStyles = {
     advancedToggleChevronOpen: 'rotate-180',
     advancedCountBadge: 'rounded-full bg-accent px-2 py-0.5 text-xs font-medium text-foreground',
     advancedClearWrap: 'ml-auto flex items-center gap-2',
-    clearAll:
-      'inline-flex items-center gap-1.5 rounded-full border border-expense/35 bg-expense/12 px-3 py-2 text-sm font-medium whitespace-nowrap text-expense transition-all duration-200 hover:bg-expense/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-expense/35 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100',
+    clearAll: stitchTransactionFilterTriggers.filterDrawerClearAll,
     clearAllIcon: 'h-3.5 w-3.5',
     chip: {
       wrapper: 'relative inline-flex',
@@ -467,7 +382,7 @@ export const transactionStyles = {
       groupTotal: 'text-right',
       groupTotalLine: 'h-4 w-16 rounded animate-pulse bg-muted/60',
       groupTotalSub: 'mt-1 h-3 w-20 rounded animate-pulse bg-muted/50',
-      card: 'space-y-3 rounded-xl border border-border/25 bg-card p-3',
+      card: `${stitchSurface.card} space-y-3 p-3`,
       row: 'flex items-center gap-3',
       rowIcon: 'h-10 w-10 shrink-0 rounded-xl animate-pulse bg-muted/60',
       rowBody: 'flex-1 space-y-2',

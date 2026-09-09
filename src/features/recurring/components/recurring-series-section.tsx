@@ -13,7 +13,7 @@ import { RecurringTransactionSeries } from '@/lib';
 import { SeriesCard } from './series-card';
 import { EmptyState } from '@/components/shared';
 import { Banknote, Plus, RefreshCw, TrendingDown, TrendingUp } from 'lucide-react';
-import { Amount } from '@/components/ui/primitives/amount';
+import { Amount, type AmountVariants } from '@/components/ui/primitives/amount';
 import { HomeSectionCard } from '@/components/home';
 import { PageFab, SectionHeader } from '@/components/layout';
 import { Link } from '@/i18n/routing';
@@ -24,7 +24,7 @@ import {
   stitchSurface,
 } from '@/styles/home-design-foundation';
 import { buildRecurringView } from '@/lib/recurring/recurring-view';
-import { cn, type AmountVariants } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { User } from '@/lib/types';
 
 type RecurringStatCard = {

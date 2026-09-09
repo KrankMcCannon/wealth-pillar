@@ -18,8 +18,22 @@
  */
 
 import { memo } from 'react';
-import { metricGridStyles } from './theme/metric-card-styles';
 import { cn } from '@/lib/utils';
+
+const metricGridStyles = {
+  base: 'grid gap-3 sm:gap-4',
+  columns: {
+    1: 'grid-cols-1',
+    2: 'grid-cols-2 sm:grid-cols-2',
+    3: 'grid-cols-2 sm:grid-cols-2 lg:grid-cols-3',
+    4: 'grid-cols-2 sm:grid-cols-2 lg:grid-cols-4',
+  },
+  gap: {
+    sm: 'gap-2',
+    md: 'gap-3 sm:gap-4',
+    lg: 'gap-4 sm:gap-6',
+  },
+} as const;
 
 export interface MetricGridProps {
   children: React.ReactNode;

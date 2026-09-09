@@ -12,7 +12,36 @@
  */
 
 import * as React from 'react';
-import { cn, textVariants, type TextVariants } from '@/lib/utils';
+import { cva, type VariantProps } from 'class-variance-authority';
+import { cn } from '@/lib/utils';
+
+const textVariants = cva('', {
+  variants: {
+    variant: {
+      heading: 'text-heading',
+      body: 'text-body',
+      muted: 'text-muted-foreground',
+      emphasis: 'text-text-emphasis font-semibold',
+      subtle: 'text-subtle',
+      primary: 'text-primary font-medium',
+    },
+    size: {
+      xs: 'text-xs',
+      sm: 'text-sm',
+      md: 'text-base',
+      lg: 'text-lg',
+      xl: 'text-xl',
+      '2xl': 'text-2xl',
+      '3xl': 'text-3xl',
+    },
+  },
+  defaultVariants: {
+    variant: 'body',
+    size: 'md',
+  },
+});
+
+export type TextVariants = VariantProps<typeof textVariants>;
 
 export interface TextProps extends React.HTMLAttributes<HTMLElement>, TextVariants {
   /** HTML element to render */

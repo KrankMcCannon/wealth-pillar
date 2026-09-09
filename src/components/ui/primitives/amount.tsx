@@ -12,13 +12,39 @@
  */
 
 import * as React from 'react';
-import {
-  amountVariants,
-  type AmountVariants,
-  cn,
-  formatCurrency,
-  toFiniteMoney,
-} from '@/lib/utils';
+import { cva, type VariantProps } from 'class-variance-authority';
+import { cn, formatCurrency, toFiniteMoney } from '@/lib/utils';
+
+const amountVariants = cva('font-bold tabular-nums', {
+  variants: {
+    type: {
+      income: 'text-income',
+      expense: 'text-expense',
+      transfer: 'text-foreground',
+      balance: 'text-primary',
+      neutral: 'text-muted-foreground',
+    },
+    size: {
+      sm: 'text-sm',
+      md: 'text-base',
+      lg: 'text-lg',
+      xl: 'text-xl',
+      '2xl': 'text-2xl',
+    },
+    emphasis: {
+      default: '',
+      strong: 'font-bold tracking-tight',
+      subtle: 'font-semibold',
+    },
+  },
+  defaultVariants: {
+    type: 'balance',
+    size: 'md',
+    emphasis: 'default',
+  },
+});
+
+export type AmountVariants = VariantProps<typeof amountVariants>;
 
 export interface AmountProps extends React.HTMLAttributes<HTMLSpanElement>, AmountVariants {
   /** Amount value (number or string) */
