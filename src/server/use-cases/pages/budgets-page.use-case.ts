@@ -1,4 +1,5 @@
 import { cacheLife, cacheTag } from 'next/cache';
+import { CACHE_TAGS } from '@/lib/cache/config';
 import { getBudgetsByGroupUseCase } from '../budgets/get-budgets.use-case';
 import {
   getAccountsByGroupDeduped,
@@ -43,6 +44,7 @@ async function getCachedBudgetsPageData(groupId: string): Promise<BudgetsPageDat
   cacheTag(`group:${groupId}:budgets`);
   cacheTag(`group:${groupId}:transactions`);
   cacheTag(`group:${groupId}:accounts`);
+  cacheTag(CACHE_TAGS.BUDGET_PERIODS);
   cacheTag('categories');
 
   const groupUsers = await getGroupUsersByGroupIdDeduped(groupId);

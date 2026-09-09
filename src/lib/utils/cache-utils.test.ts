@@ -1,14 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
+  invalidateBudgetPeriodCaches,
   invalidateInvestmentCaches,
   invalidateTransactionCaches,
   invalidateTransactionUpdateCaches,
 } from './cache-utils';
-import { revalidatePath, revalidateTag } from 'next/cache';
+import { revalidatePath, revalidateTag, updateTag } from 'next/cache';
 
 vi.mock('next/cache', () => ({
   revalidateTag: vi.fn(),
   revalidatePath: vi.fn(),
+  updateTag: vi.fn(),
 }));
 
 describe('invalidateTransactionCaches', () => {
@@ -76,6 +78,23 @@ describe('invalidateInvestmentCaches', () => {
     const tags = vi.mocked(revalidateTag).mock.calls.map((c) => c[0]);
     expect(tags).toContain('group:g1:investments');
     expect(tags).toContain('user:u1:investments');
+    expect(revalidatePath).not.toHaveBeenCalled();
+  });
+});
+
+describe('invalidateBudgetPeriodCaches', () => {
+  beforeEach(() => {
+    vi.mocked(updateTag).mockClear();
+    vi.mocked(revalidatePath).mockClear();
+  });
+
+  it('expires period tags immediately so the budgets page can refresh', () => {
+    invalidateBudgetPeriodCaches({ userId: 'u1', periodId: 'p1' });
+
+    const tags = vi.mocked(updateTag).mock.calls.map((c) => c[0]);
+    expect(tags).toContain('budget_periods');
+    expect(tags).toContain('user:u1:budget_period:active');
+    expect(tags).toContain('budget_period:p1');
     expect(revalidatePath).not.toHaveBeenCalled();
   });
 });

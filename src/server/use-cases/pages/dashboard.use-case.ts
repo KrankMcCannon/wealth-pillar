@@ -1,4 +1,5 @@
 import { cacheLife, cacheTag } from 'next/cache';
+import { CACHE_TAGS } from '@/lib/cache/config';
 import { getActiveBudgetPeriodsForUsersUseCase } from '../budget-periods/get-active-budget-periods-for-users.use-case';
 import { getSeriesByGroupUseCase } from '../recurring/recurring.use-cases';
 import {
@@ -111,6 +112,7 @@ async function getCachedDashboardPageData(groupId: string): Promise<DashboardPag
   cacheTag(`group:${groupId}:transactions`);
   cacheTag(`group:${groupId}:budgets`);
   cacheTag(`group:${groupId}:accounts`);
+  cacheTag(CACHE_TAGS.BUDGET_PERIODS);
   cacheTag('categories');
 
   let groupUsers: User[] = [];

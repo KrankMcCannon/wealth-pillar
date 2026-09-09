@@ -5,7 +5,7 @@
  * Uses Next.js revalidateTag for on-demand cache invalidation.
  */
 
-import { revalidateTag } from 'next/cache';
+import { revalidateTag, updateTag } from 'next/cache';
 import { CACHE_TAGS } from '@/lib/cache/config';
 
 /**
@@ -157,7 +157,7 @@ export function invalidateBudgetPeriodCaches(opts: {
     tags.push(CACHE_TAGS.BUDGET_PERIOD(opts.periodId));
   }
 
-  invalidateTags(tags);
+  expireTags(tags);
 }
 
 /**
@@ -264,6 +264,12 @@ export function invalidateTransactionUpdateCaches(
   }
 
   invalidateTags(tags);
+}
+
+function expireTags(tags: string[]): void {
+  for (const tag of tags) {
+    updateTag(tag);
+  }
 }
 
 function invalidateTags(tags: string[]): void {

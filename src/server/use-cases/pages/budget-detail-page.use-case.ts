@@ -1,5 +1,6 @@
 import { cacheLife, cacheTag } from 'next/cache';
 import { notFound } from 'next/navigation';
+import { CACHE_TAGS } from '@/lib/cache/config';
 import { getBudgetByIdUseCase } from '../budgets/get-budgets.use-case';
 import { getActiveBudgetPeriodUseCase } from '../budget-periods/get-active-budget-period.use-case';
 import { getTransactionsByUserUseCase } from '../transactions/get-transactions.use-case';
@@ -103,6 +104,7 @@ async function getCachedBudgetDetailPageData(
   cacheTag(`group:${groupId}:budgets`);
   cacheTag(`group:${groupId}:transactions`);
   cacheTag(`group:${groupId}:accounts`);
+  cacheTag(CACHE_TAGS.BUDGET_PERIODS);
   cacheTag('categories');
 
   let budget: Budget;
