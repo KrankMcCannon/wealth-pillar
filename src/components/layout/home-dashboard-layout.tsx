@@ -13,6 +13,7 @@ interface HomeDashboardMainProps {
   className?: string;
   id?: string;
   ariaBusy?: boolean;
+  'aria-label'?: string;
 }
 
 export function HomeDashboardMain({
@@ -20,11 +21,13 @@ export function HomeDashboardMain({
   className,
   id = 'main-dashboard',
   ariaBusy,
+  'aria-label': ariaLabel,
 }: HomeDashboardMainProps) {
   return (
     <main
       id={id}
       aria-busy={ariaBusy ? true : undefined}
+      aria-label={ariaLabel}
       className={cn(homeDashboardLayoutStyles.main, className)}
     >
       {children}

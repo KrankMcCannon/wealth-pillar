@@ -52,7 +52,6 @@ export function BudgetsSummaryHero({ summary, labels }: Readonly<BudgetsSummaryH
           </p>
         </div>
       </div>
-      <div className={stitchBudgets.heroGradientBar} aria-hidden />
     </section>
   );
 }

@@ -2,7 +2,6 @@
 
 import { useState, useMemo, useCallback, useId } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
 import {
@@ -14,6 +13,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
+import { stitchInvestments } from '@/styles/home-design-foundation';
 import { investmentsStyles } from '@/features/investments/theme/investments-styles';
 import {
   investmentChartColors,
@@ -102,23 +102,20 @@ export function SandboxForecastTab() {
   }, []);
 
   return (
-    <div className={investmentsStyles.container}>
-      <Card
-        role="region"
-        aria-labelledby={titleId}
-        aria-describedby={chartSrSummary ? chartSummaryId : undefined}
-        className={investmentsStyles.card.root}
-      >
-        <CardHeader className={investmentsStyles.card.headerWithBorder}>
-          <CardTitle id={titleId} className={investmentsStyles.card.title}>
-            {t('title')}
-          </CardTitle>
-          <CardDescription className={investmentsStyles.card.description}>
-            {t('description')}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className={investmentsStyles.card.contentNoPadding}>
-          <FieldGroup className={investmentsStyles.sandbox.fieldsWrap}>
+    <section
+      role="region"
+      aria-labelledby={titleId}
+      aria-describedby={chartSrSummary ? chartSummaryId : undefined}
+      className={stitchInvestments.chartCard}
+    >
+      <div className={stitchInvestments.chartCardHeader}>
+        <p id={titleId} className={stitchInvestments.chartCardTitle}>
+          {t('title')}
+        </p>
+        <p className={stitchInvestments.chartCardDescription}>{t('description')}</p>
+      </div>
+      <div>
+        <FieldGroup className={investmentsStyles.sandbox.fieldsWrap}>
             <Field>
               <FieldLabel htmlFor="amount">{t('fields.initialAmount')}</FieldLabel>
               <Input
@@ -246,8 +243,7 @@ export function SandboxForecastTab() {
               </ResponsiveContainer>
             </InvestmentChartContainer>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+    </section>
   );
 }

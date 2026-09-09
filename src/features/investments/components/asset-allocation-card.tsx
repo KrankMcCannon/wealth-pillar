@@ -1,11 +1,10 @@
 'use client';
 
 import { useTranslations, useLocale } from 'next-intl';
-import { PieChart as PieChartIcon } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { cn } from '@/lib/utils';
+import { stitchHome, stitchInvestments } from '@/styles/home-design-foundation';
 import { rechartsPieChartInitialDimension, rechartsAnimationOff } from './investment-chart-theme';
-import { investmentsStyles } from '@/features/investments';
 import { InvestmentChartContainer } from './investment-chart-container';
 import type { AllocationChartSlice } from '@/features/investments/utils/allocation-chart-data';
 
@@ -23,24 +22,15 @@ export function AssetAllocationCard({ data, className }: AssetAllocationCardProp
   }
 
   const displayData = data;
-  // Sum of current market values — must match the per-row values displayed below the chart.
   const totalValue = displayData.reduce((sum, item) => sum + item.value, 0);
 
   return (
-    <div className={cn(investmentsStyles.card.root, 'relative overflow-hidden p-4', className)}>
-      <div className="relative z-10 mb-6 flex items-center gap-3">
-        <div className="flex size-10 items-center justify-center rounded-xl bg-primary/15 text-primary">
-          <PieChartIcon className="size-5" />
-        </div>
-        <div>
-          <h2 className={investmentsStyles.card.title}>{t('assetAllocation')}</h2>
-          <p className="text-[11px] tracking-wider text-muted-foreground">
-            {t('portfolioHeroHint')}
-          </p>
-        </div>
+    <section className={cn(stitchInvestments.chartCard, className)}>
+      <div className={stitchInvestments.chartCardHeader}>
+        <h2 className={stitchInvestments.chartCardTitle}>{t('assetAllocation')}</h2>
+        <p className={stitchInvestments.chartCardDescription}>{t('portfolioHeroHint')}</p>
       </div>
-
-      <div className="relative z-10 flex flex-col gap-6">
+      <div className={stitchInvestments.chartCardContent}>
         <div className="relative h-[225px] w-full">
           <InvestmentChartContainer className="flex size-full items-center justify-center">
             <ResponsiveContainer
@@ -71,10 +61,10 @@ export function AssetAllocationCard({ data, className }: AssetAllocationCardProp
                       const item = payload[0]?.payload as AllocationChartSlice;
                       return (
                         <div className="rounded-xl border border-border/20 bg-popover p-4 shadow-md">
-                          <p className="mb-1 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+                          <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
                             {item.name}
                           </p>
-                          <p className="text-xl font-bold text-foreground">
+                          <p className="text-xl font-semibold tabular-nums text-foreground">
                             {new Intl.NumberFormat(locale, {
                               style: 'currency',
                               currency: 'EUR',
@@ -91,10 +81,8 @@ export function AssetAllocationCard({ data, className }: AssetAllocationCardProp
           </InvestmentChartContainer>
 
           <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground/80">
-              {t('totalPaidLabel')}
-            </span>
-            <span className="mt-1 text-3xl font-bold tabular-nums tracking-tighter text-foreground">
+            <span className={stitchInvestments.chartCardTitle}>{t('totalPaidLabel')}</span>
+            <span className="mt-1 text-3xl font-semibold tabular-nums tracking-tight text-foreground">
               {new Intl.NumberFormat(locale, {
                 style: 'currency',
                 currency: 'EUR',
@@ -104,46 +92,34 @@ export function AssetAllocationCard({ data, className }: AssetAllocationCardProp
           </div>
         </div>
 
-        <div className="flex flex-col gap-3">
+        <ul className={`${stitchHome.plainList} mt-4`}>
           {displayData.map((entry) => {
-            const percentage = totalValue > 0 ? (entry.value / totalValue) * 100 : 0;
+            const pct = totalValue > 0 ? (entry.value / totalValue) * 100 : 0;
             return (
-              <div
-                key={entry.name}
-                className="flex items-center justify-between rounded-2xl bg-muted/50 p-4"
-              >
-                <div className="flex items-center gap-4">
-                  <div
-                    className="size-3 rounded-full ring-1 ring-border/30"
+              <li key={entry.name} className={stitchHome.plainRow}>
+                <span className="flex min-w-0 items-center gap-3">
+                  <span
+                    className="size-3 shrink-0 rounded-full ring-1 ring-border/30"
                     style={{ backgroundColor: entry.color }}
+                    aria-hidden
                   />
-                  <div className="flex flex-col">
-                    <span className="text-sm font-bold text-foreground">{entry.name}</span>
-                    <div className="flex items-center gap-2">
-                      <div className="h-1 w-24 overflow-hidden rounded-full bg-muted">
-                        <div
-                          className="h-full rounded-full"
-                          style={{ width: `${percentage}%`, backgroundColor: entry.color }}
-                        />
-                      </div>
-                      <span className="text-[11px] font-bold text-muted-foreground">
-                        {percentage.toFixed(1)}%
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <span className="text-base font-bold tabular-nums text-foreground">
+                  <span className="min-w-0">
+                    <span className={stitchHome.plainRowTitle}>{entry.name}</span>
+                    <span className={stitchHome.plainRowMeta}>{pct.toFixed(1)}%</span>
+                  </span>
+                </span>
+                <span className="shrink-0 text-base font-semibold tabular-nums text-foreground">
                   {new Intl.NumberFormat(locale, {
                     style: 'currency',
                     currency: 'EUR',
                     maximumFractionDigits: 0,
                   }).format(entry.value)}
                 </span>
-              </div>
+              </li>
             );
           })}
-        </div>
+        </ul>
       </div>
-    </div>
+    </section>
   );
 }

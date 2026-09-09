@@ -381,6 +381,11 @@
     "retry": "Riprova",
     "home": "Torna alla home"
   },
+  "NotFound": {
+    "title": "Pagina non trovata",
+    "description": "Questo percorso non esiste oppure è stato spostato. Torna alla home per continuare.",
+    "home": "Torna alla home"
+  },
   "AccountsError": {
     "title": "Non siamo riusciti a caricare i tuoi conti",
     "description": "Qualcosa ha interrotto il caricamento, di solito è temporaneo. Controlla la connessione e tocca Riprova. Se continua, attendi un minuto e riprova: i dati restano al sicuro lato server.",

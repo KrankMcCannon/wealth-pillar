@@ -111,5 +111,7 @@ describe('SettingsContent', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /manageTitle/ }));
     expect(openModal).toHaveBeenCalledWith('settings:categories');
+
+    expect(screen.getByRole('main')).toHaveAttribute('id', 'main-settings');
   });
 });

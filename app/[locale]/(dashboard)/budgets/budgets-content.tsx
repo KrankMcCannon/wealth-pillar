@@ -1,15 +1,13 @@
 'use client';
 
 /**
- * Budgets Content — Stitch dark layout; member context via UserSelector + `?user=`.
+ * Budgets Content — member context via UserSelector + `?user=`.
  */
 
 import { use, useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { ShoppingCart } from 'lucide-react';
 import { PageFab, HomeDashboardMain } from '@/components/layout';
 import { usePageHeader } from '@/hooks/use-page-header';
-import { EmptyState } from '@/components/shared';
 import UserSelector from '@/components/shared/user-selector';
 import {
   BudgetChart,
@@ -22,8 +20,7 @@ import {
 import { useBudgetsContent, type UseBudgetsContentProps } from '@/features/budgets';
 import type { User, UserBudgetSummary } from '@/lib/types';
 import type { BudgetsPageData } from '@/server/use-cases/pages/budgets-page.use-case';
-import { stitchBudgets } from '@/styles/home-design-foundation';
-import { Button } from '@/components/ui';
+import { stitchBudgets, stitchRecurring, stitchSurface } from '@/styles/home-design-foundation';
 import { useReferenceDataStore } from '@/stores/reference-data-store';
 
 type BudgetsPagePayload = BudgetsPageData & {
@@ -85,10 +82,6 @@ export default function BudgetsContent({
 
   return (
     <>
-      <div className={stitchBudgets.decorWrap} aria-hidden>
-        <div className={stitchBudgets.decorBlobTL} />
-        <div className={stitchBudgets.decorBlobBR} />
-      </div>
       <HomeDashboardMain id="main-budgets">
         <div className={stitchBudgets.mainStack}>
           <UserSelector
@@ -155,17 +148,17 @@ export default function BudgetsContent({
           ) : null}
 
           {userBudgetSummary && userBudgetSummary.budgets.length === 0 ? (
-            <EmptyState
-              icon={ShoppingCart}
-              titleId="budgets-section-empty-title"
-              title={t('emptyState.title')}
-              description={t('emptyState.description')}
-              action={
-                <Button onClick={handleCreateBudget} variant="default" size="sm">
-                  {t('emptyState.createButton')} →
-                </Button>
-              }
-            />
+            <div className={stitchRecurring.emptyState} role="status" aria-live="polite">
+              <p id="budgets-section-empty-title" className={stitchRecurring.emptyTitle}>
+                {t('emptyState.title')}
+              </p>
+              <p className={stitchRecurring.emptyDescription}>{t('emptyState.description')}</p>
+              <div className={stitchRecurring.emptyActions}>
+                <button type="button" onClick={handleCreateBudget} className={stitchSurface.primaryCta}>
+                  {t('emptyState.createButton')}
+                </button>
+              </div>
+            </div>
           ) : null}
         </div>
       </HomeDashboardMain>

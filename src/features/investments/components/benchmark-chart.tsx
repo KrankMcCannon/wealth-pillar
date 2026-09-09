@@ -11,8 +11,8 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ShareSelector } from './share-selector';
+import { stitchInvestments } from '@/styles/home-design-foundation';
 import { investmentsStyles } from '@/features/investments/theme/investments-styles';
 import {
   investmentChartColors,
@@ -73,25 +73,25 @@ export function BenchmarkChart({
       : null;
 
   return (
-    <Card
+    <section
       role="region"
       aria-labelledby={titleId}
       aria-describedby={srSummary ? summaryId : undefined}
-      className={investmentsStyles.card.root}
+      className={stitchInvestments.chartCard}
       id={anchorId}
     >
-      <CardHeader className={`${investmentsStyles.card.header} flex flex-col gap-3`}>
+      <div className={`${stitchInvestments.chartCardHeader} flex flex-col gap-3`}>
         <div className="min-w-0">
-          <CardTitle id={titleId} className={investmentsStyles.card.title}>
+          <p id={titleId} className={stitchInvestments.chartCardTitle}>
             {t('title')}
-          </CardTitle>
-          <CardDescription className={investmentsStyles.card.description}>
+          </p>
+          <p className={stitchInvestments.chartCardDescription}>
             {t('description', { index: currentIndex })}
-          </CardDescription>
+          </p>
         </div>
         <ShareSelector value={currentIndex} onChange={onBenchmarkChange} />
-      </CardHeader>
-      <CardContent className={investmentsStyles.card.content}>
+      </div>
+      <div className={stitchInvestments.chartCardContent}>
         {srSummary ? (
           <p id={summaryId} className="sr-only">
             {srSummary}
@@ -161,7 +161,7 @@ export function BenchmarkChart({
         ) : (
           <div className={investmentsStyles.charts.fallback}>{t('fallback')}</div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </section>
   );
 }

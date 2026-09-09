@@ -1,17 +1,16 @@
 'use client';
 
 import { Skeleton } from '@/components/ui/skeleton';
-import { PageContainer, Header, BottomNavigation } from '@/components/layout';
+import { HomeDashboardMain } from '@/components/layout';
 import { PageTabsSticky } from '@/components/shared/page-tabs';
 import { useTranslations } from 'next-intl';
+import { stitchHome, stitchInvestments } from '@/styles/home-design-foundation';
 
 export function InvestmentsSkeleton() {
   const t = useTranslations('InvestmentsContent');
 
   return (
-    <PageContainer>
-      <Header title={t('headerTitle')} showBack />
-
+    <>
       <PageTabsSticky
         value="personal"
         ariaLabel={t('mainLandmark')}
@@ -23,58 +22,40 @@ export function InvestmentsSkeleton() {
         leading={<Skeleton className="h-8 w-48 rounded-full" />}
       />
 
-      <main
-        id="main-investments"
-        className="flex flex-col gap-5 px-4 pb-[max(7rem,calc(5.5rem+env(safe-area-inset-bottom)))] pt-4"
-        aria-busy="true"
-        aria-live="polite"
-        aria-label={t('mainLandmark')}
-      >
-        <div className="flex flex-col items-center gap-3 rounded-2xl border border-border/20 bg-card p-4">
-          <Skeleton className="h-3 w-32" />
-          <Skeleton className="h-10 w-48" />
-          <Skeleton className="h-7 w-40 rounded-full" />
-        </div>
-
-        <div className="rounded-2xl border border-border/20 bg-card p-4">
-          <Skeleton className="mb-4 h-5 w-36" />
-          <Skeleton className="mx-auto size-40 rounded-full" />
-          <div className="mt-6 flex flex-col gap-3">
-            {[1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-14 w-full rounded-2xl" />
-            ))}
+      <HomeDashboardMain id="main-investments" ariaBusy aria-label={t('mainLandmark')}>
+        <div className={stitchInvestments.mainStack}>
+          <div className={stitchInvestments.heroSection}>
+            <Skeleton className="h-3 w-32" />
+            <Skeleton className="mt-2 h-8 w-48" />
+            <Skeleton className="mt-2 h-4 w-24" />
           </div>
-        </div>
 
-        <Skeleton className="h-[220px] w-full rounded-2xl" />
-        <Skeleton className="h-[220px] w-full rounded-2xl" />
-
-        <div className="flex flex-col overflow-hidden rounded-2xl border border-border/20 bg-card">
-          <Skeleton className="m-4 h-5 w-28" />
-          {[1, 2, 3, 4].map((i) => (
-            <div
-              key={i}
-              className="flex items-center justify-between gap-3 border-t border-border/15 px-4 py-3"
-            >
-              <div className="flex items-center gap-3">
-                <Skeleton className="size-10 rounded-xl" />
-                <div className="flex flex-col gap-1.5">
-                  <Skeleton className="h-4 w-20" />
-                  <Skeleton className="h-3 w-28" />
-                </div>
-              </div>
-              <Skeleton className="h-4 w-16" />
+          <section className={stitchInvestments.chartCard}>
+            <div className={stitchInvestments.chartCardHeader}>
+              <Skeleton className="h-3 w-24" />
             </div>
-          ))}
-        </div>
-      </main>
+            <div className={stitchInvestments.chartCardContent}>
+              <Skeleton className="h-40 w-full rounded-lg" />
+            </div>
+          </section>
 
-      <BottomNavigation />
-      <Skeleton
-        className="fixed bottom-[max(5.5rem,calc(4.5rem+env(safe-area-inset-bottom)))] right-4 size-14 rounded-2xl shadow-lg"
-        aria-hidden
-      />
-    </PageContainer>
+          <section className={stitchHome.scanSection}>
+            <Skeleton className="h-4 w-28" />
+            <ul className={stitchHome.plainList}>
+              {[1, 2, 3, 4].map((i) => (
+                <li key={i} className={stitchInvestments.holdingRow}>
+                  <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-3 w-28" />
+                  </div>
+                  <Skeleton className="h-4 w-16 shrink-0" />
+                </li>
+              ))}
+            </ul>
+          </section>
+        </div>
+      </HomeDashboardMain>
+    </>
   );
 }
 

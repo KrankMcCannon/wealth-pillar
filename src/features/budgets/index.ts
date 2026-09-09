@@ -7,7 +7,6 @@ export {
   BudgetCardSkeleton,
   BudgetListSkeleton,
   BudgetDetailsSkeleton,
-  TransactionListSkeleton,
   BudgetPageSkeleton,
 } from './components/budget-skeletons';
 

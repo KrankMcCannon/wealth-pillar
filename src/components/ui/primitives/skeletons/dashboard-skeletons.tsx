@@ -29,11 +29,11 @@ function BriefingSectionSkeleton({ rows }: { rows: number }) {
 export function BalanceSectionSkeleton() {
   return (
     <section aria-hidden className={stitchHome.balanceSection}>
-      <div className={stitchHome.scanSectionHeader}>
+      <div className="flex items-baseline justify-between gap-3">
         <Skeleton className="h-3 w-32" />
         <Skeleton className="h-3 w-14" />
       </div>
-      <Skeleton className="h-10 w-48 max-w-full" />
+      <Skeleton className="h-8 w-44 max-w-full" />
       <Skeleton className="h-4 w-36" />
     </section>
   );

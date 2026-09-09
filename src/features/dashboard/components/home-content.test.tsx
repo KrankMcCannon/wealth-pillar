@@ -128,6 +128,7 @@ describe('HomeContent', () => {
     expect(screen.getByRole('link', { name: /spendableViewAll/ }).getAttribute('href')).toBe(
       '/accounts'
     );
+    expect(screen.getAllByRole('link', { name: /spendableViewAll/ })).toHaveLength(1);
     expect(screen.getAllByRole('heading').map((heading) => heading.textContent)).toEqual([
       'budgetTitle',
       'upcomingTitle',

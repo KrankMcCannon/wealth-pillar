@@ -20,7 +20,8 @@ const wealthPillarAuthTheme = experimental_createTheme({
     cardBox: 'mx-auto w-full rounded-2xl shadow-lg',
     headerTitle: 'text-xl font-semibold tracking-tight',
     headerSubtitle: 'text-sm',
-    formButtonPrimary: 'h-12 w-full',
+    formButtonPrimary:
+      'flex h-12 min-h-12 w-full items-center justify-center rounded-2xl text-sm font-semibold uppercase tracking-[0.22em]',
     formFieldInput: 'h-11',
   },
 });
@@ -36,5 +37,10 @@ export const clerkAppearance = {
     borderRadius: '1rem',
     fontFamily: 'var(--font-spline-sans), system-ui, sans-serif',
     fontSize: '0.95rem',
+    colorPrimary: 'var(--color-primary)',
+    colorBackground: 'var(--color-card)',
+    colorText: 'var(--color-foreground)',
+    colorInputBackground: 'var(--color-input)',
+    colorDanger: 'var(--color-destructive)',
   },
 } as Theme;

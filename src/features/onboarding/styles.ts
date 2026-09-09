@@ -1,3 +1,5 @@
+import { stitchHome, stitchSurface } from '@/styles/home-design-foundation';
+
 export const onboardingStyles = {
   container:
     'flex min-h-0 flex-1 w-full max-w-md mx-auto flex-col animate-in fade-in slide-in-from-bottom-2 duration-200',
@@ -8,11 +10,11 @@ export const onboardingStyles = {
     meta: 'text-xs font-semibold uppercase tracking-wide text-muted-foreground',
     title: 'text-xl font-semibold text-foreground',
     description: 'text-xs text-muted-foreground',
-    progressTrack: 'h-1.5 w-full rounded-full bg-muted/80',
+    progressTrack: `${stitchHome.progressTrack} w-full`,
     progressIndicator: 'h-full rounded-full bg-primary transition-all duration-200 ease-out',
   },
   stepContent: 'flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 pb-4',
-  card: 'flex flex-col gap-3 rounded-xl border border-border/25 bg-muted/35 p-4',
+  card: `${stitchSurface.card} flex flex-col gap-3 p-4`,
   cardHeader: 'flex items-center justify-between',
   cardTitle: 'text-sm font-semibold text-foreground',
   deleteButton:
@@ -21,8 +23,7 @@ export const onboardingStyles = {
     'flex w-full items-center justify-center gap-2 rounded-xl border border-border/30 bg-primary px-4 py-3 font-medium text-primary-foreground transition-colors hover:bg-primary/90',
   backButton:
     'flex items-center gap-2 rounded-xl border border-border/30 bg-muted/80 px-4 py-3 font-medium text-foreground transition-colors hover:bg-accent',
-  nextButton:
-    'flex items-center justify-center gap-2 rounded-xl border border-primary/40 bg-primary px-4 py-3 font-medium text-primary-foreground transition-colors hover:bg-primary/90',
+  nextButton: stitchSurface.primaryCta,
   label: 'text-sm font-medium text-foreground',
   primaryLabel: 'text-sm font-medium text-foreground',
   input:

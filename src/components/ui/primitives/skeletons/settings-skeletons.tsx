@@ -1,5 +1,6 @@
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
+import { HomeDashboardMain } from '@/components/layout/home-dashboard-layout';
 import { stitchSettings } from '@/styles/home-design-foundation';
 
 function ProfileSectionSkeleton() {
@@ -25,12 +26,14 @@ function SettingsSectionCardSkeleton({ rows }: Readonly<{ rows: number }>) {
 
 export function SettingsPageSkeleton() {
   return (
-    <main className={stitchSettings.pageMain} aria-busy="true">
-      <ProfileSectionSkeleton />
-      <SettingsSectionCardSkeleton rows={2} />
-      <SettingsSectionCardSkeleton rows={4} />
-      <SettingsSectionCardSkeleton rows={2} />
-      <Skeleton className="mt-1 h-11 w-full rounded-xl" aria-hidden />
-    </main>
+    <HomeDashboardMain id="main-settings-skeleton" ariaBusy>
+      <div className={stitchSettings.pageMain}>
+        <ProfileSectionSkeleton />
+        <SettingsSectionCardSkeleton rows={2} />
+        <SettingsSectionCardSkeleton rows={4} />
+        <SettingsSectionCardSkeleton rows={2} />
+        <Skeleton className="mt-1 h-11 w-full rounded-xl" aria-hidden />
+      </div>
+    </HomeDashboardMain>
   );
 }

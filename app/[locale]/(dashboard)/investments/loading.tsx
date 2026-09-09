@@ -1,7 +1,5 @@
-'use client';
-
-import { PageLoader } from '@/components/shared/page-loader';
+import { InvestmentsSkeleton } from '@/components/ui/primitives/skeletons';
 
 export default function InvestmentsLoading() {
-  return <PageLoader variant="list" />;
+  return <InvestmentsSkeleton />;
 }

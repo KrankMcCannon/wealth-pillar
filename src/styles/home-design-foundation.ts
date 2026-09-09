@@ -53,7 +53,7 @@ export const stitchHome = {
     'flex size-9 shrink-0 items-center justify-center rounded-full border border-border/30 bg-muted text-sm font-bold text-primary',
   fab: stitchFab.pageAdd,
   balanceSection:
-    'flex flex-col gap-2 overflow-hidden rounded-2xl border border-border/20 bg-card p-4 shadow-sm',
+    'flex flex-col gap-1 overflow-hidden rounded-2xl border border-border/20 bg-card px-4 py-3 shadow-sm',
   listRow:
     'flex items-center justify-between gap-3 rounded-xl bg-muted/90 px-3 py-2 text-left ring-1 ring-inset ring-border/40 transition-colors hover:bg-accent',
   listRowInteractive:
@@ -118,13 +118,10 @@ export const stitchPageTabs = {
 } as const;
 
 /**
- * Pagina Budgets — hero, lista categorie, FAB (dark Stitch, layout mobile-first).
+ * Pagina Budgets — hero, lista categorie, FAB.
  */
 export const stitchBudgets = {
-  decorWrap: 'hidden',
-  decorBlobTL: 'hidden',
-  decorBlobBR: 'hidden',
-  /** Spaziatura come Stitch (hero → CTA → lista). */
+  /** Spaziatura hero → lista. */
   mainStack: 'flex flex-col gap-5 pt-1',
   heroSection: 'relative overflow-hidden rounded-xl border border-border/25 bg-card p-4',
   heroInner: 'relative z-[1]',
@@ -141,7 +138,6 @@ export const stitchBudgets = {
   heroMetricsRow: 'flex w-full gap-8 border-t border-border/25 pt-4 [&>div]:min-w-0 [&>div]:flex-1',
   heroMetricLabel: 'text-[11px] font-medium uppercase tracking-wide text-muted-foreground',
   heroMetricValue: 'mt-1 text-[17px] font-semibold leading-tight tabular-nums text-foreground',
-  heroGradientBar: 'hidden',
   heroStatMiniRow: 'mt-2',
   periodHeader:
     'flex items-center justify-between gap-2 rounded-xl border border-border/40 bg-card px-2 py-1.5',
@@ -157,7 +153,6 @@ export const stitchBudgets = {
     'group relative flex w-full flex-col gap-2 rounded-xl border border-border/25 bg-card px-3 py-3 text-left transition-colors hover:bg-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45',
   categoryCardSelected: 'ring-2 ring-ring/55 ring-offset-2 ring-offset-background',
   categoryCardOver: 'border-expense/35',
-  categoryCardOverGlow: 'hidden',
   categoryHeaderRow: 'relative z-[1] flex items-start justify-between gap-2',
   categoryTitleRow: 'flex min-w-0 items-center gap-2.5',
   /** Icon 40px — cerchio primary-fixed / secondary / error come Stitch. */
@@ -234,6 +229,7 @@ export const stitchInvestments = {
   chartCard: stitchSurface.card,
   chartCardHeader: 'border-b border-border/25 px-4 pb-3 pt-4',
   chartCardTitle: 'text-[11px] font-semibold uppercase tracking-wide text-muted-foreground',
+  chartCardDescription: 'mt-1 text-sm text-muted-foreground',
   chartCardContent: 'p-4',
   emptyState: 'rounded-xl border border-border/25 bg-card p-6 text-center',
   emptyTitle: 'text-base font-medium text-foreground',
@@ -483,7 +479,7 @@ export const stitchTransactionFilterTriggers = {
  * Settings page — dark Stitch (aligned with stitchHome / stitchDashboardShell).
  */
 export const stitchSettings = {
-  pageMain: `flex min-h-0 w-full flex-col gap-5 px-4 pt-2 ${dashboardContentBottomPadding}`,
+  pageMain: 'flex flex-col gap-5',
   sectionEyebrow: 'px-0.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground',
   sectionCard: 'overflow-hidden rounded-xl border border-border/25 bg-card',
   formCard: 'overflow-hidden rounded-xl border border-border/25 bg-card divide-y divide-border/25',

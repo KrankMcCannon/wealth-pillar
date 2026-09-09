@@ -2,10 +2,8 @@
 
 import { use, useMemo } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { Pencil } from 'lucide-react';
 import { HomeDashboardMain } from '@/components/layout';
 import { usePageHeader } from '@/hooks/use-page-header';
-import { Button } from '@/components/ui';
 import { BudgetCategoryLucideIcon } from '@/features/budgets/components/budget-category-lucide-icon';
 import { getBudgetCategoryStatus } from '@/features/budgets/components/budget-category-card';
 import { BudgetProgressBar } from '@/features/budgets/components/budget-progress-bar';
@@ -71,15 +69,13 @@ export default function BudgetDetailContent({ pageDataPromise }: BudgetDetailCon
       <HomeDashboardMain id="main-budget-detail">
         <div className={stitchBudgets.mainStack}>
           <div className="flex justify-end">
-            <Button
+            <button
               type="button"
-              variant="outline"
-              size="sm"
+              className={stitchHome.viewAllLink}
               onClick={() => openModal('budget', budget.id)}
             >
-              <Pencil data-icon="inline-start" />
               {t('editBudget')}
-            </Button>
+            </button>
           </div>
 
           <section className={stitchBudgets.categoryCard} aria-label={t('summaryAria')}>
@@ -116,11 +112,11 @@ export default function BudgetDetailContent({ pageDataPromise }: BudgetDetailCon
           </section>
 
           {categoryBreakdown.length > 0 ? (
-            <section aria-labelledby="budget-categories-heading">
-              <h2 id="budget-categories-heading" className={stitchBudgets.heroEyebrow}>
+            <section className={stitchHome.scanSection} aria-labelledby="budget-categories-heading">
+              <h2 id="budget-categories-heading" className={stitchHome.scanSectionTitle}>
                 {t('categoriesTitle')}
               </h2>
-              <ul className={`${stitchHome.plainList} mt-2`}>
+              <ul className={stitchHome.plainList}>
                 {categoryBreakdown.map((item) => (
                   <li key={item.key} className={stitchHome.plainRow}>
                     <span className="flex min-w-0 items-center gap-2">

@@ -1,5 +1,5 @@
-import { PageLoader } from '@/components/shared/page-loader';
+import { AccountsPageSkeleton } from '@/components/ui/primitives/skeletons';
 
 export default function AccountsLoading() {
-  return <PageLoader variant="list" />;
+  return <AccountsPageSkeleton />;
 }

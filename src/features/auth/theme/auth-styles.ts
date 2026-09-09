@@ -3,6 +3,7 @@
  */
 
 import { typographyStyles } from '@/features/budgets/theme/budget-styles';
+import { stitchSurface } from '@/styles/home-design-foundation';
 
 export const authStyles = {
   page: {
@@ -22,7 +23,7 @@ export const authStyles = {
   },
   card: {
     container: 'w-full',
-    surface: 'rounded-2xl border border-border/25 bg-card p-4 shadow-lg',
+    surface: `${stitchSurface.cardLg} p-4`,
     header: 'mb-4 text-center',
     brand: 'text-lg font-bold tracking-tight text-primary',
     title: 'text-xl font-semibold text-foreground',

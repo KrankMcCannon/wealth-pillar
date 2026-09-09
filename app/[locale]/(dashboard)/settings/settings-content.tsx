@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { usePageHeader } from '@/hooks/use-page-header';
 import { useRouter } from '@/i18n/routing';
+import { HomeDashboardMain } from '@/components/layout';
 import { stitchSettings } from '@/styles/home-design-foundation';
 import {
   useSettings,
@@ -66,31 +67,33 @@ export default function SettingsContent({
         onGroupUpdate: handleGroupUpdate,
       }}
     >
-      <main className={stitchSettings.pageMain}>
-        <ProfileSection
-          currentUser={displayUser}
-          userInitials={userInitials}
-          onEditProfile={() => openSettingsModal('profile')}
-        />
+      <HomeDashboardMain id="main-settings">
+        <div className={stitchSettings.pageMain}>
+          <ProfileSection
+            currentUser={displayUser}
+            userInitials={userInitials}
+            onEditProfile={() => openSettingsModal('profile')}
+          />
 
-        <GroupSection
-          isAdmin={isAdmin}
-          groupName={displayGroupName}
-          onInviteMember={() => openSettingsModal('invite')}
-          onManageGroup={() => openSettingsModal('group')}
-        />
+          <GroupSection
+            isAdmin={isAdmin}
+            groupName={displayGroupName}
+            onInviteMember={() => openSettingsModal('invite')}
+            onManageGroup={() => openSettingsModal('group')}
+          />
 
-        <CategoriesSection onManageCategories={() => openSettingsModal('categories')} />
+          <CategoriesSection onManageCategories={() => openSettingsModal('categories')} />
 
-        <PreferencesSection
-          preferences={preferences}
-          onOpenCurrency={() => openSettingsModal('currency')}
-          onOpenLanguage={() => openSettingsModal('language')}
-          onOpenTimezone={() => openSettingsModal('timezone')}
-        />
+          <PreferencesSection
+            preferences={preferences}
+            onOpenCurrency={() => openSettingsModal('currency')}
+            onOpenLanguage={() => openSettingsModal('language')}
+            onOpenTimezone={() => openSettingsModal('timezone')}
+          />
 
-        <SupportSection isSigningOut={isSigningOut} onSignOut={handleSignOut} />
-      </main>
+          <SupportSection isSigningOut={isSigningOut} onSignOut={handleSignOut} />
+        </div>
+      </HomeDashboardMain>
       <SettingsModalRenderer />
     </SettingsModalsProvider>
   );

@@ -20,10 +20,11 @@ vi.mock('@/i18n/routing', () => ({
 }));
 
 describe('PageLoader', () => {
-  it('renders list skeleton without dashboard shell chrome', () => {
-    const { container } = render(<PageLoader variant="list" />);
+  it('renders transactions skeleton without dashboard shell chrome', () => {
+    const { container } = render(<PageLoader variant="transactions" />);
 
     expect(container.querySelector('[aria-busy="true"]')).toBeInTheDocument();
+    expect(container.querySelector('#main-transactions-skeleton')).toBeInTheDocument();
     expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
   });
 

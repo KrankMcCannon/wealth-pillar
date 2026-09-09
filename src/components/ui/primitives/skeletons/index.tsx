@@ -30,5 +30,6 @@ export {
 
 export { SettingsPageSkeleton } from './settings-skeletons';
 
+export { AccountsPageSkeleton } from './accounts-skeletons';
 export { InvestmentsSkeleton } from './investments-skeleton';
 export { ReportsSkeleton } from './reports-skeleton';

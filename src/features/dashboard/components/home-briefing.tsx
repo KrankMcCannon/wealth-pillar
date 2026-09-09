@@ -57,35 +57,32 @@ export function HomeBriefing({
   return (
     <div className="flex flex-col gap-5">
       <section className={stitchHome.balanceSection} aria-labelledby="home-spendable-heading">
-        <div className={stitchHome.scanSectionHeader}>
-          <p id="home-spendable-heading" className={stitchHome.sectionEyebrow}>
-            {t('spendableLabel')}
-          </p>
-          <Link
-            href={accountsHref(selectedUserId)}
-            className={cn(stitchHome.viewAllLink, 'min-h-8 min-w-0 py-0')}
-          >
-            {t('spendableViewAll')}
-          </Link>
-        </div>
         <Link
           href={accountsHref(selectedUserId)}
           className="flex flex-col gap-1 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45"
         >
+          <div className="flex items-baseline justify-between gap-3">
+            <p id="home-spendable-heading" className={stitchHome.sectionEyebrow}>
+              {t('spendableLabel')}
+            </p>
+            <span className="text-sm font-semibold text-primary">{t('spendableViewAll')}</span>
+          </div>
           <p className="sr-only">{t('spendableHint')}</p>
-          <Amount
-            type={isNegative ? 'expense' : 'balance'}
-            size="2xl"
-            emphasis="strong"
-            className={cn(
-              isNegative ? stitchHome.balanceHeroNegative : stitchHome.balanceHero,
-              'text-[2.75rem]'
-            )}
-          >
-            {spendableBalance}
-          </Amount>
+          <p className="leading-none">
+            <Amount
+              type={isNegative ? 'expense' : 'balance'}
+              size="2xl"
+              emphasis="strong"
+              className={cn(
+                isNegative ? stitchHome.balanceHeroNegative : stitchHome.balanceHero,
+                'text-[2.75rem] leading-none tracking-[-0.04em]'
+              )}
+            >
+              {spendableBalance}
+            </Amount>
+          </p>
           {reserveBalance !== 0 ? (
-            <p className={stitchHome.rowMeta}>
+            <p className="text-sm text-muted-foreground">
               {t('reserveLabel')}:{' '}
               <Amount type="balance" size="sm" className="inline text-foreground">
                 {reserveBalance}

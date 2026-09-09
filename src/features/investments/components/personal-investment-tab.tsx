@@ -5,7 +5,6 @@ import { usePathname, useRouter } from '@/i18n/routing';
 import { InvestmentHistoryChart } from './investment-history-chart';
 import { BenchmarkChart } from './benchmark-chart';
 import { InvestmentsScreenList } from './investments-screen-list';
-import { stitchInvestments } from '@/styles/home-design-foundation';
 import { WealthHeader } from './wealth-header';
 import { AssetAllocationCard } from './asset-allocation-card';
 import { useTranslations } from 'next-intl';
@@ -65,7 +64,7 @@ export function PersonalInvestmentTab({
   const allocationData = buildAllocationChartData(assetAllocation, t('fallback.others'));
 
   return (
-    <div className={stitchInvestments.mainStack}>
+    <>
       <WealthHeader
         totalValue={summary.totalCurrentValue}
         trendAmount={summary.totalReturn}
@@ -86,6 +85,6 @@ export function PersonalInvestmentTab({
       </div>
 
       <InvestmentsScreenList holdings={holdings} />
-    </div>
+    </>
   );
 }

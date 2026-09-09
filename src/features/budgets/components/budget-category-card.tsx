@@ -65,10 +65,6 @@ export function BudgetCategoryCard({
         isSelected && stitchBudgets.categoryCardSelected
       )}
     >
-      {status === 'over' ? (
-        <div className={stitchBudgets.categoryCardOverGlow} aria-hidden />
-      ) : null}
-
       <div className={stitchBudgets.categoryHeaderRow}>
         <div className={stitchBudgets.categoryTitleRow}>
           <span className={iconWrapClass} aria-hidden>

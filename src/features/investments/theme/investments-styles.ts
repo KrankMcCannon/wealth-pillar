@@ -1,23 +1,13 @@
 export const investmentsStyles = {
-  card: {
-    root: 'overflow-hidden rounded-xl border border-border/25 bg-card',
-    header: 'px-4 pt-4',
-    headerWithBorder: 'border-b border-border/25 bg-muted/40 px-4 pt-4',
-    content: 'p-4',
-    contentNoPadding: 'p-0',
-    title: 'text-base font-semibold text-foreground',
-    description: 'text-sm text-muted-foreground',
-  },
   charts: {
     container: 'relative h-[220px] min-h-[220px] w-full min-w-0 shrink-0',
     sandboxContainer: 'h-[280px] min-h-[200px] w-full min-w-0 shrink-0',
     fallback:
       'flex h-[220px] min-h-[180px] items-center justify-center rounded-xl border border-border/20 bg-muted/60 px-3 text-center text-sm text-muted-foreground',
   },
-  container: 'flex flex-col gap-5 pb-[max(7rem,calc(5.5rem+env(safe-area-inset-bottom)))]',
   sandbox: {
-    fieldsWrap: 'flex flex-col gap-4 border-b border-border/25 bg-card p-4',
-    chartSection: 'border-t border-border/25 bg-card p-4',
+    fieldsWrap: 'flex flex-col gap-4 p-4',
+    chartSection: 'border-t border-border/25 p-4',
     input:
       'h-12 rounded-xl border-border/35 bg-muted/80 text-lg font-medium text-foreground outline-none focus:border-border/55 focus:ring-0',
   },

@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui';
 import { AuthCard, authStyles } from '@/features/auth';
 import { Link } from '@/i18n/routing';
+import { stitchSurface } from '@/styles/home-design-foundation';
 
 export default function AuthError({
   error,
@@ -30,9 +31,9 @@ export default function AuthError({
           <p className={authStyles.errorPage.description}>
             {error.message || t('fallbackMessage')}
           </p>
-          <Button onClick={() => reset()} className="w-full" size="default">
+          <button type="button" onClick={() => reset()} className={stitchSurface.primaryCta}>
             {t('retry')}
-          </Button>
+          </button>
           <Button variant="ghost" asChild className="w-full">
             <Link href="/sign-in">{t('backToSignIn')}</Link>
           </Button>

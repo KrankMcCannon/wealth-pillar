@@ -11,7 +11,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { stitchInvestments } from '@/styles/home-design-foundation';
 import { investmentsStyles } from '@/features/investments/theme/investments-styles';
 import {
   investmentChartColors,
@@ -48,21 +48,19 @@ export function InvestmentHistoryChart({ data }: Readonly<InvestmentHistoryChart
       : null;
 
   return (
-    <Card
+    <section
       role="region"
       aria-labelledby={titleId}
       aria-describedby={srSummary ? summaryId : undefined}
-      className={investmentsStyles.card.root}
+      className={stitchInvestments.chartCard}
     >
-      <CardHeader className={investmentsStyles.card.header}>
-        <CardTitle id={titleId} className={investmentsStyles.card.title}>
+      <div className={stitchInvestments.chartCardHeader}>
+        <p id={titleId} className={stitchInvestments.chartCardTitle}>
           {t('title')}
-        </CardTitle>
-        <CardDescription className={investmentsStyles.card.description}>
-          {t('description')}
-        </CardDescription>
-      </CardHeader>
-      <CardContent className={investmentsStyles.card.content}>
+        </p>
+        <p className={stitchInvestments.chartCardDescription}>{t('description')}</p>
+      </div>
+      <div className={stitchInvestments.chartCardContent}>
         {srSummary ? (
           <p id={summaryId} className="sr-only">
             {srSummary}
@@ -147,7 +145,7 @@ export function InvestmentHistoryChart({ data }: Readonly<InvestmentHistoryChart
         ) : (
           <div className={investmentsStyles.charts.fallback}>{t('fallback')}</div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </section>
   );
 }
