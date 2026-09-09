@@ -13,6 +13,7 @@ import {
   formModalStyles as s,
 } from '@/components/form';
 import { toSelectOptions, sortSelectOptions } from '@/components/form/form-select';
+import { accountSelectLabel } from '../utils/transfer-destinations';
 
 export type TransactionFormData = {
   description: string;
@@ -77,10 +78,10 @@ export function TransactionFormFields({
         toSelectOptions(
           destinationAccounts,
           (a) => a.id,
-          (a) => a.name
+          (a) => accountSelectLabel(a, groupUsers)
         )
       ),
-    [destinationAccounts]
+    [destinationAccounts, groupUsers]
   );
 
   const userOptions = useMemo(

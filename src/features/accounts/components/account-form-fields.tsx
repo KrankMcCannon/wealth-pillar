@@ -7,23 +7,24 @@ import type { User, AccountLiquidity, AccountType } from '@/lib/types';
 import { defaultLiquidityForType } from '@/lib/utils/account-classification';
 import {
   ModalCheckboxField,
+  ModalMultiSelectField,
   ModalSelectField,
   ModalTextField,
   formModalStyles as s,
 } from '@/components/form';
-import { sortSelectOptions } from '@/components/form/form-select';
 
 export type AccountFormData = {
   name: string;
   type: AccountType;
   liquidity: AccountLiquidity;
-  user_id: string;
+  user_ids: string[];
   isDefault: boolean;
 };
 
 interface AccountFormFieldsProps {
   form: UseFormReturn<AccountFormData>;
   groupUsers: User[];
+  currentUserId: string;
   shouldDisableUserField: boolean;
   isSubmitting: boolean;
 }
@@ -31,6 +32,7 @@ interface AccountFormFieldsProps {
 export function AccountFormFields({
   form,
   groupUsers,
+  currentUserId,
   shouldDisableUserField,
   isSubmitting,
 }: AccountFormFieldsProps) {
@@ -58,10 +60,6 @@ export function AccountFormFields({
     { value: 'spendable', label: t('fields.liquidity.spendable') },
     { value: 'reserve', label: t('fields.liquidity.reserve') },
   ] as const;
-
-  const userOptions = sortSelectOptions(
-    groupUsers.map((u) => ({ value: u.id, label: u.name ?? '' }))
-  );
 
   return (
     <div className={s.fieldStack}>
@@ -91,14 +89,15 @@ export function AccountFormFields({
         disabled={isSubmitting}
       />
 
-      <ModalSelectField
+      <ModalMultiSelectField
         control={control}
-        name="user_id"
+        name="user_ids"
         label={t('fields.owner.label')}
-        options={userOptions}
-        placeholder={t('fields.owner.placeholder')}
+        options={groupUsers.map((u) => ({ value: u.id, label: u.name ?? '' }))}
+        shape="rows"
+        users={groupUsers}
+        currentUserId={currentUserId}
         disabled={shouldDisableUserField || isSubmitting}
-        {...(shouldDisableUserField ? { hint: t('fields.owner.memberHelper') } : {})}
       />
 
       <ModalCheckboxField

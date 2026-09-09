@@ -53,7 +53,7 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
         name: z.string().min(1, t('validation.nameRequired')).trim(),
         type: z.enum(['payroll', 'cash', 'investments', 'savings']),
         liquidity: z.enum(['spendable', 'reserve']),
-        user_id: z.string().min(1, t('validation.userRequired')),
+        user_ids: z.array(z.string()).min(1, t('validation.userRequired')),
         isDefault: z.boolean().default(false),
       }),
     [t]
@@ -64,7 +64,7 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
       name: '',
       type: 'payroll',
       liquidity: 'spendable',
-      user_id: defaultFormUserId || currentUser.id,
+      user_ids: [defaultFormUserId || currentUser.id],
       isDefault: false,
     }),
     [defaultFormUserId, currentUser.id]
@@ -78,7 +78,7 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
         name: account.name,
         type: account.type,
         liquidity: resolveAccountLiquidity(account),
-        user_id: account.user_ids[0] || currentUser.id,
+        user_ids: account.user_ids.length > 0 ? account.user_ids : [currentUser.id],
         isDefault: currentUser.default_account_id === account.id,
       };
     },
@@ -104,7 +104,7 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
       name: data.name.trim(),
       type: data.type,
       liquidity: data.liquidity,
-      user_ids: [data.user_id],
+      user_ids: data.user_ids,
       isDefault: data.isDefault || false,
     }),
     []
@@ -314,6 +314,7 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
         <AccountFormFields
           form={form}
           groupUsers={groupUsers}
+          currentUserId={currentUser.id}
           shouldDisableUserField={shouldDisableUserField}
           isSubmitting={form.formState.isSubmitting}
         />

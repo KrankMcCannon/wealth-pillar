@@ -37,6 +37,7 @@ import {
 } from '../utils/transaction-balance-delta';
 import { mapTransactionToFormData } from '../utils/transaction-form-data';
 import { buildTransactionPayload } from '../utils/build-transaction-payload';
+import { getTransferDestinationAccounts } from '../utils/transfer-destinations';
 import { TransactionFormFields, type TransactionFormData } from './transaction-form-fields';
 
 const createTransactionSchema = (t: ReturnType<typeof useTranslations>) =>
@@ -101,7 +102,10 @@ function TransactionFormModalBody({
     return accounts.filter((acc) => acc.user_ids.includes(watchedUserId));
   }, [accounts, watchedUserId]);
 
-  const destinationAccounts = filteredAccounts.filter((acc) => acc.id !== watchedAccountId);
+  const destinationAccounts = useMemo(
+    () => getTransferDestinationAccounts(accounts, watchedAccountId),
+    [accounts, watchedAccountId]
+  );
   const previousUserIdRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -142,7 +146,6 @@ function TransactionFormModalBody({
 
     if (!accountIsValid || (previousUserId && previousUserId !== watchedUserId)) {
       setValue('account_id', getDefaultAccountIdForUser(watchedUserId, accounts, groupUsers));
-      setValue('to_account_id', '');
     }
 
     previousUserIdRef.current = watchedUserId;

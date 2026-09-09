@@ -20,3 +20,13 @@ export function getDefaultAccountIdForUser(
 
   return accounts[0]?.id ?? '';
 }
+
+export function defaultAccountUserId(
+  isDefault: boolean,
+  ownerIds: string[],
+  currentUserId: string
+): string | undefined {
+  if (!isDefault || ownerIds.length === 0) return undefined;
+  if (ownerIds.includes(currentUserId)) return currentUserId;
+  return ownerIds.length === 1 ? ownerIds[0] : undefined;
+}

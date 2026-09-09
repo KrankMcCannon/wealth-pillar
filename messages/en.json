@@ -1307,7 +1307,7 @@
     "FormModal": {
       "validation": {
         "nameRequired": "Name is required",
-        "userRequired": "User is required"
+        "userRequired": "At least one owner is required"
       },
       "title": {
         "create": "New account",
@@ -1339,8 +1339,8 @@
           "reserve": "Reserve"
         },
         "owner": {
-          "label": "Owner",
-          "placeholder": "Select owner",
+          "label": "Owners",
+          "placeholder": "Select owners",
           "memberHelper": "Members can create and edit only their own data"
         },
         "isDefault": "Default"

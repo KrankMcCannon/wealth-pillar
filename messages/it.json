@@ -1307,7 +1307,7 @@
     "FormModal": {
       "validation": {
         "nameRequired": "Il nome è obbligatorio",
-        "userRequired": "L'utente è obbligatorio"
+        "userRequired": "Seleziona almeno un proprietario"
       },
       "title": {
         "create": "Nuovo account",
@@ -1339,8 +1339,8 @@
           "reserve": "Riserva"
         },
         "owner": {
-          "label": "Proprietario",
-          "placeholder": "Seleziona proprietario",
+          "label": "Proprietari",
+          "placeholder": "Seleziona proprietari",
           "memberHelper": "I membri possono creare e modificare solo i propri dati"
         },
         "isDefault": "Predefinito"

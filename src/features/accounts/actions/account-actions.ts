@@ -16,6 +16,7 @@ import { setUserDefaultAccountUseCase } from '@/server/use-cases/users/user.use-
 import type { ServiceResult } from '@/lib/types/service-result';
 import { Account, User } from '@/lib/types';
 import { AccessScope } from '@/lib/permissions/access-scope';
+import { defaultAccountUserId } from '@/features/accounts/utils/default-account-id';
 
 export type { ServiceResult } from '@/lib/types/service-result';
 
@@ -56,10 +57,8 @@ export async function createAccountAction(
 
     const account = await createAccountUseCase(input);
 
-    if (isDefault && input.user_ids.length === 1) {
-      const uid = input.user_ids[0];
-      if (uid) await setUserDefaultAccountUseCase(uid, account.id);
-    }
+    const defaultUserId = defaultAccountUserId(isDefault, input.user_ids, currentUser.id);
+    if (defaultUserId) await setUserDefaultAccountUseCase(defaultUserId, account.id);
 
     revalidateAccountRelatedPaths();
 
@@ -117,15 +116,12 @@ export async function updateAccountAction(
 
     const account = await updateAccountUseCase(accountId, input);
 
-    if (
-      input.user_ids?.length === 1 ||
-      (!input.user_ids && existingAccount.user_ids.length === 1)
-    ) {
-      const userId = input.user_ids?.[0] ?? existingAccount.user_ids[0];
-      if (userId != null && isDefault) {
-        await setUserDefaultAccountUseCase(userId, accountId);
-      }
-    }
+    const defaultUserId = defaultAccountUserId(
+      isDefault,
+      input.user_ids ?? existingAccount.user_ids,
+      currentUser.id
+    );
+    if (defaultUserId) await setUserDefaultAccountUseCase(defaultUserId, accountId);
 
     revalidateAccountRelatedPaths();
 
