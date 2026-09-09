@@ -2,7 +2,7 @@
 
 # 💰 Wealth Pillar
 
-**Modern Family Financial Management**
+**Household finance for families and small groups**
 
 [![Next.js](https://img.shields.io/badge/Next.js-16.2-black?logo=next.js)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19.2-61DAFB?logo=react)](https://react.dev/)
@@ -18,14 +18,12 @@
 
 ## 🏛️ Product Overview
 
-**Wealth Pillar** is a financial management platform for families and small groups. It consolidates bank accounts, budgets, transactions, and investment portfolios into one shared workspace with role-based access.
+**Wealth Pillar** is household finance for families and small groups. One shared workspace for spendable cash, accounts, budgets, bank imports, reports, and a retail investment portfolio — with roles, not spreadsheets.
 
-The platform provides a command center for:
-
-- **Financial consolidation** — multiple accounts and investment holdings in one place
-- **Controlled collaboration** — shared group finances with permissions
-- **Budgeting & analysis** — multi-period budgets with real-time tracking
-- **Automated workflows** — recurring transactions and daily market-data cache updates
+- **Spendable first** — cash you can use, separate from reserves and investments
+- **Shared accounts & roles** — household overview with admin vs member access
+- **Budgets & recurring** — category periods and committed series on the ledger
+- **Import & reports** — Revolut/Credem CSV, net flow, and budget-period spendable
 
 ---
 
@@ -35,24 +33,23 @@ The platform provides a command center for:
 <tr>
 <td width="50%">
 
-### 💳 Account Management
+### 💳 Spendable & Accounts
 
-- Multi-account support (checking, savings, cash, investments)
-- Real-time balance tracking with optimistic updates
-- Account grouping by household/family
+- Spendable vs reserve vs investment balances
+- Checking, savings, cash, and investment accounts
+- Grouped by account type; optimistic balance updates
 
-### 📊 Transaction Tracking
+### 📊 Transactions & Import
 
-- Full CRUD with infinite scroll
-- Advanced filtering (date, category, user, account)
-- Transfer linking between accounts
-- Recurring transaction series
+- Ledger with spendable running total and infinite scroll
+- Recurring series as a first-class tab
+- CSV import (Revolut, Credem) with category suggestions and dedup
+- Filters (date, category, user, account) and transfers
 
 ### 💰 Budget Management
 
-- Category-based budgeting
-- Visual progress indicators
-- Multi-period budget tracking
+- Category-based, multi-period budgets
+- Visual progress on home and budget pages
 - Spending analysis by category
 
 </td>
@@ -62,15 +59,14 @@ The platform provides a command center for:
 
 - Portfolio tracking with allocation views
 - Benchmark charts and price history
-- Cached market data from [Twelve Data](https://twelvedata.com/)
+- Daily-cached market data from [Twelve Data](https://twelvedata.com/)
 - Share search and watchlist support
 
-### 📉 Financial Insights
+### 📉 Reports
 
-- Home dashboard with key metrics
-- Category spending breakdown
-- Monthly income vs expense trends
-- Savings tracking
+- Home briefing: spendable, budgets, upcoming, recent activity
+- Net flow, income vs expenses, savings
+- Top expenses, account breakdown, budget-period spendable
 
 ### 👥 Family/Group Management
 
@@ -90,7 +86,6 @@ The platform provides a command center for:
 - **Internationalization** — English and Italian (`next-intl`)
 - **Smooth animations** via Framer Motion
 - **Accessible** components (Radix UI primitives)
-- **Touch-friendly** swipe gestures
 
 ---
 
