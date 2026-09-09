@@ -212,8 +212,6 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
     onClose();
   }, [clearSeed, onClose]);
 
-  useEffect(() => () => clearSeed(), [clearSeed]);
-
   const isEditMode = Boolean(editId);
   const title = isEditMode ? t('title.edit') : t('title.create');
   const transactionSchema = useMemo(() => createTransactionSchema(t), [t]);
@@ -261,7 +259,9 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
       if (seedTransaction?.id === id) {
         return mapTransactionToFormData(seedTransaction);
       }
-      return undefined;
+      const overlay = useOptimisticTransactionStore.getState();
+      const optimistic = overlay.updated[id]?.transaction;
+      return optimistic ? mapTransactionToFormData(optimistic) : undefined;
     },
     [seedTransaction]
   );
@@ -332,19 +332,26 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
       applyBalanceSnapshotToStore(handle.balanceSnapshot, updateAccount);
     },
     applyUpdateOptimistic: (id, payload) => {
-      const original = seedTransaction?.id === id ? seedTransaction : null;
-      if (!original) {
-        return null;
+      const overlay = useOptimisticTransactionStore.getState();
+      const original =
+        seedTransaction?.id === id
+          ? seedTransaction
+          : (overlay.updated[id]?.original ?? overlay.updated[id]?.transaction ?? null);
+      const optimistic = original
+        ? buildOptimisticTransactionFromOriginal(original, payload)
+        : { ...buildOptimisticTransaction(payload, id), id };
+      applyUpdateOptimisticStore(id, optimistic, original ?? optimistic);
+      const balanceSnapshot = original
+        ? snapshotAffectedBalances(
+            storeAccounts,
+            { transaction: original, multiplier: -1 },
+            { transaction: optimistic, multiplier: 1 }
+          )
+        : {};
+      if (original) {
+        patchStoreBalancesForEdit(storeAccounts, updateAccount, original, optimistic);
       }
-      const optimistic = buildOptimisticTransactionFromOriginal(original, payload);
-      applyUpdateOptimisticStore(id, optimistic, original);
-      const balanceSnapshot = snapshotAffectedBalances(
-        storeAccounts,
-        { transaction: original, multiplier: -1 },
-        { transaction: optimistic, multiplier: 1 }
-      );
-      patchStoreBalancesForEdit(storeAccounts, updateAccount, original, optimistic);
-      return { kind: 'update', editId: id, balanceSnapshot };
+      return { kind: 'update' as const, editId: id, balanceSnapshot };
     },
     commitUpdate: (handle, result) => {
       if (!handle || handle.kind !== 'update') return;
@@ -365,10 +372,11 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
 
   const handleDelete = useCallback(async () => {
     if (!editId) return;
+    const overlay = useOptimisticTransactionStore.getState();
     const original =
       seedTransaction?.id === editId
         ? seedTransaction
-        : useOptimisticTransactionStore.getState().updated[editId]?.original;
+        : (overlay.updated[editId]?.transaction ?? overlay.updated[editId]?.original);
     if (!original) {
       toast({
         title: tPage('errors.title'),

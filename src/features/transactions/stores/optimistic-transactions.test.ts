@@ -105,6 +105,24 @@ describe('mergeOptimisticTransactions', () => {
     expect(result[0]?.amount).toBe(99);
   });
 
+  it('keeps an optimistic update that is missing from the current server page', () => {
+    const overlay: OptimisticOverlayState = {
+      pending: [],
+      updated: {
+        'loaded-later': {
+          transaction: tx('loaded-later', { description: 'Updated' }),
+          original: tx('loaded-later'),
+          status: 'committed',
+        },
+      },
+      deleted: {},
+    };
+
+    const result = mergeOptimisticTransactions([tx('server-1')], overlay, () => true);
+    expect(result.map((row) => row.id)).toEqual(['loaded-later', 'server-1']);
+    expect(result[0]?.description).toBe('Updated');
+  });
+
   it('hides deleted server rows', () => {
     const overlay: OptimisticOverlayState = {
       pending: [],
@@ -151,8 +169,59 @@ describe('useOptimisticTransactionStore', () => {
     useOptimisticTransactionStore.getState().commitOptimistic('temp-1', committed);
     expect(useOptimisticTransactionStore.getState().pending[0]?.status).toBe('committed');
 
-    useOptimisticTransactionStore.getState().pruneCommitted(new Set(['real-1']));
+    useOptimisticTransactionStore.getState().pruneCommitted([committed]);
     expect(useOptimisticTransactionStore.getState().pending).toHaveLength(0);
+  });
+
+  it('keeps a committed transfer overlay while the server still has the old expense', () => {
+    const original = tx('real-1');
+    const optimistic = tx('real-1', {
+      type: 'transfer',
+      user_id: 'u2',
+      account_id: 'a2',
+      to_account_id: 'a3',
+      amount: 40,
+    });
+
+    useOptimisticTransactionStore.getState().applyUpdateOptimistic('real-1', optimistic, original);
+    useOptimisticTransactionStore.getState().commitUpdateOptimistic('real-1', optimistic);
+    useOptimisticTransactionStore.getState().pruneCommitted([original]);
+
+    expect(useOptimisticTransactionStore.getState().updated['real-1']?.transaction.type).toBe(
+      'transfer'
+    );
+
+    useOptimisticTransactionStore.getState().pruneCommitted([optimistic]);
+    expect(useOptimisticTransactionStore.getState().updated['real-1']).toBeUndefined();
+  });
+
+  it('keeps a committed overlay when the server page no longer includes the row', () => {
+    const original = tx('real-1');
+    const optimistic = tx('real-1', { description: 'Updated' });
+
+    useOptimisticTransactionStore.getState().applyUpdateOptimistic('real-1', optimistic, original);
+    useOptimisticTransactionStore.getState().commitUpdateOptimistic('real-1', optimistic);
+    useOptimisticTransactionStore.getState().pruneCommitted([tx('other')]);
+
+    expect(useOptimisticTransactionStore.getState().updated['real-1']?.transaction.description).toBe(
+      'Updated'
+    );
+  });
+
+  it('drops a pending transfer overlay once the server already has the conversion', () => {
+    const original = tx('real-1');
+    const optimistic = tx('real-1', {
+      type: 'transfer',
+      user_id: 'u2',
+      to_account_id: 'a3',
+      amount: 40,
+    });
+
+    useOptimisticTransactionStore.getState().applyUpdateOptimistic('real-1', optimistic, original);
+    expect(useOptimisticTransactionStore.getState().updated['real-1']?.status).toBe('pending');
+
+    useOptimisticTransactionStore.getState().pruneCommitted([optimistic]);
+    expect(useOptimisticTransactionStore.getState().updated['real-1']).toBeUndefined();
   });
 
   it('rolls back pending entries on failure', () => {

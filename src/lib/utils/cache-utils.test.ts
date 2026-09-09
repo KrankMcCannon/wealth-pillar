@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { invalidateTransactionCaches, invalidateTransactionUpdateCaches } from './cache-utils';
-import { revalidateTag } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 
 vi.mock('next/cache', () => ({
   revalidateTag: vi.fn(),
@@ -10,9 +10,10 @@ vi.mock('next/cache', () => ({
 describe('invalidateTransactionCaches', () => {
   beforeEach(() => {
     vi.mocked(revalidateTag).mockClear();
+    vi.mocked(revalidatePath).mockClear();
   });
 
-  it('invalidates account entity tag and group accounts tag', () => {
+  it('invalidates tags without revalidatePath or refresh', () => {
     invalidateTransactionCaches({
       groupId: 'g1',
       accountId: 'a1',
@@ -27,12 +28,14 @@ describe('invalidateTransactionCaches', () => {
     expect(tags).toContain('group:g1:accounts');
     expect(tags).toContain('group:g1:budgets');
     expect(tags).toContain('transaction:t1');
+    expect(revalidatePath).not.toHaveBeenCalled();
   });
 });
 
 describe('invalidateTransactionUpdateCaches', () => {
   beforeEach(() => {
     vi.mocked(revalidateTag).mockClear();
+    vi.mocked(revalidatePath).mockClear();
   });
 
   it('invalidates per-account tags and group accounts on update', () => {
@@ -53,5 +56,6 @@ describe('invalidateTransactionUpdateCaches', () => {
     expect(tags).toContain('account:a3');
     expect(tags).toContain('group:g1:accounts');
     expect(tags).toContain('transaction:t1');
+    expect(revalidatePath).not.toHaveBeenCalled();
   });
 });

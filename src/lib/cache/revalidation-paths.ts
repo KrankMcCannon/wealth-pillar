@@ -12,15 +12,6 @@ export const APP_ROUTE = {
   investments: '/investments',
 } as const;
 
-/** Dopo mutazioni sulle transazioni: liste, saldi, report e budget collegati. */
-export const TRANSACTION_MUTATION_PATHS = [
-  APP_ROUTE.transactions,
-  APP_ROUTE.accounts,
-  APP_ROUTE.home,
-  APP_ROUTE.budgets,
-  APP_ROUTE.reports,
-] as const;
-
 /** Dopo creazione/aggiornamento/cancellazione account. */
 export const ACCOUNT_MUTATION_PATHS = [
   APP_ROUTE.accounts,
@@ -42,10 +33,6 @@ export function revalidatePaths(paths: readonly string[]): void {
   for (const p of paths) {
     revalidatePath(p);
   }
-}
-
-export function revalidateTransactionRelatedPaths(): void {
-  revalidatePaths(TRANSACTION_MUTATION_PATHS);
 }
 
 export function revalidateAccountRelatedPaths(): void {

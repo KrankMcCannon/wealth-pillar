@@ -7,10 +7,7 @@
 
 import { revalidateTag } from 'next/cache';
 import { CACHE_TAGS } from '@/lib/cache/config';
-import {
-  revalidateInvestmentRelatedPaths,
-  revalidateTransactionRelatedPaths,
-} from '@/lib/cache/revalidation-paths';
+import { revalidateInvestmentRelatedPaths } from '@/lib/cache/revalidation-paths';
 
 /**
  * Options for transaction cache invalidation
@@ -81,7 +78,6 @@ export function invalidateTransactionCaches(opts: TransactionCacheInvalidationOp
   }
 
   invalidateTags(tags);
-  revalidateTransactionRelatedPaths();
 }
 
 /**
@@ -106,8 +102,10 @@ export function invalidateBudgetCaches(opts: BudgetCacheInvalidationOptions): vo
  * Invalidates investments page caches after holdings mutations.
  */
 export function invalidateInvestmentCaches(opts: InvestmentCacheInvalidationOptions): void {
-  invalidateTags([`group:${opts.groupId}:investments`, `user:${opts.userId}:investments`]);
-  revalidateInvestmentRelatedPaths();
+  invalidateTags(
+    [`group:${opts.groupId}:investments`, `user:${opts.userId}:investments`],
+    revalidateInvestmentRelatedPaths
+  );
 }
 
 /**
@@ -268,14 +266,11 @@ export function invalidateTransactionUpdateCaches(
   }
 
   invalidateTags(tags);
-  revalidateTransactionRelatedPaths();
 }
 
-/**
- * Internal helper to invalidate multiple tags with 'max' strategy.
- */
-function invalidateTags(tags: string[]): void {
+function invalidateTags(tags: string[], also?: () => void): void {
   for (const tag of tags) {
     revalidateTag(tag, 'max');
   }
+  also?.();
 }

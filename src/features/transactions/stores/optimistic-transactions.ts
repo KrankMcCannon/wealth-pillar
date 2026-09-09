@@ -46,7 +46,7 @@ interface OptimisticTransactionState extends OptimisticOverlayState {
   applyDeleteOptimistic: (id: string, original: Transaction) => void;
   commitDeleteOptimistic: (id: string) => void;
   rollbackDeleteOptimistic: (id: string) => void;
-  pruneCommitted: (serverIds: Set<string>) => void;
+  pruneCommitted: (serverList: Transaction[]) => void;
   reset: () => void;
 }
 
@@ -162,23 +162,29 @@ export const useOptimisticTransactionStore = create<OptimisticTransactionState>(
           'optimistic/rollbackDelete'
         ),
 
-      pruneCommitted: (serverIds) =>
+      pruneCommitted: (serverList) =>
         set(
           (state) => {
+            const serverById = new Map(
+              serverList.map((transaction) => [transaction.id, transaction])
+            );
             const updated = Object.fromEntries(
-              Object.entries(state.updated).filter(
-                ([id, entry]) => entry.status === 'pending' || !serverIds.has(id)
-              )
+              Object.entries(state.updated).filter(([id, entry]) => {
+                const server = serverById.get(id);
+                return !(server && serverReflectsOptimistic(server, entry.transaction));
+              })
             );
             const deleted = Object.fromEntries(
               Object.entries(state.deleted).filter(
-                ([id, entry]) => entry.status === 'pending' || serverIds.has(id)
+                ([id, entry]) => entry.status === 'pending' || serverById.has(id)
               )
             );
             return {
-              pending: state.pending.filter(
-                (entry) => entry.status === 'pending' || !serverIds.has(entry.id)
-              ),
+              pending: state.pending.filter((entry) => {
+                const server = serverById.get(entry.id);
+                if (server && serverReflectsOptimistic(server, entry.transaction)) return false;
+                return entry.status === 'pending' || !server;
+              }),
               updated,
               deleted,
             };
@@ -193,6 +199,18 @@ export const useOptimisticTransactionStore = create<OptimisticTransactionState>(
   )
 );
 
+export function serverReflectsOptimistic(server: Transaction, optimistic: Transaction): boolean {
+  return (
+    server.type === optimistic.type &&
+    server.user_id === optimistic.user_id &&
+    server.account_id === optimistic.account_id &&
+    (server.to_account_id ?? null) === (optimistic.to_account_id ?? null) &&
+    Number(server.amount) === Number(optimistic.amount) &&
+    server.description === optimistic.description &&
+    server.category === optimistic.category
+  );
+}
+
 export function mergeOptimisticTransactions(
   serverList: Transaction[],
   overlay: OptimisticOverlayState,
@@ -204,21 +222,26 @@ export function mergeOptimisticTransactions(
     .filter((transaction) => !overlay.deleted[transaction.id])
     .map((transaction) => overlay.updated[transaction.id]?.transaction ?? transaction);
 
-  const optimisticToAdd = overlay.pending
+  const pendingToAdd = overlay.pending
     .filter(
       (entry) =>
         matchesFilters(entry.transaction) && !serverIds.has(entry.id) && !overlay.deleted[entry.id]
     )
     .map((entry) => overlay.updated[entry.id]?.transaction ?? entry.transaction);
+  const pendingIds = new Set(pendingToAdd.map((transaction) => transaction.id));
+  const updatesToAdd = Object.entries(overlay.updated)
+    .filter(
+      ([id, entry]) =>
+        !serverIds.has(id) &&
+        !overlay.deleted[id] &&
+        !pendingIds.has(id) &&
+        matchesFilters(entry.transaction)
+    )
+    .map(([, entry]) => entry.transaction);
+  const extras = [...pendingToAdd, ...updatesToAdd];
 
-  if (optimisticToAdd.length === 0 && mergedServer === serverList) {
-    const hasUpdates = Object.keys(overlay.updated).length > 0;
-    const hasDeletes = Object.keys(overlay.deleted).length > 0;
-    if (!hasUpdates && !hasDeletes) return serverList;
-  }
-
-  if (optimisticToAdd.length === 0) return mergedServer;
-  return [...optimisticToAdd, ...mergedServer];
+  if (extras.length === 0) return mergedServer;
+  return [...extras, ...mergedServer];
 }
 
 export function buildOptimisticTransaction(

@@ -27,9 +27,9 @@ export function serialize<T>(data: T): T {
       return data.toNumber() as T;
     }
 
-    // Handle Date - preserve it
+    // Handle Date - ISO strings are safe across server actions.
     if (data instanceof Date) {
-      return data as T;
+      return data.toISOString() as T;
     }
 
     // Handle Array

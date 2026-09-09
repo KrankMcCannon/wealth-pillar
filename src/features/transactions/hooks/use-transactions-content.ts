@@ -122,7 +122,7 @@ export function useTransactionsContent({
   }, [serverTransactions, extraPages]);
 
   useEffect(() => {
-    pruneCommitted(new Set(serverList.map((transaction) => transaction.id)));
+    pruneCommitted(serverList);
   }, [serverList, pruneCommitted]);
 
   const filters = useMemo(
