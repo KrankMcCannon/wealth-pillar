@@ -2,15 +2,14 @@
 
 import type { AccountTypeSummary } from '@/server/use-cases/reports/reports.use-cases';
 import { useTranslations } from 'next-intl';
+import { cn } from '@/lib/utils';
 import { stitchHome, stitchReports } from '@/styles/home-design-foundation';
+import { getBudgetProgressbarProps } from '@/features/budgets/components/budget-progress-bar';
 import { useFormatCurrency } from '@/features/reports/hooks/use-format-currency';
-import { SplitBar } from './split-bar';
 
 interface AccountBreakdownSectionProps {
   rows: AccountTypeSummary[];
   totalWealth: number;
-  totalSpendable: number;
-  totalReserve: number;
 }
 
 function normalizeType(type: string): string {
@@ -19,14 +18,8 @@ function normalizeType(type: string): string {
   return lower;
 }
 
-export function AccountBreakdownSection({
-  rows,
-  totalWealth,
-  totalSpendable,
-  totalReserve,
-}: AccountBreakdownSectionProps) {
+export function AccountBreakdownSection({ rows, totalWealth }: AccountBreakdownSectionProps) {
   const t = useTranslations('Reports.AccountBreakdown');
-  const tHero = useTranslations('Reports.Hero');
   const { format: formatMoney } = useFormatCurrency();
 
   const labelForType = (nt: string) => {
@@ -48,61 +41,42 @@ export function AccountBreakdownSection({
     }
   };
 
-  const sorted = [...rows].sort((a, b) => b.totalBalance - a.totalBalance);
+  const visible = [...rows]
+    .filter((row) => row.totalBalance !== 0)
+    .sort((a, b) => b.totalBalance - a.totalBalance);
   const denom = totalWealth > 0 ? totalWealth : 1;
-  const liquidityTotal = totalSpendable + totalReserve;
-  const spendableShare = liquidityTotal > 0 ? (totalSpendable / liquidityTotal) * 100 : 0;
 
   return (
     <section aria-labelledby="reports-accounts-heading" className={stitchHome.scanSection}>
       <h3 id="reports-accounts-heading" className={stitchHome.scanSectionTitle}>
         {t('title')}
       </h3>
-      {liquidityTotal > 0 ? (
-        <>
-          <p className="text-sm text-muted-foreground">
-            {tHero('spendableBalance')}{' '}
-            <span className="tabular-nums text-foreground">{formatMoney(totalSpendable)}</span>
-            {' · '}
-            {tHero('reserveBalance')}{' '}
-            <span className="tabular-nums text-foreground">{formatMoney(totalReserve)}</span>
-          </p>
-          <SplitBar
-            leftPercent={spendableShare}
-            leftClassName="bg-primary"
-            rightClassName="bg-muted-foreground/35"
-            label={t('liquidityAria', {
-              spendable: formatMoney(totalSpendable),
-              reserve: formatMoney(totalReserve),
-            })}
-            valuetext={t('liquidityAria', {
-              spendable: formatMoney(totalSpendable),
-              reserve: formatMoney(totalReserve),
-            })}
-          />
-        </>
-      ) : null}
-      {sorted.length === 0 ? (
+      {visible.length === 0 ? (
         <div className={stitchReports.emptyWell}>{t('empty')}</div>
       ) : (
         <ul className={stitchHome.plainList}>
-          {sorted.map((row) => {
+          {visible.map((row) => {
             const pct = Math.round((row.totalBalance / denom) * 100);
             const label = labelForType(normalizeType(row.accountType));
             const headingId = `reports-account-${row.accountType}`;
+            const shareLabel = t('percentOfWealth', { percent: pct });
             return (
-              <li key={row.accountType} className={stitchHome.plainRow}>
-                <span className="min-w-0">
-                  <h4 id={headingId} className={stitchHome.plainRowTitle}>
+              <li key={row.accountType} className={stitchReports.rankingRow}>
+                <div className={stitchReports.rankingRowHeader}>
+                  <h4 id={headingId} className={stitchReports.rankingLabel}>
                     {label}
                   </h4>
-                  <span className={stitchHome.plainRowMeta}>
-                    {t('percentOfWealth', { percent: pct })}
-                  </span>
-                </span>
-                <span className="shrink-0 text-base font-semibold tabular-nums text-foreground">
-                  {formatMoney(row.totalBalance)}
-                </span>
+                  <span className={stitchReports.rankingAmount}>{formatMoney(row.totalBalance)}</span>
+                </div>
+                <div
+                  className={cn(stitchReports.progressTrack, 'h-2')}
+                  {...getBudgetProgressbarProps({ percent: pct, label: `${label}, ${shareLabel}` })}
+                >
+                  <div
+                    className={cn('h-full min-h-[8px] rounded-full', stitchReports.progressFillPrimary)}
+                    style={{ width: `${Math.min(100, Math.max(0, pct))}%` }}
+                  />
+                </div>
               </li>
             );
           })}

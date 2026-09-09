@@ -427,7 +427,8 @@
       "title": "Dove sono andate le uscite",
       "empty": "Nessuna uscita in questo periodo.",
       "percentOfExpenses": "{percent}%",
-      "other": "Altro",
+      "remainingCategories": "{count, plural, one {# altra categoria} other {# altre categorie}}",
+      "remainingSpending": "Altre spese",
       "openCategoryAria": "{name}, {amount}, {percent}% delle uscite"
     },
     "AccountBreakdown": {
@@ -453,6 +454,7 @@
       "title": "Spendibile nei periodi",
       "empty": "Nessun periodo di budget in questo intervallo.",
       "spendable": "Spendibile",
+      "budget": "Budget",
       "reserve": "Riserva",
       "initial": "Iniziale",
       "final": "Finale",
@@ -1250,7 +1252,6 @@
     "Content": {
       "headerTitle": "Conti Bancari",
       "headerSubtitle": "{count} {count, plural, one {conto} other {conti}}",
-      "memberViewBanner": "Stai vedendo solo i conti a te associati. Saldi ed elenco riflettono la tua prospettiva: gli amministratori possono cambiare membro con il filtro sopra.",
       "sectionContextTitle": "Membro",
       "sectionContextSubtitle": "Scegli di quali saldi e conti vuoi la panoramica",
       "sectionBalanceTitle": "Saldi",

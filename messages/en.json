@@ -427,7 +427,8 @@
       "title": "Where spending went",
       "empty": "No expenses in this period.",
       "percentOfExpenses": "{percent}%",
-      "other": "Other",
+      "remainingCategories": "{count, plural, one {# more category} other {# more categories}}",
+      "remainingSpending": "Remaining spending",
       "openCategoryAria": "{name}, {amount}, {percent}% of spending"
     },
     "AccountBreakdown": {
@@ -453,6 +454,7 @@
       "title": "Spendable by period",
       "empty": "No budget periods in this range.",
       "spendable": "Spendable",
+      "budget": "Budget",
       "reserve": "Reserve",
       "initial": "Initial",
       "final": "Final",
@@ -1250,7 +1252,6 @@
     "Content": {
       "headerTitle": "Bank Accounts",
       "headerSubtitle": "{count} {count, plural, one {account} other {accounts}}",
-      "memberViewBanner": "You’re viewing only your accounts. Balances and the list reflect your member view — admins can switch perspective with the filter above.",
       "sectionContextTitle": "Member",
       "sectionContextSubtitle": "Choose whose accounts and balances you want to see",
       "sectionBalanceTitle": "Balances",

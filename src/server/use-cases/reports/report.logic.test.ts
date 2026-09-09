@@ -4,7 +4,6 @@ import {
   computeGroupAccountTypeSummary,
   netFlowDeltaPercent,
   buildReportsSectionViewModel,
-  REPORTS_TOP_EXPENSES_LIMIT,
 } from './report.logic';
 import type { Account, Category, Transaction } from '@/lib/types';
 
@@ -173,6 +172,56 @@ describe('computeGroupAccountTypeSummary', () => {
     expect(rows[0]?.totalBalance).toBe(500);
   });
 
+  it('ignores transfers in earned and spent', () => {
+    const accounts: Account[] = [
+      {
+        id: 'a1',
+        name: 'Cash',
+        type: 'cash',
+        user_ids: ['u1'],
+        group_id: 'g1',
+        balance: 500,
+        created_at: '',
+        updated_at: '',
+      },
+      {
+        id: 'a2',
+        name: 'Savings',
+        type: 'savings',
+        user_ids: ['u1'],
+        group_id: 'g1',
+        balance: 200,
+        created_at: '',
+        updated_at: '',
+      },
+    ];
+    const rows = computeGroupAccountTypeSummary(
+      [
+        {
+          id: 'tr',
+          description: '',
+          amount: 100,
+          type: 'transfer',
+          category: 'savings',
+          date: '2024-06-10',
+          user_id: 'u1',
+          account_id: 'a1',
+          to_account_id: 'a2',
+          frequency: 'once',
+          recurring_series_id: null,
+          group_id: 'g1',
+          created_at: '',
+          updated_at: '',
+        },
+      ],
+      accounts,
+      ['u1'],
+      window
+    );
+    expect(rows.find((r) => r.accountType === 'cash')?.totalSpent).toBe(0);
+    expect(rows.find((r) => r.accountType === 'savings')?.totalEarned).toBe(0);
+  });
+
   it('avoids double-counting shared accounts for multiple users', () => {
     const accounts: Account[] = [
       {
@@ -248,7 +297,7 @@ describe('buildReportsSectionViewModel', () => {
     expect(vm.netSavings.deposits).toBe(100);
   });
 
-  it('caps top expenses at 8 with filter key and color, not UUID as key', () => {
+  it('returns every expense category with filter key and color, not UUID as key', () => {
     const accounts: Account[] = [
       {
         id: 'a1',
@@ -308,8 +357,8 @@ describe('buildReportsSectionViewModel', () => {
 
     const vm = buildReportsSectionViewModel(txs, accounts, categories, ['u1'], window, null, 'u1');
 
-    expect(vm.topExpenses).toHaveLength(REPORTS_TOP_EXPENSES_LIMIT);
-    expect(vm.topExpenses.map((row) => row.total)).toEqual([90, 80, 70, 60, 50, 40, 30, 20]);
+    expect(vm.topExpenses).toHaveLength(10);
+    expect(vm.topExpenses.map((row) => row.total)).toEqual([90, 80, 70, 60, 50, 40, 30, 20, 10, 5]);
     expect(vm.topExpenses[0]).toMatchObject({
       id: 'uuid-cat-0',
       key: 'cat-0',
@@ -317,7 +366,8 @@ describe('buildReportsSectionViewModel', () => {
       total: 90,
       color: '#000000',
     });
-    expect(vm.topExpenses.every((row) => row.key.startsWith('cat-'))).toBe(true);
+    expect(vm.topExpenses.slice(0, 9).every((row) => row.key.startsWith('cat-'))).toBe(true);
+    expect(vm.topExpenses[9]).toMatchObject({ key: 'unknown-key', total: 5 });
     expect(vm.topExpenses.some((row) => row.key.startsWith('uuid-'))).toBe(false);
   });
 

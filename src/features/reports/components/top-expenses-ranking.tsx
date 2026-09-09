@@ -12,7 +12,7 @@ import type { ReportsTopExpenseRow } from '@/server/use-cases/reports/report.log
 
 export type TopExpenseRow = ReportsTopExpenseRow;
 
-/** Named rows on mobile; the rest folds into Other. Server still returns the full top 8. */
+/** Named rows on mobile; the rest folds into a remaining summary. Server still returns the full top 8. */
 const RANKING_VISIBLE = 5;
 
 interface TopExpensesRankingProps {
@@ -49,12 +49,22 @@ function RankingRowBody({
           <span
             className={cn(
               'size-2.5 shrink-0 rounded-full',
-              row.key === 'other' ? 'bg-muted-foreground' : 'bg-primary'
+              row.key === 'remaining' ? 'bg-muted-foreground' : 'bg-primary'
             )}
-            style={row.key !== 'other' && row.color ? { backgroundColor: row.color } : undefined}
+            style={
+              row.key !== 'remaining' && row.color ? { backgroundColor: row.color } : undefined
+            }
             aria-hidden
           />
-          <span className={cn(stitchReports.rankingLabel, 'truncate')}>{row.name}</span>
+          <span
+            className={cn(
+              stitchReports.rankingLabel,
+              'truncate',
+              row.key === 'remaining' && 'text-muted-foreground'
+            )}
+          >
+            {row.name}
+          </span>
         </span>
         <span className="flex shrink-0 items-center gap-1">
           <span className={cn(stitchReports.rankingAmount, 'text-expense')}>
@@ -87,11 +97,17 @@ export function TopExpensesRanking({
   const t = useTranslations('Reports.TopExpenses');
   const { format: formatMoney } = useFormatCurrency();
   const visible = items.slice(0, RANKING_VISIBLE);
-  const folded = roundMoney(items.slice(RANKING_VISIBLE).reduce((sum, row) => sum + row.total, 0));
+  const foldedItems = items.slice(RANKING_VISIBLE);
+  const folded = roundMoney(foldedItems.reduce((sum, row) => sum + row.total, 0));
   const leftover = roundMoney(periodExpenses - items.reduce((sum, row) => sum + row.total, 0));
-  const otherTotal = roundMoney(folded + leftover);
+  const remainingTotal = roundMoney(folded + leftover);
   const showEmpty = items.length === 0 || periodExpenses <= 0;
-  const showOther = !showEmpty && otherTotal > 0;
+  const showRemaining = !showEmpty && remainingTotal > 0;
+  const remainingCount = items.length - RANKING_VISIBLE;
+  const remainingLabel =
+    remainingCount > 0
+      ? t('remainingCategories', { count: remainingCount })
+      : t('remainingSpending');
 
   if (showEmpty) {
     return (
@@ -136,20 +152,20 @@ export function TopExpensesRanking({
             </div>
           );
         })}
-        {showOther ? (
-          <div className={stitchReports.rankingRow} data-testid="reports-other-remainder">
+        {showRemaining ? (
+          <div className={stitchReports.rankingRow} data-testid="reports-remaining-categories">
             <RankingRowBody
               row={{
-                id: 'other',
-                key: 'other',
-                name: t('other'),
-                total: otherTotal,
+                id: 'remaining',
+                key: 'remaining',
+                name: remainingLabel,
+                total: remainingTotal,
                 color: '',
               }}
               periodExpenses={periodExpenses}
               formatMoney={formatMoney}
               percentLabel={t('percentOfExpenses', {
-                percent: spendSharePercent(otherTotal, periodExpenses),
+                percent: spendSharePercent(remainingTotal, periodExpenses),
               })}
               showChevron={false}
             />

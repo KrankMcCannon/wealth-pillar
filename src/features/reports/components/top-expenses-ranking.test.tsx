@@ -8,6 +8,9 @@ vi.mock('next-intl', () => ({
     if (key === 'percentOfExpenses' && values && 'percent' in values) {
       return `${values.percent}% of spend`;
     }
+    if (key === 'remainingCategories' && values && 'count' in values) {
+      return `${values.count} more categories`;
+    }
     return key;
   },
 }));
@@ -51,41 +54,61 @@ describe('TopExpensesRanking', () => {
   });
 
   it('sizes bars as percent of period expenses, not of the max row', () => {
-    render(
-      <TopExpensesRanking items={[food, housing, transport]} periodExpenses={100} />
-    );
+    render(<TopExpensesRanking items={[food, housing, transport]} periodExpenses={100} />);
 
     expect(screen.getByText('40% of spend')).toBeTruthy();
     expect(screen.getByText('30% of spend')).toBeTruthy();
     expect(screen.getByText('20% of spend')).toBeTruthy();
     expect(screen.queryByText('100% of spend')).toBeNull();
-    expect(screen.getByRole('progressbar', { name: /Food/ })).toHaveAttribute('aria-valuenow', '40');
+    expect(screen.getByRole('progressbar', { name: /Food/ })).toHaveAttribute(
+      'aria-valuenow',
+      '40'
+    );
   });
 
-  it('folds named rows after five into Other', () => {
-    const items: TopExpenseRow[] = Array.from({ length: 8 }, (_, i) => ({
+  it('folds named rows after five into remaining categories', () => {
+    const items: TopExpenseRow[] = Array.from({ length: 12 }, (_, i) => ({
       id: `id-${i}`,
       key: `k${i}`,
       name: `Cat ${i}`,
       total: 10,
       color: '#000000',
     }));
-    render(<TopExpensesRanking items={items} periodExpenses={100} />);
+    render(<TopExpensesRanking items={items} periodExpenses={120} />);
 
     expect(screen.getByText('Cat 0')).toBeTruthy();
     expect(screen.getByText('Cat 4')).toBeTruthy();
     expect(screen.queryByText('Cat 5')).toBeNull();
-    const other = screen.getByTestId('reports-other-remainder');
-    expect(other.textContent).toContain('€50');
+    const remaining = screen.getByTestId('reports-remaining-categories');
+    expect(remaining.textContent).toContain('7 more categories');
+    expect(remaining.textContent).toContain('€70');
   });
 
-  it('does not throw or show Other when period expenses are zero', () => {
+  it('does not throw or show remaining when period expenses are zero', () => {
     render(<TopExpensesRanking items={[food]} periodExpenses={0} />);
     expect(screen.getByText('empty')).toBeTruthy();
-    expect(screen.queryByTestId('reports-other-remainder')).toBeNull();
+    expect(screen.queryByTestId('reports-remaining-categories')).toBeNull();
   });
 
-  it('renders a non-interactive Other remainder and links category rows by key', () => {
+  it('does not use Other as the remaining label when a category is named Other', () => {
+    const namedOther: TopExpenseRow = {
+      id: 'uuid-other',
+      key: 'other',
+      name: 'Other',
+      total: 15,
+      color: '#666666',
+    };
+    render(
+      <TopExpensesRanking items={[food, housing, transport, namedOther]} periodExpenses={120} />
+    );
+
+    expect(screen.getByText('Other')).toBeTruthy();
+    expect(screen.getByTestId('reports-remaining-categories').textContent).toContain(
+      'remainingSpending'
+    );
+  });
+
+  it('renders a non-interactive remaining row and links category rows by key', () => {
     render(
       <TopExpensesRanking
         items={[food, housing, transport]}
@@ -98,9 +121,9 @@ describe('TopExpensesRanking', () => {
     expect(foodLink.getAttribute('href')).toBe('/transactions?category=food');
     expect(foodLink.getAttribute('href')).not.toContain('uuid-food');
 
-    const other = screen.getByTestId('reports-other-remainder');
-    expect(other.querySelector('a')).toBeNull();
-    expect(other.textContent).toContain('other');
-    expect(other.textContent).toContain('€10');
+    const remaining = screen.getByTestId('reports-remaining-categories');
+    expect(remaining.querySelector('a')).toBeNull();
+    expect(remaining.textContent).toContain('remainingSpending');
+    expect(remaining.textContent).toContain('€10');
   });
 });

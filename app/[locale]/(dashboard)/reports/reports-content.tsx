@@ -195,11 +195,13 @@ export default function ReportsContent({
           <AccountBreakdownSection
             rows={section.accountBreakdown}
             totalWealth={section.totalWealth}
-            totalSpendable={section.totalSpendable}
-            totalReserve={section.totalReserve}
           />
 
-          <BudgetPeriodSection periods={scopedPeriods} />
+          <BudgetPeriodSection
+            periods={scopedPeriods}
+            users={groupUsers}
+            viewerId={currentUser.id}
+          />
         </div>
       </HomeDashboardMain>
     </div>

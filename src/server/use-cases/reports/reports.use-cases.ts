@@ -5,29 +5,76 @@ import { CategoriesRepository } from '@/server/repositories/categories.repositor
 import { UsersRepository } from '@/server/repositories/users.repository';
 import { transactions } from '@/server/db/schema';
 import { toDateTime, formatDateShort } from '@/lib/utils';
-import type { Transaction, Account, BudgetPeriod, User, AccountLiquidity } from '@/lib/types';
-import { resolveAccountLiquidity } from '@/lib/utils/account-classification';
+import { roundMoney } from '@/lib/utils/money';
+import { isReserveAccount } from '@/lib/utils/account-classification';
+import type { Transaction, Account, Budget, BudgetPeriod, User } from '@/lib/types';
 import { BudgetPeriodsRepository } from '@/server/repositories/budget-periods.repository';
 import { addSyntheticActivePeriod } from '@/server/use-cases/budget-periods/synthetic-active-period.logic';
-
-export interface PeriodLiquidityBalance {
-  startBalance: number;
-  endBalance: number;
-}
+import { getBudgetsByGroupUseCase } from '@/server/use-cases/budgets/get-budgets.use-case';
+import { parsePeriodDates } from '@/server/use-cases/shared/period.logic';
+import { classifyTransferSavingsDelta } from '@/server/use-cases/shared/savings.logic';
 
 /**
- * Report Period Summary with spendable/reserve balance breakdown
+ * Spent vs allocation: live budget spend (income nets, transfers skipped).
+ * Risparmi start/end: unwind reserveSaved from current reserve balances
+ * (transfer net only — not direct reserve income).
  */
 export interface ReportPeriodSummary {
   id: string;
   name: string;
   startDate: string;
   endDate: string;
-  startBalance: number;
-  endBalance: number;
-  spendable: PeriodLiquidityBalance;
-  reserve: PeriodLiquidityBalance;
+  spendableSpent: number;
+  reserveSaved: number;
+  allocated: number;
+  remaining: number;
+  reserveStart: number;
+  reserveEnd: number;
   userId: string;
+}
+
+interface PeriodSlot {
+  period: BudgetPeriod;
+  startMs: number;
+  endMs: number;
+  spent: number;
+  reserveSaved: number;
+  liveReserve: boolean;
+}
+
+function categoryKeysByUser(budgets: Budget[]): Map<string, Set<string>> {
+  const cats = new Map<string, Set<string>>();
+  for (const budget of budgets) {
+    if (budget.amount <= 0) continue;
+    let set = cats.get(budget.user_id);
+    if (!set) {
+      set = new Set();
+      cats.set(budget.user_id, set);
+    }
+    for (const key of budget.categories) set.add(key);
+  }
+  return cats;
+}
+
+function allocatedByUserId(budgets: Budget[]): Map<string, number> {
+  const map = new Map<string, number>();
+  for (const budget of budgets) {
+    if (budget.amount <= 0) continue;
+    map.set(budget.user_id, (map.get(budget.user_id) ?? 0) + budget.amount);
+  }
+  return map;
+}
+
+function reserveBalanceByUser(accounts: Account[]): Map<string, number> {
+  const map = new Map<string, number>();
+  for (const account of accounts) {
+    if (!isReserveAccount(account)) continue;
+    const bal = Number(account.balance) || 0;
+    for (const uid of account.user_ids) {
+      map.set(uid, (map.get(uid) ?? 0) + bal);
+    }
+  }
+  return map;
 }
 
 export interface UserAccountFlow {
@@ -52,20 +99,6 @@ export interface AccountTypeSummary {
   totalEarned: number;
   totalSpent: number;
   transactionCount: number;
-}
-
-type LiquidityMetrics = { earned: number; spent: number; startBalance: number; endBalance: number };
-
-function emptyLiquidityMetrics(): LiquidityMetrics {
-  return { earned: 0, spent: 0, startBalance: 0, endBalance: 0 };
-}
-
-function ensureLiquidityBucket(
-  map: Partial<Record<AccountLiquidity, LiquidityMetrics>>,
-  key: AccountLiquidity
-): LiquidityMetrics {
-  if (!map[key]) map[key] = emptyLiquidityMetrics();
-  return map[key];
 }
 
 /**
@@ -112,16 +145,17 @@ export async function getProcessedUserPeriodsUseCase(user: User): Promise<Budget
 }
 
 /**
- * Users, accounts, categories, and periods — no transactions.
+ * Users, accounts, categories, budgets, and periods — no transactions.
  * Resolve reporting windows from this context before fetching txs.
  */
 export async function getReportsContextUseCase(groupId: string, groupUserIds?: string[]) {
   if (!groupId) throw new Error('Reports: groupId is required');
 
-  const [users, allAccounts, allCategories] = await Promise.all([
+  const [users, allAccounts, allCategories, budgets] = await Promise.all([
     UsersRepository.findByGroupId(groupId),
     AccountsRepository.findByGroup(groupId),
     CategoriesRepository.findByGroup(groupId),
+    getBudgetsByGroupUseCase(groupId),
   ]);
 
   const normalizedAccounts: Account[] = (allAccounts || []).map((a: Account) => ({
@@ -144,6 +178,7 @@ export async function getReportsContextUseCase(groupId: string, groupUserIds?: s
     periods: allPeriods,
     categories: allCategories || [],
     users: filteredUsers,
+    budgets,
   };
 }
 
@@ -169,105 +204,94 @@ export async function getReportsTransactionsUseCase(
 }
 
 /**
- * Calculate period summaries with spendable/reserve balance breakdown per period.
+ * One pass over txs per user. Reserve start/end unwind transfer-net from current balances.
  */
 export function calculatePeriodSummariesUseCase(
   periods: BudgetPeriod[],
   transactions: Transaction[],
-  accounts: Account[]
+  accounts: Account[],
+  budgets: Budget[] = []
 ): ReportPeriodSummary[] {
-  const sortedPeriods = [...periods].sort((a, b) => {
-    const aTime = toDateTime(a.start_date)?.toMillis() || 0;
-    const bTime = toDateTime(b.start_date)?.toMillis() || 0;
-    return bTime - aTime;
-  });
+  const now = new Date();
+  const allocatedByUser = allocatedByUserId(budgets);
+  const catsByUser = categoryKeysByUser(budgets);
+  const reserveNow = reserveBalanceByUser(accounts);
+  const accountMap = new Map(accounts.map((account) => [account.id, account]));
 
-  const userLiquidityBalances = new Map<string, Map<AccountLiquidity, number>>();
+  const slotsByUser = new Map<string, PeriodSlot[]>();
+  for (const period of periods) {
+    const [start, end] = parsePeriodDates(period, now);
+    const slot: PeriodSlot = {
+      period,
+      startMs: start.toMillis(),
+      endMs: end.toMillis(),
+      spent: 0,
+      reserveSaved:
+        period.snapshot_at != null ? roundMoney(Number(period.reserve_saved) || 0) : 0,
+      liveReserve: period.snapshot_at == null,
+    };
+    const list = slotsByUser.get(period.user_id);
+    if (list) list.push(slot);
+    else slotsByUser.set(period.user_id, [slot]);
+  }
 
-  for (const acc of accounts) {
-    const liquidity = resolveAccountLiquidity(acc);
-    for (const uid of acc.user_ids) {
-      if (!userLiquidityBalances.has(uid)) {
-        userLiquidityBalances.set(uid, new Map());
+  for (const tx of transactions) {
+    const slots = slotsByUser.get(tx.user_id);
+    if (!slots) continue;
+    const t = toDateTime(tx.date)?.toMillis();
+    if (t == null) continue;
+    let slot: PeriodSlot | undefined;
+    for (const candidate of slots) {
+      if (t >= candidate.startMs && t <= candidate.endMs) {
+        slot = candidate;
+        break;
       }
-      const userBalances = userLiquidityBalances.get(uid)!;
-      userBalances.set(liquidity, (userBalances.get(liquidity) || 0) + (acc.balance || 0));
+    }
+    if (!slot) continue;
+
+    const cats = catsByUser.get(tx.user_id);
+    if (cats?.has(tx.category)) {
+      if (tx.type === 'expense') slot.spent += tx.amount;
+      else if (tx.type === 'income') slot.spent -= tx.amount;
+    }
+
+    if (slot.liveReserve && tx.type === 'transfer' && tx.to_account_id) {
+      const source = accountMap.get(tx.account_id);
+      const dest = accountMap.get(tx.to_account_id);
+      if (source && dest) {
+        slot.reserveSaved += classifyTransferSavingsDelta(source, dest, tx.amount);
+      }
     }
   }
 
-  const accountMap = new Map(accounts.map((a) => [a.id, a]));
-  const liquidityKeys: AccountLiquidity[] = ['spendable', 'reserve'];
-
-  return sortedPeriods
-    .map((period) => {
-      const pStart = toDateTime(period.start_date);
-      const pEnd = toDateTime(period.end_date ?? new Date());
-      if (!pStart || !pEnd) return null;
-
-      const pTransactions = transactions.filter((t) => {
-        if (t.user_id !== period.user_id) return false;
-        const date = toDateTime(t.date);
-        return date && date >= pStart && date <= pEnd;
-      });
-
-      const metricsByLiquidity: Partial<Record<AccountLiquidity, LiquidityMetrics>> = {};
-
-      for (const t of pTransactions) {
-        const account = accountMap.get(t.account_id);
-        if (!account) continue;
-        const sourceLiquidity = resolveAccountLiquidity(account);
-
-        if (t.type === 'income') {
-          ensureLiquidityBucket(metricsByLiquidity, sourceLiquidity).earned += t.amount;
-        } else if (t.type === 'expense') {
-          ensureLiquidityBucket(metricsByLiquidity, sourceLiquidity).spent += t.amount;
-        } else if (t.type === 'transfer' && t.to_account_id) {
-          const toAccount = accountMap.get(t.to_account_id);
-          if (!toAccount) continue;
-          const destLiquidity = resolveAccountLiquidity(toAccount);
-          ensureLiquidityBucket(metricsByLiquidity, sourceLiquidity).spent += t.amount;
-          ensureLiquidityBucket(metricsByLiquidity, destLiquidity).earned += t.amount;
-        }
-      }
-
-      const userBalances =
-        userLiquidityBalances.get(period.user_id) || new Map<AccountLiquidity, number>();
-      const allLiquidity = new Set<AccountLiquidity>([
-        ...liquidityKeys,
-        ...userBalances.keys(),
-        ...(Object.keys(metricsByLiquidity) as AccountLiquidity[]),
-      ]);
-
-      for (const liquidity of allLiquidity) {
-        const currentEndBalance = userBalances.get(liquidity) || 0;
-        const metrics = ensureLiquidityBucket(metricsByLiquidity, liquidity);
-        const netChange = metrics.earned - metrics.spent;
-        const calculatedStartBalance = currentEndBalance - netChange;
-        metrics.endBalance = currentEndBalance;
-        metrics.startBalance = calculatedStartBalance;
-        userBalances.set(liquidity, calculatedStartBalance);
-      }
-
-      const spendableMetrics = metricsByLiquidity.spendable ?? emptyLiquidityMetrics();
-      const reserveMetrics = metricsByLiquidity.reserve ?? emptyLiquidityMetrics();
-
-      return {
+  const summaries: ReportPeriodSummary[] = [];
+  for (const [userId, slots] of slotsByUser) {
+    slots.sort((a, b) => b.startMs - a.startMs);
+    let running = roundMoney(reserveNow.get(userId) ?? 0);
+    const allocated = roundMoney(allocatedByUser.get(userId) ?? 0);
+    for (const slot of slots) {
+      const spent = roundMoney(Math.max(0, slot.spent));
+      const reserveSaved = roundMoney(slot.reserveSaved);
+      const reserveEnd = running;
+      const reserveStart = roundMoney(running - reserveSaved);
+      running = reserveStart;
+      const period = slot.period;
+      summaries.push({
         id: period.id,
         name: `${formatDateShort(period.start_date)} - ${period.end_date ? formatDateShort(period.end_date) : 'Present'}`,
         startDate: period.start_date,
-        endDate: period.end_date || new Date().toISOString().split('T')[0],
-        startBalance: spendableMetrics.startBalance + reserveMetrics.startBalance,
-        endBalance: spendableMetrics.endBalance + reserveMetrics.endBalance,
-        spendable: {
-          startBalance: spendableMetrics.startBalance,
-          endBalance: spendableMetrics.endBalance,
-        },
-        reserve: {
-          startBalance: reserveMetrics.startBalance,
-          endBalance: reserveMetrics.endBalance,
-        },
+        endDate: period.end_date || now.toISOString().split('T')[0],
+        spendableSpent: spent,
+        reserveSaved,
+        allocated,
+        remaining: roundMoney(allocated - spent),
+        reserveStart,
+        reserveEnd,
         userId: period.user_id,
-      };
-    })
-    .filter(Boolean) as ReportPeriodSummary[];
+      });
+    }
+  }
+
+  summaries.sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
+  return summaries;
 }

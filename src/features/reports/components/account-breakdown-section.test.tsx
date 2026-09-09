@@ -13,36 +13,40 @@ vi.mock('@/features/reports/hooks/use-format-currency', () => ({
   useFormatCurrency: () => ({ format: (n: number) => `€${n}` }),
 }));
 
+const checking = {
+  accountType: 'checking',
+  totalBalance: 150,
+  totalEarned: 40,
+  totalSpent: 10,
+  transactionCount: 99,
+};
+
 describe('AccountBreakdownSection', () => {
-  it('leads with balance per type and keeps spendable/reserve as one meta line', () => {
+  it('shows each balance once with a share bar, and hides empty types', () => {
     render(
       <AccountBreakdownSection
         totalWealth={200}
-        totalSpendable={80}
-        totalReserve={120}
         rows={[
+          checking,
           {
-            accountType: 'checking',
-            totalBalance: 150,
-            totalEarned: 40,
-            totalSpent: 10,
-            transactionCount: 99,
+            accountType: 'cash',
+            totalBalance: 0,
+            totalEarned: 0,
+            totalSpent: 0,
+            transactionCount: 0,
           },
         ]}
       />
     );
 
-    expect(screen.getByText(/spendableBalance/)).toBeTruthy();
-    expect(screen.getByText('€80')).toBeTruthy();
-    expect(screen.getByText(/reserveBalance/)).toBeTruthy();
-    expect(screen.getByText('€120')).toBeTruthy();
     expect(screen.getByRole('heading', { name: 'types.checking' })).toBeTruthy();
     expect(screen.getByText('€150')).toBeTruthy();
-    expect(screen.getByText(/75%/)).toBeTruthy();
-    expect(screen.getByRole('meter')).toBeTruthy();
+    expect(screen.getByRole('progressbar', { name: 'types.checking, 75%' })).toBeTruthy();
+    expect(screen.queryByText('types.cash')).toBeNull();
+    expect(screen.queryByText(/spendableBalance/)).toBeNull();
+    expect(screen.queryByText(/reserveBalance/)).toBeNull();
+    expect(screen.queryByRole('meter')).toBeNull();
     expect(screen.queryByText(/\+€30/)).toBeNull();
-    expect(screen.queryByText('income')).toBeNull();
-    expect(screen.queryByText('expense')).toBeNull();
     expect(screen.queryByText('99')).toBeNull();
   });
 });

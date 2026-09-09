@@ -43,8 +43,6 @@ export function sumIncomeExpenseInWindow(
   return { income, expenses };
 }
 
-export const REPORTS_TOP_EXPENSES_LIMIT = 8;
-
 export interface ReportsTopExpenseRow {
   id: string;
   key: string;
@@ -159,12 +157,6 @@ export function computeUserFlows(
       ensureBucket(typeMap, type).earned += tx.amount;
     } else if (tx.type === 'expense') {
       ensureBucket(typeMap, type).spent += tx.amount;
-    } else if (tx.type === 'transfer' && tx.to_account_id) {
-      const toAccount = accountMap.get(tx.to_account_id);
-      if (!toAccount) continue;
-      const toType = normalizeAccountType(toAccount.type);
-      ensureBucket(typeMap, type).spent += tx.amount;
-      ensureBucket(typeMap, toType).earned += tx.amount;
     }
   }
 
@@ -296,7 +288,7 @@ export function buildReportsSectionViewModel(
   }
 
   const expenseStats = computeCategoryStats(transactions, categories, window, userId);
-  const topExpenses = expenseStats.slice(0, REPORTS_TOP_EXPENSES_LIMIT).map((s) => ({
+  const topExpenses = expenseStats.map((s) => ({
     id: s.id,
     key: s.key,
     name: s.name,

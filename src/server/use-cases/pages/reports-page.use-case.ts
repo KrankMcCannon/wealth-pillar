@@ -50,6 +50,7 @@ async function getCachedReportsPageData(
   cacheLife('minutes');
   cacheTag(`group:${groupId}:transactions`);
   cacheTag(`group:${groupId}:accounts`);
+  cacheTag(`group:${groupId}:budgets`);
   cacheTag('categories');
 
   const preset = params.preset ?? DEFAULT_REPORTS_PRESET;
@@ -58,7 +59,7 @@ async function getCachedReportsPageData(
       ? { start: params.customStart, end: params.customEnd }
       : null;
 
-  const { accounts, periods, categories, users } = await getReportsContextUseCase(
+  const { accounts, periods, categories, users, budgets } = await getReportsContextUseCase(
     groupId,
     groupUserIds
   );
@@ -85,7 +86,12 @@ async function getCachedReportsPageData(
     { startDate: fetchWindow.start, endDate: fetchWindow.end }
   );
 
-  const periodSummaries = calculatePeriodSummariesUseCase(periods, transactions, accounts);
+  const periodSummaries = calculatePeriodSummariesUseCase(
+    periods,
+    transactions,
+    accounts,
+    budgets
+  );
   const filteredPeriods = periodSummaries
     .filter((p) => periodOverlapsWindow(p, currentWindow))
     .sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());

@@ -92,8 +92,7 @@ export const stitchDashboardShell = {
   /** z-[48]: sopra toolbar sticky (z-30) e contenuti, sotto overlay dialog desktop (z-50) e drawer (z-150). */
   stickyHeader:
     'fixed top-0 left-0 right-0 z-[48] border-b border-border/22 bg-background shadow-sm',
-  bottomBar:
-    'fixed bottom-0 left-0 right-0 z-[48] border-t border-border/22 bg-background',
+  bottomBar: 'fixed bottom-0 left-0 right-0 z-[48] border-t border-border/22 bg-background',
   bottomBarPad: 'px-2 pt-1.5 pb-[calc(theme(spacing.1)+env(safe-area-inset-bottom))]',
   bottomNav: 'mx-auto grid max-w-xl grid-cols-5 items-stretch',
   bottomNavItem:
@@ -372,15 +371,6 @@ export const stitchRecurring = {
   footerDivider: 'mx-2 border-t border-border/25',
   footer: 'px-4 py-1.5',
   footerText: 'text-xs text-primary text-center',
-} as const;
-
-/**
- * Pagina Accounts — row tokens only; page layout uses stitchHome / stitchRecurring / stitchFab.
- */
-export const stitchAccounts = {
-  /** Banner vista membro (contesto). */
-  memberBanner:
-    'rounded-lg border border-border/30 bg-muted/60 px-3 py-2 text-sm leading-snug text-muted-foreground',
 } as const;
 
 /**

@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils';
 import type { User } from '@/lib/types';
 import type { AccountsPageData } from '@/server/use-cases/pages/accounts-page.use-case';
 import { useReferenceDataStore } from '@/stores/reference-data-store';
-import { stitchAccounts, stitchHome } from '@/styles/home-design-foundation';
+import { stitchHome } from '@/styles/home-design-foundation';
 
 interface AccountsContentProps {
   currentUser: User;
@@ -40,7 +40,6 @@ export default function AccountsContent({
   const tLedger = useTranslations('TransactionsContent.Ledger');
   const tUsers = useTranslations('UserSelector');
   const {
-    isMember,
     selectedUserId,
     accountStats,
     sortedAccounts,
@@ -79,12 +78,6 @@ export default function AccountsContent({
           selectedUserId={selectedUserId}
           onUserFilterChange={handleUserFilterChange}
         />
-      ) : null}
-
-      {isMember ? (
-        <p className={stitchAccounts.memberBanner} role="status">
-          {t('memberViewBanner')}
-        </p>
       ) : null}
 
       <header className="flex flex-col gap-1">

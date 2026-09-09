@@ -35,6 +35,7 @@ describe('getReportsPageDataUseCase', () => {
       periods: [],
       categories: [],
       users: [admin],
+      budgets: [],
     });
     vi.mocked(getReportsTransactionsUseCase).mockResolvedValue({
       transactions: [],
