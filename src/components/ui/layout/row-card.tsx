@@ -31,8 +31,8 @@ const rowCardStyles = {
   layout: {
     left: 'flex items-center gap-3 flex-1 min-w-0',
     content: 'flex-1 min-w-0',
-    right: 'flex flex-col items-end gap-1 shrink-0 ml-3 text-primary',
-    rightRow: 'flex items-center gap-2 shrink-0 ml-3 text-primary',
+    right: 'flex flex-col items-end gap-1 shrink-0 ml-3 text-foreground',
+    rightRow: 'flex items-center gap-2 shrink-0 ml-3 text-foreground',
   },
 
   // Icon styles
@@ -56,16 +56,16 @@ const rowCardStyles = {
   },
 
   // Text styles
-  title: 'font-semibold text-[15px] text-primary line-clamp-1',
-  subtitle: 'mt-0.5 truncate text-xs text-primary/70 [text-wrap:balance]',
-  metadata: 'flex items-center gap-2 mt-0.5 text-xs text-primary/60',
-  value: 'text-md font-semibold text-primary',
+  title: 'font-semibold text-[15px] text-foreground line-clamp-1',
+  subtitle: 'mt-0.5 truncate text-xs text-muted-foreground [text-wrap:balance]',
+  metadata: 'flex items-center gap-2 mt-0.5 text-xs text-muted-foreground',
+  value: 'text-md font-semibold text-foreground',
   valueVariant: {
-    primary: 'text-primary',
+    primary: 'text-foreground',
     success: 'text-success',
     destructive: 'text-destructive',
   },
-  secondaryValue: 'text-xs text-primary/60',
+  secondaryValue: 'text-xs text-muted-foreground',
 };
 
 export interface RowCardProps {
@@ -196,7 +196,7 @@ export const RowCard = memo(
                 className={cn(
                   rowCardStyles.subtitle,
                   compact &&
-                    'mt-0.5 overflow-hidden text-ellipsis whitespace-nowrap text-[10px] leading-tight text-primary/70',
+                    'mt-0.5 overflow-hidden text-ellipsis whitespace-nowrap text-[10px] leading-tight text-muted-foreground',
                   !compact && subtitleClassName
                 )}
               >

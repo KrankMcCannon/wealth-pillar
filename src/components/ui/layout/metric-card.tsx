@@ -22,7 +22,7 @@ import { cn } from '@/lib/utils';
 const metricCardStyles = {
   base: 'rounded-xl border bg-card p-3 transition-colors sm:p-4',
   variant: {
-    default: 'border-primary/10',
+    default: 'border-border/35',
     highlighted: 'border-primary/20 bg-primary/5',
     success: 'border-success/30 bg-success/5',
     warning: 'border-warning/30 bg-warning/5',
@@ -36,7 +36,7 @@ const metricCardStyles = {
   header: {
     container: 'flex items-center justify-between mb-1',
     labelRow: 'flex items-center gap-2',
-    label: 'text-xs font-medium text-primary',
+    label: 'text-xs font-medium text-muted-foreground',
     iconContainer: 'w-6 h-6 rounded-lg flex items-center justify-center',
     iconColor: {
       primary: 'bg-primary/5 text-primary',
@@ -57,24 +57,24 @@ const metricCardStyles = {
       xl: 'text-lg',
     },
     color: {
-      income: 'text-success',
-      expense: 'text-destructive',
-      neutral: 'text-primary',
+      income: 'text-income',
+      expense: 'text-expense',
+      neutral: 'text-foreground',
     },
   },
   description: 'text-[11px] mt-1',
   stats: {
-    container: 'mt-2 pt-2 border-t border-primary/10 grid gap-2 sm:gap-3',
+    container: 'mt-2 pt-2 border-t border-border/25 grid gap-2 sm:gap-3',
     gridCols: {
       1: 'grid-cols-1',
       2: 'grid-cols-2',
       3: 'grid-cols-3',
     },
     item: 'flex items-center justify-between gap-2',
-    itemBase: 'rounded-lg border border-primary/10 bg-primary/5 px-2.5 py-2',
+    itemBase: 'rounded-lg border border-border/30 bg-muted/50 px-2.5 py-2',
     itemVariant: {
-      default: 'border-primary/10 bg-primary/5',
-      primary: 'border-primary/15 bg-primary/8',
+      default: 'border-border/30 bg-muted/50',
+      primary: 'border-primary/20 bg-primary/8',
       success: 'border-success/15 bg-success/8',
       warning: 'border-warning/15 bg-warning/8',
       destructive: 'border-destructive/15 bg-destructive/8',

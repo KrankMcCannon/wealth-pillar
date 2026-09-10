@@ -346,6 +346,84 @@ describe('calculatePeriodSummariesUseCase', () => {
       reserveEnd: 50,
     });
   });
+
+  it('does not rewrite Present when the oldest period would open negative', () => {
+    const closed = makePeriod({
+      id: 'closed',
+      start_date: '2024-06-01',
+      end_date: '2024-06-30',
+      snapshot_at: '2024-07-01',
+      reserve_saved: 400,
+    });
+    const open = makePeriod({
+      id: 'open',
+      start_date: '2024-07-01',
+      end_date: null,
+      is_active: true,
+      snapshot_at: null,
+    });
+    const summaries = calculatePeriodSummariesUseCase(
+      [closed, open],
+      [],
+      [spendable, { ...reserve, balance: 50 }],
+      [budget({ amount: 200 })]
+    );
+    const byId = Object.fromEntries(summaries.map((s) => [s.id, s]));
+
+    expect(byId.open).toMatchObject({
+      reserveSaved: 0,
+      reserveStart: 50,
+      reserveEnd: 50,
+      isOpen: true,
+    });
+    expect(byId.closed).toMatchObject({
+      reserveSaved: 400,
+      reserveStart: 0,
+      reserveEnd: 400,
+    });
+  });
+
+  it('keeps a shared reserve account at the same Present end for every owner', () => {
+    const alice = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+    const bob = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+    const shared = { ...reserve, user_ids: [alice, bob], balance: 8495.61 };
+    const summaries = calculatePeriodSummariesUseCase(
+      [
+        makePeriod({
+          id: 'alice-closed',
+          user_id: alice,
+          start_date: '2024-06-01',
+          end_date: '2024-06-30',
+          snapshot_at: '2024-07-01',
+          reserve_saved: 12000,
+        }),
+        makePeriod({
+          id: 'alice-open',
+          user_id: alice,
+          start_date: '2024-07-07',
+          end_date: null,
+          is_active: true,
+          snapshot_at: null,
+        }),
+        makePeriod({
+          id: 'bob-open',
+          user_id: bob,
+          start_date: '2024-06-27',
+          end_date: null,
+          is_active: true,
+          snapshot_at: null,
+        }),
+      ],
+      [],
+      [spendable, shared],
+      []
+    );
+    const byId = Object.fromEntries(summaries.map((s) => [s.id, s]));
+
+    expect(byId['alice-open']!.reserveEnd).toBe(8495.61);
+    expect(byId['bob-open']!.reserveEnd).toBe(8495.61);
+    expect(byId['alice-open']!.reserveEnd).toBe(byId['bob-open']!.reserveEnd);
+  });
 });
 
 describe('resolveYtdBudgetStart', () => {

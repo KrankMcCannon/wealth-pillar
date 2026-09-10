@@ -55,7 +55,7 @@ export function HomeBriefing({
   const isNegative = spendableBalance < 0;
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-6">
       <section className={stitchHome.balanceSection} aria-labelledby="home-spendable-heading">
         <Link
           href={accountsHref(selectedUserId)}
@@ -65,7 +65,7 @@ export function HomeBriefing({
             <p id="home-spendable-heading" className={stitchHome.sectionEyebrow}>
               {t('spendableLabel')}
             </p>
-            <span className="text-sm font-semibold text-primary">{t('spendableViewAll')}</span>
+            <span className="text-sm font-semibold text-muted-foreground">{t('spendableViewAll')}</span>
           </div>
           <p className="sr-only">{t('spendableHint')}</p>
           <p className="leading-none">

@@ -41,7 +41,7 @@ export function HomeUpcomingSection({
         </h2>
         <Link
           href="/transactions?tab=Recurrent"
-          className={cn(stitchHome.viewAllLink, 'min-h-8 min-w-0 py-0')}
+          className={cn(stitchHome.viewAllLink, 'min-w-0')}
         >
           {t('upcomingViewAll')}
         </Link>

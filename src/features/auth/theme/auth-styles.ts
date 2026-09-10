@@ -24,7 +24,7 @@ export const authStyles = {
     container: 'w-full',
     surface: `${stitchSurface.cardLg} p-4`,
     header: 'mb-4 text-center',
-    brand: 'text-lg font-bold tracking-tight text-primary',
+    brand: 'font-display text-lg font-semibold tracking-tight text-foreground',
     title: 'text-xl font-semibold text-foreground',
     subtitle: 'mt-1 text-center text-sm text-muted-foreground',
   },

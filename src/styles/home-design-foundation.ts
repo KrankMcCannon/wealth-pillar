@@ -13,7 +13,7 @@ export const stitchSurface = {
   cardLg: 'rounded-2xl border border-border/20 bg-card shadow-md',
   modalFooter: 'mt-auto shrink-0 border-t border-foreground/10 bg-background',
   primaryCta:
-    'flex min-h-[52px] w-full items-center justify-center gap-2.5 rounded-2xl border border-primary/40 bg-primary px-5 py-4 text-sm font-semibold uppercase tracking-[0.22em] text-primary-foreground shadow-lg transition-all hover:border-primary/55 hover:bg-primary/90 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-45 motion-reduce:transition-none motion-reduce:active:scale-100',
+    'flex min-h-[52px] w-full items-center justify-center gap-2.5 rounded-xl border border-primary/30 bg-primary px-5 py-3.5 text-base font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 active:scale-[0.99] disabled:pointer-events-none disabled:opacity-45 motion-reduce:transition-none motion-reduce:active:scale-100',
   dangerButton:
     'border border-expense/35 bg-expense/12 text-expense transition-colors hover:border-expense/50 hover:bg-expense/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-expense/35',
 } as const;
@@ -31,26 +31,26 @@ export const stitchFab = {
  */
 export const stitchHome = {
   sectionCard: 'space-y-3 rounded-2xl border border-border/20 bg-card p-3 shadow-sm sm:p-4',
-  sectionHeaderTitle: 'text-primary',
+  sectionHeaderTitle: 'text-foreground',
   sectionHeaderSubtitle: 'text-muted-foreground',
-  sectionEyebrow: 'text-xs font-semibold uppercase tracking-wide text-muted-foreground',
+  sectionEyebrow: 'text-xs font-medium text-muted-foreground',
   balanceHero:
-    'text-[30px] font-semibold tabular-nums leading-none tracking-[-0.02em] text-primary',
+    'font-display text-[30px] font-semibold tabular-nums leading-none tracking-[-0.02em] text-foreground',
   balanceHeroNegative:
-    'text-[30px] font-semibold tabular-nums leading-none tracking-[-0.02em] text-expense',
+    'font-display text-[30px] font-semibold tabular-nums leading-none tracking-[-0.02em] text-expense',
   balanceLink:
     'group flex items-center justify-between gap-3 rounded-xl px-1 py-1 transition-colors duration-300 motion-reduce:transition-none',
   balanceLinkIcon:
     'flex size-11 shrink-0 items-center justify-center rounded-2xl bg-muted ring-1 ring-border/35',
-  balanceLinkLabel: 'mb-1 text-xs font-semibold uppercase tracking-[0.12em] text-primary',
+  balanceLinkLabel: 'mb-1 text-xs font-medium text-muted-foreground',
   balanceLinkArrow:
     'h-8 w-8 shrink-0 text-primary transition-transform duration-300 group-hover:translate-x-0.5 motion-reduce:transition-none motion-reduce:group-hover:translate-x-0',
   listRowInteractiveMinTouch:
     'flex min-h-11 items-center justify-between gap-3 rounded-xl bg-muted/90 px-3 py-2 ring-1 ring-inset ring-border/40 transition-colors hover:bg-accent motion-reduce:transition-none',
   viewAllLink:
-    'inline-flex min-h-11 min-w-11 items-center justify-center px-2 text-sm font-semibold text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35 focus-visible:rounded-md',
+    'inline-flex min-h-11 min-w-11 items-center justify-center px-2 text-sm font-semibold text-muted-foreground hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35 focus-visible:rounded-md',
   budgetRowAvatar:
-    'flex size-9 shrink-0 items-center justify-center rounded-full border border-border/30 bg-muted text-sm font-bold text-primary',
+    'flex size-9 shrink-0 items-center justify-center rounded-full border border-border/30 bg-muted text-sm font-bold text-foreground',
   fab: stitchFab.pageAdd,
   balanceSection:
     'flex flex-col gap-1 overflow-hidden rounded-2xl border border-border/20 bg-card px-4 py-3 shadow-sm',
@@ -72,9 +72,9 @@ export const stitchHome = {
   amountExpense: 'text-expense',
   budgetUserCard:
     'w-full rounded-[20px] border border-border/35 bg-accent px-3.5 py-3 text-left text-foreground transition-colors hover:border-border/55 hover:bg-accent/95',
-  budgetEyebrow: 'mb-2 text-xs font-semibold uppercase tracking-wide text-primary',
+  budgetEyebrow: 'mb-2 text-xs font-medium text-muted-foreground',
   budgetUserAvatar:
-    'flex size-11 shrink-0 items-center justify-center rounded-full border border-border/30 bg-muted text-lg font-bold text-primary',
+    'flex size-11 shrink-0 items-center justify-center rounded-full border border-border/30 bg-muted text-lg font-bold text-foreground',
   budgetUserName: 'truncate text-lg font-semibold leading-tight text-foreground',
   budgetPeriod: 'mt-0.5 truncate text-xs text-muted-foreground',
   budgetTotal: 'text-2xl font-semibold leading-none text-foreground',
@@ -84,6 +84,19 @@ export const stitchHome = {
   scanSection: 'flex flex-col gap-1.5',
   scanSectionHeader: 'flex items-center justify-between gap-3',
   scanSectionTitle: 'text-base font-semibold tracking-tight text-foreground',
+} as const;
+
+/** Group member scope — one anatomy for Home and ledger/accounts. */
+export const stitchPeopleChip = {
+  row: 'flex touch-pan-x items-stretch gap-1.5 overflow-x-auto overscroll-x-contain scroll-pl-1 pb-0.5 scrollbar-hide [-webkit-overflow-scrolling:touch]',
+  item: 'inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full border px-3 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/35 focus-visible:ring-offset-0 motion-reduce:transition-none',
+  itemActive: 'border-transparent bg-accent text-foreground ring-1 ring-inset ring-primary/35',
+  itemInactive: 'border-border/35 bg-muted/80 text-muted-foreground',
+  avatar:
+    'flex size-6 shrink-0 items-center justify-center rounded-full border border-border/35 bg-muted text-[10px] font-bold tabular-nums',
+  avatarActive: 'text-foreground',
+  avatarInactive: 'text-muted-foreground',
+  label: 'max-w-[5.5rem] truncate',
 } as const;
 
 /** Shell dashboard: opaque paper chrome so the page is not a sky wash. */
@@ -101,7 +114,7 @@ export const stitchDashboardShell = {
   bottomNavIconWell: 'flex size-8 items-center justify-center rounded-full',
   bottomNavIconWellActive: 'bg-accent ring-1 ring-inset ring-primary/35',
   bottomNavIcon: 'size-5 shrink-0',
-  bottomNavLabel: 'max-w-full truncate text-center text-xs font-medium leading-none',
+  bottomNavLabel: 'max-w-full text-center text-[11px] font-medium leading-tight',
   bottomNavLabelActive: 'font-semibold',
 } as const;
 
@@ -127,9 +140,9 @@ export const stitchBudgets = {
   heroInner: 'relative z-[1]',
   heroTopRow: 'flex items-end justify-between gap-3',
   heroPrimaryBlock: 'min-w-0 flex-1 flex flex-col gap-1',
-  heroEyebrow: 'text-xs font-semibold uppercase tracking-wide text-muted-foreground',
+  heroEyebrow: 'text-xs font-medium text-muted-foreground',
   heroAmountRow: 'mt-0.5 flex flex-wrap items-baseline gap-x-1 gap-y-0.5',
-  heroAmount: 'text-[28px] font-semibold tabular-nums leading-none tracking-[-0.02em] text-income',
+  heroAmount: 'font-display text-[28px] font-semibold tabular-nums leading-none tracking-[-0.02em] text-income',
   heroAmountCents: 'text-sm font-medium tabular-nums text-income/80',
   heroAmountBudget: 'text-sm font-medium tabular-nums text-primary',
   heroSpentBlock:
@@ -219,9 +232,9 @@ export const stitchInvestments = {
   heroPrimaryColumn: 'flex min-w-0 flex-1 flex-col justify-between gap-1',
   heroReturnColumn:
     'flex shrink-0 flex-col items-start justify-between gap-1 border-l border-border/25 pl-3 text-left',
-  heroEyebrow: 'text-xs font-semibold uppercase tracking-wide text-muted-foreground',
+  heroEyebrow: 'text-xs font-medium text-muted-foreground',
   heroAmountRow: 'flex flex-wrap items-baseline gap-x-1 gap-y-0.5',
-  heroAmount: 'text-[28px] font-semibold tabular-nums leading-none tracking-[-0.02em] text-primary',
+  heroAmount: 'font-display text-[28px] font-semibold tabular-nums leading-none tracking-[-0.02em] text-foreground',
   heroAmountCents: 'text-sm font-medium tabular-nums text-primary/80',
   heroReturnValueRow: 'flex items-center justify-start gap-1',
   heroReturnValue: 'text-[15px] font-semibold tabular-nums leading-tight text-income',
@@ -249,7 +262,7 @@ export const stitchInvestments = {
  */
 export const stitchTransactions = {
   chipBase:
-    'flex h-7 min-h-7 shrink-0 items-center justify-center rounded-full px-2.5 py-0 text-xs font-medium leading-none tracking-normal whitespace-nowrap transition-colors',
+    'flex min-h-11 shrink-0 items-center justify-center rounded-full px-3 py-2 text-sm font-medium leading-none tracking-normal whitespace-nowrap transition-colors',
   chipActive: 'bg-accent text-foreground ring-1 ring-inset ring-primary/35',
   chipInactive: 'border border-border/35 bg-muted/80 text-muted-foreground hover:bg-accent',
   filtersChipIcon: 'mr-1 inline h-3 w-3 shrink-0',
@@ -384,8 +397,8 @@ export const stitchReports = {
   /** Hero — same paper as home spendable. */
   heroNetCard: stitchHome.balanceSection,
   heroNetDecor: 'hidden',
-  heroEyebrow: 'text-xs font-semibold uppercase tracking-wide text-muted-foreground',
-  heroNetAmount: 'text-[30px] font-semibold tabular-nums leading-none tracking-[-0.02em]',
+  heroEyebrow: 'text-xs font-medium text-muted-foreground',
+  heroNetAmount: 'font-display text-[30px] font-semibold tabular-nums leading-none tracking-[-0.02em]',
   heroSmallCard:
     'flex min-w-0 items-baseline justify-between gap-3 py-0.5 sm:flex-col sm:items-stretch sm:justify-start sm:py-0',
   heroSmallAmount:
@@ -469,7 +482,7 @@ export const stitchTransactionPageSearch = {
   icon: 'pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground transition-colors',
   iconActive: 'text-primary',
   input:
-    'min-h-11 w-full rounded-2xl border border-border/35 bg-input py-2 pl-10 pr-10 text-sm font-medium text-foreground ring-1 ring-inset ring-border/40 placeholder:text-muted-foreground/55 transition-colors outline-none focus-visible:border-border/45 focus-visible:outline-none focus-visible:ring-0',
+    'min-h-11 w-full rounded-xl border border-border/35 bg-input py-2 pl-10 pr-10 text-sm font-medium text-foreground ring-1 ring-inset ring-border/40 placeholder:text-muted-foreground transition-colors outline-none focus-visible:border-border/45 focus-visible:outline-none focus-visible:ring-0',
   clear:
     'absolute right-2.5 top-1/2 -translate-y-1/2 rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35',
   clearIcon: 'h-4 w-4',
@@ -506,7 +519,7 @@ export const stitchTransactionFilterTriggers = {
  */
 export const stitchSettings = {
   pageMain: 'flex flex-col gap-5',
-  sectionEyebrow: 'px-0.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground',
+  sectionEyebrow: 'px-0.5 text-xs font-medium text-muted-foreground',
   sectionCard: `${stitchSurface.card} overflow-hidden`,
   formCard: `${stitchSurface.card} overflow-hidden divide-y divide-border/25`,
   modalFormBody: '[-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',

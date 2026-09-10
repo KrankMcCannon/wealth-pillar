@@ -22,7 +22,7 @@ export const investmentsStyles = {
     searchFieldWrap: 'relative flex items-center',
     searchIcon: 'pointer-events-none absolute left-3 h-4 w-4 text-primary/60',
     searchInput:
-      'h-10 w-full rounded-lg border border-border/25 bg-muted/60 pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground/40 transition-all outline-none focus:border-border/55 focus:outline-none focus:ring-0',
+      'h-11 w-full rounded-lg border border-border/25 bg-muted/60 pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground transition-all outline-none focus:border-border/55 focus:outline-none focus:ring-0',
     viewport: 'max-h-[320px] overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-border/30',
     groupHeader: 'mb-1 px-2 py-2',
     groupTitle: 'text-[10px] font-bold uppercase tracking-widest text-muted-foreground',

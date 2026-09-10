@@ -56,6 +56,7 @@ describe('BudgetPeriodSection', () => {
             allocated: 4000,
             spendableSpent: 3345.97,
             remaining: 654.03,
+            reserveSaved: 1000,
             reserveStart: 2000,
             reserveEnd: 3000,
           }),
@@ -71,6 +72,27 @@ describe('BudgetPeriodSection', () => {
     expect(screen.getByText('€4000 − €3345.97')).toBeTruthy();
     expect(screen.getByLabelText('reserve +€1000')).toHaveClass('text-income');
     expect(screen.getByLabelText('badgeOnTrack +€654.03')).toHaveClass('text-income');
+  });
+
+  it('uses the period savings total, not reconstructed end minus start', () => {
+    render(
+      <BudgetPeriodSection
+        periods={[
+          period({
+            id: 'p1',
+            name: '1–30 Sep',
+            userId: 'u1',
+            reserveSaved: 0,
+            reserveStart: 8495.61,
+            reserveEnd: 11191.58,
+          }),
+        ]}
+      />
+    );
+
+    expect(screen.getByLabelText('reserve €0')).toBeTruthy();
+    expect(screen.queryByLabelText('reserve +€2695.97')).toBeNull();
+    expect(screen.getByText('€8495.61 → €11191.58')).toBeTruthy();
   });
 
   it('shows remaining in red when spend exceeds allocation', () => {

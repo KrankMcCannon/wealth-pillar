@@ -1,112 +1,75 @@
-# Product
-
-## Register
-
-product
+# PRODUCT
 
 ## Users
 
-Italian-first B2C households — families and small groups (couples, partners,
-parents, adult children) co-managing personal finances together. They are
-non-professional users; their context is the smartphone after dinner, the laptop
-on a Sunday morning, occasionally a tablet. The job to be done: have one
-trustworthy, calm place that consolidates accounts, transactions, budgets, and a
-retail investment portfolio across the people they share money with, with clear
-roles (admin vs member) and zero ambiguity about what the numbers say. English
-is supported for travelers and expats but the product is written in Italian for
-Italian households, not localized from English. Default currency EUR, default
-timezone Europe/Rome.
+Italian-first B2C households — couples, families, and small groups sharing money. They are not professional investors. They open the app on a phone, usually in a short window: after a purchase, before a transfer, on Sunday with the bills. English is a complete peer locale for travelers and expats, never a leftover. Default currency EUR, default timezone Europe/Rome.
 
-## Product Purpose
+## Purpose
 
-Wealth Pillar exists to give Italian families operational control over shared
-household finances in one place — no spreadsheets, no chasing each other for
-receipts, no fragmented banking apps. Members add accounts and transactions,
-set category budgets, track recurring flows, and monitor a retail investment
-portfolio with daily-cached market data; the admin holds permission boundaries;
-the household gets a single source of truth. Success looks like a household
-that opens Wealth Pillar weekly and trusts the numbers without re-verifying.
-Stripe-backed Premium tiers are planned for larger groups and export features,
-but the free tier must already feel finished.
+Give a household one calm place to know **what they can spend**, then keep budgets, the ledger, accounts, and a retail portfolio in the same truth.
 
-## Brand Personality
+## Tone
 
-**Affidabile, Calmo, Preciso.** Financial trust without performance. The voice
-is direct, operationally helpful, and reassuring under friction ("Something
-interrupted loading your accounts — it's usually temporary. ... your data stays
-safe on our side."). It hedges honestly about forecasts and projections rather
-than playing certainty theater ("Figures are illustrative, not advice.").
-Onboarding is permissive ("You can set them later"), undo is offered where the
-cost of mistakes is real ("You can undo this action for a few seconds").
-Emotional goal: the moment a user opens Wealth Pillar, their shoulders drop.
-The product reads as crafted, not corporate; competent, not cute.
+**Warm operator.** Household warmth in the materials; operator calm in the chrome. Direct, precise, and human. Shoulders drop when the spendable number is on screen.
 
-## Anti-references
+What it is not: cute, gamified, bank-formal, luxury-wealth, or neon fintech. No performance of certainty on forecasts. No corporate brochure voice.
 
-- **Generic AI-startup aesthetic** — no purple/violet glow, no glassmorphism,
-  no gradient text, no "vibrant gradient on dark" cliché. We are not a 2024
-  SaaS marketing site.
-- **Personal-finance maximalism** — no rainbow categories, no cartoon icons,
-  no gamification badges, no streak counters, no confetti. Household finance
-  is not a phone game.
-- **Crypto-bro neon** — no aggressive greens and reds shouting at the user,
-  no Robinhood-style hype, no candlestick-as-decoration. Markets are
-  background context, not the show.
-- **Boomer Italian banking** — no navy-and-gold gradients, no heavy chrome,
-  no regulatory-formal density, no PSD2-bank aesthetic. We respect the user's
-  intelligence without performing institutional gravitas.
+## Language
 
-The Revolut and Apple-Wallet lane is where we live: confident dark, restrained
-chroma, hardware-grade craft, motion that means something, copy that doesn't
-waste words.
+Italian is the source of truth for voice. English is authored as a full peer — every string exists in both, same meaning, not a machine afterthought.
 
-## Design Principles
+Voice: short sentences, verbs on buttons, honest hedges on projections. Permissive on first-run (“Puoi farlo dopo” / “You can do this later”). Undo where a mistake costs money.
 
-1. **Design IS the experience.** There is no marketing surface separate from
-   the app; the product UI is the brand. Every screen — including loading,
-   error, empty, and confirmation states — is held to the same craft bar.
-   No throwaway screens.
+**Words we use**
 
-2. **Numbers earn certainty.** Financial figures must read as definitive:
-   tabular alignment, deliberate weight, semantic income/expense color used
-   sparingly enough to retain meaning. Decorative treatments around numbers
-   are banned. Skeletons preserve layout to avoid jarring shifts.
+| Concept | IT | EN |
+|---|---|---|
+| Cash you can use now | Spendibile | Spendable |
+| Home headline for that number | Disponibile da spendere | Available to spend |
+| Held aside | Riserva | Reserve |
+| Shared workspace | Gruppo | Group |
+| Person in the group | Membro / Amministratore | Member / Admin |
+| Budget window | Periodo | Period |
+| Money movement | Transazione | Transaction |
+| Repeating commitment | Ricorrente | Recurring |
+| Where the cash lives | Conto | Account |
+| Retail holdings | Investimento | Investment |
+| Look-back | Rapporto | Report |
 
-3. **Hedged truth on the unprovable.** For investments, forecasts, projections,
-   and sandboxes, explicit "illustrative, not advice" hedging is a first-class
-   feature, not a footnote. Trust comes from honest uncertainty, not confident
-   bluff.
+**Words we never use:** wealth management, net worth flex, crush your goals, streak, AI-powered, portfolio optimization, “click here”, OK/Submit/Yes as button labels.
 
-4. **Permissive onboarding, opinionated daily use.** Let users skip, defer, and
-   undo (already in the copy and onboarding flows). Once they're past the
-   first session, be decisive about defaults — calendar, recurring frequencies,
-   category color, default account. Don't ask twice.
+Errors say what happened, why, and how to fix. No jokes on failure. Forecasts and sandboxes say they are illustrative, not advice.
 
-5. **Italian-first, not translated-Italian.** Copy is authored in Italian for
-   Italian households (default surname _Rossi_, EUR, Europe/Rome, Italian
-   fiscal calendar). English is a peer locale for travelers and expats — kept
-   up-to-date, but never the source of truth for voice.
+## Scope
 
-## Accessibility & Inclusion
+**In:** the whole product UI — auth, onboarding, home, accounts, transactions, budgets, investments, reports, settings, and every sheet/dialog those routes open. The app UI is the brand; there is no separate marketing surface.
 
-- **WCAG 2.2 AA across all product surfaces**, aspirational AAA for
-  financial-critical content (amounts, balances, error confirmations,
-  destructive-action copy).
-- **European Accessibility Act (EAA) 2025 compliance.** EAA became mandatory
-  for many consumer financial services in the EU from June 2025; Wealth Pillar
-  treats it as a hard baseline, not a future task. This means accessible auth,
-  navigation, forms, error messaging, and information about financial services
-  in machine-readable form.
-- **Italian users with disabilities are not a translated afterthought.** Screen-
-  reader labels, language attributes (`lang="it"`), and announcement copy are
-  authored in Italian, then translated to English — not the reverse.
-- **Reduced motion is already respected in code** (`prefers-reduced-motion`,
-  `motion-reduce:*`). This is a contract: any new motion must ship with a
-  reduced-motion path.
-- **Color is never the sole signal.** Income/expense, success/destructive, and
-  category colors must always be paired with iconography, weight, or copy —
-  protecting users with reduced color discrimination.
-- **Touch targets ≥ 44×44pt on the mobile shell**; keyboard focus rings are
-  visible and themed; tab order matches reading order.
-- **Forms** use real labels (not placeholder-as-label), explicit error
-  association (`aria-describedby`), and Italian-first error copy.
+**Out:** a public marketing site, banking-grade advice, brokerage execution, crypto.
+
+**Platforms:** mobile-first web (phone shell with bottom nav). Tablet/laptop must work; they are not the design target.
+
+**Mode:** product.
+
+## Constraints
+
+- Next.js App Router, Tailwind v4 + OKLCH tokens, shadcn/Radix, next-intl (`it` + `en`), Clerk auth.
+- Restyle the existing component library via tokens. Do not fork a second Button/Input.
+- Stripe-backed Premium exists in the data model; the free tier must already feel finished. Do not design paywalls this pass.
+- `keep` is empty: palette, type, chrome, and copy voice may change. Routes and jobs stay unless a screen fails “one job.”
+
+## Accessibility & inclusion
+
+- WCAG 2.2 AA on every surface. European Accessibility Act is a ship gate, not a later task.
+- Italian `lang` on the document; screen-reader copy authored in Italian, then English.
+- Colour is never the only signal (income/expense, status, categories).
+- Touch targets ≥44×44px on chrome and primary actions. `:focus-visible` rings. Visible labels, not placeholder-as-label. Placeholder text meets 4.5:1.
+- `prefers-reduced-motion` is a contract.
+- Amounts, balances, and destructive confirmations stay readable at 200% zoom.
+
+## Success
+
+A household opens Wealth Pillar in the week, trusts the spendable figure, and does not reconcilie it in a spreadsheet. We will not sacrifice that trust for conversion, gamification, or decorative charts.
+
+## Source
+
+authored

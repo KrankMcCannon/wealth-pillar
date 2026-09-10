@@ -84,13 +84,11 @@ export default function AccountsContent({
 
       <header className="flex flex-col gap-1">
         <div className="flex items-center justify-between gap-3">
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            {t('spendableBalanceLabel')}
-          </p>
+          <p className={stitchHome.sectionEyebrow}>{t('spendableBalanceLabel')}</p>
           <button
             type="button"
             onClick={onAddAccount}
-            className={cn(stitchHome.viewAllLink, 'min-h-8 min-w-0 py-0')}
+            className={cn(stitchHome.viewAllLink, 'min-w-0')}
             data-testid="accounts-add"
           >
             {t('addAccountCta')}

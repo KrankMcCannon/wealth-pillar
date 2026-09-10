@@ -1240,7 +1240,7 @@
     "skipToContent": "Skip to available funds, budget, and upcoming payments",
     "spendableLabel": "Available to spend",
     "spendableHint": "Checking and cash. Savings stay set aside.",
-    "reserveLabel": "Set aside",
+    "reserveLabel": "Reserve",
     "spendableViewAll": "Accounts",
     "budgetTitle": "This period",
     "budgetViewAll": "Budget",
@@ -1252,11 +1252,11 @@
     "budgetEmptyBody": "Set a limit to see how much is left to spend.",
     "budgetSet": "Set a budget",
     "upcomingTitle": "Upcoming",
-    "upcomingViewAll": "All recurring",
+    "upcomingViewAll": "View recurring",
     "upcomingEmpty": "No recurring payments due in the next 7 days.",
     "recentActivityTitle": "Recent transactions",
     "recentActivitySubtitle": "{count, plural, one {# transaction} other {# transactions}}",
-    "recentActivityViewAll": "All transactions",
+    "recentActivityViewAll": "View transactions",
     "recentActivityEmpty": "No recent transactions."
   },
   "BottomNav": {
@@ -1287,7 +1287,7 @@
       "accountCount": "{count} {count, plural, one {Account} other {Accounts}}"
     },
     "Content": {
-      "headerTitle": "Bank Accounts",
+      "headerTitle": "Accounts",
       "headerSubtitle": "{count} {count, plural, one {account} other {accounts}}",
       "sectionContextTitle": "Member",
       "sectionContextSubtitle": "Choose whose accounts and balances you want to see",

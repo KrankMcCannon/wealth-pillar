@@ -1,21 +1,32 @@
 import React, { Suspense } from 'react';
 import type { Metadata, Viewport } from 'next';
-import { Spline_Sans as SplineSans } from 'next/font/google';
+import { Figtree, Source_Serif_4 as SourceSerif } from 'next/font/google';
 import { routing } from '@/i18n/routing';
 import { LocaleLayoutBody, LocaleLayoutHtmlFallback } from './locale-layout-body';
 import '../globals.css';
 
-const splineSans = SplineSans({
-  variable: '--font-spline-sans',
-  subsets: ['latin'],
-  weight: ['400', '500', '700'],
+const figtree = Figtree({
+  variable: '--font-figtree',
+  subsets: ['latin', 'latin-ext'],
+  weight: ['400', '500', '600', '700'],
   display: 'swap',
   fallback: ['system-ui', 'arial'],
 });
 
+const sourceSerif = SourceSerif({
+  variable: '--font-source-serif',
+  subsets: ['latin', 'latin-ext'],
+  weight: ['600', '700'],
+  display: 'swap',
+  fallback: ['Georgia', 'serif'],
+});
+
+const fontClassName = `${figtree.variable} ${sourceSerif.variable}`;
+
 export const metadata: Metadata = {
-  title: 'Wealth Pillar - Gestione Finanziaria Intelligente',
-  description: 'Piattaforma completa per la gestione delle finanze personali e familiari',
+  title: 'Wealth Pillar — finanze di casa',
+  description:
+    'Spendibile, conti, budget e un portafoglio al dettaglio per famiglie e piccoli gruppi.',
 };
 
 export const viewport: Viewport = {
@@ -43,8 +54,8 @@ export default function LocaleLayout({
   params: Promise<{ locale: string }>;
 }>): React.JSX.Element {
   return (
-    <Suspense fallback={<LocaleLayoutHtmlFallback className={splineSans.variable} />}>
-      <LocaleLayoutBody className={splineSans.variable} params={params}>
+    <Suspense fallback={<LocaleLayoutHtmlFallback className={fontClassName} />}>
+      <LocaleLayoutBody className={fontClassName} params={params}>
         {children}
       </LocaleLayoutBody>
     </Suspense>

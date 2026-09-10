@@ -7,29 +7,29 @@ import { useUserFilter } from '@/hooks';
 import { User } from '@/lib/types';
 import { initialsFromName } from '@/lib/utils/string-formatter';
 import { cn } from '@/lib/utils';
+import { stitchPeopleChip } from '@/styles/home-design-foundation';
 import type { CSSProperties } from 'react';
 
 const userSelectorStyles = {
   container: 'border-0 bg-transparent px-0 pb-0 pt-0 backdrop-blur-none',
-  heading: 'mb-2.5 text-xs font-bold uppercase tracking-wide text-primary',
-  list: 'flex touch-pan-x items-stretch gap-1.5 overflow-x-auto overscroll-x-contain scroll-pl-1 pb-0.5 [-webkit-overflow-scrolling:touch] scrollbar-thin scrollbar-thumb-border/30 scrollbar-track-transparent',
+  heading: 'mb-2 text-xs font-medium text-muted-foreground',
+  list: stitchPeopleChip.row,
   listStyle: {
     scrollbarWidth: 'thin',
   } satisfies CSSProperties,
   item: {
-    base: 'group flex min-h-8 min-w-0 shrink-0 items-center gap-1.5 rounded-full border px-2 py-1 text-left text-xs font-medium tracking-wide outline-none transition-[background-color,border-color,box-shadow] duration-200 focus-visible:ring-2 focus-visible:ring-ring/35 focus-visible:ring-offset-0 focus-visible:ring-offset-background motion-reduce:transition-none',
-    active: 'border-transparent bg-accent text-foreground ring-1 ring-inset ring-primary/35',
-    inactive:
-      'border-border/35 bg-muted/80 text-muted-foreground active:bg-accent active:text-foreground',
+    base: stitchPeopleChip.item,
+    active: stitchPeopleChip.itemActive,
+    inactive: stitchPeopleChip.itemInactive,
   },
   avatar: {
-    base: 'flex size-5 shrink-0 items-center justify-center rounded-full border text-[10px] font-bold tabular-nums transition-colors duration-200',
-    active: 'border-border/35 bg-muted text-primary',
-    inactive: 'border-border/35 bg-muted text-muted-foreground',
-    allIcon: 'size-3 text-primary',
+    base: stitchPeopleChip.avatar,
+    active: stitchPeopleChip.avatarActive,
+    inactive: stitchPeopleChip.avatarInactive,
+    allIcon: 'size-3.5 text-foreground',
   },
   initials: 'leading-none',
-  label: 'max-w-[5rem] truncate text-foreground',
+  label: stitchPeopleChip.label,
 } as const;
 
 const displayInitials = (name: string) =>

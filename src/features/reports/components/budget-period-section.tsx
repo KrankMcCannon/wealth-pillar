@@ -130,7 +130,7 @@ function PeriodRow({
   const TitleTag = nameAsHeading ? 'h4' : 'span';
   const remaining = period.remaining;
   const remainingSigned = `${remaining > 0 ? '+' : ''}${formatMoney(remaining)}`;
-  const saved = period.reserveEnd - period.reserveStart;
+  const saved = period.reserveSaved;
   const savedSigned = `${saved > 0 ? '+' : ''}${formatMoney(saved)}`;
 
   const body = (

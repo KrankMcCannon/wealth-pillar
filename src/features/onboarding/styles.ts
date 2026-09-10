@@ -27,7 +27,7 @@ export const onboardingStyles = {
   label: 'text-sm font-medium text-foreground',
   primaryLabel: 'text-sm font-medium text-foreground',
   input:
-    'h-11 border border-border/35 bg-input/30 text-foreground placeholder:text-muted-foreground/60 outline-none focus-visible:border-border/35 focus-visible:ring-0',
+    'h-11 border border-border/35 bg-input/30 text-foreground placeholder:text-muted-foreground outline-none focus-visible:border-border/35 focus-visible:ring-0',
   select:
     'h-11 border border-border/35 bg-input/30 outline-none focus-visible:border-border/35 focus-visible:ring-0',
   selectContent: 'border border-border/35 bg-popover',

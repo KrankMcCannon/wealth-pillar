@@ -66,22 +66,24 @@ function liveBudgetsByUserId(budgets: Budget[]): Map<string, Budget[]> {
   return map;
 }
 
-/** Unwind from today's reserve can invent a negative opening. Pin the oldest start at 0. */
+/**
+ * Unwind from today's reserve can invent a negative opening on the oldest period.
+ * Pin that row only — never lift later periods, or Present stops matching the live account.
+ */
 export function pinOldestReserveStartAtZero<
   T extends { startDate: string; reserveStart: number; reserveEnd: number },
 >(rows: T[]): T[] {
   if (rows.length === 0) return rows;
-  let oldest = rows[0]!;
-  for (const row of rows) {
-    if (row.startDate < oldest.startDate) oldest = row;
+  let oldestIdx = 0;
+  for (let i = 1; i < rows.length; i++) {
+    if (rows[i]!.startDate < rows[oldestIdx]!.startDate) oldestIdx = i;
   }
+  const oldest = rows[oldestIdx]!;
   if (oldest.reserveStart >= 0) return rows;
-  const lift = roundMoney(-oldest.reserveStart);
-  return rows.map((row) => ({
-    ...row,
-    reserveStart: roundMoney(row.reserveStart + lift),
-    reserveEnd: roundMoney(row.reserveEnd + lift),
-  }));
+  const saved = roundMoney(oldest.reserveEnd - oldest.reserveStart);
+  const next = [...rows];
+  next[oldestIdx] = { ...oldest, reserveStart: 0, reserveEnd: saved };
+  return next;
 }
 
 function reserveBalanceByUser(accounts: Account[]): Map<string, number> {

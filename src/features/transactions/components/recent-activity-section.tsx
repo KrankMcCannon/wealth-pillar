@@ -28,11 +28,9 @@ export function RecentActivitySection({
         <h2 id="home-recent-heading" className={stitchHome.scanSectionTitle}>
           {t('recentActivityTitle')}
         </h2>
-        {transactions.length > 0 ? (
-          <Link href="/transactions" className={cn(stitchHome.viewAllLink, 'min-h-8 min-w-0 py-0')}>
-            {t('recentActivityViewAll')}
-          </Link>
-        ) : null}
+        <Link href="/transactions" className={cn(stitchHome.viewAllLink, 'min-w-0')}>
+          {t('recentActivityViewAll')}
+        </Link>
       </div>
 
       {transactions.length === 0 ? (

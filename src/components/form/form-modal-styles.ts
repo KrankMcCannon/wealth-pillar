@@ -34,9 +34,9 @@ export const formModalStyles = {
     textLabel:
       'mb-0 min-w-0 max-w-[70%] shrink-0 text-base font-medium leading-snug text-foreground',
     textInput:
-      'h-auto w-0 min-w-0 flex-1 border-0 bg-transparent p-0 text-right text-base font-medium tabular-nums text-foreground shadow-none outline-none placeholder:text-foreground/35 focus:outline-none focus:ring-0 focus-visible:border-0 focus-visible:ring-0',
+      'h-auto w-0 min-w-0 flex-1 border-0 bg-transparent p-0 text-right text-base font-medium tabular-nums text-foreground shadow-none outline-none placeholder:text-muted-foreground focus:outline-none focus:ring-0 focus-visible:border-0 focus-visible:ring-0',
     textInputPlain:
-      'h-auto w-full min-w-0 flex-1 border-0 bg-transparent p-0 text-left text-base font-medium text-foreground shadow-none outline-none placeholder:text-foreground/35 focus:outline-none focus:ring-0 focus-visible:border-0 focus-visible:ring-0',
+      'h-auto w-full min-w-0 flex-1 border-0 bg-transparent p-0 text-left text-base font-medium text-foreground shadow-none outline-none placeholder:text-muted-foreground focus:outline-none focus:ring-0 focus-visible:border-0 focus-visible:ring-0',
   },
   footer: {
     actionsStack: 'flex w-full flex-col gap-2',
@@ -64,9 +64,9 @@ export const formModalStyles = {
   amountSection: 'flex flex-col items-center py-2',
   amountEyebrow: 'sr-only',
   amountRow: 'flex items-baseline justify-center gap-1 text-foreground/45',
-  amountCurrency: 'text-3xl font-medium tabular-nums',
+  amountCurrency: 'font-display text-3xl font-medium tabular-nums',
   amountInput:
-    'w-[8ch] max-w-full border-0 bg-transparent p-0 text-center text-5xl font-semibold tabular-nums tracking-tight text-foreground shadow-none outline-none placeholder:text-foreground/35 focus:ring-0 focus-visible:border-0 focus-visible:ring-0',
+    'font-display w-[8ch] max-w-full border-0 bg-transparent p-0 text-center text-5xl font-semibold tabular-nums tracking-tight text-foreground shadow-none outline-none placeholder:text-muted-foreground focus:ring-0 focus-visible:border-0 focus-visible:ring-0',
   fieldStack: 'divide-y divide-foreground/10',
   selectorTrigger:
     'flex min-h-12 w-full items-center justify-between gap-3 bg-transparent px-4 py-2 text-left transition-colors hover:bg-muted/60 focus:outline-none focus-visible:ring-0',
@@ -78,11 +78,11 @@ export const formModalStyles = {
   noteShell: 'flex min-h-12 items-center justify-between gap-3 px-4 py-2',
   noteLabel: 'mb-0 shrink-0 text-[15px] font-normal text-muted-foreground',
   noteInput:
-    'min-w-0 flex-1 border-0 bg-transparent p-0 text-right text-[15px] font-medium text-foreground placeholder:text-foreground/35 focus:outline-none focus:ring-0',
+    'min-w-0 flex-1 border-0 bg-transparent p-0 text-right text-[15px] font-medium text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-0',
   errorBanner:
     'rounded-xl border border-modal-error-border/35 bg-modal-error-bg/35 px-3 py-2 text-sm text-modal-error-fg',
   fieldError: 'px-1 text-xs text-modal-error-fg',
-  deleteButton: `flex min-h-[52px] w-full items-center justify-center gap-2.5 rounded-2xl px-5 py-4 text-sm font-semibold uppercase tracking-[0.18em] ${stitchSurface.dangerButton} active:scale-[0.98] motion-reduce:active:scale-100`,
+  deleteButton: `flex min-h-[52px] w-full items-center justify-center gap-2.5 rounded-xl px-5 py-4 text-base font-semibold ${stitchSurface.dangerButton} active:scale-[0.99] motion-reduce:active:scale-100`,
   footerActionsStack: 'flex w-full flex-col gap-3', // alias — prefer footer.actionsStack
   stickyFooter:
     'mt-0 shrink-0 border-t border-foreground/10 bg-background px-4 pt-3 pb-[max(env(safe-area-inset-bottom),0.75rem)]',
@@ -94,7 +94,7 @@ export const formModalStyles = {
   categorySearchIcon:
     'pointer-events-none absolute left-3 top-1/2 z-[1] h-4 w-4 -translate-y-1/2 text-modal-fg-muted/65',
   categorySearchInput:
-    'h-11 w-full rounded-xl border border-modal-border/35 bg-modal-input-bg pl-10 pr-3 text-base text-modal-fg placeholder:text-modal-fg-muted/45 ring-1 ring-inset ring-border/30 transition-colors focus-visible:border-modal-border/35 focus-visible:outline-none focus-visible:ring-0',
+    'h-11 w-full rounded-xl border border-modal-border/35 bg-modal-input-bg pl-10 pr-3 text-base text-modal-fg placeholder:text-muted-foreground ring-1 ring-inset ring-border/30 transition-colors focus-visible:border-modal-border/35 focus-visible:outline-none focus-visible:ring-0',
   categoryQuickActions: 'flex shrink-0 items-center gap-2',
   categoryQuickBtn:
     'inline-flex min-h-9 flex-1 items-center justify-center rounded-xl bg-muted px-3 text-[13px] font-semibold text-foreground transition-colors hover:bg-muted/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/25 disabled:pointer-events-none disabled:opacity-35',
@@ -103,7 +103,7 @@ export const formModalStyles = {
   categoryPickerSearchIcon:
     'pointer-events-none absolute left-3 top-1/2 z-[1] h-4 w-4 -translate-y-1/2 text-muted-foreground',
   categoryPickerSearchInput:
-    'h-11 w-full rounded-xl border border-foreground/10 bg-muted pl-10 pr-3 text-base text-foreground placeholder:text-foreground/35 shadow-none outline-none transition-colors focus-visible:border-foreground/20 focus-visible:outline-none focus-visible:ring-0',
+    'h-11 w-full rounded-xl border border-foreground/10 bg-muted pl-10 pr-3 text-base text-foreground placeholder:text-muted-foreground shadow-none outline-none transition-colors focus-visible:border-foreground/20 focus-visible:outline-none focus-visible:ring-0',
   categoryPickerList:
     'min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[max(env(safe-area-inset-bottom),0.75rem)]',
   categoryColorDot: 'h-2.5 w-2.5 shrink-0 rounded-full',
@@ -131,7 +131,7 @@ export const formModalStyles = {
     searchIcon:
       'pointer-events-none absolute left-2 top-1/2 z-[1] h-4 w-4 -translate-y-1/2 text-modal-fg-muted/65',
     searchInput:
-      'h-10 w-full rounded-xl border border-foreground/10 bg-muted pl-8 pr-3 text-base text-foreground placeholder:text-foreground/35 shadow-none outline-none transition-colors focus-visible:border-foreground/20 focus-visible:outline-none focus-visible:ring-0',
+      'h-10 w-full rounded-xl border border-foreground/10 bg-muted pl-8 pr-3 text-base text-foreground placeholder:text-muted-foreground shadow-none outline-none transition-colors focus-visible:border-foreground/20 focus-visible:outline-none focus-visible:ring-0',
     optionsWrap: 'px-2 py-1',
     empty: 'py-6 text-center text-sm text-muted-foreground',
     optionRow: 'flex items-center gap-2 text-foreground',

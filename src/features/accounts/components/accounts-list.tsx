@@ -109,7 +109,7 @@ export const AccountsList = ({
                     {onRecalculateAccount ? (
                       <button
                         type="button"
-                        className={cn(stitchHome.viewAllLink, 'size-8 min-h-8 min-w-8 shrink-0 p-0')}
+                        className={cn(stitchHome.viewAllLink, 'size-11 min-h-11 min-w-11 shrink-0 p-0')}
                         disabled={isRecalculating}
                         onClick={() => onRecalculateAccount(account)}
                         aria-label={tCard('ariaRecalculate', { name: account.name })}

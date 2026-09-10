@@ -116,7 +116,7 @@ export default function PeriodDetailContent({
 
   const remaining = pageData.summary.remaining;
   const remainingSigned = `${remaining > 0 ? '+' : ''}${formatMoney(remaining)}`;
-  const saved = pageData.summary.reserveEnd - pageData.summary.reserveStart;
+  const saved = pageData.summary.reserveSaved;
   const savedSigned = `${saved > 0 ? '+' : ''}${formatMoney(saved)}`;
 
   const handleRecalculate = useCallback(async () => {

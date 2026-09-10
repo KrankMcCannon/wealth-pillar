@@ -259,7 +259,7 @@ export const transactionStyles = {
     searchIconActive: 'text-primary',
     searchIconInactive: 'text-muted-foreground',
     searchInput:
-      'min-h-11 w-full rounded-2xl border border-border/35 bg-input py-3 pl-12 pr-10 text-sm font-medium text-foreground ring-1 ring-inset ring-border/40 placeholder:text-muted-foreground/55 transition-colors outline-none focus-visible:border-border/45 focus-visible:outline-none focus-visible:ring-0 motion-reduce:transition-none',
+      'min-h-11 w-full rounded-xl border border-border/35 bg-input py-3 pl-12 pr-10 text-sm font-medium text-foreground ring-1 ring-inset ring-border/40 placeholder:text-muted-foreground transition-colors outline-none focus-visible:border-border/45 focus-visible:outline-none focus-visible:ring-0 motion-reduce:transition-none',
     quickPeriodRow: 'flex flex-wrap gap-1.5 sm:gap-2',
     quickPeriodPill:
       'inline-flex min-h-10 shrink-0 items-center rounded-full border px-3 py-1.5 text-xs font-semibold tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35 sm:min-h-11 sm:text-sm',

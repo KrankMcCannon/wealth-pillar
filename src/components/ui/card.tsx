@@ -3,15 +3,15 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
 const cardVariants = cva(
-  'bg-card text-primary flex flex-col rounded-xl border border-primary/20 shadow-sm',
+  'bg-card text-foreground flex flex-col rounded-xl border border-border/40 shadow-sm',
   {
     variants: {
       variant: {
         default: '',
-        elevated: 'shadow-xl border-primary/20',
-        flat: 'shadow-none border-primary/10',
+        elevated: 'shadow-xl border-border/40',
+        flat: 'shadow-none border-border/25',
         interactive:
-          'cursor-pointer transition-transform hover:shadow-md hover:border-primary/20 hover:scale-[1.01]',
+          'cursor-pointer transition-transform hover:shadow-md hover:border-border/55 hover:scale-[1.01]',
         glass: 'liquid-glass',
       },
       padding: {

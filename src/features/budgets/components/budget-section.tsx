@@ -40,7 +40,7 @@ export const BudgetSection = ({ budgetsByUser, selectedViewUserId }: BudgetSecti
         <h2 id="home-budget-heading" className={stitchHome.scanSectionTitle}>
           {t('budgetTitle')}
         </h2>
-        <Link href="/budgets" className={cn(stitchHome.viewAllLink, 'min-h-8 min-w-0 py-0')}>
+        <Link href="/budgets" className={cn(stitchHome.viewAllLink, 'min-w-0')}>
           {t('budgetViewAll')}
         </Link>
       </div>
@@ -100,7 +100,7 @@ export const BudgetSection = ({ budgetsByUser, selectedViewUserId }: BudgetSecti
                       </span>
                     </span>
                     <Amount
-                      type={entry.totalRemaining < 0 ? 'expense' : 'income'}
+                      type={entry.totalRemaining < 0 ? 'expense' : 'balance'}
                       size="md"
                       emphasis="strong"
                     >

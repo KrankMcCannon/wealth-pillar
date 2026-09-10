@@ -1240,7 +1240,7 @@
     "skipToContent": "Vai a disponibilità, budget e scadenze",
     "spendableLabel": "Disponibile da spendere",
     "spendableHint": "Conto corrente e contanti. I risparmi restano da parte.",
-    "reserveLabel": "Messo da parte",
+    "reserveLabel": "Riserva",
     "spendableViewAll": "Conti",
     "budgetTitle": "Questo periodo",
     "budgetViewAll": "Budget",
@@ -1252,11 +1252,11 @@
     "budgetEmptyBody": "Imposta un limite per sapere quanto resta da spendere.",
     "budgetSet": "Imposta un budget",
     "upcomingTitle": "In scadenza",
-    "upcomingViewAll": "Tutte le ricorrenze",
+    "upcomingViewAll": "Vedi ricorrenze",
     "upcomingEmpty": "Nessun pagamento ricorrente nei prossimi 7 giorni.",
     "recentActivityTitle": "Ultime transazioni",
     "recentActivitySubtitle": "{count, plural, one {# transazione} other {# transazioni}}",
-    "recentActivityViewAll": "Tutte le transazioni",
+    "recentActivityViewAll": "Vedi transazioni",
     "recentActivityEmpty": "Nessuna transazione recente."
   },
   "BottomNav": {
@@ -1287,7 +1287,7 @@
       "accountCount": "{count} {count, plural, one {Conto} other {Conti}}"
     },
     "Content": {
-      "headerTitle": "Conti Bancari",
+      "headerTitle": "Conti",
       "headerSubtitle": "{count} {count, plural, one {conto} other {conti}}",
       "sectionContextTitle": "Membro",
       "sectionContextSubtitle": "Scegli di quali saldi e conti vuoi la panoramica",
