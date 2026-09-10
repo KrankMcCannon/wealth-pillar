@@ -1,7 +1,6 @@
 import type { Budget, BudgetPeriod } from '@/lib/types';
 import type { CreateBudgetInput } from '../budgets/types';
 import { BudgetPeriodsRepository } from '@/server/repositories/budget-periods.repository';
-import { getBudgetsByUserUseCase } from '../budgets/get-budgets.use-case';
 import {
   validateRequiredString,
   validatePositiveNumber,
@@ -78,8 +77,7 @@ export async function upsertClosedPeriodBudgetUseCase(
 ): Promise<Budget> {
   const period = await loadClosedPeriod(userId, periodId);
   const validated = validateBudgetInput(input);
-  const live = await getBudgetsByUserUseCase(userId);
-  let list = materializePeriodBudgets(period, live);
+  let list = materializePeriodBudgets(period);
 
   if (budgetId) {
     validateId(budgetId, 'Budget ID');
@@ -108,8 +106,7 @@ export async function deleteClosedPeriodBudgetUseCase(
 ): Promise<{ id: string }> {
   validateId(budgetId, 'Budget ID');
   const period = await loadClosedPeriod(userId, periodId);
-  const live = await getBudgetsByUserUseCase(userId);
-  const list = materializePeriodBudgets(period, live);
+  const list = materializePeriodBudgets(period);
   if (!list.some((row) => row.id === budgetId)) {
     throw new ClosedPeriodBudgetError('budgetNotFound');
   }

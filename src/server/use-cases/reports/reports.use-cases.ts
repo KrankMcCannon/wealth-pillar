@@ -66,6 +66,24 @@ function liveBudgetsByUserId(budgets: Budget[]): Map<string, Budget[]> {
   return map;
 }
 
+/** Unwind from today's reserve can invent a negative opening. Pin the oldest start at 0. */
+export function pinOldestReserveStartAtZero<
+  T extends { startDate: string; reserveStart: number; reserveEnd: number },
+>(rows: T[]): T[] {
+  if (rows.length === 0) return rows;
+  let oldest = rows[0]!;
+  for (const row of rows) {
+    if (row.startDate < oldest.startDate) oldest = row;
+  }
+  if (oldest.reserveStart >= 0) return rows;
+  const lift = roundMoney(-oldest.reserveStart);
+  return rows.map((row) => ({
+    ...row,
+    reserveStart: roundMoney(row.reserveStart + lift),
+    reserveEnd: roundMoney(row.reserveEnd + lift),
+  }));
+}
+
 function reserveBalanceByUser(accounts: Account[]): Map<string, number> {
   const map = new Map<string, number>();
   for (const account of accounts) {
@@ -272,6 +290,7 @@ export function calculatePeriodSummariesUseCase(
   for (const [userId, slots] of slotsByUser) {
     slots.sort((a, b) => b.startMs - a.startMs);
     let running = roundMoney(reserveNow.get(userId) ?? 0);
+    const userRows: ReportPeriodSummary[] = [];
     for (const slot of slots) {
       const spent = roundMoney(Math.max(0, slot.spent));
       const reserveSaved = roundMoney(slot.reserveSaved);
@@ -280,7 +299,7 @@ export function calculatePeriodSummariesUseCase(
       running = reserveStart;
       const period = slot.period;
       const allocated = slot.allocated;
-      summaries.push({
+      userRows.push({
         id: period.id,
         name: `${formatDateShort(period.start_date)} - ${period.end_date ? formatDateShort(period.end_date) : 'Present'}`,
         startDate: toDateString(period.start_date),
@@ -295,6 +314,7 @@ export function calculatePeriodSummariesUseCase(
         isOpen: period.end_date == null,
       });
     }
+    summaries.push(...pinOldestReserveStartAtZero(userRows));
   }
 
   summaries.sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());

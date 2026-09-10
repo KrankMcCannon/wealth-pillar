@@ -188,7 +188,7 @@ describe('getReportPeriodDetailPageData', () => {
   });
 
   it('returns summary and edit flags for the latest closed period without rewind', async () => {
-    const closed = closedPeriod();
+    const closed = closedPeriod({ budgets_snapshot: [foodBudget] });
     const previous = previousPeriod();
     const active = activePeriod();
     vi.mocked(BudgetPeriodsRepository.findById).mockResolvedValue(closed);
@@ -205,6 +205,22 @@ describe('getReportPeriodDetailPageData', () => {
     expect(data.storedAmounts.spendableSpent).toBe(40);
     expect(data.periodBudgets).toEqual([foodBudget]);
     expect(data.budgetProgress[0]).toMatchObject({ id: 'b1', amount: 200, spent: 40 });
+  });
+
+  it('does not surface live envelopes when a closed period has no snapshot', async () => {
+    const closed = closedPeriod();
+    vi.mocked(BudgetPeriodsRepository.findById).mockResolvedValue(closed);
+    vi.mocked(getProcessedUserPeriodsUseCase).mockResolvedValue([
+      closed,
+      previousPeriod(),
+      activePeriod(),
+    ]);
+
+    const data = await getReportPeriodDetailPageData('group-1', 'closed-1', owner);
+
+    expect(data.periodBudgets).toEqual([]);
+    expect(data.budgetProgress).toEqual([]);
+    expect(data.summary.allocated).toBe(0);
   });
 
   it('returns rewind flags for the persisted active period', async () => {

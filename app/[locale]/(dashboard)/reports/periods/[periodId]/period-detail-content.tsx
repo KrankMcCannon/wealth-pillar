@@ -120,7 +120,7 @@ export default function PeriodDetailContent({
   const savedSigned = `${saved > 0 ? '+' : ''}${formatMoney(saved)}`;
 
   const handleRecalculate = useCallback(async () => {
-    if (isRecalculating || pageData.snapshotMatchesLive) return;
+    if (isRecalculating) return;
     setIsRecalculating(true);
     try {
       const result = await recalculateClosedPeriodAction(
@@ -149,7 +149,6 @@ export default function PeriodDetailContent({
     isRecalculating,
     locale,
     pageData.periodId,
-    pageData.snapshotMatchesLive,
     pageData.userId,
     router,
     t,
@@ -203,6 +202,7 @@ export default function PeriodDetailContent({
                 tone={remaining < 0 ? 'expense' : 'income'}
                 from={formatMoney(pageData.summary.allocated)}
                 to={formatMoney(pageData.summary.spendableSpent)}
+                join=" − "
               />
             </div>
             {pageData.snapshotMatchesLive ? (
@@ -289,7 +289,7 @@ export default function PeriodDetailContent({
           ) : null}
 
           <div className={stitchReports.periodActions}>
-            {!pageData.snapshotMatchesLive ? (
+            {!pageData.summary.isOpen ? (
               <button
                 type="button"
                 className={stitchSurface.primaryCta}

@@ -68,7 +68,7 @@ describe('BudgetPeriodSection', () => {
     expect(screen.getByText('reserve')).toBeTruthy();
     expect(screen.getByText('budget')).toBeTruthy();
     expect(screen.getByText('€2000 → €3000')).toBeTruthy();
-    expect(screen.getByText('€4000 → €3345.97')).toBeTruthy();
+    expect(screen.getByText('€4000 − €3345.97')).toBeTruthy();
     expect(screen.getByLabelText('reserve +€1000')).toHaveClass('text-income');
     expect(screen.getByLabelText('badgeOnTrack +€654.03')).toHaveClass('text-income');
   });
@@ -89,8 +89,8 @@ describe('BudgetPeriodSection', () => {
       />
     );
 
-    expect(screen.queryByText('€2000 → €-500')).toBeNull();
-    expect(screen.getByText('€2000 → €2500')).toBeTruthy();
+    expect(screen.getByText('€2000 − €2500')).toBeTruthy();
+    expect(screen.queryByText('€2000 → €2500')).toBeNull();
     const remaining = screen.getByLabelText('badgeOverBudget €-500');
     expect(remaining).toHaveClass('text-expense');
   });

@@ -86,6 +86,7 @@ describe('calculatePeriodSummariesUseCase', () => {
           snapshot_at: '2024-07-01',
           spendable_spent: 156420.06,
           reserve_saved: 1000,
+          budgets_snapshot: [budget({ amount: 4000 })],
         }),
       ],
       [tx({ amount: 99 })],
@@ -117,6 +118,7 @@ describe('calculatePeriodSummariesUseCase', () => {
           snapshot_at: '2024-07-01',
           spendable_spent: 156420.06,
           reserve_saved: -11203.31,
+          budgets_snapshot: [budget({ amount: 2200, categories: ['food', 'spese_mutuo'] })],
         }),
       ],
       [
@@ -139,6 +141,7 @@ describe('calculatePeriodSummariesUseCase', () => {
         makePeriod({
           snapshot_at: '2024-07-01',
           spendable_spent: 156420.06,
+          budgets_snapshot: [budget({ amount: 2200, categories: ['food'] })],
         }),
       ],
       [
@@ -195,7 +198,7 @@ describe('calculatePeriodSummariesUseCase', () => {
 
   it('counts live budget-category expenses, not salary or unbudgeted spend', () => {
     const [summary] = calculatePeriodSummariesUseCase(
-      [makePeriod()],
+      [makePeriod({ budgets_snapshot: [budget({ amount: 200 })] })],
       [
         tx({ amount: 80, category: 'food' }),
         tx({ id: 'pay', amount: 3000, type: 'income', category: 'stipendio' }),
@@ -211,15 +214,18 @@ describe('calculatePeriodSummariesUseCase', () => {
   });
 
   it('subtracts spendable spent from the user allocated budget', () => {
+    const envelopes = [
+      budget({ id: 'b1', amount: 100 }),
+      budget({ id: 'b2', amount: 40 }),
+      budget({ id: 'b4', amount: 0 }),
+    ];
     const [summary] = calculatePeriodSummariesUseCase(
-      [makePeriod()],
+      [makePeriod({ budgets_snapshot: envelopes })],
       [tx({ amount: 80 })],
       [spendable, reserve],
       [
-        budget({ id: 'b1', amount: 100 }),
-        budget({ id: 'b2', amount: 40 }),
+        ...envelopes,
         budget({ id: 'b3', amount: 999, user_id: 'u2' }),
-        budget({ id: 'b4', amount: 0 }),
       ]
     );
 
@@ -240,6 +246,19 @@ describe('calculatePeriodSummariesUseCase', () => {
 
     expect(summary!.allocated).toBe(50);
     expect(summary!.remaining).toBe(10);
+  });
+
+  it('does not use live envelopes when a closed period has no snapshot', () => {
+    const [summary] = calculatePeriodSummariesUseCase(
+      [makePeriod()],
+      [tx({ amount: 40 })],
+      [spendable, reserve],
+      [budget({ amount: 400 })]
+    );
+
+    expect(summary!.allocated).toBe(0);
+    expect(summary!.spendableSpent).toBe(0);
+    expect(summary!.remaining).toBe(0);
   });
 
   it('unwinds risparmi start/end from current reserve and period savings', () => {
@@ -286,6 +305,45 @@ describe('calculatePeriodSummariesUseCase', () => {
       reserveStart: 200,
       reserveEnd: 300,
       isOpen: false,
+    });
+  });
+
+  it('sums leftover across envelopes for remaining', () => {
+    const envelopes = [
+      budget({ id: 'food', amount: 400, categories: ['food'] }),
+      budget({ id: 'rent', amount: 700, categories: ['rent'] }),
+    ];
+    const [summary] = calculatePeriodSummariesUseCase(
+      [makePeriod({ budgets_snapshot: envelopes })],
+      [tx({ amount: 90, category: 'food' })],
+      [spendable, reserve],
+      envelopes
+    );
+
+    expect(summary!.allocated).toBe(1100);
+    expect(summary!.spendableSpent).toBe(90);
+    expect(summary!.remaining).toBe(1010);
+  });
+
+  it('does not invent a negative opening on the first closed period', () => {
+    const closed = makePeriod({
+      id: 'first',
+      start_date: '2024-06-01',
+      end_date: '2024-06-30',
+      snapshot_at: '2024-07-01',
+      reserve_saved: 50,
+    });
+    const [summary] = calculatePeriodSummariesUseCase(
+      [closed],
+      [],
+      [spendable, { ...reserve, balance: 0 }],
+      [budget({ amount: 200 })]
+    );
+
+    expect(summary).toMatchObject({
+      reserveSaved: 50,
+      reserveStart: 0,
+      reserveEnd: 50,
     });
   });
 });

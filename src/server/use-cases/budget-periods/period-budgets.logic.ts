@@ -36,11 +36,17 @@ function parseSnapshotItem(raw: unknown): Budget | null {
   };
 }
 
-/** null = column unset (fall back to live). [] = this period has no envelopes. */
+/** null = column unset (no stored envelopes). [] = this period has no envelopes. */
 export function parseBudgetsSnapshot(raw: unknown): Budget[] | null {
   if (raw == null) return null;
   if (!Array.isArray(raw)) return null;
   return raw.map(parseSnapshotItem).filter((row): row is Budget => row !== null);
+}
+
+/** Closed period with no stored envelopes (null or []). Safe to seed from live once. */
+export function snapshotNeedsLiveCopy(raw: unknown): boolean {
+  const parsed = parseBudgetsSnapshot(raw);
+  return parsed == null || parsed.length === 0;
 }
 
 export function toBudgetsSnapshot(budgets: Budget[]): Budget[] {
@@ -60,11 +66,13 @@ export function toBudgetsSnapshot(budgets: Budget[]): Budget[] {
 
 export function resolvePeriodBudgets(period: BudgetPeriod, liveBudgets: Budget[]): Budget[] {
   if (period.end_date == null) return liveBudgets;
-  return parseBudgetsSnapshot(period.budgets_snapshot) ?? liveBudgets;
+  // Missing snapshot is empty history, not live rows. Restore JSON from backup/PITR only.
+  return parseBudgetsSnapshot(period.budgets_snapshot) ?? [];
 }
 
-export function materializePeriodBudgets(period: BudgetPeriod, liveBudgets: Budget[]): Budget[] {
-  return parseBudgetsSnapshot(period.budgets_snapshot) ?? toBudgetsSnapshot(liveBudgets);
+/** Closed-period editor base list. Missing snapshot is empty — never copy live. */
+export function materializePeriodBudgets(period: BudgetPeriod): Budget[] {
+  return parseBudgetsSnapshot(period.budgets_snapshot) ?? [];
 }
 
 export function allocatedFromBudgets(budgets: Budget[]): number {

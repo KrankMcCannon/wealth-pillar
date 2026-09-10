@@ -1,3 +1,4 @@
+import { after } from 'next/server';
 import { BudgetsRepository, type InsertBudget } from '@/server/repositories/budgets.repository';
 import type { CreateBudgetInput } from './types';
 import type { Budget } from '@/lib/types';
@@ -34,7 +35,9 @@ export async function createBudgetUseCase(data: CreateBudgetInput): Promise<Budg
 
   const budget = await BudgetsRepository.create(insertData as InsertBudget);
 
-  invalidateBudgetCaches({ userId: data.user_id, groupId });
+  after(() => {
+    invalidateBudgetCaches({ userId: data.user_id, groupId });
+  });
 
   return budget;
 }

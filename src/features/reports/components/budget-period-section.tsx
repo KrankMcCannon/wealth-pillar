@@ -77,6 +77,7 @@ export function PeriodMetric({
   from,
   to,
   signedAria,
+  join = ' → ',
 }: {
   label: string;
   signed: string;
@@ -84,6 +85,7 @@ export function PeriodMetric({
   from: string;
   to: string;
   signedAria?: string;
+  join?: string;
 }) {
   return (
     <span className={stitchReports.periodMetricCol}>
@@ -98,7 +100,7 @@ export function PeriodMetric({
         {signed}
       </span>
       <span className="mt-0.5 block text-sm tabular-nums leading-snug text-muted-foreground">
-        {`${from} → ${to}`}
+        {`${from}${join}${to}`}
       </span>
     </span>
   );
@@ -151,6 +153,7 @@ function PeriodRow({
           tone={remaining < 0 ? 'expense' : 'income'}
           from={formatMoney(period.allocated)}
           to={formatMoney(period.spendableSpent)}
+          join=" − "
           signedAria={`${remaining < 0 ? overBudgetLabel : onTrackLabel} ${remainingSigned}`}
         />
       </span>

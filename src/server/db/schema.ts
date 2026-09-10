@@ -821,7 +821,7 @@ export const budgetPeriods = pgTable(
     reserve_saved: numeric('reserve_saved'),
     category_spending: jsonb('category_spending').default({}),
     snapshot_at: timestamp('snapshot_at', { withTimezone: true }),
-    /** Closed-period envelope copy. null = fall back to live `budgets` rows. [] = none. */
+    /** Closed-period envelope copy. null = missing history. [] = none. Never live rows. */
     budgets_snapshot: jsonb('budgets_snapshot'),
   },
   (table) => [

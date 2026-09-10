@@ -6,7 +6,7 @@ import {
   materializePeriodBudgets,
   parseBudgetsSnapshot,
   resolvePeriodBudgets,
-  toBudgetsSnapshot,
+  snapshotNeedsLiveCopy,
   upsertPeriodBudgetList,
 } from './period-budgets.logic';
 
@@ -50,6 +50,14 @@ describe('parseBudgetsSnapshot', () => {
   });
 });
 
+describe('snapshotNeedsLiveCopy', () => {
+  it('is true for missing or empty snapshots, false when envelopes exist', () => {
+    expect(snapshotNeedsLiveCopy(null)).toBe(true);
+    expect(snapshotNeedsLiveCopy([])).toBe(true);
+    expect(snapshotNeedsLiveCopy([snap])).toBe(false);
+  });
+});
+
 describe('resolvePeriodBudgets', () => {
   it('uses live budgets for an open period even if a snapshot exists', () => {
     expect(
@@ -66,8 +74,8 @@ describe('resolvePeriodBudgets', () => {
     ]);
   });
 
-  it('falls back to live when the closed period has no snapshot', () => {
-    expect(resolvePeriodBudgets(period(), [live])).toEqual([live]);
+  it('does not use live envelopes when the closed period has no snapshot', () => {
+    expect(resolvePeriodBudgets(period(), [live])).toEqual([]);
   });
 
   it('does not fall back when the snapshot is an empty list', () => {
@@ -76,8 +84,14 @@ describe('resolvePeriodBudgets', () => {
 });
 
 describe('materializePeriodBudgets', () => {
-  it('copies live budgets when the snapshot is missing', () => {
-    expect(materializePeriodBudgets(period(), [live])).toEqual(toBudgetsSnapshot([live]));
+  it('does not copy live budgets when the snapshot is missing', () => {
+    expect(materializePeriodBudgets(period())).toEqual([]);
+  });
+
+  it('uses the stored snapshot when present', () => {
+    expect(materializePeriodBudgets(period({ budgets_snapshot: [snap] }))).toEqual([
+      expect.objectContaining({ id: 'snap-1', amount: 150 }),
+    ]);
   });
 });
 

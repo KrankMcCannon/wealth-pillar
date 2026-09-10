@@ -150,7 +150,7 @@ export interface BudgetPeriod {
   reserve_saved?: number | null;
   category_spending?: Record<string, number> | null;
   snapshot_at?: DateString | null;
-  /** Closed-period envelopes. null = live budgets; [] = none. */
+  /** Closed-period envelopes. null = missing history; [] = none. Never live rows. */
   budgets_snapshot?: Budget[] | null;
   created_at: DateString;
   updated_at: DateString;

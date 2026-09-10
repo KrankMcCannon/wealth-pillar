@@ -13,10 +13,6 @@ vi.mock('@/server/repositories/budget-periods.repository', () => ({
   },
 }));
 
-vi.mock('../budgets/get-budgets.use-case', () => ({
-  getBudgetsByUserUseCase: vi.fn(),
-}));
-
 vi.mock('next/cache', () => ({
   revalidateTag: vi.fn(),
 }));
@@ -26,7 +22,6 @@ vi.mock('@/lib/utils/cache-utils', () => ({
 }));
 
 import { BudgetPeriodsRepository } from '@/server/repositories/budget-periods.repository';
-import { getBudgetsByUserUseCase } from '../budgets/get-budgets.use-case';
 
 const live: Budget = {
   id: 'live-1',
@@ -67,7 +62,6 @@ const input = {
 describe('upsertClosedPeriodBudgetUseCase', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(getBudgetsByUserUseCase).mockResolvedValue([live]);
     vi.mocked(BudgetPeriodsRepository.update).mockImplementation(async (_id, data) =>
       closedPeriod({ budgets_snapshot: data.budgets_snapshot as Budget[] })
     );
@@ -82,14 +76,14 @@ describe('upsertClosedPeriodBudgetUseCase', () => {
     } satisfies Partial<ClosedPeriodBudgetError>);
   });
 
-  it('materializes live budgets then appends', async () => {
+  it('starts from an empty snapshot then appends', async () => {
     vi.mocked(BudgetPeriodsRepository.findById).mockResolvedValue(closedPeriod());
     const saved = await upsertClosedPeriodBudgetUseCase('u1', 'closed-1', input);
     expect(saved).toMatchObject({ description: 'Groceries', amount: 80, user_id: 'u1' });
     const written = vi.mocked(BudgetPeriodsRepository.update).mock.calls[0]?.[1]
       .budgets_snapshot as Budget[];
-    expect(written).toHaveLength(2);
-    expect(written.map((row) => row.id)).toContain('live-1');
+    expect(written).toHaveLength(1);
+    expect(written[0]).toMatchObject({ description: 'Groceries', amount: 80 });
   });
 
   it('updates an existing snapshot row', async () => {
@@ -107,7 +101,6 @@ describe('upsertClosedPeriodBudgetUseCase', () => {
 describe('deleteClosedPeriodBudgetUseCase', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(getBudgetsByUserUseCase).mockResolvedValue([]);
     vi.mocked(BudgetPeriodsRepository.update).mockResolvedValue(
       closedPeriod({ budgets_snapshot: [] })
     );
