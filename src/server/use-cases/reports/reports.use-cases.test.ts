@@ -227,6 +227,21 @@ describe('calculatePeriodSummariesUseCase', () => {
     expect(summary!.remaining).toBe(60);
   });
 
+  it('uses the closed-period budget snapshot for allocated, not live envelopes', () => {
+    const closed = makePeriod({
+      budgets_snapshot: [budget({ id: 'snap', amount: 50, categories: ['food'] })],
+    });
+    const [summary] = calculatePeriodSummariesUseCase(
+      [closed],
+      [tx({ amount: 40 })],
+      [spendable, reserve],
+      [budget({ amount: 400 })]
+    );
+
+    expect(summary!.allocated).toBe(50);
+    expect(summary!.remaining).toBe(10);
+  });
+
   it('unwinds risparmi start/end from current reserve and period savings', () => {
     const closed = makePeriod({
       id: 'closed',

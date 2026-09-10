@@ -362,6 +362,7 @@ export interface Database {
           reserve_saved: number | null;
           category_spending: Json | null;
           snapshot_at: string | null;
+          budgets_snapshot: Json | null;
           created_at: string | null;
           updated_at: string | null;
         };
@@ -376,6 +377,7 @@ export interface Database {
           reserve_saved?: number | null;
           category_spending?: Json | null;
           snapshot_at?: string | null;
+          budgets_snapshot?: Json | null;
           created_at?: string | null;
           updated_at?: string | null;
         };
@@ -390,6 +392,7 @@ export interface Database {
           reserve_saved?: number | null;
           category_spending?: Json | null;
           snapshot_at?: string | null;
+          budgets_snapshot?: Json | null;
           created_at?: string | null;
           updated_at?: string | null;
         };

@@ -12,6 +12,11 @@ import {
   updateBudgetAction,
 } from '@/features/budgets';
 import {
+  deleteClosedPeriodBudgetAction,
+  upsertClosedPeriodBudgetAction,
+} from '@/features/budgets/actions/budget-period-actions';
+import { useRouter } from '@/i18n/routing';
+import {
   EntityFormModal,
   EntityFormFooter,
   formModalStyles,
@@ -30,6 +35,10 @@ interface BudgetFormModalProps {
   isOpen: boolean;
   onClose: () => void;
   editId?: string | null;
+  /** When set, create/edit/delete write this closed period's snapshot, not live budgets. */
+  periodId?: string;
+  periodUserId?: string;
+  periodBudgets?: Budget[];
 }
 
 function BudgetFormModalBody({
@@ -59,9 +68,17 @@ function BudgetFormModalBody({
   );
 }
 
-function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalProps>) {
+function BudgetFormModal({
+  isOpen,
+  onClose,
+  editId,
+  periodId,
+  periodUserId,
+  periodBudgets = [],
+}: Readonly<BudgetFormModalProps>) {
   const t = useTranslations('Budgets.FormModal');
   const locale = useLocale();
+  const router = useRouter();
   const { groupUsers, groupId, shouldDisableUserField, defaultFormUserId, userFieldHelperText } =
     useEntityFormPermissions();
   const categories = useCategories();
@@ -69,6 +86,7 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
   const updateBudget = useReferenceDataStore((state) => state.updateBudget);
   const removeBudget = useReferenceDataStore((state) => state.removeBudget);
   const storeBudgets = useReferenceDataStore((state) => state.budgets);
+  const isPeriodMode = Boolean(periodId && periodUserId);
 
   const isEditMode = Boolean(editId);
   const title = isEditMode ? t('title.edit') : t('title.create');
@@ -99,9 +117,9 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
       type: 'monthly',
       icon: null,
       categories: [],
-      user_id: defaultFormUserId,
+      user_id: periodUserId ?? defaultFormUserId,
     }),
-    [defaultFormUserId]
+    [defaultFormUserId, periodUserId]
   );
 
   const categoryOptions = useMemo(
@@ -116,20 +134,24 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
 
   const loadEditValues = useCallback(
     async (id: string, signal: AbortSignal) => {
+      if (isPeriodMode) {
+        const budget = periodBudgets.find((item) => item.id === id);
+        return budget ? mapBudgetToFormData(budget) : null;
+      }
       const result = await getBudgetByIdAction(id, locale);
       if (signal.aborted) return null;
       if (!result.data) return null;
       return mapBudgetToFormData(result.data);
     },
-    [locale]
+    [isPeriodMode, locale, periodBudgets]
   );
 
   const getEditValuesSync = useCallback(
     (id: string) => {
-      const budget = storeBudgets.find((item) => item.id === id);
+      const budget = (isPeriodMode ? periodBudgets : storeBudgets).find((item) => item.id === id);
       return budget ? mapBudgetToFormData(budget) : undefined;
     },
-    [storeBudgets]
+    [isPeriodMode, periodBudgets, storeBudgets]
   );
 
   const { resetValues, isReady, isLoading } = useEntityFormRowReset({
@@ -162,64 +184,92 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
     editId,
     onClose,
     buildPayload,
-    createAction: (payload) => createBudgetAction(payload, locale),
-    updateAction: (id, payload) => updateBudgetAction(id, payload, locale),
-    applyCreateOptimistic: (payload) => {
-      const tempId = getTempId('temp-budget');
-      const now = new Date().toISOString();
-      const optimistic: Budget = {
-        id: tempId,
-        description: payload.description,
-        amount: payload.amount,
-        type: payload.type,
-        icon: payload.icon ?? null,
-        categories: payload.categories,
-        user_id: payload.user_id,
-        group_id: payload.group_id,
-        created_at: now,
-        updated_at: now,
-      };
-      addBudget(optimistic);
-      return tempId;
-    },
-    commitCreate: (handle, result) => {
-      if (typeof handle !== 'string') return;
-      removeBudget(handle);
-      addBudget(result);
-    },
-    rollbackCreate: (handle) => {
-      if (typeof handle !== 'string') return;
-      removeBudget(handle);
-    },
-    applyUpdateOptimistic: (id, payload) => {
-      const originalBudget = storeBudgets.find((budget) => budget.id === id);
-      if (!originalBudget) {
-        throw new Error(t('errors.notFound'));
-      }
-      updateBudget(id, {
-        description: payload.description,
-        amount: payload.amount,
-        type: payload.type,
-        icon: payload.icon ?? null,
-        categories: payload.categories,
-        user_id: payload.user_id,
-      });
-      return { originalBudget, id };
-    },
-    commitUpdate: (_handle, result) => {
-      updateBudget(result.id, result);
-    },
-    rollbackUpdate: (handle) => {
-      if (typeof handle === 'string') return;
-      updateBudget(handle.id, handle.originalBudget);
-    },
+    createAction: (payload) =>
+      isPeriodMode && periodId && periodUserId
+        ? upsertClosedPeriodBudgetAction(periodUserId, periodId, payload, locale)
+        : createBudgetAction(payload, locale),
+    updateAction: (id, payload) =>
+      isPeriodMode && periodId && periodUserId
+        ? upsertClosedPeriodBudgetAction(periodUserId, periodId, payload, locale, id)
+        : updateBudgetAction(id, payload, locale),
     getSuccessToast,
     errorToast: { title: t('toast.errorTitle') },
     unknownErrorMessage: t('errors.unknown'),
+    ...(isPeriodMode
+      ? { refreshAfterSuccess: () => router.refresh() }
+      : {
+          applyCreateOptimistic: (payload) => {
+            const tempId = getTempId('temp-budget');
+            const now = new Date().toISOString();
+            const optimistic: Budget = {
+              id: tempId,
+              description: payload.description,
+              amount: payload.amount,
+              type: payload.type,
+              icon: payload.icon ?? null,
+              categories: payload.categories,
+              user_id: payload.user_id,
+              group_id: payload.group_id,
+              created_at: now,
+              updated_at: now,
+            };
+            addBudget(optimistic);
+            return tempId;
+          },
+          commitCreate: (handle, result) => {
+            if (typeof handle !== 'string') return;
+            removeBudget(handle);
+            addBudget(result);
+          },
+          rollbackCreate: (handle) => {
+            if (typeof handle !== 'string') return;
+            removeBudget(handle);
+          },
+          applyUpdateOptimistic: (id, payload) => {
+            const originalBudget = storeBudgets.find((budget) => budget.id === id);
+            if (!originalBudget) {
+              throw new Error(t('errors.notFound'));
+            }
+            updateBudget(id, {
+              description: payload.description,
+              amount: payload.amount,
+              type: payload.type,
+              icon: payload.icon ?? null,
+              categories: payload.categories,
+              user_id: payload.user_id,
+            });
+            return { originalBudget, id };
+          },
+          commitUpdate: (_handle, result) => {
+            updateBudget(result.id, result);
+          },
+          rollbackUpdate: (handle) => {
+            if (typeof handle === 'string') return;
+            updateBudget(handle.id, handle.originalBudget);
+          },
+        }),
   });
 
   const handleDelete = useCallback(async () => {
     if (!editId) return;
+    if (isPeriodMode && periodId && periodUserId) {
+      const result = await deleteClosedPeriodBudgetAction(periodUserId, periodId, editId, locale);
+      if (result.error) {
+        toast({
+          title: t('toast.errorTitle'),
+          description: result.error,
+          variant: 'destructive',
+        });
+        throw new Error(result.error);
+      }
+      toast({
+        title: t('toast.deletedTitle'),
+        description: t('toast.deletedDescription'),
+        variant: 'success',
+      });
+      router.refresh();
+      return;
+    }
     const budget = storeBudgets.find((item) => item.id === editId);
     if (!budget) return;
 
@@ -253,7 +303,18 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
       }
       throw new Error('delete failed');
     }
-  }, [addBudget, editId, locale, removeBudget, storeBudgets, t]);
+  }, [
+    addBudget,
+    editId,
+    isPeriodMode,
+    locale,
+    periodId,
+    periodUserId,
+    removeBudget,
+    router,
+    storeBudgets,
+    t,
+  ]);
 
   return (
     <EntityFormModal<BudgetFormData>
@@ -293,7 +354,7 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
           form={form}
           groupUsers={groupUsers}
           categoryOptions={categoryOptions}
-          shouldDisableUserField={shouldDisableUserField}
+          shouldDisableUserField={shouldDisableUserField || isPeriodMode}
           userFieldHelperText={userFieldHelperText}
           isSubmitting={form.formState.isSubmitting}
         />

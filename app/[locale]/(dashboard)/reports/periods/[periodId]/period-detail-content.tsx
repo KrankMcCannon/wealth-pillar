@@ -22,6 +22,8 @@ import type { ReportsTimePreset } from '@/features/reports/utils/reporting-windo
 import type { ReportsScope } from '@/server/use-cases/pages/reports-page.use-case';
 import type { ReportPeriodDetailPageData } from '@/server/use-cases/pages/report-period-detail-page.use-case';
 import EditClosingDateModal from '@/features/budgets/components/edit-closing-date-modal';
+import BudgetFormModal from '@/features/budgets/components/budget-form-modal';
+import { BudgetCategoryCard } from '@/features/budgets/components/budget-category-card';
 import {
   recalculateClosedPeriodAction,
   rewindClosedPeriodAction,
@@ -86,6 +88,8 @@ export default function PeriodDetailContent({
   const [isDeleting, setIsDeleting] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [budgetFormOpen, setBudgetFormOpen] = useState(false);
+  const [budgetEditId, setBudgetEditId] = useState<string | null>(null);
 
   const backQuery = buildReportsSearchQuery({
     preset: backPreset,
@@ -258,6 +262,32 @@ export default function PeriodDetailContent({
             }
           />
 
+          {!pageData.summary.isOpen ? (
+            <section className={stitchHome.scanSection} aria-labelledby="period-budgets-heading">
+              <h2 id="period-budgets-heading" className={stitchHome.scanSectionTitle}>
+                {t('budgetsTitle')}
+              </h2>
+              {pageData.budgetProgress.length === 0 ? (
+                <p className="text-sm text-muted-foreground">{t('budgetsEmpty')}</p>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {pageData.budgetProgress.map((progress) => (
+                    <BudgetCategoryCard
+                      key={progress.id}
+                      progress={progress}
+                      categories={pageData.categories}
+                      isSelected={false}
+                      onPress={() => {
+                        setBudgetEditId(progress.id);
+                        setBudgetFormOpen(true);
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+            </section>
+          ) : null}
+
           <div className={stitchReports.periodActions}>
             {!pageData.snapshotMatchesLive ? (
               <button
@@ -283,6 +313,19 @@ export default function PeriodDetailContent({
                 <span>{t('editDates')}</span>
                 <ChevronRight className={stitchReports.rankingChevron} aria-hidden />
               </button>
+              {!pageData.summary.isOpen ? (
+                <button
+                  type="button"
+                  className={stitchReports.periodActionRow}
+                  onClick={() => {
+                    setBudgetEditId(null);
+                    setBudgetFormOpen(true);
+                  }}
+                >
+                  <span>{t('addBudget')}</span>
+                  <ChevronRight className={stitchReports.rankingChevron} aria-hidden />
+                </button>
+              ) : null}
             </div>
             {pageData.summary.isOpen ? (
               <div className={stitchReports.periodDangerWrap}>
@@ -315,6 +358,17 @@ export default function PeriodDetailContent({
           end_date: pageData.summary.isOpen ? null : pageData.endDate,
         }}
       />
+
+      {!pageData.summary.isOpen ? (
+        <BudgetFormModal
+          isOpen={budgetFormOpen}
+          onClose={() => setBudgetFormOpen(false)}
+          editId={budgetEditId}
+          periodId={pageData.periodId}
+          periodUserId={pageData.userId}
+          periodBudgets={pageData.periodBudgets}
+        />
+      ) : null}
 
       <ConfirmationDialog
         isOpen={deleteOpen}

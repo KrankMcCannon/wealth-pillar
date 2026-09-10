@@ -26,10 +26,16 @@ import {
   rewindClosedPeriodUseCase,
   RewindClosedPeriodError,
 } from '@/server/use-cases/budget-periods/rewind-closed-period.use-case';
+import {
+  upsertClosedPeriodBudgetUseCase,
+  deleteClosedPeriodBudgetUseCase,
+  ClosedPeriodBudgetError,
+} from '@/server/use-cases/budget-periods/mutate-closed-period-budget.use-case';
 import { getTransactionsByUserUseCase } from '@/server/use-cases/transactions/get-transactions.use-case';
 import { getBudgetsByUserUseCase } from '@/server/use-cases/budgets/get-budgets.use-case';
 import { AccountsRepository } from '@/server/repositories/accounts.repository';
-import type { BudgetPeriod, User } from '@/lib/types';
+import type { Budget, BudgetPeriod, User } from '@/lib/types';
+import type { CreateBudgetInput } from '@/server/use-cases/budgets/types';
 import type { ServiceResult } from '@/lib/types/service-result';
 import { DateTime } from 'luxon';
 
@@ -523,6 +529,86 @@ export async function getPeriodPreviewAction(
         error instanceof Error
           ? error.message
           : (t?.('errors.previewFailed') ?? 'Failed to calculate preview'),
+    };
+  }
+}
+
+function mapClosedPeriodBudgetError(
+  error: ClosedPeriodBudgetError,
+  t: Awaited<ReturnType<typeof getTranslations>>
+): string | null {
+  const errorMessages: Record<string, string> = {
+    periodNotFound: t('errors.periodNotFound'),
+    periodMustBeClosed: t('errors.periodMustBeClosed'),
+    syntheticPeriod: t('errors.syntheticPeriod'),
+    budgetNotFound: t('errors.budgetNotFound'),
+  };
+  return errorMessages[error.code] ?? null;
+}
+
+export async function upsertClosedPeriodBudgetAction(
+  userId: string,
+  periodId: string,
+  input: CreateBudgetInput,
+  locale?: string,
+  budgetId?: string
+): Promise<ServiceResult<Budget>> {
+  let t: Awaited<ReturnType<typeof getTranslations>> | null = null;
+  try {
+    t = await getBudgetPeriodActionTranslator(locale);
+    const auth = await authorizeBudgetPeriodUser(
+      t('errors.unauthenticated'),
+      userId,
+      t('errors.noPermissionManageOthers')
+    );
+    if (isAuthDenial(auth)) return auth;
+
+    const budget = await upsertClosedPeriodBudgetUseCase(userId, periodId, input, budgetId);
+    return { data: budget, error: null };
+  } catch (error) {
+    if (error instanceof ClosedPeriodBudgetError && t) {
+      const mapped = mapClosedPeriodBudgetError(error, t);
+      if (mapped) return { data: null, error: mapped };
+    }
+    return {
+      data: null,
+      error:
+        error instanceof Error
+          ? error.message
+          : (t?.('errors.periodBudgetFailed') ?? 'Failed to update period budget'),
+    };
+  }
+}
+
+export async function deleteClosedPeriodBudgetAction(
+  userId: string,
+  periodId: string,
+  budgetId: string,
+  locale?: string
+): Promise<ServiceResult<{ id: string }>> {
+  let t: Awaited<ReturnType<typeof getTranslations>> | null = null;
+  try {
+    t = await getBudgetPeriodActionTranslator(locale);
+    const auth = await authorizeBudgetPeriodUser(
+      t('errors.unauthenticated'),
+      userId,
+      t('errors.noPermissionManageOthers')
+    );
+    if (isAuthDenial(auth)) return auth;
+
+    const result = await deleteClosedPeriodBudgetUseCase(userId, periodId, budgetId);
+    return { data: result, error: null };
+  } catch (error) {
+    if (error instanceof ClosedPeriodBudgetError && t) {
+      const mapped = mapClosedPeriodBudgetError(error, t);
+      if (mapped) return { data: null, error: mapped };
+    }
+    return {
+      data: null,
+      error:
+        error instanceof Error
+          ? error.message
+          : (t?.('errors.periodBudgetFailed') ?? 'Failed to update period budget'),
     };
   }
 }

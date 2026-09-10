@@ -2,7 +2,10 @@ import { cacheLife, cacheTag } from 'next/cache';
 import { notFound } from 'next/navigation';
 import { CACHE_TAGS } from '@/lib/cache/config';
 import { AccessScope } from '@/lib/permissions/access-scope';
-import type { Category, PeriodLiquidityAmounts, User } from '@/lib/types';
+import { calculateBudgetsWithProgress } from '../budgets/budget.logic';
+import { parsePeriodDates } from '../shared/period.logic';
+import { resolvePeriodBudgets } from '../budget-periods/period-budgets.logic';
+import type { Budget, BudgetProgress, Category, PeriodLiquidityAmounts, User } from '@/lib/types';
 import { roundMoney } from '@/lib/utils/money';
 import { BudgetPeriodsRepository } from '@/server/repositories/budget-periods.repository';
 import { AccountsRepository } from '@/server/repositories/accounts.repository';
@@ -38,6 +41,9 @@ export interface ReportPeriodDetailPageData {
   canRewind: boolean;
   previousPeriodId: string | null;
   categoryRows: ReportsTopExpenseRow[];
+  periodBudgets: Budget[];
+  budgetProgress: BudgetProgress[];
+  categories: Category[];
   /** ponytail: category labels/colors come from the current catalog, not a historical snapshot. */
 }
 
@@ -129,6 +135,8 @@ async function getCachedReportPeriodDetailPageData(
   const canRewind = Boolean(
     isOpen && period.is_active && previous && !previous.is_active && previous.end_date
   );
+  const periodBudgets = resolvePeriodBudgets(period, budgets);
+  const [periodStart, periodEnd] = parsePeriodDates(period);
 
   return {
     periodId: period.id,
@@ -143,6 +151,14 @@ async function getCachedReportPeriodDetailPageData(
     canRewind,
     previousPeriodId: canRewind ? previous!.id : null,
     categoryRows: categoryRowsFromSpending(storedAmounts.categorySpending, categories),
+    periodBudgets,
+    budgetProgress: calculateBudgetsWithProgress(
+      periodBudgets,
+      transactions,
+      periodStart,
+      periodEnd
+    ),
+    categories,
   };
 }
 

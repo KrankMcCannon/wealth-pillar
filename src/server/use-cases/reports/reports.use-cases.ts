@@ -10,6 +10,7 @@ import { isReserveAccount } from '@/lib/utils/account-classification';
 import type { Transaction, Account, Budget, BudgetPeriod, User } from '@/lib/types';
 import { BudgetPeriodsRepository } from '@/server/repositories/budget-periods.repository';
 import { addSyntheticActivePeriod } from '@/server/use-cases/budget-periods/synthetic-active-period.logic';
+import { allocatedFromBudgets, resolvePeriodBudgets } from '@/server/use-cases/budget-periods/period-budgets.logic';
 import { getBudgetsByGroupUseCase } from '@/server/use-cases/budgets/get-budgets.use-case';
 import { parsePeriodDates } from '@/server/use-cases/shared/period.logic';
 import { classifyTransferSavingsDelta } from '@/server/use-cases/shared/savings.logic';
@@ -42,27 +43,25 @@ interface PeriodSlot {
   spent: number;
   reserveSaved: number;
   liveReserve: boolean;
+  allocated: number;
+  categoryKeys: Set<string>;
 }
 
-function categoryKeysByUser(budgets: Budget[]): Map<string, Set<string>> {
-  const cats = new Map<string, Set<string>>();
+function categoryKeysFromBudgets(budgets: Budget[]): Set<string> {
+  const cats = new Set<string>();
   for (const budget of budgets) {
     if (budget.amount <= 0) continue;
-    let set = cats.get(budget.user_id);
-    if (!set) {
-      set = new Set();
-      cats.set(budget.user_id, set);
-    }
-    for (const key of budget.categories) set.add(key);
+    for (const key of budget.categories) cats.add(key);
   }
   return cats;
 }
 
-function allocatedByUserId(budgets: Budget[]): Map<string, number> {
-  const map = new Map<string, number>();
+function liveBudgetsByUserId(budgets: Budget[]): Map<string, Budget[]> {
+  const map = new Map<string, Budget[]>();
   for (const budget of budgets) {
-    if (budget.amount <= 0) continue;
-    map.set(budget.user_id, (map.get(budget.user_id) ?? 0) + budget.amount);
+    const list = map.get(budget.user_id);
+    if (list) list.push(budget);
+    else map.set(budget.user_id, [budget]);
   }
   return map;
 }
@@ -215,14 +214,14 @@ export function calculatePeriodSummariesUseCase(
   budgets: Budget[] = []
 ): ReportPeriodSummary[] {
   const now = new Date();
-  const allocatedByUser = allocatedByUserId(budgets);
-  const catsByUser = categoryKeysByUser(budgets);
+  const liveByUser = liveBudgetsByUserId(budgets);
   const reserveNow = reserveBalanceByUser(accounts);
   const accountMap = new Map(accounts.map((account) => [account.id, account]));
 
   const slotsByUser = new Map<string, PeriodSlot[]>();
   for (const period of periods) {
     const [start, end] = parsePeriodDates(period, now);
+    const periodBudgets = resolvePeriodBudgets(period, liveByUser.get(period.user_id) ?? []);
     const slot: PeriodSlot = {
       period,
       startMs: start.toMillis(),
@@ -231,6 +230,8 @@ export function calculatePeriodSummariesUseCase(
       reserveSaved:
         period.snapshot_at != null ? roundMoney(Number(period.reserve_saved) || 0) : 0,
       liveReserve: period.snapshot_at == null,
+      allocated: allocatedFromBudgets(periodBudgets),
+      categoryKeys: categoryKeysFromBudgets(periodBudgets),
     };
     const list = slotsByUser.get(period.user_id);
     if (list) list.push(slot);
@@ -253,8 +254,7 @@ export function calculatePeriodSummariesUseCase(
     }
     if (!slot) continue;
 
-    const cats = catsByUser.get(userId);
-    if (cats?.has(tx.category)) {
+    if (slot.categoryKeys.has(tx.category)) {
       if (tx.type === 'expense') slot.spent += tx.amount;
       else if (tx.type === 'income') slot.spent -= tx.amount;
     }
@@ -272,7 +272,6 @@ export function calculatePeriodSummariesUseCase(
   for (const [userId, slots] of slotsByUser) {
     slots.sort((a, b) => b.startMs - a.startMs);
     let running = roundMoney(reserveNow.get(userId) ?? 0);
-    const allocated = roundMoney(allocatedByUser.get(userId) ?? 0);
     for (const slot of slots) {
       const spent = roundMoney(Math.max(0, slot.spent));
       const reserveSaved = roundMoney(slot.reserveSaved);
@@ -280,6 +279,7 @@ export function calculatePeriodSummariesUseCase(
       const reserveStart = roundMoney(running - reserveSaved);
       running = reserveStart;
       const period = slot.period;
+      const allocated = slot.allocated;
       summaries.push({
         id: period.id,
         name: `${formatDateShort(period.start_date)} - ${period.end_date ? formatDateShort(period.end_date) : 'Present'}`,

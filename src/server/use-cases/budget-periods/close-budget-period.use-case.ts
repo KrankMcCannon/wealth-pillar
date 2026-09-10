@@ -8,11 +8,13 @@ import { revalidateTag } from 'next/cache';
 import { CACHE_TAGS } from '@/lib/cache/config';
 import { invalidateBudgetPeriodCaches } from '@/lib/utils/cache-utils';
 import { getTransactionsByUserUseCase } from '../transactions/get-transactions.use-case';
+import { getBudgetsByUserUseCase } from '../budgets/get-budgets.use-case';
 import {
   computePeriodLiquidityAmounts,
   periodToDateWindow,
   snapshotFieldsFromAmounts,
 } from './period-amounts.logic';
+import { toBudgetsSnapshot } from './period-budgets.logic';
 
 const autoCreateNextPeriod = async (userId: string, endDt: DateTime): Promise<void> => {
   const nextStartDt = endDt.plus({ days: 1 });
@@ -47,9 +49,10 @@ export const closeBudgetPeriodUseCase = async (
 
   const endDateStr = endDt.toISODate() as string;
 
-  const [transactions, accounts] = await Promise.all([
+  const [transactions, accounts, budgets] = await Promise.all([
     getTransactionsByUserUseCase(userId),
     AccountsRepository.findByUser(userId),
+    getBudgetsByUserUseCase(userId),
   ]);
 
   const closingPeriod: BudgetPeriod = {
@@ -64,6 +67,7 @@ export const closeBudgetPeriodUseCase = async (
     end_date: endDateStr,
     is_active: false,
     ...snapshotFieldsFromAmounts(amounts),
+    budgets_snapshot: toBudgetsSnapshot(budgets),
   });
 
   revalidateTag(CACHE_TAGS.USER_PREFERENCE(userId), 'max');

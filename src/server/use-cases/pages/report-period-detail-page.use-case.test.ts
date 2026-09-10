@@ -203,6 +203,8 @@ describe('getReportPeriodDetailPageData', () => {
     expect(data.previousPeriodId).toBeNull();
     expect(data.categoryRows[0]).toMatchObject({ key: 'food', name: 'Food', total: 40 });
     expect(data.storedAmounts.spendableSpent).toBe(40);
+    expect(data.periodBudgets).toEqual([foodBudget]);
+    expect(data.budgetProgress[0]).toMatchObject({ id: 'b1', amount: 200, spent: 40 });
   });
 
   it('returns rewind flags for the persisted active period', async () => {

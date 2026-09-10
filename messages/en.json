@@ -475,6 +475,9 @@
       "savedColumn": "Saved",
       "liveColumn": "Live",
       "spendLabel": "Spend",
+      "budgetsTitle": "Period budgets",
+      "budgetsEmpty": "No budgets for this period.",
+      "addBudget": "Add budget",
       "viewTransactions": "View transactions",
       "recalculate": "Recalculate totals",
       "recalculating": "Recalculating…",
@@ -1734,7 +1737,9 @@
         "syntheticPeriod": "This period cannot be changed.",
         "noPreviousPeriod": "There is no previous period to reopen.",
         "periodMustBeActive": "Only the open period can be deleted.",
-        "rewindFailed": "Failed to delete this period and reopen the previous one"
+        "rewindFailed": "Failed to delete this period and reopen the previous one",
+        "budgetNotFound": "Budget not found in this period.",
+        "periodBudgetFailed": "Could not update this period's budget"
       }
     }
   },

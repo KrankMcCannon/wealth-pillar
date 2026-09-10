@@ -475,6 +475,9 @@
       "savedColumn": "Salvato",
       "liveColumn": "Attuale",
       "spendLabel": "Spesa",
+      "budgetsTitle": "Budget del periodo",
+      "budgetsEmpty": "Nessun budget per questo periodo.",
+      "addBudget": "Aggiungi budget",
       "viewTransactions": "Vedi transazioni",
       "recalculate": "Ricalcola totali",
       "recalculating": "Ricalcolo…",
@@ -1734,7 +1737,9 @@
         "syntheticPeriod": "Questo periodo non può essere modificato.",
         "noPreviousPeriod": "Non c'è un periodo precedente da riaprire.",
         "periodMustBeActive": "Puoi eliminare solo il periodo aperto.",
-        "rewindFailed": "Impossibile eliminare questo periodo e riaprire il precedente"
+        "rewindFailed": "Impossibile eliminare questo periodo e riaprire il precedente",
+        "budgetNotFound": "Budget non trovato in questo periodo.",
+        "periodBudgetFailed": "Impossibile aggiornare il budget di questo periodo"
       }
     }
   },

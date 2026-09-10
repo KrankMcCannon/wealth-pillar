@@ -21,6 +21,8 @@ export {
   getLatestClosedPeriodAction,
   recalculateClosedPeriodAction,
   rewindClosedPeriodAction,
+  upsertClosedPeriodBudgetAction,
+  deleteClosedPeriodBudgetAction,
   getPeriodPreviewAction,
 } from './actions/budget-period-actions';
 
