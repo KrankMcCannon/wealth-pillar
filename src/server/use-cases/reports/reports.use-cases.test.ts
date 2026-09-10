@@ -260,8 +260,18 @@ describe('calculatePeriodSummariesUseCase', () => {
     );
 
     const byId = Object.fromEntries(summaries.map((s) => [s.id, s]));
-    expect(byId.open).toMatchObject({ reserveSaved: 200, reserveStart: 300, reserveEnd: 500 });
-    expect(byId.closed).toMatchObject({ reserveSaved: 100, reserveStart: 200, reserveEnd: 300 });
+    expect(byId.open).toMatchObject({
+      reserveSaved: 200,
+      reserveStart: 300,
+      reserveEnd: 500,
+      isOpen: true,
+    });
+    expect(byId.closed).toMatchObject({
+      reserveSaved: 100,
+      reserveStart: 200,
+      reserveEnd: 300,
+      isOpen: false,
+    });
   });
 });
 

@@ -31,6 +31,8 @@ export interface ReportPeriodSummary {
   reserveStart: number;
   reserveEnd: number;
   userId: string;
+  /** True when the period has no end date (open / synthetic “Present”). */
+  isOpen: boolean;
 }
 
 interface PeriodSlot {
@@ -290,6 +292,7 @@ export function calculatePeriodSummariesUseCase(
         reserveStart,
         reserveEnd,
         userId: period.user_id,
+        isOpen: period.end_date == null,
       });
     }
   }

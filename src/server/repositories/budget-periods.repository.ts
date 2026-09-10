@@ -3,18 +3,28 @@ import { budgetPeriods } from '@/server/db/schema';
 import { and, desc, eq, inArray } from 'drizzle-orm';
 import type { BudgetPeriod } from '@/lib/types';
 import { serialize } from '@/lib/utils/serializer';
+import { resolveDb, type DbExecutor } from '@/server/repositories/db-executor';
 
 export type InsertBudgetPeriod = typeof budgetPeriods.$inferInsert;
 export type UpdateBudgetPeriod = Partial<InsertBudgetPeriod>;
 
 export class BudgetPeriodsRepository {
-  static async findById(id: string): Promise<BudgetPeriod | null> {
-    const result = await db.select().from(budgetPeriods).where(eq(budgetPeriods.id, id)).limit(1);
+  static async findById(id: string, executor?: DbExecutor): Promise<BudgetPeriod | null> {
+    const dbConn = resolveDb(executor);
+    const result = await dbConn
+      .select()
+      .from(budgetPeriods)
+      .where(eq(budgetPeriods.id, id))
+      .limit(1);
     return result.length > 0 ? (serialize(result[0]) as unknown as BudgetPeriod) : null;
   }
 
-  static async findActiveByUser(userId: string): Promise<BudgetPeriod | null> {
-    const result = await db
+  static async findActiveByUser(
+    userId: string,
+    executor?: DbExecutor
+  ): Promise<BudgetPeriod | null> {
+    const dbConn = resolveDb(executor);
+    const result = await dbConn
       .select()
       .from(budgetPeriods)
       .where(and(eq(budgetPeriods.user_id, userId), eq(budgetPeriods.is_active, true)))
@@ -22,8 +32,9 @@ export class BudgetPeriodsRepository {
     return result.length > 0 ? (serialize(result[0]) as unknown as BudgetPeriod) : null;
   }
 
-  static async findByUser(userId: string): Promise<BudgetPeriod[]> {
-    const result = await db
+  static async findByUser(userId: string, executor?: DbExecutor): Promise<BudgetPeriod[]> {
+    const dbConn = resolveDb(executor);
+    const result = await dbConn
       .select()
       .from(budgetPeriods)
       .where(eq(budgetPeriods.user_id, userId))
@@ -45,8 +56,13 @@ export class BudgetPeriodsRepository {
     return serialize(result[0]) as unknown as BudgetPeriod;
   }
 
-  static async update(id: string, data: UpdateBudgetPeriod): Promise<BudgetPeriod> {
-    const result = await db
+  static async update(
+    id: string,
+    data: UpdateBudgetPeriod,
+    executor?: DbExecutor
+  ): Promise<BudgetPeriod> {
+    const dbConn = resolveDb(executor);
+    const result = await dbConn
       .update(budgetPeriods)
       .set({ ...data, updated_at: new Date() })
       .where(eq(budgetPeriods.id, id))
@@ -54,7 +70,8 @@ export class BudgetPeriodsRepository {
     return serialize(result[0]) as unknown as BudgetPeriod;
   }
 
-  static async delete(id: string): Promise<void> {
-    await db.delete(budgetPeriods).where(eq(budgetPeriods.id, id));
+  static async delete(id: string, executor?: DbExecutor): Promise<void> {
+    const dbConn = resolveDb(executor);
+    await dbConn.delete(budgetPeriods).where(eq(budgetPeriods.id, id));
   }
 }

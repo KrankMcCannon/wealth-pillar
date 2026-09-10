@@ -464,7 +464,36 @@
       "initial": "Initial",
       "final": "Final",
       "badgeOnTrack": "On track",
-      "badgeOverBudget": "Over budget"
+      "badgeOverBudget": "Over budget",
+      "openPeriodAria": "Open period {name}",
+      "toggleUserPeriodsAria": "Show or hide periods for {name}"
+    },
+    "PeriodDetail": {
+      "metricsTitle": "Period totals",
+      "snapshotUpToDate": "Totals match the transactions.",
+      "snapshotOutOfDate": "Saved totals no longer match the transactions in this period.",
+      "savedColumn": "Saved",
+      "liveColumn": "Live",
+      "spendLabel": "Spend",
+      "viewTransactions": "View transactions",
+      "recalculate": "Recalculate totals",
+      "recalculating": "Recalculating…",
+      "editDates": "Edit dates",
+      "editClosingDate": "Adjust closing date",
+      "deleteAndReopen": "Delete and reopen previous",
+      "deleteDisabled": "You can delete the open period only if a previous period exists.",
+      "deleteConfirmTitleOpen": "Delete this open period?",
+      "deleteConfirmMessageOpen": "This open period is removed. The previous period becomes active again. Transactions stay in the ledger.",
+      "toast": {
+        "recalculateSuccessTitle": "Totals updated",
+        "recalculateSuccessDescription": "Saved amounts now match the transactions in this period.",
+        "recalculateErrorTitle": "Could not recalculate",
+        "recalculateErrorDescription": "The saved totals were not changed.",
+        "deleteSuccessTitle": "Period removed",
+        "deleteSuccessDescription": "The previous period is active again.",
+        "deleteErrorTitle": "Could not delete period",
+        "deleteErrorDescription": "The period was not changed."
+      }
     }
   },
   "InvestmentsPage": {
@@ -1446,11 +1475,14 @@
       "noActivePeriodAlert": "No active period. Start a new period to track budget spending.",
       "closePeriodSalaryHint": "Pick an end date on the day before your salary is credited: that keeps the budget period aligned with your cash flow so the next period can start on payday.",
       "editClosingDateHint": "Adjust the closing date of your most recent budget period. The active period start date will shift accordingly.",
+      "editDatesHint": "Neighboring periods stay consecutive. Totals of the changed periods are recalculated.",
       "noClosedPeriodAlert": "No closed period available to edit.",
       "buttons": {
         "closePeriod": "Close period",
         "editClosingDate": "Adjust last closing date",
         "saveClosingDate": "Save closing date",
+        "editDates": "Edit dates",
+        "saveDates": "Save dates",
         "startNewPeriod": "Start new period",
         "cancel": "Cancel"
       }
@@ -1686,6 +1718,8 @@
         "notLatestPeriod": "Only the most recently closed period can be edited",
         "endBeforeStart": "End date must be on or after the period start date",
         "futureActiveStart": "The next period cannot start in the future",
+        "cannotEditActiveEnd": "The open period has no closing date.",
+        "neighborOutOfRange": "That date would overlap the neighboring period.",
         "noClosedPeriod": "No closed period available to edit",
         "noPermissionDelete": "You do not have permission to delete this period.",
         "deleteFailed": "Failed to delete budget period",
@@ -1694,7 +1728,13 @@
         "noPermissionViewActiveOthers": "You do not have permission to view other users' active period.",
         "fetchActiveFailed": "Failed to fetch active period",
         "permissionDenied": "Permission denied",
-        "previewFailed": "Failed to calculate preview"
+        "previewFailed": "Failed to calculate preview",
+        "noPermissionRecalculate": "You do not have permission to recalculate this period.",
+        "recalculateFailed": "Failed to recalculate budget period",
+        "syntheticPeriod": "This period cannot be changed.",
+        "noPreviousPeriod": "There is no previous period to reopen.",
+        "periodMustBeActive": "Only the open period can be deleted.",
+        "rewindFailed": "Failed to delete this period and reopen the previous one"
       }
     }
   },

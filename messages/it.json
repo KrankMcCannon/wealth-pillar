@@ -464,7 +464,36 @@
       "initial": "Iniziale",
       "final": "Finale",
       "badgeOnTrack": "In linea",
-      "badgeOverBudget": "Fuori budget"
+      "badgeOverBudget": "Fuori budget",
+      "openPeriodAria": "Apri il periodo {name}",
+      "toggleUserPeriodsAria": "Mostra o nascondi i periodi di {name}"
+    },
+    "PeriodDetail": {
+      "metricsTitle": "Totali del periodo",
+      "snapshotUpToDate": "I totali coincidono con le transazioni.",
+      "snapshotOutOfDate": "I totali salvati non coincidono più con le transazioni di questo periodo.",
+      "savedColumn": "Salvato",
+      "liveColumn": "Attuale",
+      "spendLabel": "Spesa",
+      "viewTransactions": "Vedi transazioni",
+      "recalculate": "Ricalcola totali",
+      "recalculating": "Ricalcolo…",
+      "editDates": "Modifica date",
+      "editClosingDate": "Modifica data di chiusura",
+      "deleteAndReopen": "Elimina e riapri il precedente",
+      "deleteDisabled": "Puoi eliminare il periodo aperto solo se ne esiste uno precedente.",
+      "deleteConfirmTitleOpen": "Eliminare questo periodo aperto?",
+      "deleteConfirmMessageOpen": "Questo periodo aperto viene rimosso. Il periodo precedente torna attivo. Le transazioni restano nel registro.",
+      "toast": {
+        "recalculateSuccessTitle": "Totali aggiornati",
+        "recalculateSuccessDescription": "Gli importi salvati coincidono ora con le transazioni di questo periodo.",
+        "recalculateErrorTitle": "Impossibile ricalcolare",
+        "recalculateErrorDescription": "I totali salvati non sono stati modificati.",
+        "deleteSuccessTitle": "Periodo rimosso",
+        "deleteSuccessDescription": "Il periodo precedente è di nuovo attivo.",
+        "deleteErrorTitle": "Impossibile eliminare il periodo",
+        "deleteErrorDescription": "Il periodo non è stato modificato."
+      }
     }
   },
   "InvestmentsPage": {
@@ -1446,11 +1475,14 @@
       "noActivePeriodAlert": "Nessun periodo attivo. Inizia un nuovo periodo per tracciare le spese del budget.",
       "closePeriodSalaryHint": "Scegli come data di fine il giorno precedente all'accredito dello stipendio: così il periodo budget resta allineato al flusso di cassa e il nuovo periodo può iniziare dal giorno della busta paga.",
       "editClosingDateHint": "Modifica la data di chiusura dell'ultimo periodo budget. La data di inizio del periodo attivo verrà aggiornata di conseguenza.",
+      "editDatesHint": "I periodi vicini restano consecutivi. I totali dei periodi modificati vengono ricalcolati.",
       "noClosedPeriodAlert": "Nessun periodo chiuso disponibile da modificare.",
       "buttons": {
         "closePeriod": "Chiudi periodo",
         "editClosingDate": "Modifica ultima chiusura",
         "saveClosingDate": "Salva data di chiusura",
+        "editDates": "Modifica date",
+        "saveDates": "Salva date",
         "startNewPeriod": "Inizia nuovo periodo",
         "cancel": "Annulla"
       }
@@ -1686,6 +1718,8 @@
         "notLatestPeriod": "Solo l'ultimo periodo chiuso può essere modificato",
         "endBeforeStart": "La data di fine deve essere uguale o successiva alla data di inizio del periodo",
         "futureActiveStart": "Il periodo successivo non può iniziare nel futuro",
+        "cannotEditActiveEnd": "Il periodo aperto non ha una data di chiusura.",
+        "neighborOutOfRange": "Questa data si sovrapporrebbe al periodo vicino.",
         "noClosedPeriod": "Nessun periodo chiuso disponibile da modificare",
         "noPermissionDelete": "Non hai i permessi per eliminare questo periodo.",
         "deleteFailed": "Impossibile eliminare il periodo budget",
@@ -1694,7 +1728,13 @@
         "noPermissionViewActiveOthers": "Non hai i permessi per visualizzare il periodo attivo di altri utenti.",
         "fetchActiveFailed": "Impossibile recuperare il periodo attivo",
         "permissionDenied": "Permesso negato",
-        "previewFailed": "Impossibile calcolare l'anteprima"
+        "previewFailed": "Impossibile calcolare l'anteprima",
+        "noPermissionRecalculate": "Non hai i permessi per ricalcolare questo periodo.",
+        "recalculateFailed": "Impossibile ricalcolare il periodo budget",
+        "syntheticPeriod": "Questo periodo non può essere modificato.",
+        "noPreviousPeriod": "Non c'è un periodo precedente da riaprire.",
+        "periodMustBeActive": "Puoi eliminare solo il periodo aperto.",
+        "rewindFailed": "Impossibile eliminare questo periodo e riaprire il precedente"
       }
     }
   },

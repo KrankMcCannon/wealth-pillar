@@ -14,7 +14,11 @@ import { ReportsHero } from '@/features/reports/components/reports-hero';
 import { TopExpensesRanking } from '@/features/reports/components/top-expenses-ranking';
 import { AccountBreakdownSection } from '@/features/reports/components/account-breakdown-section';
 import { BudgetPeriodSection } from '@/features/reports/components/budget-period-section';
-import { buildReportsCategoryTransactionsHref } from '@/features/reports/utils/reports-transactions-href';
+import {
+  buildReportsCategoryTransactionsHref,
+  buildReportsPeriodHref,
+  buildReportsSearchQuery,
+} from '@/features/reports/utils/reports-transactions-href';
 import type { ReportsTimePreset } from '@/features/reports/utils/reporting-window';
 
 interface ReportsContentProps {
@@ -25,23 +29,6 @@ interface ReportsContentProps {
   initialCustomStart?: string | undefined;
   initialCustomEnd?: string | undefined;
   initialScope?: ReportsScope | undefined;
-}
-
-function buildReportsSearchParams(
-  preset: ReportsTimePreset,
-  customRange: { start: string; end: string } | null,
-  scope: ReportsScope
-): string {
-  const params = new URLSearchParams();
-  params.set('preset', preset);
-  if (preset === 'custom' && customRange) {
-    params.set('customStart', customRange.start);
-    params.set('customEnd', customRange.end);
-  }
-  if (scope !== 'all') {
-    params.set('member', scope);
-  }
-  return params.toString();
 }
 
 export default function ReportsContent({
@@ -73,7 +60,7 @@ export default function ReportsContent({
 
   const syncScopeToUrl = useCallback(
     (scope: ReportsScope) => {
-      const query = buildReportsSearchParams(preset, customRange, scope);
+      const query = buildReportsSearchQuery({ preset, customRange, scope });
       const url = query ? `${pathname}?${query}` : pathname;
       window.history.replaceState(null, '', url);
     },
@@ -89,7 +76,11 @@ export default function ReportsContent({
           : nextPreset === 'custom'
             ? customRange
             : null;
-      const query = buildReportsSearchParams(nextPreset, nextCustom, selectedScope);
+      const query = buildReportsSearchQuery({
+        preset: nextPreset,
+        customRange: nextCustom,
+        scope: selectedScope,
+      });
       startTransition(() => {
         router.push(query ? `${pathname}?${query}` : pathname);
       });
@@ -201,6 +192,14 @@ export default function ReportsContent({
             periods={scopedPeriods}
             users={groupUsers}
             viewerId={currentUser.id}
+            hrefForPeriod={(period) =>
+              buildReportsPeriodHref({
+                periodId: period.id,
+                preset,
+                customRange,
+                scope: selectedScope,
+              })
+            }
           />
         </div>
       </HomeDashboardMain>

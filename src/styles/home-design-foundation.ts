@@ -405,7 +405,34 @@ export const stitchReports = {
   rankingAmount: 'text-base font-semibold tabular-nums text-foreground',
   rankingMeta: 'text-sm tabular-nums text-muted-foreground',
   savingsGrid: 'grid grid-cols-1 gap-2 sm:grid-cols-3',
-  snapshotGrid: 'grid grid-cols-2 gap-2',
+  snapshotGrid: 'grid grid-cols-2 gap-x-3 gap-y-1',
+  /** Stacked period list: hairline between entries so date + metrics don’t run together. */
+  periodList: `${stitchHome.plainList} divide-y divide-border/40`,
+  periodRow:
+    'flex w-full flex-col items-stretch gap-2 py-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45',
+  periodRowLink:
+    'flex w-full cursor-pointer flex-col items-stretch gap-2 py-3 text-left transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45 motion-reduce:transition-none',
+  periodMetricCol: 'min-w-0',
+  periodStatus: 'mt-3 text-sm text-muted-foreground',
+  periodCompareTable: 'mt-2 w-full border-collapse text-sm tabular-nums',
+  periodCompareHead: 'whitespace-nowrap pb-1 text-right text-xs font-medium text-muted-foreground',
+  periodCompareRowLabel: 'py-1 pr-3 text-left font-medium text-foreground',
+  periodCompareCell: 'whitespace-nowrap py-1 text-right text-muted-foreground',
+  periodCompareCellLive: 'whitespace-nowrap py-1 text-right font-semibold text-foreground',
+  periodCompareCellDrift: 'whitespace-nowrap py-1 text-right font-semibold text-warning',
+  periodActions: 'flex flex-col gap-3',
+  periodActionGroup:
+    'divide-y divide-border/40 overflow-hidden rounded-2xl bg-muted/90 ring-1 ring-inset ring-border/40',
+  periodActionRow:
+    'flex min-h-11 w-full items-center justify-between gap-3 px-3.5 py-2.5 text-left text-sm font-medium text-foreground transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/45',
+  periodActionDanger:
+    'flex min-h-11 w-full items-center justify-center rounded-2xl px-4 py-3 text-sm font-semibold',
+  periodDangerWrap: 'border-t border-border/25 pt-3',
+  periodUserGroup: 'group flex flex-col gap-1',
+  periodUserSummary:
+    'flex min-h-11 cursor-pointer list-none items-center gap-2 rounded-md text-left outline-none [&::-webkit-details-marker]:hidden focus-visible:ring-2 focus-visible:ring-ring/45',
+  periodUserChevron:
+    'ml-auto h-4 w-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180 motion-reduce:transition-none',
   kpiPair: 'mt-2 text-sm text-muted-foreground',
   progressTrack: 'h-1.5 w-full overflow-hidden rounded-full bg-muted',
   progressFillPrimary: 'h-full rounded-full bg-primary',

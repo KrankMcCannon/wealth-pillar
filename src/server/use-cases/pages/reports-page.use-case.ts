@@ -1,5 +1,6 @@
 import { cacheLife, cacheTag } from 'next/cache';
 import { endOfDay, startOfDay, subYears } from 'date-fns';
+import { CACHE_TAGS } from '@/lib/cache/config';
 import {
   getReportsContextUseCase,
   getReportsTransactionsUseCase,
@@ -51,6 +52,7 @@ async function getCachedReportsPageData(
   cacheTag(`group:${groupId}:transactions`);
   cacheTag(`group:${groupId}:accounts`);
   cacheTag(`group:${groupId}:budgets`);
+  cacheTag(CACHE_TAGS.BUDGET_PERIODS);
   cacheTag('categories');
 
   const preset = params.preset ?? DEFAULT_REPORTS_PRESET;
@@ -86,12 +88,7 @@ async function getCachedReportsPageData(
     { startDate: fetchWindow.start, endDate: fetchWindow.end }
   );
 
-  const periodSummaries = calculatePeriodSummariesUseCase(
-    periods,
-    transactions,
-    accounts,
-    budgets
-  );
+  const periodSummaries = calculatePeriodSummariesUseCase(periods, transactions, accounts, budgets);
   const filteredPeriods = periodSummaries
     .filter((p) => periodOverlapsWindow(p, currentWindow))
     .sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());

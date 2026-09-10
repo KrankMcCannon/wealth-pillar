@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { format } from 'date-fns';
 import { getCurrentReportingWindow, type ReportsTimePreset } from './reporting-window';
-import { buildReportsCategoryTransactionsHref } from './reports-transactions-href';
+import { buildReportsCategoryTransactionsHref, buildReportsPeriodHref, buildPeriodTransactionsHref, canOpenPeriodDetail } from './reports-transactions-href';
 
 const now = new Date('2024-06-15T12:00:00');
 const categoryKey = 'food';
@@ -87,5 +87,49 @@ describe('buildReportsCategoryTransactionsHref', () => {
     expect(new URL(href, 'http://local.test').searchParams.get('category')).not.toMatch(
       /^[0-9a-f-]{36}$/i
     );
+  });
+});
+
+describe('buildReportsPeriodHref', () => {
+  it('preserves report query params on the period detail path', () => {
+    const href = buildReportsPeriodHref({
+      periodId: 'closed-1',
+      preset: 'custom',
+      customRange: { start: '2024-01-10', end: '2024-02-20' },
+      scope: 'member-9',
+    });
+    const url = parseHref(href);
+
+    expect(url.pathname).toBe('/reports/periods/closed-1');
+    expect(url.searchParams.get('preset')).toBe('custom');
+    expect(url.searchParams.get('customStart')).toBe('2024-01-10');
+    expect(url.searchParams.get('customEnd')).toBe('2024-02-20');
+    expect(url.searchParams.get('member')).toBe('member-9');
+  });
+});
+
+describe('buildPeriodTransactionsHref', () => {
+  it('scopes the ledger to the period dates and user', () => {
+    const href = buildPeriodTransactionsHref({
+      startDate: '2024-05-01',
+      endDate: '2024-05-31',
+      userId: 'user-1',
+    });
+    const url = parseHref(href);
+
+    expect(url.pathname).toBe('/transactions');
+    expect(url.searchParams.get('user')).toBe('user-1');
+    expect(url.searchParams.get('dateRange')).toBe('custom');
+    expect(url.searchParams.get('startDate')).toBe('2024-05-01');
+    expect(url.searchParams.get('endDate')).toBe('2024-05-31');
+    expect(url.searchParams.get('type')).toBeNull();
+  });
+});
+
+describe('canOpenPeriodDetail', () => {
+  it('allows persisted periods and blocks synthetic ids', () => {
+    expect(canOpenPeriodDetail({ id: 'closed-1' })).toBe(true);
+    expect(canOpenPeriodDetail({ id: 'active-1' })).toBe(true);
+    expect(canOpenPeriodDetail({ id: 'active-generated-u1' })).toBe(false);
   });
 });

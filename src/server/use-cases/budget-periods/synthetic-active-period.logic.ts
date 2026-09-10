@@ -1,5 +1,11 @@
 import type { BudgetPeriod, User } from '@/lib/types';
 
+export const SYNTHETIC_ACTIVE_PERIOD_PREFIX = 'active-generated-';
+
+export function isSyntheticBudgetPeriodId(id: string): boolean {
+  return id.startsWith(SYNTHETIC_ACTIVE_PERIOD_PREFIX);
+}
+
 /**
  * When no open period exists, append a synthetic active period for reporting/chart windows.
  */
@@ -38,7 +44,7 @@ export function addSyntheticActivePeriod(user: User, periods: BudgetPeriod[]): v
   if (startDateStr != null && today != null && startDateStr <= today) {
     const nowIso = new Date().toISOString();
     periods.push({
-      id: `active-generated-${user.id}`,
+      id: `${SYNTHETIC_ACTIVE_PERIOD_PREFIX}${user.id}`,
       start_date: startDateStr,
       end_date: null,
       is_active: true,

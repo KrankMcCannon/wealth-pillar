@@ -14,9 +14,18 @@ import { getActiveBudgetPeriodUseCase } from '@/server/use-cases/budget-periods/
 import { calculatePeriodTotalsUseCase } from '@/server/use-cases/budget-periods/calculate-period-totals.use-case';
 import {
   editBudgetPeriodClosingDateUseCase,
+  editPeriodDatesUseCase,
   EditClosingDateError,
   getLatestClosedBudgetPeriodUseCase,
 } from '@/server/use-cases/budget-periods/edit-closing-date.use-case';
+import {
+  recalculateClosedPeriodSnapshotUseCase,
+  RecalculateClosedPeriodError,
+} from '@/server/use-cases/budget-periods/recalculate-closed-period.use-case';
+import {
+  rewindClosedPeriodUseCase,
+  RewindClosedPeriodError,
+} from '@/server/use-cases/budget-periods/rewind-closed-period.use-case';
 import { getTransactionsByUserUseCase } from '@/server/use-cases/transactions/get-transactions.use-case';
 import { getBudgetsByUserUseCase } from '@/server/use-cases/budgets/get-budgets.use-case';
 import { AccountsRepository } from '@/server/repositories/accounts.repository';
@@ -153,10 +162,13 @@ export async function editClosingDateAction(
         invalidDate: t('errors.invalidDate'),
         periodNotFound: t('errors.periodNotFound'),
         periodMustBeClosed: t('errors.periodMustBeClosed'),
+        cannotEditActiveEnd: t('errors.cannotEditActiveEnd'),
         noActivePeriod: t('errors.noActivePeriod'),
         notLatestPeriod: t('errors.notLatestPeriod'),
         endBeforeStart: t('errors.endBeforeStart'),
         futureActiveStart: t('errors.futureActiveStart'),
+        neighborOutOfRange: t('errors.neighborOutOfRange'),
+        syntheticPeriod: t('errors.syntheticPeriod'),
       };
       const mapped = errorMessages[error.code];
       if (mapped) {
@@ -170,6 +182,54 @@ export async function editClosingDateAction(
         error instanceof Error
           ? error.message
           : (t?.('errors.editFailed') ?? 'Failed to edit closing date'),
+    };
+  }
+}
+
+export async function editPeriodDatesAction(
+  userId: string,
+  periodId: string,
+  dates: { startDate?: string | undefined; endDate?: string | undefined },
+  locale?: string
+): Promise<ServiceResult<BudgetPeriod>> {
+  let t: Awaited<ReturnType<typeof getTranslations>> | null = null;
+  try {
+    t = await getBudgetPeriodActionTranslator(locale);
+    const auth = await authorizeBudgetPeriodUser(
+      t('errors.unauthenticated'),
+      userId,
+      t('errors.noPermissionEditClosingDate')
+    );
+    if (isAuthDenial(auth)) return auth;
+
+    const result = await editPeriodDatesUseCase(userId, periodId, dates);
+    return { data: result.period, error: null };
+  } catch (error) {
+    if (error instanceof EditClosingDateError && t) {
+      const errorMessages: Record<string, string> = {
+        invalidDate: t('errors.invalidDate'),
+        periodNotFound: t('errors.periodNotFound'),
+        periodMustBeClosed: t('errors.periodMustBeClosed'),
+        cannotEditActiveEnd: t('errors.cannotEditActiveEnd'),
+        noActivePeriod: t('errors.noActivePeriod'),
+        notLatestPeriod: t('errors.notLatestPeriod'),
+        endBeforeStart: t('errors.endBeforeStart'),
+        futureActiveStart: t('errors.futureActiveStart'),
+        neighborOutOfRange: t('errors.neighborOutOfRange'),
+        syntheticPeriod: t('errors.syntheticPeriod'),
+      };
+      const mapped = errorMessages[error.code];
+      if (mapped) {
+        return { data: null, error: mapped };
+      }
+    }
+
+    return {
+      data: null,
+      error:
+        error instanceof Error
+          ? error.message
+          : (t?.('errors.editFailed') ?? 'Failed to edit period dates'),
     };
   }
 }
@@ -239,6 +299,81 @@ export async function deletePeriodAction(
         error instanceof Error
           ? error.message
           : (t?.('errors.deleteFailed') ?? 'Failed to delete budget period'),
+    };
+  }
+}
+
+export async function recalculateClosedPeriodAction(
+  userId: string,
+  periodId: string,
+  locale?: string
+): Promise<ServiceResult<BudgetPeriod>> {
+  let t: Awaited<ReturnType<typeof getTranslations>> | null = null;
+  try {
+    t = await getBudgetPeriodActionTranslator(locale);
+    const auth = await authorizeBudgetPeriodUser(
+      t('errors.unauthenticated'),
+      userId,
+      t('errors.noPermissionRecalculate')
+    );
+    if (isAuthDenial(auth)) return auth;
+
+    const result = await recalculateClosedPeriodSnapshotUseCase(userId, periodId);
+    return { data: result, error: null };
+  } catch (error) {
+    if (error instanceof RecalculateClosedPeriodError && t) {
+      const errorMessages: Record<string, string> = {
+        periodNotFound: t('errors.periodNotFound'),
+        periodMustBeClosed: t('errors.periodMustBeClosed'),
+        syntheticPeriod: t('errors.syntheticPeriod'),
+      };
+      const mapped = errorMessages[error.code];
+      if (mapped) return { data: null, error: mapped };
+    }
+    return {
+      data: null,
+      error:
+        error instanceof Error
+          ? error.message
+          : (t?.('errors.recalculateFailed') ?? 'Failed to recalculate budget period'),
+    };
+  }
+}
+
+export async function rewindClosedPeriodAction(
+  userId: string,
+  periodId: string,
+  locale?: string
+): Promise<ServiceResult<{ previousPeriodId: string }>> {
+  let t: Awaited<ReturnType<typeof getTranslations>> | null = null;
+  try {
+    t = await getBudgetPeriodActionTranslator(locale);
+    const auth = await authorizeBudgetPeriodUser(
+      t('errors.unauthenticated'),
+      userId,
+      t('errors.noPermissionDelete')
+    );
+    if (isAuthDenial(auth)) return auth;
+
+    const result = await rewindClosedPeriodUseCase(userId, periodId);
+    return { data: { previousPeriodId: result.previousPeriod.id }, error: null };
+  } catch (error) {
+    if (error instanceof RewindClosedPeriodError && t) {
+      const errorMessages: Record<string, string> = {
+        periodNotFound: t('errors.periodNotFound'),
+        periodMustBeActive: t('errors.periodMustBeActive'),
+        noPreviousPeriod: t('errors.noPreviousPeriod'),
+        syntheticPeriod: t('errors.syntheticPeriod'),
+      };
+      const mapped = errorMessages[error.code];
+      if (mapped) return { data: null, error: mapped };
+    }
+    return {
+      data: null,
+      error:
+        error instanceof Error
+          ? error.message
+          : (t?.('errors.rewindFailed') ?? 'Failed to delete budget period'),
     };
   }
 }

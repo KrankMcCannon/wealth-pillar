@@ -70,9 +70,9 @@ export async function LocaleLayoutBody({
             <NuqsAdapter>
               <ThemeProvider
                 attribute="class"
-                defaultTheme="light"
+                defaultTheme="dark"
                 enableSystem={false}
-                storageKey="wp-theme-daylight"
+                storageKey="wp-theme"
                 disableTransitionOnChange
               >
                 <Suspense fallback={children}>

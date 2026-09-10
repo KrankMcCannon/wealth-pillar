@@ -19,6 +19,8 @@ export {
   getUserPeriodsAction,
   getActivePeriodAction,
   getLatestClosedPeriodAction,
+  recalculateClosedPeriodAction,
+  rewindClosedPeriodAction,
   getPeriodPreviewAction,
 } from './actions/budget-period-actions';
 
