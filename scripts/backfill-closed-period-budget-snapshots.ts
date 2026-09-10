@@ -22,7 +22,7 @@ function needsLiveCopy(raw: unknown): boolean {
   return Array.isArray(raw) && raw.length === 0;
 }
 
-function toSnapshotItem(row: Record<string, unknown>): Record<string, unknown> | null {
+function toSnapshotItem(row: Record<string, unknown>): postgres.JSONValue | null {
   const type = typeof row.type === 'string' ? row.type : '';
   if (!BUDGET_TYPES.has(type)) return null;
   const categories = Array.isArray(row.categories)
@@ -58,7 +58,7 @@ async function main(): Promise<void> {
 
     const targets = periods.filter((period) => needsLiveCopy(period.budgets_snapshot));
     const userIds = [...new Set(targets.map((period) => period.user_id))];
-    const liveByUser = new Map<string, Record<string, unknown>[]>();
+    const liveByUser = new Map<string, postgres.JSONValue[]>();
 
     for (const userId of userIds) {
       const rows = await sql<Record<string, unknown>[]>`
@@ -68,13 +68,13 @@ async function main(): Promise<void> {
       `;
       liveByUser.set(
         userId,
-        rows.map(toSnapshotItem).filter((row): row is Record<string, unknown> => row !== null)
+        rows.map(toSnapshotItem).filter((row): row is postgres.JSONValue => row !== null)
       );
     }
 
     let updated = 0;
     for (const period of targets) {
-      const snapshot = liveByUser.get(period.user_id) ?? [];
+      const snapshot: postgres.JSONValue = liveByUser.get(period.user_id) ?? [];
       await sql`
         UPDATE budget_periods
         SET budgets_snapshot = ${sql.json(snapshot)}, updated_at = now()
