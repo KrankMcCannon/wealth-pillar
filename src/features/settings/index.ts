@@ -13,6 +13,7 @@ export {
   SupportSection,
   SettingsRow,
   CategoriesSection,
+  DataSection,
 } from './components';
 
 // Actions

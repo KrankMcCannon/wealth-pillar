@@ -240,7 +240,7 @@ export const transactionStyles = {
     openState: 'relative z-20',
   },
   filters: {
-    container: 'flex flex-col gap-4',
+    container: 'flex flex-col gap-5',
     searchStack: 'min-w-0 shrink-0',
     toolsCluster: 'flex min-w-0 flex-col gap-2.5 border-t border-border/25 pt-3',
     chipsCluster: 'border-t border-border/25 pt-2.5',
@@ -270,15 +270,11 @@ export const transactionStyles = {
       'absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35',
     searchClearIcon: 'h-4 w-4 text-foreground',
     chipsRow: 'flex items-center gap-2 overflow-x-auto pb-0.5 pl-0.5 pr-1 scrollbar-hide sm:pl-0',
-    advancedControlsRow:
-      'flex flex-wrap items-start justify-between gap-2.5 sm:items-center sm:gap-3',
     advancedToggle:
       'inline-flex min-h-11 items-center gap-2 rounded-full border border-border/35 bg-muted/80 px-3 py-2 text-sm font-medium text-foreground transition-all duration-150 hover:bg-accent active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35 motion-reduce:transition-none motion-reduce:active:scale-100',
     advancedToggleChevron:
       'h-3.5 w-3.5 transition-transform duration-200 motion-reduce:transition-none',
     advancedToggleChevronOpen: 'rotate-180',
-    advancedCountBadge: 'rounded-full bg-accent px-2 py-0.5 text-xs font-medium text-foreground',
-    advancedClearWrap: 'ml-auto flex items-center gap-2',
     clearAll: stitchTransactionFilterTriggers.filterDrawerClearAll,
     clearAllIcon: 'h-3.5 w-3.5',
     chip: {
@@ -296,6 +292,7 @@ export const transactionStyles = {
       chevronOpen: 'rotate-180',
     },
     drawer: {
+      body: 'min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-[max(env(safe-area-inset-bottom),1rem)]',
       content: 'rounded-t-3xl border-t border-border bg-card shadow-xl',
       contentTall: 'max-h-[70vh] rounded-t-3xl border-t border-border bg-card shadow-xl',
       inner: 'space-y-4 p-4',
@@ -311,20 +308,8 @@ export const transactionStyles = {
       'border-transparent bg-accent text-foreground ring-1 ring-inset ring-primary/35',
     typeButtonIdle: 'border-border/35 bg-muted/80 text-muted-foreground hover:bg-accent',
     typeCheck: 'h-4 w-4',
-    dateSection: 'space-y-4',
-    dateGrid: 'grid grid-cols-2 gap-2',
-    dateButton:
-      'flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold transition-all duration-200 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100',
-    dateButtonActive:
-      'border-transparent bg-accent text-foreground ring-1 ring-inset ring-primary/35',
-    dateButtonIdle: 'border-border/35 bg-muted/80 text-muted-foreground hover:bg-accent',
-    dateCustom: 'space-y-3 border-t border-border/25 pt-2',
-    dateTitle: 'text-sm font-medium text-foreground',
-    dateInputs: 'grid grid-cols-2 gap-3',
-    dateField: 'space-y-1.5',
-    dateLabel: 'text-xs text-muted-foreground',
-    dateInput: 'rounded-xl border border-border/35 bg-input text-sm',
-    dateApply: 'w-full rounded-xl',
+    dateSection: 'flex flex-col gap-2',
+    dateCustom: 'grid grid-cols-2 gap-2',
     categorySection: 'space-y-3',
     categorySearchWrap: 'relative',
     categorySearchIcon: 'absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground',

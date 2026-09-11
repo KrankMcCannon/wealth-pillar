@@ -12,6 +12,7 @@ import {
   CategoriesSection,
   PreferencesSection,
   SupportSection,
+  DataSection,
 } from '@/features/settings';
 import { SettingsModalsProvider } from '@/features/settings/context/settings-modals-context';
 import SettingsModalRenderer from '@/features/settings/components/settings-modal-renderer';
@@ -82,6 +83,8 @@ export default function SettingsContent({
           />
 
           <CategoriesSection onManageCategories={() => openSettingsModal('categories')} />
+
+          <DataSection />
 
           <PreferencesSection
             preferences={preferences}

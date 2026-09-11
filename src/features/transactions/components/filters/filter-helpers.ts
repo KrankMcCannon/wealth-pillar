@@ -7,16 +7,39 @@ import type {
 
 export const DATE_OPTIONS: DateRangeFilter[] = ['all', 'today', 'week', 'month', 'year', 'custom'];
 
-export function getActiveFiltersCount(filters: TransactionFiltersState): number {
+export const PERIOD_PRESETS = ['all', 'today', 'week', 'month', 'year'] as const;
+
+export type PeriodPreset = (typeof PERIOD_PRESETS)[number];
+
+export function getAdvancedFiltersCount(filters: TransactionFiltersState): number {
   let count = 0;
-  if (filters.searchQuery) count++;
-  if (filters.type !== 'all') count++;
   if (filters.dateRange !== 'all') count++;
   if (filters.categoryKey !== 'all') count++;
   if (filters.accountId && filters.accountId !== 'all') count++;
   if (filters.categoryKeys && filters.categoryKeys.length > 0) count++;
   if (filters.budgetId) count++;
   return count;
+}
+
+export function getActiveFiltersCount(filters: TransactionFiltersState): number {
+  let count = getAdvancedFiltersCount(filters);
+  if (filters.searchQuery) count++;
+  if (filters.type !== 'all') count++;
+  return count;
+}
+
+export function clearAdvancedFilters(
+  filters: TransactionFiltersState
+): TransactionFiltersState {
+  const { budgetId: _budgetId, categoryKeys: _categoryKeys, ...rest } = filters;
+  return {
+    ...rest,
+    dateRange: 'all',
+    categoryKey: 'all',
+    accountId: 'all',
+    startDate: null,
+    endDate: null,
+  };
 }
 
 export function getDateLabel(
@@ -40,10 +63,16 @@ export function getDateLabel(
   }
 }
 
-export function isQuickDateRange(
-  dateRange: DateRangeFilter
-): dateRange is 'all' | 'today' | 'month' {
-  return dateRange === 'all' || dateRange === 'today' || dateRange === 'month';
+export function isPresetDateRange(dateRange: DateRangeFilter): dateRange is PeriodPreset {
+  return dateRange !== 'custom';
+}
+
+export function isQuickPeriodSelected(
+  pill: PeriodPreset,
+  dateRange: DateRangeFilter,
+  customRangeOpen: boolean
+): boolean {
+  return !customRangeOpen && dateRange === pill;
 }
 
 export function getDateChipLabel(

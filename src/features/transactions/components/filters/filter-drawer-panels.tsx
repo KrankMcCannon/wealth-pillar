@@ -9,8 +9,9 @@ import type {
   TransactionFiltersState,
   DateRangeFilter,
 } from '@/server/use-cases/transactions/transaction.logic';
-import { Button, Input, DrawerTitle, DrawerDescription, CategoryBadge } from '@/components/ui';
+import { Button, Input, DrawerTitle, DrawerDescription, CategoryBadge, DateField } from '@/components/ui';
 import * as VisuallyHidden from '@radix-ui/react-visually-hidden';
+import { stitchTransactionFilterTriggers } from '@/styles/home-design-foundation';
 import { transactionStyles } from '@/features/transactions/theme/transaction-styles';
 import { DATE_OPTIONS, getDateLabel } from './filter-helpers';
 
@@ -23,88 +24,74 @@ interface DateOptionsProps {
   readonly onSelect: (value: string) => void;
   readonly onClose: () => void;
   readonly onDateRangeChange?: (startDate: string, endDate: string) => void;
+  readonly presets?: DateRangeFilter[];
 }
 
-const DateOptions = memo(function DateOptions({
+export const DateOptions = memo(function DateOptions({
   selectedDateRange,
   initialStartDate,
   initialEndDate,
   onSelect,
   onClose,
   onDateRangeChange,
+  presets = DATE_OPTIONS.filter((option) => option !== 'custom'),
 }: DateOptionsProps) {
   const t = useTranslations('Transactions.Filters');
   const [customStartDate, setCustomStartDate] = useState(initialStartDate);
   const [customEndDate, setCustomEndDate] = useState(initialEndDate);
 
-  const handleApplyCustomRange = useCallback(() => {
-    if (customStartDate || customEndDate) {
-      onDateRangeChange?.(customStartDate, customEndDate);
-      onClose();
-    }
-  }, [customStartDate, customEndDate, onDateRangeChange, onClose]);
+  const commitRange = useCallback(
+    (startDate: string, endDate: string) => {
+      if (!startDate && !endDate) return;
+      onDateRangeChange?.(startDate, endDate);
+    },
+    [onDateRangeChange]
+  );
 
   return (
     <div className={transactionStyles.filters.dateSection}>
-      {/* Preset options */}
-      <div className={transactionStyles.filters.dateGrid}>
-        {DATE_OPTIONS.filter((option) => option !== 'custom').map((option) => (
-          <button
-            key={option}
-            type="button"
-            onClick={() => {
-              onSelect(option);
-              onClose();
-            }}
-            className={cn(
-              transactionStyles.filters.dateButton,
-              selectedDateRange === option
-                ? transactionStyles.filters.dateButtonActive
-                : transactionStyles.filters.dateButtonIdle
-            )}
-          >
-            {selectedDateRange === option && (
-              <Check className={transactionStyles.filters.typeCheck} />
-            )}
-            <span>{getDateLabel(option, t)}</span>
-          </button>
-        ))}
-      </div>
-
-      {/* Custom date range */}
-      <div className={transactionStyles.filters.dateCustom}>
-        <p className={transactionStyles.filters.dateTitle}>{t('customRange.title')}</p>
-        <div className={transactionStyles.filters.dateInputs}>
-          <div className={transactionStyles.filters.dateField}>
-            <span className={transactionStyles.filters.dateLabel}>
-              {t('customRange.fromLabel')}
-            </span>
-            <Input
-              type="date"
-              value={customStartDate}
-              onChange={(e) => setCustomStartDate(e.target.value)}
-              className={transactionStyles.filters.dateInput}
-              aria-label={t('customRange.startDateAria')}
-            />
-          </div>
-          <div className={transactionStyles.filters.dateField}>
-            <span className={transactionStyles.filters.dateLabel}>{t('customRange.toLabel')}</span>
-            <Input
-              type="date"
-              value={customEndDate}
-              onChange={(e) => setCustomEndDate(e.target.value)}
-              className={transactionStyles.filters.dateInput}
-              aria-label={t('customRange.endDateAria')}
-            />
-          </div>
+      {presets.length > 0 ? (
+        <div className={transactionStyles.filters.quickPeriodRow} role="group">
+          {presets.map((option) => (
+            <button
+              key={option}
+              type="button"
+              onClick={() => {
+                onSelect(option);
+                onClose();
+              }}
+              className={cn(
+                stitchTransactionFilterTriggers.quickPill,
+                selectedDateRange === option
+                  ? stitchTransactionFilterTriggers.quickPillActive
+                  : stitchTransactionFilterTriggers.quickPillIdle
+              )}
+            >
+              {getDateLabel(option, t)}
+            </button>
+          ))}
         </div>
-        <Button
-          onClick={handleApplyCustomRange}
-          disabled={!customStartDate && !customEndDate}
-          className={transactionStyles.filters.dateApply}
-        >
-          {t('customRange.apply')}
-        </Button>
+      ) : null}
+
+      <div className={transactionStyles.filters.dateCustom}>
+        <DateField
+          layout="stack"
+          label={t('customRange.fromLabel')}
+          value={customStartDate}
+          onChange={(start) => {
+            setCustomStartDate(start);
+            commitRange(start, customEndDate);
+          }}
+        />
+        <DateField
+          layout="stack"
+          label={t('customRange.toLabel')}
+          value={customEndDate}
+          onChange={(end) => {
+            setCustomEndDate(end);
+            commitRange(customStartDate, end);
+          }}
+        />
       </div>
     </div>
   );

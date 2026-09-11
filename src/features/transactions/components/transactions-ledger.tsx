@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { Search, SlidersHorizontal, Upload, X } from 'lucide-react';
+import { Search, SlidersHorizontal, X } from 'lucide-react';
 import { HomeDashboardMain, PageFab } from '@/components/layout';
 import { Button, Input, Spinner } from '@/components/ui';
 import { FilterDrawer } from '@/components/ui/filters';
@@ -10,13 +10,17 @@ import { TransactionFilters } from '@/features/transactions';
 import { TransactionRow } from './transaction-row';
 import { groupByDay } from '@/features/transactions/utils/group-by-day';
 import { currentSpendable, spendableByDay } from '@/features/transactions/utils/spendable';
+import { pickVisibleLedgerDay } from '@/features/transactions/utils/visible-ledger-day';
 import { getCategoryLabel } from '@/server/use-cases/categories/category.logic';
 import { useInfiniteScrollSentinel } from '@/hooks/use-infinite-scroll-sentinel';
 import { formatCurrency, cn } from '@/lib/utils';
 import { stitchHome, stitchTransactions } from '@/styles/home-design-foundation';
+import { transactionStyles } from '@/features/transactions/theme/transaction-styles';
 import type { TransactionTypeFilter } from '@/server/use-cases/transactions/transaction.logic';
+import { useAccounts } from '@/stores/reference-data-store';
 import { CompactSegments, FilterDock } from './filter-dock';
 import { StickyTotal } from './sticky-total';
+import { getAdvancedFiltersCount, clearAdvancedFilters } from './filters/filter-helpers';
 import type { TransactionsLedgerProps } from './transactions-workspace-props';
 
 export function TransactionsLedger(props: TransactionsLedgerProps) {
@@ -27,6 +31,8 @@ export function TransactionsLedger(props: TransactionsLedgerProps) {
   const tLoadMore = useTranslations('Transactions.LoadMore');
   const tTable = useTranslations('Transactions.Table');
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const storeAccounts = useAccounts();
+  const accounts = storeAccounts.length > 0 ? storeAccounts : props.accounts;
 
   const dayGroups = useMemo(
     () => groupByDay(props.transactions, locale),
@@ -34,17 +40,17 @@ export function TransactionsLedger(props: TransactionsLedgerProps) {
   );
   const spendableNow = useMemo(
     () =>
-      currentSpendable(props.accounts, {
+      currentSpendable(accounts, {
         ...(props.selectedUserId ? { userId: props.selectedUserId } : {}),
         ...(props.filters.accountId && props.filters.accountId !== 'all'
           ? { accountId: props.filters.accountId }
           : {}),
       }),
-    [props.accounts, props.selectedUserId, props.filters.accountId]
+    [accounts, props.selectedUserId, props.filters.accountId]
   );
   const spendableAtDay = useMemo(
-    () => spendableByDay(dayGroups, spendableNow, props.accounts),
-    [dayGroups, spendableNow, props.accounts]
+    () => spendableByDay(dayGroups, spendableNow, accounts),
+    [dayGroups, spendableNow, accounts]
   );
 
   const totalRef = useRef<HTMLDivElement>(null);
@@ -56,20 +62,18 @@ export function TransactionsLedger(props: TransactionsLedgerProps) {
     setTopDay(newestDay);
   }, [newestDay]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     let frame = 0;
     const update = () => {
       frame = 0;
       const line = totalRef.current?.getBoundingClientRect().bottom ?? 160;
-      let nextDay = dayGroups[dayGroups.length - 1]?.isoDate ?? newestDay;
+      const bottoms = new Map<string, number>();
       for (const group of dayGroups) {
         const el = dayEls.current.get(group.isoDate);
         if (!el) continue;
-        if (el.getBoundingClientRect().bottom > line + 2) {
-          nextDay = group.isoDate;
-          break;
-        }
+        bottoms.set(group.isoDate, el.getBoundingClientRect().bottom);
       }
+      const nextDay = pickVisibleLedgerDay(dayGroups, bottoms, line, newestDay);
       setTopDay((current) => (current === nextDay ? current : nextDay));
     };
     const onScroll = () => {
@@ -99,6 +103,8 @@ export function TransactionsLedger(props: TransactionsLedgerProps) {
     isLoading: props.isLoadingMore,
     onLoadMore: props.onLoadMore,
   });
+
+  const advancedCount = getAdvancedFiltersCount(props.filters);
 
   return (
     <>
@@ -138,7 +144,8 @@ export function TransactionsLedger(props: TransactionsLedgerProps) {
           />
         </FilterDock>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-2">
           <div className="relative min-w-0 flex-1">
             <Search
               className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
@@ -169,21 +176,41 @@ export function TransactionsLedger(props: TransactionsLedgerProps) {
           </div>
           <button
             type="button"
-            onClick={props.onImport}
-            className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-border/35 bg-muted/80 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
-            aria-label={tChips('import')}
-            data-testid="transactions-import-button"
-          >
-            <Upload className="size-4" aria-hidden />
-          </button>
-          <button
-            type="button"
             onClick={() => setFiltersOpen(true)}
-            className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-border/35 bg-muted/80 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
-            aria-label={tChips('filters')}
+            className={cn(
+              'relative flex size-11 shrink-0 items-center justify-center rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40',
+              advancedCount > 0
+                ? 'border border-transparent bg-accent text-foreground ring-1 ring-inset ring-primary/35'
+                : 'border border-border/35 bg-muted/80 text-muted-foreground hover:text-foreground'
+            )}
+            aria-pressed={advancedCount > 0}
+            aria-label={
+              advancedCount > 0
+                ? tChips('filtersActiveAria', { count: advancedCount })
+                : tChips('filters')
+            }
           >
             <SlidersHorizontal className="size-4" aria-hidden />
+            {advancedCount > 0 ? (
+              <span className={stitchTransactions.filterCountBadge} aria-hidden>
+                {advancedCount}
+              </span>
+            ) : null}
           </button>
+          </div>
+          {advancedCount > 0 ? (
+            <button
+              type="button"
+              onClick={() => {
+                props.setFilters(clearAdvancedFilters(props.filters));
+                props.onClearBudgetFilter?.();
+              }}
+              className={transactionStyles.filters.clearAll}
+            >
+              <X className={transactionStyles.filters.clearAllIcon} aria-hidden />
+              <span>{tFilters('clearAll')}</span>
+            </button>
+          ) : null}
         </div>
 
         {props.transactions.length === 0 && !props.isNavigatingFilters ? (
@@ -262,12 +289,12 @@ export function TransactionsLedger(props: TransactionsLedgerProps) {
           onOpenChange={setFiltersOpen}
           title={tChips('drawerTitle')}
         >
-          <div className="overflow-y-auto px-2 pb-4">
+          <div className={transactionStyles.filters.drawer.body}>
             <TransactionFilters
               filters={props.filters}
               onFiltersChange={(next) => props.setFilters(next)}
               categories={props.categories}
-              accounts={props.accounts}
+              accounts={accounts}
               {...(props.budgetName !== undefined ? { budgetName: props.budgetName } : {})}
               {...(props.onClearBudgetFilter !== undefined
                 ? { onClearBudgetFilter: props.onClearBudgetFilter }

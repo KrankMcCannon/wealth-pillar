@@ -28,14 +28,14 @@ export function FilterChipTrigger({
     onClear?.();
   };
 
-  if (hasValue && !isActive) {
+  if (hasValue) {
     return (
       <div className={stitchTransactionFilterTriggers.wrapper}>
         <button
           type="button"
           onClick={onClick}
           aria-haspopup="dialog"
-          aria-expanded={false}
+          aria-expanded={isActive}
           className={stitchTransactionFilterTriggers.buttonHasValue}
         >
           <span>{label}</span>

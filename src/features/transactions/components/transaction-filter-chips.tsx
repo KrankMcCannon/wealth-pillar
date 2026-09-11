@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import { useCallback, useState } from 'react';
-import { Search, SlidersHorizontal, Upload, X } from 'lucide-react';
+import { Search, SlidersHorizontal, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import type { Category, Account, User } from '@/lib/types';
 import type {
@@ -13,6 +13,8 @@ import { Input, Skeleton } from '@/components/ui';
 import { FilterChip, FilterDrawer } from '@/components/ui/filters';
 import { cn } from '@/lib/utils';
 import { stitchTransactionPageSearch, stitchTransactions } from '@/styles/home-design-foundation';
+import { transactionStyles } from '@/features/transactions/theme/transaction-styles';
+import { getAdvancedFiltersCount } from './filters/filter-helpers';
 import { UserFilterChipRow } from './user-filter-chip-row';
 
 const TransactionFiltersLazy = dynamic(
@@ -34,7 +36,6 @@ export interface TransactionFilterChipsProps {
   readonly groupUsers?: User[] | undefined;
   readonly selectedUserId?: string | undefined;
   readonly onUserFilterChange?: ((userId: string) => void) | undefined;
-  readonly onImport?: (() => void) | undefined;
   readonly className?: string;
 }
 
@@ -49,7 +50,6 @@ export function TransactionFilterChips({
   groupUsers,
   selectedUserId,
   onUserFilterChange,
-  onImport,
   className,
 }: TransactionFilterChipsProps) {
   const t = useTranslations('Transactions.Filters');
@@ -84,6 +84,7 @@ export function TransactionFilterChips({
     { key: 'expense', labelKey: 'expense' },
     { key: 'transfer', labelKey: 'transfer' },
   ];
+  const advancedCount = getAdvancedFiltersCount(filters);
   const showUserChips =
     (currentUser?.role === 'admin' || currentUser?.role === 'superadmin') &&
     (groupUsers?.length ?? 0) > 1 &&
@@ -152,21 +153,20 @@ export function TransactionFilterChips({
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        {onImport ? (
-          <button
-            type="button"
-            onClick={onImport}
-            data-testid="transactions-import-button"
-            className={cn(stitchTransactions.chipBase, stitchTransactions.chipInactive)}
-          >
-            <Upload className={stitchTransactions.filtersChipIcon} aria-hidden />
-            {tChips('import')}
-          </button>
-        ) : null}
         <button
           type="button"
           onClick={() => setAdvancedOpen(true)}
-          className={cn(stitchTransactions.chipBase, stitchTransactions.chipInactive)}
+          className={cn(
+            stitchTransactions.chipBase,
+            'inline-flex items-center gap-1.5',
+            advancedCount > 0 ? stitchTransactions.chipActive : stitchTransactions.chipInactive
+          )}
+          aria-pressed={advancedCount > 0}
+          aria-label={
+            advancedCount > 0
+              ? tChips('filtersActiveAria', { count: advancedCount })
+              : tChips('filters')
+          }
         >
           <SlidersHorizontal className={stitchTransactions.filtersChipIcon} aria-hidden />
           {tChips('filters')}
@@ -178,7 +178,7 @@ export function TransactionFilterChips({
         onOpenChange={setAdvancedOpen}
         title={tChips('drawerTitle')}
       >
-        <div className="overflow-y-auto px-2 pb-4">
+        <div className={transactionStyles.filters.drawer.body}>
           <TransactionFiltersLazy
             filters={filters}
             onFiltersChange={onFiltersChange}

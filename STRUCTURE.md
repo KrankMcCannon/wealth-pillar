@@ -22,15 +22,15 @@ Whole-app, mobile-first, **scannable** density on operator screens. Auth and emp
 | Reports | `/reports` | Understand inflow vs outflow for a window. | page | scannable | Open a period | Time chips; user scope |
 | Riserva | `/reports` module | See net spendable↔reserve flow for the report window. | module | scannable | View movements | Same time chips + UserSelector; link into ledger |
 | Period detail | `/reports/periods/[periodId]` | Read one closed period against its budget snapshot. | page | scannable | Back to reports | Modules only |
-| Settings | `/settings` | Profile, group, preferences. | page | scannable | Edit the tapped row | Rows → sheets; theme switch |
+| Settings | `/settings` | Profile, group, data, preferences. | page | scannable | Edit the tapped row | Rows → sheets; theme switch; import CSV |
 | Currency / language / timezone | settings overlay | Pick one preference. | modal | compact | Confirm | Searchable select (long lists) |
 | Profile / group / invite / categories | settings overlay | Edit household membership or category list. | drawer | scannable | Save | Text, radios, lists |
 | Transaction form | ledger overlay | Create or edit one movement. | drawer | scannable | Save transaction | Amount, radios (type), combobox (category), date, account select |
 | Account form | accounts overlay | Create or edit one account. | drawer | scannable | Save account | Text, radio cards (type), number |
 | Budget form | budgets overlay | Create or edit one category budget. | drawer | scannable | Save budget | Category, amount, period fields |
 | Category form | settings / forms | Create or edit a category. | drawer | compact | Save category | Text, icon picker |
-| Import CSV | transactions overlay | Import Revolut/Credem rows with dedup. | wizard sheet | scannable | Import | File, preview table |
-| Filters | transactions overlay | Narrow the ledger. | drawer | scannable | Apply filters | Date range, multi-selects |
+| Import CSV | settings overlay | Import Revolut/Credem rows with dedup. | wizard sheet | scannable | Import | Settings row → file, preview table |
+| Filters | transactions overlay | Narrow the ledger. | drawer | scannable | Live apply (close sheet) | Exclusive period chips; custom range = two date drawers; account/category nested lists. Clear is a tertiary text control on the ledger toolbar. |
 | Date picker | forms | Set a single date. | drawer | compact | Confirm date | Calendar + typed value |
 | Confirm | global | Confirm a destructive or costly act. | dialog | sparse | Named verb + object | Two buttons |
 | Auth / page error | `error.tsx` | Recover from a failed load. | page | sparse | Try again | Button |
@@ -56,12 +56,15 @@ Header chrome is one bar: page title (app name on Home) and Settings. Back is on
 | Whose money am I looking at? (few people) | Segmented / avatar toggle (`UserSelector`) |
 | Ledger vs recurring; portfolio vs sandbox | Tabs (same object, alternate views) |
 | Report time window (few presets) | Chip / segmented |
-| Custom date range | Date drawer (typeable) |
+| Custom date range | Date drawer |
+| Ledger period (few presets) | Exclusive chips (radiogroup) |
+| Clear advanced ledger filters | Tertiary text on the toolbar |
 | Transaction type (in / out / transfer) | Radio group |
 | Account type (4) | Radio cards |
 | Category (long) | Combobox |
 | Share ticker (unknown set) | Combobox |
 | Theme light/dark | Switch (immediate) |
+| Import bank CSV | Settings row → import sheet |
 | Currency, language, timezone | Searchable select in a sheet |
 | On/off inside a form that still Saves | Checkbox, not a switch |
 | Add on a list page | FAB → sheet, not a new primary nav item |

@@ -33,6 +33,12 @@ vi.mock('./sticky-total', () => ({
   StickyTotal: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
+const mockStoreAccounts = vi.hoisted(() => vi.fn((): import('@/lib/types').Account[] => []));
+
+vi.mock('@/stores/reference-data-store', () => ({
+  useAccounts: () => mockStoreAccounts(),
+}));
+
 const filters: TransactionFiltersState = {
   searchQuery: '',
   type: 'all',
@@ -71,7 +77,6 @@ describe('TransactionsLedger day totals', () => {
         onLoadMore={vi.fn()}
         onEditTransaction={vi.fn()}
         onAddTransaction={vi.fn()}
-        onImport={vi.fn()}
         emptyTitle="Empty"
         emptyDescription="None"
         selectedUserId={undefined}
@@ -96,5 +101,89 @@ describe('TransactionsLedger day totals', () => {
     expect(row).toHaveTextContent('Bollo Auto');
     expect(row).toHaveTextContent('240,91 €');
     expect(row).not.toHaveTextContent('Total:');
+  });
+});
+
+function renderLedger(
+  filterOverrides: Partial<TransactionFiltersState> = {},
+  extras: {
+    setFilters?: ReturnType<typeof vi.fn>;
+    onClearBudgetFilter?: () => void;
+  } = {}
+) {
+  const setFilters = extras.setFilters ?? vi.fn();
+  render(
+    <TransactionsLedger
+      accounts={[]}
+      transactions={[tx({ id: 'tx-1', amount: 10, description: 'Caffè' })]}
+      accountNames={{ a1: 'Revolut' }}
+      categories={[]}
+      filters={{ ...filters, ...filterOverrides }}
+      setFilters={setFilters}
+      hasMore={false}
+      isLoadingMore={false}
+      isNavigatingFilters={false}
+      onLoadMore={vi.fn()}
+      onEditTransaction={vi.fn()}
+      onAddTransaction={vi.fn()}
+      emptyTitle="Empty"
+      emptyDescription="None"
+      selectedUserId={undefined}
+      {...(extras.onClearBudgetFilter ? { onClearBudgetFilter: extras.onClearBudgetFilter } : {})}
+    />
+  );
+  return { setFilters };
+}
+
+describe('TransactionsLedger filter button', () => {
+  it('hides the count when no advanced filters are set', () => {
+    renderLedger();
+    expect(screen.getByRole('button', { name: 'filters' })).not.toHaveTextContent(/\d/);
+    expect(screen.queryByRole('button', { name: 'clearAll' })).toBeNull();
+  });
+
+  it('shows how many advanced filters are set', () => {
+    renderLedger({ dateRange: 'month', accountId: 'a1' });
+    const button = screen.getByRole('button', { name: 'filtersActiveAria' });
+    expect(button).toHaveTextContent('2');
+    expect(button).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('clears advanced filters from the ledger toolbar', () => {
+    const setFilters = vi.fn();
+    const onClearBudgetFilter = vi.fn();
+    renderLedger(
+      { dateRange: 'month', searchQuery: 'rent', type: 'expense' },
+      { setFilters, onClearBudgetFilter }
+    );
+    screen.getByRole('button', { name: 'clearAll' }).click();
+    expect(setFilters).toHaveBeenCalledWith(
+      expect.objectContaining({
+        dateRange: 'all',
+        searchQuery: 'rent',
+        type: 'expense',
+      })
+    );
+    expect(onClearBudgetFilter).toHaveBeenCalled();
+  });
+});
+
+describe('TransactionsLedger spendable', () => {
+  it('uses live account balances from the store after mutations', () => {
+    mockStoreAccounts.mockReturnValue([
+      {
+        id: 'cash',
+        name: 'Cash',
+        type: 'payroll',
+        user_ids: ['u1'],
+        group_id: 'g1',
+        balance: 2293.07,
+        created_at: '2026-01-01',
+        updated_at: '2026-01-01',
+      },
+    ]);
+    renderLedger();
+    expect(screen.getByText('2.293,07 €')).toBeInTheDocument();
+    mockStoreAccounts.mockReturnValue([]);
   });
 });

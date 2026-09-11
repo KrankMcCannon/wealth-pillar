@@ -266,6 +266,8 @@ export const stitchTransactions = {
   chipActive: 'bg-accent text-foreground ring-1 ring-inset ring-primary/35',
   chipInactive: 'border border-border/35 bg-muted/80 text-muted-foreground hover:bg-accent',
   filtersChipIcon: 'mr-1 inline h-3 w-3 shrink-0',
+  filterCountBadge:
+    'absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[11px] font-semibold tabular-nums leading-none text-primary-foreground',
   /** Row list wrapper — layout only; surface lives on section card + individual rows. */
   dayCard: 'flex flex-col gap-2',
   emptyState: stitchInvestments.emptyState,
@@ -488,11 +490,11 @@ export const stitchTransactionPageSearch = {
 export const stitchTransactionFilterTriggers = {
   wrapper: 'relative inline-flex',
   buttonBase:
-    'inline-flex min-h-10 items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium tracking-wide whitespace-nowrap transition-colors active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35',
+    'inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium tracking-wide whitespace-nowrap transition-colors active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35',
   buttonIdle: 'border border-border/35 bg-muted/80 text-muted-foreground hover:bg-accent',
   buttonOpen: 'bg-accent text-foreground ring-1 ring-inset ring-primary/35',
   buttonHasValue:
-    'inline-flex min-h-10 items-center rounded-full bg-accent px-3 py-2 pr-8 text-sm font-medium tracking-wide text-foreground ring-1 ring-inset ring-primary/35 transition-colors',
+    'inline-flex min-h-11 items-center rounded-full bg-accent px-3 py-2 pr-8 text-sm font-medium tracking-wide text-foreground ring-1 ring-inset ring-primary/35 transition-colors',
   clearButton:
     'absolute right-1 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-accent/80 text-foreground transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40',
   clearIcon: 'h-3 w-3',
@@ -501,11 +503,11 @@ export const stitchTransactionFilterTriggers = {
   chevronOpen: 'rotate-180 text-foreground',
   /** Periodi rapidi nel drawer (All / Oggi / Mese / Altro) */
   quickPill:
-    'inline-flex min-h-10 shrink-0 items-center rounded-full border px-3 py-2 text-sm font-semibold tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35',
+    'inline-flex min-h-11 shrink-0 items-center rounded-full border px-3 py-2 text-sm font-semibold tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35',
   quickPillIdle: 'border-border/35 bg-muted/80 text-muted-foreground hover:bg-accent',
   quickPillActive: 'border-transparent bg-accent text-foreground ring-1 ring-inset ring-primary/35',
   filterDrawerClearAll:
-    'inline-flex items-center gap-1.5 rounded-full border border-expense/35 bg-expense/12 px-3 py-2 text-sm font-medium whitespace-nowrap text-expense transition-all duration-200 hover:bg-expense/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-expense/35 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100',
+    'self-start inline-flex min-h-11 items-center gap-1 rounded-full px-2 text-sm font-medium text-expense transition-colors hover:bg-expense/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-expense/35',
 } as const;
 
 /**

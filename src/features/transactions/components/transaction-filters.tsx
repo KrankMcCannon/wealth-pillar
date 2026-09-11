@@ -14,18 +14,20 @@ import {
   type TransactionFiltersState,
   type DateRangeFilter,
 } from '@/server/use-cases/transactions/transaction.logic';
-import { Drawer, DrawerContent } from '@/components/ui';
+import { DrawerNested, DrawerContent } from '@/components/ui';
 import { stitchTransactionFilterTriggers } from '@/styles/home-design-foundation';
 import { transactionStyles } from '@/features/transactions/theme/transaction-styles';
 import {
   defaultFiltersState,
-  getActiveFiltersCount,
   getDateChipLabel,
+  getDateLabel,
   hasActiveFilters,
-  isQuickDateRange,
+  isPresetDateRange,
+  isQuickPeriodSelected,
+  PERIOD_PRESETS,
 } from './filters/filter-helpers';
 import { FilterChipTrigger } from './filters/filter-chip-trigger';
-import { FilterDrawerContent } from './filters/filter-drawer-panels';
+import { DateOptions, FilterDrawerContent } from './filters/filter-drawer-panels';
 
 export { defaultFiltersState, hasActiveFilters };
 
@@ -49,9 +51,11 @@ export function TransactionFilters({
   onClearBudgetFilter,
 }: TransactionFiltersProps) {
   const t = useTranslations('Transactions.Filters');
-  const [activeDrawer, setActiveDrawer] = useState<'date' | 'category' | 'account' | null>(null);
+  const [activeDrawer, setActiveDrawer] = useState<'category' | 'account' | null>(null);
+  const [customRangeOpen, setCustomRangeOpen] = useState(
+    () => !isPresetDateRange(filters.dateRange)
+  );
 
-  const activeFiltersCount = useMemo(() => getActiveFiltersCount(filters), [filters]);
   const isBudgetMode = Boolean(filters.budgetId || budgetName);
 
   const categoryLabel = useMemo(() => {
@@ -69,15 +73,17 @@ export function TransactionFilters({
   const handleDateChange = useCallback(
     (value: string) => {
       if (value === 'custom') {
+        setCustomRangeOpen(true);
         onFiltersChange({ ...filters, dateRange: value as DateRangeFilter });
-      } else {
-        onFiltersChange({
-          ...filters,
-          dateRange: value as DateRangeFilter,
-          startDate: null,
-          endDate: null,
-        });
+        return;
       }
+      setCustomRangeOpen(false);
+      onFiltersChange({
+        ...filters,
+        dateRange: value as DateRangeFilter,
+        startDate: null,
+        endDate: null,
+      });
     },
     [filters, onFiltersChange]
   );
@@ -108,19 +114,11 @@ export function TransactionFilters({
     [filters, onFiltersChange]
   );
 
-  const handleClearAll = useCallback(() => {
-    onFiltersChange({
-      searchQuery: '',
-      type: 'all',
-      dateRange: 'all',
-      categoryKey: 'all',
-      accountId: 'all',
-    });
-    onClearBudgetFilter?.();
-  }, [onFiltersChange, onClearBudgetFilter]);
+  const moreDateLabel =
+    filters.dateRange === 'custom' ? getDateChipLabel(filters, t) : t('quickRange.more');
 
   const accountFilterDrawer = (
-    <Drawer
+    <DrawerNested
       open={activeDrawer === 'account'}
       onOpenChange={(open) => setActiveDrawer(open ? 'account' : null)}
     >
@@ -142,64 +140,36 @@ export function TransactionFilters({
           onClose={() => setActiveDrawer(null)}
         />
       </DrawerContent>
-    </Drawer>
+    </DrawerNested>
   );
 
-  const tertiaryFilterDrawers = (
-    <>
-      <Drawer
-        open={activeDrawer === 'date'}
-        onOpenChange={(open) => setActiveDrawer(open ? 'date' : null)}
-      >
-        <FilterChipTrigger
-          label={getDateChipLabel(filters, t)}
-          isActive={activeDrawer === 'date'}
-          hasValue={filters.dateRange !== 'all'}
-          onClick={() => setActiveDrawer('date')}
-          onClear={() => handleDateChange('all')}
-          clearAriaLabel={t('clearFilterAria', {
-            label: getDateChipLabel(filters, t),
-          })}
+  const categoryFilterDrawer = (
+    <DrawerNested
+      open={activeDrawer === 'category'}
+      onOpenChange={(open) => setActiveDrawer(open ? 'category' : null)}
+    >
+      <FilterChipTrigger
+        label={categoryLabel}
+        isActive={activeDrawer === 'category'}
+        hasValue={filters.categoryKey !== 'all'}
+        onClick={() => setActiveDrawer('category')}
+        onClear={() => handleCategoryChange('all')}
+        clearAriaLabel={t('clearFilterAria', { label: categoryLabel })}
+      />
+      <DrawerContent className={transactionStyles.filters.drawer.contentTall}>
+        <FilterDrawerContent
+          filterType="category"
+          filters={filters}
+          categories={categories}
+          onSelect={handleCategoryChange}
+          onClose={() => setActiveDrawer(null)}
         />
-        <DrawerContent className={transactionStyles.filters.drawer.content}>
-          <FilterDrawerContent
-            filterType="date"
-            filters={filters}
-            categories={categories}
-            onSelect={handleDateChange}
-            onClose={() => setActiveDrawer(null)}
-            onDateRangeChange={handleCustomDateRange}
-          />
-        </DrawerContent>
-      </Drawer>
-
-      <Drawer
-        open={activeDrawer === 'category'}
-        onOpenChange={(open) => setActiveDrawer(open ? 'category' : null)}
-      >
-        <FilterChipTrigger
-          label={categoryLabel}
-          isActive={activeDrawer === 'category'}
-          hasValue={filters.categoryKey !== 'all'}
-          onClick={() => setActiveDrawer('category')}
-          onClear={() => handleCategoryChange('all')}
-          clearAriaLabel={t('clearFilterAria', { label: categoryLabel })}
-        />
-        <DrawerContent className={transactionStyles.filters.drawer.contentTall}>
-          <FilterDrawerContent
-            filterType="category"
-            filters={filters}
-            categories={categories}
-            onSelect={handleCategoryChange}
-            onClose={() => setActiveDrawer(null)}
-          />
-        </DrawerContent>
-      </Drawer>
-    </>
+      </DrawerContent>
+    </DrawerNested>
   );
 
   return (
-    <div className={cn(transactionStyles.filters.container, 'gap-2', className)}>
+    <div className={cn(transactionStyles.filters.container, className)}>
       {isBudgetMode && (
         <div className={transactionStyles.filters.budgetBanner}>
           <div className={transactionStyles.filters.budgetBannerLeft}>
@@ -228,65 +198,66 @@ export function TransactionFilters({
         </div>
       )}
 
-      <div className={cn(transactionStyles.filters.toolsCluster, 'border-t-0 pt-0 gap-2')}>
+      <div className="flex flex-col gap-2">
+        <p className="text-xs font-medium text-muted-foreground">{t('chips.period')}</p>
         <div
           className={transactionStyles.filters.quickPeriodRow}
-          role="group"
+          role="radiogroup"
           aria-label={t('quickRange.groupAria')}
         >
-          {(['all', 'today', 'month'] as const).map((value) => (
-            <button
-              key={value}
-              type="button"
-              onClick={() => handleDateChange(value)}
-              className={cn(
-                stitchTransactionFilterTriggers.quickPill,
-                filters.dateRange === value
-                  ? stitchTransactionFilterTriggers.quickPillActive
-                  : stitchTransactionFilterTriggers.quickPillIdle
-              )}
-              aria-pressed={filters.dateRange === value}
-            >
-              {value === 'all' && t('quickRange.all')}
-              {value === 'today' && t('quickRange.today')}
-              {value === 'month' && t('quickRange.month')}
-            </button>
-          ))}
+          {PERIOD_PRESETS.map((value) => {
+            const selected = isQuickPeriodSelected(value, filters.dateRange, customRangeOpen);
+            return (
+              <button
+                key={value}
+                type="button"
+                role="radio"
+                onClick={() => handleDateChange(value)}
+                className={cn(
+                  stitchTransactionFilterTriggers.quickPill,
+                  selected
+                    ? stitchTransactionFilterTriggers.quickPillActive
+                    : stitchTransactionFilterTriggers.quickPillIdle
+                )}
+                aria-checked={selected}
+              >
+                {getDateLabel(value, t)}
+              </button>
+            );
+          })}
           <button
             type="button"
-            onClick={() => setActiveDrawer('date')}
+            role="radio"
+            onClick={() => setCustomRangeOpen(true)}
             className={cn(
               stitchTransactionFilterTriggers.quickPill,
-              !isQuickDateRange(filters.dateRange)
+              customRangeOpen || filters.dateRange === 'custom'
                 ? stitchTransactionFilterTriggers.quickPillActive
                 : stitchTransactionFilterTriggers.quickPillIdle
             )}
-            aria-pressed={!isQuickDateRange(filters.dateRange)}
+            aria-checked={customRangeOpen || filters.dateRange === 'custom'}
             aria-label={t('quickRange.moreAria')}
           >
-            {t('quickRange.more')}
+            {moreDateLabel}
           </button>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          {accountFilterDrawer}
-          {tertiaryFilterDrawers}
-        </div>
-
-        {activeFiltersCount > 0 ? (
-          <div className={transactionStyles.filters.advancedControlsRow}>
-            <div className={transactionStyles.filters.advancedClearWrap}>
-              <button
-                type="button"
-                onClick={handleClearAll}
-                className={stitchTransactionFilterTriggers.filterDrawerClearAll}
-              >
-                <X className={transactionStyles.filters.clearAllIcon} />
-                <span>{t('clearAll')}</span>
-              </button>
-            </div>
-          </div>
+        {customRangeOpen ? (
+          <DateOptions
+            selectedDateRange={filters.dateRange}
+            initialStartDate={filters.startDate ?? ''}
+            initialEndDate={filters.endDate ?? ''}
+            onSelect={handleDateChange}
+            onClose={() => undefined}
+            onDateRangeChange={handleCustomDateRange}
+            presets={[]}
+          />
         ) : null}
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        {accountFilterDrawer}
+        {categoryFilterDrawer}
       </div>
     </div>
   );

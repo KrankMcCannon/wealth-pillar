@@ -92,6 +92,10 @@
       "emptyCustom": "Nessuna categoria personalizzata",
       "emptySystem": "Nessuna categoria predefinita"
     },
+    "Data": {
+      "title": "Dati",
+      "importTransactions": "Importa transazioni"
+    },
     "Preferences": {
       "title": "Preferenze",
       "currencyLabel": "Valuta",
@@ -774,18 +778,15 @@
         "toolbarAria": "Filtri transazioni",
         "userToolbarAria": "Filtra per membro del gruppo",
         "filters": "Filtri",
+        "filtersActiveAria": "{count, plural, one {# filtro attivo} other {# filtri attivi}}",
         "import": "Importa",
         "drawerTitle": "Filtri avanzati"
       },
       "customRange": {
-        "title": "Intervallo personalizzato",
         "from": "Dal {date}",
         "until": "Fino al {date}",
         "fromLabel": "Da",
-        "toLabel": "A",
-        "startDateAria": "Data inizio",
-        "endDateAria": "Data fine",
-        "apply": "Applica"
+        "toLabel": "A"
       },
       "category": {
         "searchPlaceholder": "Cerca categoria...",

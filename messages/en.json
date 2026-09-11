@@ -92,6 +92,10 @@
       "emptyCustom": "No custom categories yet",
       "emptySystem": "No default categories"
     },
+    "Data": {
+      "title": "Data",
+      "importTransactions": "Import transactions"
+    },
     "Preferences": {
       "title": "Preferences",
       "currencyLabel": "Currency",
@@ -774,18 +778,15 @@
         "toolbarAria": "Transaction filters",
         "userToolbarAria": "Filter by group member",
         "filters": "Filters",
+        "filtersActiveAria": "{count, plural, one {# active filter} other {# active filters}}",
         "import": "Import",
         "drawerTitle": "Advanced filters"
       },
       "customRange": {
-        "title": "Custom range",
         "from": "From {date}",
         "until": "Until {date}",
         "fromLabel": "From",
-        "toLabel": "To",
-        "startDateAria": "Start date",
-        "endDateAria": "End date",
-        "apply": "Apply"
+        "toLabel": "To"
       },
       "category": {
         "searchPlaceholder": "Search category...",
