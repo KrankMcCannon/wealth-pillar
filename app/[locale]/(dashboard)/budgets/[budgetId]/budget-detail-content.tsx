@@ -60,7 +60,6 @@ export default function BudgetDetailContent({ pageDataPromise }: BudgetDetailCon
   usePageHeader({
     title: budget.description,
     showBack: true,
-    isDashboard: false,
     onBack: () => router.push(`/budgets?user=${encodeURIComponent(budget.user_id)}`),
   });
 

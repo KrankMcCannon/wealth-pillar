@@ -126,8 +126,6 @@ export default function ReportsContent({
 
   usePageHeader({
     title: t('headerTitle'),
-    showBack: true,
-    isDashboard: false,
   });
 
   return (
@@ -154,7 +152,7 @@ export default function ReportsContent({
       <HomeDashboardMain
         id="main-reports"
         ariaBusy={isPending}
-        className={isPending ? 'pt-2 opacity-70 transition-opacity' : 'pt-2'}
+        className="pt-2"
       >
         <div className={stitchReports.sectionStack}>
           {data.transactionsTruncated ? (

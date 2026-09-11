@@ -11,8 +11,8 @@ vi.mock('@/components/layout/bottom-navigation', () => ({
 }));
 
 vi.mock('@/components/layout/header', () => ({
-  Header: ({ title, isDashboard }: { title?: string; isDashboard?: boolean }) => (
-    <header data-testid="dashboard-header">{isDashboard ? 'Dashboard' : title}</header>
+  Header: ({ title }: { title?: string }) => (
+    <header data-testid="dashboard-header">{title ?? 'appName'}</header>
   ),
 }));
 

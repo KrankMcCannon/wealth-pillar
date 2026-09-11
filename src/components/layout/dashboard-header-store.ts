@@ -3,8 +3,9 @@ import { create } from 'zustand';
 export interface DashboardHeaderConfig {
   title?: string;
   showBack?: boolean;
-  isDashboard?: boolean;
   onBack?: () => void;
+  /** False until a page sets the bar — do not flash the app name as a fake title. */
+  ready?: boolean;
 }
 
 interface DashboardHeaderState {
@@ -13,12 +14,10 @@ interface DashboardHeaderState {
   resetHeader: () => void;
 }
 
-export const defaultDashboardHeaderConfig: DashboardHeaderConfig = {
-  isDashboard: true,
-};
+export const defaultDashboardHeaderConfig: DashboardHeaderConfig = {};
 
 export const useDashboardHeaderStore = create<DashboardHeaderState>()((set) => ({
   config: defaultDashboardHeaderConfig,
-  setHeader: (config) => set({ config }),
+  setHeader: (config) => set({ config: { ...config, ready: true } }),
   resetHeader: () => set({ config: defaultDashboardHeaderConfig }),
 }));

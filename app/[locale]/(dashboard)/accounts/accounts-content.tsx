@@ -63,7 +63,6 @@ export default function AccountsContent({
   usePageHeader({
     title: t('headerTitle'),
     showBack: true,
-    isDashboard: false,
   });
 
   const negative = accountStats.spendableBalance < 0;

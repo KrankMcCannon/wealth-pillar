@@ -24,9 +24,9 @@ export function DashboardShell({ children }: Readonly<DashboardShellProps>) {
         {t('skipToContent')}
       </a>
       <Header
+        ready={headerConfig.ready === true}
         {...(headerConfig.title !== undefined ? { title: headerConfig.title } : {})}
         showBack={headerConfig.showBack ?? false}
-        isDashboard={headerConfig.isDashboard ?? true}
         {...(headerConfig.onBack !== undefined ? { onBack: headerConfig.onBack } : {})}
       />
       <div id="content-start" tabIndex={-1} className="outline-none">

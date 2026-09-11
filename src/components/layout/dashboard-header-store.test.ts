@@ -17,13 +17,12 @@ describe('dashboard-header-store', () => {
     useDashboardHeaderStore.getState().setHeader({
       title: 'Accounts',
       showBack: true,
-      isDashboard: false,
     });
 
     expect(useDashboardHeaderStore.getState().config).toMatchObject({
       title: 'Accounts',
       showBack: true,
-      isDashboard: false,
+      ready: true,
     });
 
     useDashboardHeaderStore.getState().resetHeader();

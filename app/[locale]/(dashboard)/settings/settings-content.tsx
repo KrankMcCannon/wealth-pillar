@@ -49,7 +49,6 @@ export default function SettingsContent({
   usePageHeader({
     title: t('headerTitle'),
     showBack: true,
-    isDashboard: false,
     onBack: () => router.push('/home'),
   });
 

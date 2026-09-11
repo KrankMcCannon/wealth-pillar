@@ -67,8 +67,6 @@ export default function InvestmentsContent({
 
   usePageHeader({
     title: t('headerTitle'),
-    showBack: true,
-    isDashboard: false,
   });
 
   return (

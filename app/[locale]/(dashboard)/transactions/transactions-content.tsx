@@ -46,8 +46,6 @@ export default function TransactionsContent({
 
   usePageHeader({
     title: t('headerTitle'),
-    showBack: true,
-    isDashboard: false,
   });
 
   const {

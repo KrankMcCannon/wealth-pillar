@@ -47,6 +47,8 @@ Not in the primary nav:
 
 Do not use a dropdown for these destinations. Nested budget and period routes keep the parent tab current.
 
+Header chrome is one bar: page title (app name on Home) and Settings. Back is only on drill-ins — Accounts, Settings, budget detail, period detail. Primary tabs do not use Back.
+
 ## Controls
 
 | Choice | Control |

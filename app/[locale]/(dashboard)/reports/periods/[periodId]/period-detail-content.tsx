@@ -109,7 +109,6 @@ export default function PeriodDetailContent({
   usePageHeader({
     title: pageData.summary.name,
     showBack: true,
-    isDashboard: false,
     onBack: () => router.push(backHref, { scroll: false }),
   });
 

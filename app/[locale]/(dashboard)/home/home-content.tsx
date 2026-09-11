@@ -50,9 +50,7 @@ export default function HomeContent({
     balanceViewModel,
   });
 
-  usePageHeader({
-    isDashboard: true,
-  });
+  usePageHeader();
 
   const recurringSeriesUserId = selectedGroupFilter === 'all' ? undefined : effectiveUserId;
   const recurringFilterUserId = isMember ? currentUser.id : recurringSeriesUserId;

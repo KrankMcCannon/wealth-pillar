@@ -76,8 +76,6 @@ export default function BudgetsContent({
 
   usePageHeader({
     title: t('title'),
-    showBack: true,
-    isDashboard: false,
   });
 
   return (
