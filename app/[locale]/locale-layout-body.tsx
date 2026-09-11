@@ -20,6 +20,7 @@ import { getUsedCategoryKeysByGroupUseCase } from '@/server/use-cases/transactio
 import { ModalProvider } from '@/providers/modal-provider';
 import { ReferenceDataInitializer } from '@/providers/reference-data-initializer';
 import { UserProvider } from '@/providers/user-provider';
+import type { User } from '@/lib/types';
 
 export function LocaleLayoutHtmlFallback({ className }: { className: string }): React.JSX.Element {
   return (
@@ -104,39 +105,61 @@ async function UserSessionGate({ children }: { children: React.ReactNode }) {
     return children;
   }
 
-  if (!currentUser.group_id) {
-    return (
-      <UserProvider currentUser={currentUser} groupUsers={[currentUser]}>
-        {children}
-      </UserProvider>
-    );
-  }
-
-  type GroupUsers = Awaited<ReturnType<typeof getGroupUsers>>;
-  type GroupAccounts = Awaited<ReturnType<typeof getAccountsByGroupDeduped>>;
-  type AllCategories = Awaited<ReturnType<typeof getAllCategoriesDeduped>>;
-
-  const [allGroupUsers, accounts, categories, usedCategoryKeys] = await Promise.all([
-    withTimeout(getGroupUsers(), 1500, [currentUser] as GroupUsers),
-    withTimeout(getAccountsByGroupDeduped(currentUser.group_id), 1500, [] as GroupAccounts),
-    withTimeout(getAllCategoriesDeduped(), 1200, [] as AllCategories),
-    withTimeout(getUsedCategoryKeysByGroupUseCase(currentUser.group_id), 1500, [] as string[]),
-  ]);
-
+  const allGroupUsers = currentUser.group_id
+    ? await withTimeout(getGroupUsers(), 1500, [currentUser])
+    : [currentUser];
   const groupUsers = getSelectableUsers(currentUser, allGroupUsers);
-  const scopedAccounts = AccessScope.for(currentUser).filterShared(accounts || []);
+
+  const session = (
+    <UserProvider currentUser={currentUser} groupUsers={groupUsers}>
+      <ModalProvider>{children}</ModalProvider>
+    </UserProvider>
+  );
+
+  if (!currentUser.group_id) {
+    return session;
+  }
 
   return (
     <UserProvider currentUser={currentUser} groupUsers={groupUsers}>
-      <ReferenceDataInitializer
-        data={{
-          accounts: scopedAccounts,
-          categories: categories || [],
-          usedCategoryKeys: usedCategoryKeys || [],
-        }}
-      >
-        <ModalProvider>{children}</ModalProvider>
-      </ReferenceDataInitializer>
+      <Suspense fallback={<ModalProvider>{children}</ModalProvider>}>
+        <ReferenceDataGate groupId={currentUser.group_id} currentUser={currentUser}>
+          <ModalProvider>{children}</ModalProvider>
+        </ReferenceDataGate>
+      </Suspense>
     </UserProvider>
+  );
+}
+
+async function ReferenceDataGate({
+  groupId,
+  currentUser,
+  children,
+}: {
+  groupId: string;
+  currentUser: User;
+  children: React.ReactNode;
+}) {
+  type GroupAccounts = Awaited<ReturnType<typeof getAccountsByGroupDeduped>>;
+  type AllCategories = Awaited<ReturnType<typeof getAllCategoriesDeduped>>;
+
+  const [accounts, categories, usedCategoryKeys] = await Promise.all([
+    withTimeout(getAccountsByGroupDeduped(groupId), 1500, [] as GroupAccounts),
+    withTimeout(getAllCategoriesDeduped(), 1200, [] as AllCategories),
+    withTimeout(getUsedCategoryKeysByGroupUseCase(groupId), 1500, [] as string[]),
+  ]);
+
+  const scopedAccounts = AccessScope.for(currentUser).filterShared(accounts || []);
+
+  return (
+    <ReferenceDataInitializer
+      data={{
+        accounts: scopedAccounts,
+        categories: categories || [],
+        usedCategoryKeys: usedCategoryKeys || [],
+      }}
+    >
+      {children}
+    </ReferenceDataInitializer>
   );
 }

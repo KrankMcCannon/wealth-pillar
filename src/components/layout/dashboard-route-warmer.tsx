@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from '@/i18n/routing';
+import { usePathname, useRouter } from '@/i18n/routing';
 
 export const DASHBOARD_WARM_HREFS = [
   '/home',
@@ -13,8 +13,12 @@ export const DASHBOARD_WARM_HREFS = [
   '/accounts',
 ] as const;
 
-export function warmDashboardRoutes(prefetch: (href: string) => void): void {
+export function warmDashboardRoutes(
+  prefetch: (href: string) => void,
+  currentPath?: string
+): void {
   for (const href of DASHBOARD_WARM_HREFS) {
+    if (href === currentPath) continue;
     prefetch(href);
   }
 }
@@ -29,20 +33,32 @@ function warmDashboardModules(): void {
   void import('../../../app/[locale]/(dashboard)/accounts/accounts-content');
 }
 
-/** Compiles/prefetches sibling tabs after first paint. Viewport prefetch often never fires in embedded browsers. */
+function runWhenIdle(work: () => void): () => void {
+  const win = window as Window & {
+    requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
+    cancelIdleCallback?: (id: number) => void;
+  };
+  if (typeof win.requestIdleCallback === 'function') {
+    const id = win.requestIdleCallback(work, { timeout: 4000 });
+    return () => win.cancelIdleCallback?.(id);
+  }
+  const id = window.setTimeout(work, 2000);
+  return () => window.clearTimeout(id);
+}
+
+/** Prefetch sibling tabs after the current page has had a chance to load. */
 export function DashboardRouteWarmer() {
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
-    const warm = () => {
+    return runWhenIdle(() => {
       warmDashboardRoutes((href) => {
         router.prefetch(href);
-      });
+      }, pathname);
       warmDashboardModules();
-    };
-    const id = window.setTimeout(warm, 1);
-    return () => window.clearTimeout(id);
-  }, [router]);
+    });
+  }, [router, pathname]);
 
   return null;
 }

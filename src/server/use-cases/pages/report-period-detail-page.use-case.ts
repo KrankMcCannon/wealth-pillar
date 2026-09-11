@@ -2,6 +2,7 @@ import { CACHE_TAGS } from '@/lib/cache/config';
 import { AccessScope } from '@/lib/permissions/access-scope';
 import type { Budget, BudgetProgress, Category, PeriodLiquidityAmounts, User } from '@/lib/types';
 import { roundMoney } from '@/lib/utils/money';
+import { toDateString } from '@/lib/utils';
 import { REPORTS_TRANSACTIONS_LIMIT } from '@/server/db/query-limits';
 import { BudgetPeriodsRepository } from '@/server/repositories/budget-periods.repository';
 import { UsersRepository } from '@/server/repositories/users.repository';
@@ -112,8 +113,16 @@ async function getCachedReportPeriodDetailPageData(
   }
   const owner = ownerRow as unknown as User;
 
+  const window = periodToDateWindow(period);
+  const startDate = new Date(`${toDateString(period.start_date)}T00:00:00.000Z`);
+  const endDate = new Date(
+    `${toDateString(period.end_date ?? new Date())}T23:59:59.999Z`
+  );
+
   const [transactionResult, accounts, budgets, categories, periods] = await Promise.all([
     getTransactionsByGroupUseCase(groupId, {
+      startDate,
+      endDate,
       limit: REPORTS_TRANSACTIONS_LIMIT,
       countTotal: false,
     }),
@@ -124,13 +133,12 @@ async function getCachedReportPeriodDetailPageData(
   ]);
   const transactions = transactionResult.data;
 
-  const summaries = calculatePeriodSummariesUseCase(periods, transactions, accounts, budgets);
+  const summaries = calculatePeriodSummariesUseCase([period], transactions, accounts, budgets);
   const summary = summaries.find((row) => row.id === period.id);
   if (!summary) {
     notFound();
   }
 
-  const window = periodToDateWindow(period);
   const storedAmounts = resolvePeriodAmounts(period, transactions, accounts);
   const liveAmounts = computePeriodLiquidityAmounts(transactions, accounts, window, period.user_id);
 

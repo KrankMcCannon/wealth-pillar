@@ -206,6 +206,17 @@ describe('getReportPeriodDetailPageData', () => {
     expect(data.storedAmounts.spendableSpent).toBe(40);
     expect(data.periodBudgets).toEqual([foodBudget]);
     expect(data.budgetProgress[0]).toMatchObject({ id: 'b1', amount: 200, spent: 40 });
+    expect(getTransactionsByGroupUseCase).toHaveBeenCalledWith(
+      'group-1',
+      expect.objectContaining({
+        startDate: expect.any(Date),
+        endDate: expect.any(Date),
+        countTotal: false,
+      })
+    );
+    const txOptions = vi.mocked(getTransactionsByGroupUseCase).mock.calls[0]?.[1];
+    expect(txOptions?.startDate?.toISOString().slice(0, 10)).toBe('2024-05-01');
+    expect(txOptions?.endDate?.toISOString().slice(0, 10)).toBe('2024-05-31');
   });
 
   it('does not surface live envelopes when a closed period has no snapshot', async () => {
