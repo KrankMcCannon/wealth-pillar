@@ -6,11 +6,13 @@ import type {
   User,
   BudgetPeriod,
   Category,
+  Account,
 } from '@/lib/types';
 import type { DateInput } from '@/lib/utils/date-utils';
 import { filterTransactionsByPeriod, filterByCategories } from '../transactions/transaction.logic';
 import { parsePeriodDates } from '../shared/period.logic';
 import { getCategoryColor, getCategoryLabel } from '../categories/category.logic';
+import { foldBudgetSpent } from '../shared/transaction-impact.logic';
 
 export interface BudgetCategoryBreakdownItem {
   key: string;
@@ -64,7 +66,9 @@ export function filterTransactionsForBudgetsUnion(
 export function buildBudgetCategoryBreakdown(
   budget: Budget,
   transactions: Transaction[],
-  categories: Category[]
+  categories: Category[],
+  accounts: Account[] = [],
+  userId?: string
 ): BudgetCategoryBreakdownItem[] {
   return budget.categories
     .map((key) => {
@@ -73,7 +77,7 @@ export function buildBudgetCategoryBreakdown(
         key,
         label: getCategoryLabel(categories, key),
         color: getCategoryColor(categories, key),
-        spent: effectiveSpentFromTransactions(categoryTxs),
+        spent: effectiveSpentFromTransactions(categoryTxs, accounts, userId),
         transactionCount: categoryTxs.length,
       };
     })
@@ -82,17 +86,12 @@ export function buildBudgetCategoryBreakdown(
 }
 
 /** Spesa effettiva da un elenco di transazioni (stessa regola dei singoli budget). */
-export function effectiveSpentFromTransactions(transactions: Transaction[]): number {
-  const spent = transactions.reduce((sum, t) => {
-    if (t.type === 'income') {
-      return sum - t.amount;
-    }
-    if (t.type === 'expense') {
-      return sum + t.amount;
-    }
-    return sum;
-  }, 0);
-  return Math.max(0, spent);
+export function effectiveSpentFromTransactions(
+  transactions: Transaction[],
+  accounts: Account[] = [],
+  userId?: string
+): number {
+  return foldBudgetSpent(transactions, accounts, userId);
 }
 
 /**
@@ -100,9 +99,11 @@ export function effectiveSpentFromTransactions(transactions: Transaction[]): num
  */
 export function calculateBudgetProgress(
   budget: Budget,
-  transactions: Transaction[]
+  transactions: Transaction[],
+  accounts: Account[] = [],
+  userId?: string
 ): BudgetProgress {
-  const effectiveSpent = effectiveSpentFromTransactions(transactions);
+  const effectiveSpent = effectiveSpentFromTransactions(transactions, accounts, userId);
   const remaining = budget.amount - effectiveSpent;
   const percentage = budget.amount > 0 ? (effectiveSpent / budget.amount) * 100 : 0;
 
@@ -125,7 +126,9 @@ export function calculateBudgetsWithProgress(
   budgets: Budget[],
   transactions: Transaction[],
   periodStart: DateInput | null,
-  periodEnd: DateInput | null
+  periodEnd: DateInput | null,
+  accounts: Account[] = [],
+  userId?: string
 ): BudgetProgress[] {
   const validBudgets = budgets.filter((b) => b.amount > 0);
 
@@ -136,7 +139,7 @@ export function calculateBudgetsWithProgress(
       periodStart,
       periodEnd
     );
-    return calculateBudgetProgress(budget, budgetTransactions);
+    return calculateBudgetProgress(budget, budgetTransactions, accounts, userId ?? budget.user_id);
   });
 }
 
@@ -150,10 +153,12 @@ function buildBudgetSummary(
   activePeriod: BudgetPeriod | null | undefined,
   periodStart: ReturnType<typeof parsePeriodDates>[0],
   periodEnd: ReturnType<typeof parsePeriodDates>[1],
-  unionTransactions: Transaction[]
+  unionTransactions: Transaction[],
+  accounts: Account[],
+  userId: string
 ): UserBudgetSummary {
   const totalBudget = budgetProgress.reduce((sum, b) => sum + b.amount, 0);
-  const totalSpent = effectiveSpentFromTransactions(unionTransactions);
+  const totalSpent = effectiveSpentFromTransactions(unionTransactions, accounts, userId);
   const totalRemaining = totalBudget - totalSpent;
   const overallPercentage = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
 
@@ -178,7 +183,8 @@ export function calculateUserBudgetSummaryPure(
   budgets: Budget[],
   transactions: Transaction[],
   activePeriod: BudgetPeriod | null | undefined,
-  now?: Date
+  now?: Date,
+  accounts: Account[] = []
 ): UserBudgetSummary {
   const [periodStart, periodEnd] = parsePeriodDates(activePeriod, now);
   const validBudgets = budgets.filter((b) => b.amount > 0);
@@ -187,7 +193,9 @@ export function calculateUserBudgetSummaryPure(
     budgets,
     transactions,
     periodStart,
-    periodEnd
+    periodEnd,
+    accounts,
+    user.id
   );
 
   const unionTransactions = filterTransactionsForBudgetsUnion(
@@ -203,7 +211,9 @@ export function calculateUserBudgetSummaryPure(
     activePeriod,
     periodStart,
     periodEnd,
-    unionTransactions
+    unionTransactions,
+    accounts,
+    user.id
   );
 }
 
@@ -215,7 +225,8 @@ export function buildBudgetsByUserPure(
   budgets: Budget[],
   transactions: Transaction[],
   budgetPeriods: Record<string, BudgetPeriod | null>,
-  now?: Date
+  now?: Date,
+  accounts: Account[] = []
 ): Record<string, UserBudgetSummary> {
   const budgetsByUserId = new Map<string, Budget[]>();
   for (const budget of budgets) {
@@ -225,29 +236,19 @@ export function buildBudgetsByUserPure(
     budgetsByUserId.get(budget.user_id)!.push(budget);
   }
 
-  const transactionsByUserId = new Map<string, Transaction[]>();
-  for (const transaction of transactions) {
-    const userId = transaction.user_id;
-    if (!userId) continue;
-    if (!transactionsByUserId.has(userId)) {
-      transactionsByUserId.set(userId, []);
-    }
-    transactionsByUserId.get(userId)!.push(transaction);
-  }
-
   const result: Record<string, UserBudgetSummary> = {};
 
   for (const user of groupUsers) {
     const userBudgets = budgetsByUserId.get(user.id) || [];
-    const userTransactions = transactionsByUserId.get(user.id) || [];
     const activePeriod = budgetPeriods[user.id];
 
     result[user.id] = calculateUserBudgetSummaryPure(
       user,
       userBudgets,
-      userTransactions,
+      transactions,
       activePeriod,
-      now
+      now,
+      accounts
     );
   }
 

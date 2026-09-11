@@ -10,7 +10,6 @@ export const calculatePeriodTotalsUseCase = (
   accounts: Account[]
 ): {
   totalSpent: number;
-  totalSaved: number;
   categorySpending: Record<string, number>;
 } => {
   const periodForResolve: BudgetPeriod = {
@@ -23,7 +22,6 @@ export const calculatePeriodTotalsUseCase = (
 
   return {
     totalSpent: amounts.spendableSpent,
-    totalSaved: amounts.reserveSaved,
     categorySpending: amounts.categorySpending,
   };
 };

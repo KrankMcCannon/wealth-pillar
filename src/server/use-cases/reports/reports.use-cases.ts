@@ -1,36 +1,34 @@
-import { REPORTS_TRANSACTIONS_LIMIT } from '@/server/db/query-limits';
-import { TransactionsRepository } from '@/server/repositories/transactions.repository';
-import { AccountsRepository } from '@/server/repositories/accounts.repository';
-import { CategoriesRepository } from '@/server/repositories/categories.repository';
-import { UsersRepository } from '@/server/repositories/users.repository';
-import { transactions } from '@/server/db/schema';
-import { toDateTime, formatDateShort, toDateString } from '@/lib/utils';
+import type { Account, Budget, BudgetPeriod, Transaction, User } from '@/lib/types';
+import { formatDateShort, toDateString, toDateTime } from '@/lib/utils';
 import { roundMoney } from '@/lib/utils/money';
-import { isReserveAccount } from '@/lib/utils/account-classification';
-import type { Transaction, Account, Budget, BudgetPeriod, User } from '@/lib/types';
+import { REPORTS_TRANSACTIONS_LIMIT } from '@/server/db/query-limits';
+import { transactions } from '@/server/db/schema';
+import { AccountsRepository } from '@/server/repositories/accounts.repository';
 import { BudgetPeriodsRepository } from '@/server/repositories/budget-periods.repository';
+import { CategoriesRepository } from '@/server/repositories/categories.repository';
+import { TransactionsRepository } from '@/server/repositories/transactions.repository';
+import { UsersRepository } from '@/server/repositories/users.repository';
+import {
+  allocatedFromBudgets,
+  resolvePeriodBudgets,
+} from '@/server/use-cases/budget-periods/period-budgets.logic';
 import { addSyntheticActivePeriod } from '@/server/use-cases/budget-periods/synthetic-active-period.logic';
-import { allocatedFromBudgets, resolvePeriodBudgets } from '@/server/use-cases/budget-periods/period-budgets.logic';
 import { getBudgetsByGroupUseCase } from '@/server/use-cases/budgets/get-budgets.use-case';
 import { parsePeriodDates } from '@/server/use-cases/shared/period.logic';
-import { classifyTransferSavingsDelta } from '@/server/use-cases/shared/savings.logic';
+import {
+  accountsToMap,
+  computeTransactionImpact,
+} from '@/server/use-cases/shared/transaction-impact.logic';
 
-/**
- * Spent vs allocation: live budget spend (income nets, transfers skipped).
- * Risparmi start/end: unwind reserveSaved from current reserve balances
- * (transfer net only — not direct reserve income).
- */
+/** Spent vs allocation: live envelope spend (income/expense and categorized transfers). */
 export interface ReportPeriodSummary {
   id: string;
   name: string;
   startDate: string;
   endDate: string;
   spendableSpent: number;
-  reserveSaved: number;
   allocated: number;
   remaining: number;
-  reserveStart: number;
-  reserveEnd: number;
   userId: string;
   /** True when the period has no end date (open / synthetic “Present”). */
   isOpen: boolean;
@@ -41,8 +39,6 @@ interface PeriodSlot {
   startMs: number;
   endMs: number;
   spent: number;
-  reserveSaved: number;
-  liveReserve: boolean;
   allocated: number;
   categoryKeys: Set<string>;
 }
@@ -66,36 +62,11 @@ function liveBudgetsByUserId(budgets: Budget[]): Map<string, Budget[]> {
   return map;
 }
 
-/**
- * Unwind from today's reserve can invent a negative opening on the oldest period.
- * Pin that row only — never lift later periods, or Present stops matching the live account.
- */
-export function pinOldestReserveStartAtZero<
-  T extends { startDate: string; reserveStart: number; reserveEnd: number },
->(rows: T[]): T[] {
-  if (rows.length === 0) return rows;
-  let oldestIdx = 0;
-  for (let i = 1; i < rows.length; i++) {
-    if (rows[i]!.startDate < rows[oldestIdx]!.startDate) oldestIdx = i;
+function slotContaining(slots: PeriodSlot[], t: number): PeriodSlot | undefined {
+  for (const candidate of slots) {
+    if (t >= candidate.startMs && t <= candidate.endMs) return candidate;
   }
-  const oldest = rows[oldestIdx]!;
-  if (oldest.reserveStart >= 0) return rows;
-  const saved = roundMoney(oldest.reserveEnd - oldest.reserveStart);
-  const next = [...rows];
-  next[oldestIdx] = { ...oldest, reserveStart: 0, reserveEnd: saved };
-  return next;
-}
-
-function reserveBalanceByUser(accounts: Account[]): Map<string, number> {
-  const map = new Map<string, number>();
-  for (const account of accounts) {
-    if (!isReserveAccount(account)) continue;
-    const bal = Number(account.balance) || 0;
-    for (const uid of account.user_ids) {
-      map.set(uid, (map.get(uid) ?? 0) + bal);
-    }
-  }
-  return map;
+  return undefined;
 }
 
 export interface UserAccountFlow {
@@ -224,9 +195,7 @@ export async function getReportsTransactionsUseCase(
   return { transactions: normalizedTransactions, hasMore };
 }
 
-/**
- * One pass over txs per user. Reserve start/end unwind transfer-net from current balances.
- */
+/** One pass over txs: leftover vs allocation. Reserve flow lives on the reports window. */
 export function calculatePeriodSummariesUseCase(
   periods: BudgetPeriod[],
   transactions: Transaction[],
@@ -235,10 +204,9 @@ export function calculatePeriodSummariesUseCase(
 ): ReportPeriodSummary[] {
   const now = new Date();
   const liveByUser = liveBudgetsByUserId(budgets);
-  const reserveNow = reserveBalanceByUser(accounts);
-  const accountMap = new Map(accounts.map((account) => [account.id, account]));
-
+  const accountMap = accountsToMap(accounts);
   const slotsByUser = new Map<string, PeriodSlot[]>();
+
   for (const period of periods) {
     const [start, end] = parsePeriodDates(period, now);
     const periodBudgets = resolvePeriodBudgets(period, liveByUser.get(period.user_id) ?? []);
@@ -247,9 +215,6 @@ export function calculatePeriodSummariesUseCase(
       startMs: start.toMillis(),
       endMs: end.toMillis(),
       spent: 0,
-      reserveSaved:
-        period.snapshot_at != null ? roundMoney(Number(period.reserve_saved) || 0) : 0,
-      liveReserve: period.snapshot_at == null,
       allocated: allocatedFromBudgets(periodBudgets),
       categoryKeys: categoryKeysFromBudgets(periodBudgets),
     };
@@ -259,64 +224,35 @@ export function calculatePeriodSummariesUseCase(
   }
 
   for (const tx of transactions) {
-    const userId = tx.user_id;
-    if (!userId) continue;
-    const slots = slotsByUser.get(userId);
-    if (!slots) continue;
+    const impact = computeTransactionImpact(tx, accountMap);
     const t = toDateTime(tx.date)?.toMillis();
     if (t == null) continue;
-    let slot: PeriodSlot | undefined;
-    for (const candidate of slots) {
-      if (t >= candidate.startMs && t <= candidate.endMs) {
-        slot = candidate;
-        break;
-      }
-    }
-    if (!slot) continue;
 
-    if (slot.categoryKeys.has(tx.category)) {
-      if (tx.type === 'expense') slot.spent += tx.amount;
-      else if (tx.type === 'income') slot.spent -= tx.amount;
-    }
-
-    if (slot.liveReserve && tx.type === 'transfer' && tx.to_account_id) {
-      const source = accountMap.get(tx.account_id);
-      const dest = accountMap.get(tx.to_account_id);
-      if (source && dest) {
-        slot.reserveSaved += classifyTransferSavingsDelta(source, dest, tx.amount);
-      }
+    for (const leg of impact.budgetLegs) {
+      const slot = slotContaining(slotsByUser.get(leg.userId) ?? [], t);
+      if (!slot || !slot.categoryKeys.has(tx.category)) continue;
+      slot.spent += leg.signed;
     }
   }
 
   const summaries: ReportPeriodSummary[] = [];
-  for (const [userId, slots] of slotsByUser) {
-    slots.sort((a, b) => b.startMs - a.startMs);
-    let running = roundMoney(reserveNow.get(userId) ?? 0);
-    const userRows: ReportPeriodSummary[] = [];
+  for (const slots of slotsByUser.values()) {
     for (const slot of slots) {
       const spent = roundMoney(Math.max(0, slot.spent));
-      const reserveSaved = roundMoney(slot.reserveSaved);
-      const reserveEnd = running;
-      const reserveStart = roundMoney(running - reserveSaved);
-      running = reserveStart;
       const period = slot.period;
       const allocated = slot.allocated;
-      userRows.push({
+      summaries.push({
         id: period.id,
         name: `${formatDateShort(period.start_date)} - ${period.end_date ? formatDateShort(period.end_date) : 'Present'}`,
         startDate: toDateString(period.start_date),
         endDate: toDateString(period.end_date ?? now),
         spendableSpent: spent,
-        reserveSaved,
         allocated,
         remaining: roundMoney(allocated - spent),
-        reserveStart,
-        reserveEnd,
         userId: period.user_id,
         isOpen: period.end_date == null,
       });
     }
-    summaries.push(...pinOldestReserveStartAtZero(userRows));
   }
 
   summaries.sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());

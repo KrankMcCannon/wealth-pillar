@@ -1,33 +1,26 @@
-import { cacheLife, cacheTag } from 'next/cache';
 import { CACHE_TAGS } from '@/lib/cache/config';
-import { getBudgetsByGroupUseCase } from '../budgets/get-budgets.use-case';
+import type { Account, Budget, BudgetPeriod, Category, User, UserBudgetSummary } from '@/lib/types';
+import { toDateTime } from '@/lib/utils/date-utils';
+import {
+  BUDGETS_TRANSACTIONS_LIMIT,
+  BUDGETS_TRANSACTIONS_OVERFLOW,
+} from '@/server/db/query-limits';
+import { scopeBudgetsPageData } from '@/server/permissions/scope-page-data';
 import {
   getAccountsByGroupDeduped,
   getAllCategoriesDeduped,
   getGroupUsersByGroupIdDeduped,
 } from '@/server/request-cache/services';
+import { cacheLife, cacheTag } from 'next/cache';
 import { getActiveBudgetPeriodsForUsersUseCase } from '../budget-periods/get-active-budget-periods-for-users.use-case';
-import { getTransactionsByGroupUseCase } from '../transactions/get-transactions.use-case';
-import {
-  BUDGETS_TRANSACTIONS_LIMIT,
-  BUDGETS_TRANSACTIONS_OVERFLOW,
-} from '@/server/db/query-limits';
-import { buildBudgetsByUserPure } from '../budgets/budget.logic';
 import {
   buildBudgetChartViewModel,
   type BudgetChartViewModel,
 } from '../budgets/budget-chart.logic';
-import type {
-  Budget,
-  Account,
-  Category,
-  BudgetPeriod,
-  User,
-  UserBudgetSummary,
-} from '@/lib/types';
-import { scopeBudgetsPageData } from '@/server/permissions/scope-page-data';
-import { toDateTime } from '@/lib/utils/date-utils';
+import { buildBudgetsByUserPure } from '../budgets/budget.logic';
+import { getBudgetsByGroupUseCase } from '../budgets/get-budgets.use-case';
 import { parsePeriodDates, resolveChartPeriodEnd } from '../shared/period.logic';
+import { getTransactionsByGroupUseCase } from '../transactions/get-transactions.use-case';
 
 export interface BudgetsPageData {
   budgets: Budget[];
@@ -102,7 +95,9 @@ async function getCachedBudgetsPageData(groupId: string): Promise<BudgetsPageDat
     groupUsers,
     budgets,
     transactionResult.data,
-    budgetPeriods
+    budgetPeriods,
+    undefined,
+    accounts
   );
 
   const chartViewModelsByUser: Record<string, BudgetChartViewModel> = {};
@@ -116,7 +111,8 @@ async function getCachedBudgetsPageData(groupId: string): Promise<BudgetsPageDat
       user.id,
       periodStart,
       chartPeriodEnd,
-      budgetsByUser[user.id] ?? null
+      budgetsByUser[user.id] ?? null,
+      accounts
     );
   }
 

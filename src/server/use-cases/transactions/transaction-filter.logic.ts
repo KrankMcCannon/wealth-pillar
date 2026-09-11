@@ -1,7 +1,7 @@
 import type { Category } from '@/lib/types';
 import { isTransactionDateInFilterRange } from '@/lib/utils/transaction-date-range';
 
-export type TransactionTypeFilter = 'all' | 'income' | 'expense';
+export type TransactionTypeFilter = 'all' | 'income' | 'expense' | 'transfer';
 export type DateRangeFilter = 'all' | 'today' | 'week' | 'month' | 'year' | 'custom';
 
 export interface TransactionFiltersState {

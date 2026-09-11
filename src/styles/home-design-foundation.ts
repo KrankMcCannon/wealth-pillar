@@ -419,14 +419,11 @@ export const stitchReports = {
   rankingMeta: 'text-sm tabular-nums text-muted-foreground',
   savingsGrid: 'grid grid-cols-1 gap-2 sm:grid-cols-3',
   snapshotGrid: 'grid grid-cols-2 gap-x-3 gap-y-1',
-  /** Stacked period list: hairline between entries so date + metrics don’t run together. */
+  /** Period leftover rows — same anatomy as home list rows (title + meta, amount right). */
   periodList: `${stitchHome.plainList} divide-y divide-border/40`,
-  periodRow:
-    'flex w-full flex-col items-stretch gap-2 py-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45',
-  periodRowLink:
-    'flex w-full cursor-pointer flex-col items-stretch gap-2 py-3 text-left transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45 motion-reduce:transition-none',
-  periodMetricCol: 'min-w-0',
-  periodStatus: 'mt-3 text-sm text-muted-foreground',
+  periodRow: stitchHome.plainRow,
+  periodRowLink: `${stitchHome.plainRow} cursor-pointer transition-colors hover:bg-muted/40 motion-reduce:transition-none`,
+  periodStatus: 'text-sm text-muted-foreground',
   periodCompareTable: 'mt-2 w-full border-collapse text-sm tabular-nums',
   periodCompareHead: 'whitespace-nowrap pb-1 text-right text-xs font-medium text-muted-foreground',
   periodCompareRowLabel: 'py-1 pr-3 text-left font-medium text-foreground',
@@ -467,9 +464,6 @@ export const stitchReports = {
   /** Budget period card (reports) */
   periodCard: 'flex flex-col gap-3 rounded-xl border border-border/25 bg-card p-3',
   periodHeaderRow: 'flex items-center justify-between gap-2',
-  periodRangeLabel: 'text-sm font-medium text-foreground',
-  periodMetricLabel: 'text-xs text-muted-foreground',
-  periodMetricValue: 'text-base font-semibold tabular-nums text-foreground',
   emptyWell: stitchHome.emptyWell,
 } as const;
 

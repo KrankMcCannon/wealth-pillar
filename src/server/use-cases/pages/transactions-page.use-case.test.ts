@@ -3,6 +3,7 @@ import type { User } from '@/lib/types';
 import {
   buildAppliedQuery,
   buildTransactionRepositoryOptions,
+  parseTransactionsListType,
   resolveDateRange,
   resolveTransactionsFilters,
   TRANSACTIONS_LIST_PAGE_SIZE,
@@ -44,6 +45,17 @@ describe('resolveTransactionsFilters', () => {
     });
     expect(range.startDate).toBeInstanceOf(Date);
     expect(range.endDate).toBeInstanceOf(Date);
+  });
+});
+
+describe('parseTransactionsListType', () => {
+  it('accepts transfer so reserve links can filter the ledger', () => {
+    expect(parseTransactionsListType('transfer')).toBe('transfer');
+    expect(parseTransactionsListType('expense')).toBe('expense');
+    expect(parseTransactionsListType('income')).toBe('income');
+    expect(parseTransactionsListType('all')).toBe('all');
+    expect(parseTransactionsListType('other')).toBeUndefined();
+    expect(parseTransactionsListType(undefined)).toBeUndefined();
   });
 });
 

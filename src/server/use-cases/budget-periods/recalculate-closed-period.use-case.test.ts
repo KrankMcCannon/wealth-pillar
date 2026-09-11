@@ -1,8 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Account, BudgetPeriod, Transaction } from '@/lib/types';
 import {
-  recalculateClosedPeriodSnapshotUseCase,
   RecalculateClosedPeriodError,
+  recalculateClosedPeriodSnapshotUseCase,
 } from './recalculate-closed-period.use-case';
 
 vi.mock('@/server/repositories/budget-periods.repository', () => ({
@@ -12,14 +12,8 @@ vi.mock('@/server/repositories/budget-periods.repository', () => ({
   },
 }));
 
-vi.mock('@/server/repositories/accounts.repository', () => ({
-  AccountsRepository: {
-    findByUser: vi.fn(),
-  },
-}));
-
-vi.mock('../transactions/get-transactions.use-case', () => ({
-  getTransactionsByUserUseCase: vi.fn(),
+vi.mock('./load-period-liquidity-data', () => ({
+  loadPeriodLiquidityData: vi.fn(),
 }));
 
 vi.mock('next/cache', () => ({
@@ -31,8 +25,7 @@ vi.mock('@/lib/utils/cache-utils', () => ({
 }));
 
 import { BudgetPeriodsRepository } from '@/server/repositories/budget-periods.repository';
-import { AccountsRepository } from '@/server/repositories/accounts.repository';
-import { getTransactionsByUserUseCase } from '../transactions/get-transactions.use-case';
+import { loadPeriodLiquidityData } from './load-period-liquidity-data';
 
 function closedPeriod(overrides: Partial<BudgetPeriod> = {}): BudgetPeriod {
   return {
@@ -56,7 +49,7 @@ const payroll: Account = {
   id: 'a-spend',
   name: 'Payroll',
   type: 'payroll',
-  user_ids: ['u1'],
+  user_ids: ['u2'],
   group_id: 'g1',
   balance: 300,
   liquidity: 'spendable',
@@ -64,11 +57,44 @@ const payroll: Account = {
   updated_at: '',
 };
 
+const reserve: Account = {
+  id: 'a-reserve',
+  name: 'Savings',
+  type: 'savings',
+  user_ids: ['u1', 'u2'],
+  group_id: 'g1',
+  balance: 500,
+  liquidity: 'reserve',
+  created_at: '',
+  updated_at: '',
+};
+
+function expenseTx(): Transaction {
+  return {
+    id: 't1',
+    description: '',
+    amount: 40,
+    type: 'expense',
+    category: 'food',
+    date: '2024-05-10',
+    user_id: 'u1',
+    account_id: 'a-spend',
+    to_account_id: null,
+    frequency: 'once',
+    recurring_series_id: null,
+    group_id: 'g1',
+    created_at: '',
+    updated_at: '',
+  };
+}
+
 describe('recalculateClosedPeriodSnapshotUseCase', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(AccountsRepository.findByUser).mockResolvedValue([payroll]);
-    vi.mocked(getTransactionsByUserUseCase).mockResolvedValue([] as Transaction[]);
+    vi.mocked(loadPeriodLiquidityData).mockResolvedValue({
+      transactions: [],
+      accounts: [payroll],
+    });
   });
 
   it('rewrites snapshot fields from the current period window', async () => {
@@ -76,35 +102,50 @@ describe('recalculateClosedPeriodSnapshotUseCase', () => {
     const updated = closedPeriod({ spendable_spent: 40, snapshot_at: '2024-06-01T00:00:00.000Z' });
     vi.mocked(BudgetPeriodsRepository.findById).mockResolvedValue(closed);
     vi.mocked(BudgetPeriodsRepository.update).mockResolvedValue(updated);
-    vi.mocked(getTransactionsByUserUseCase).mockResolvedValue([
-      {
-        id: 't1',
-        description: '',
-        amount: 40,
-        type: 'expense',
-        category: 'food',
-        date: '2024-05-10',
-        user_id: 'u1',
-        account_id: 'a-spend',
-        to_account_id: null,
-        frequency: 'once',
-        recurring_series_id: null,
-        group_id: 'g1',
-        created_at: '',
-        updated_at: '',
-      },
-    ]);
+    vi.mocked(loadPeriodLiquidityData).mockResolvedValue({
+      transactions: [expenseTx()],
+      accounts: [payroll],
+    });
 
     const result = await recalculateClosedPeriodSnapshotUseCase('u1', 'closed-1');
 
     expect(result.spendable_spent).toBe(40);
+    expect(loadPeriodLiquidityData).toHaveBeenCalledWith('g1', 'u1');
     expect(BudgetPeriodsRepository.update).toHaveBeenCalledWith(
       'closed-1',
       expect.objectContaining({
         spendable_spent: '40',
-        reserve_saved: '0',
+        reserve_saved: null,
         category_spending: { food: 40 },
       })
+    );
+  });
+
+  it('does not snapshot reserve from a partner dest-shared save', async () => {
+    const closed = closedPeriod();
+    vi.mocked(BudgetPeriodsRepository.findById).mockResolvedValue(closed);
+    vi.mocked(BudgetPeriodsRepository.update).mockResolvedValue(closed);
+    vi.mocked(loadPeriodLiquidityData).mockResolvedValue({
+      transactions: [
+        {
+          ...expenseTx(),
+          id: 'save',
+          type: 'transfer',
+          category: 'trasferimento',
+          amount: 61,
+          user_id: 'u2',
+          account_id: 'a-spend',
+          to_account_id: 'a-reserve',
+        },
+      ],
+      accounts: [payroll, reserve],
+    });
+
+    await recalculateClosedPeriodSnapshotUseCase('u1', 'closed-1');
+
+    expect(BudgetPeriodsRepository.update).toHaveBeenCalledWith(
+      'closed-1',
+      expect.objectContaining({ reserve_saved: null, spendable_spent: '0' })
     );
   });
 
@@ -121,7 +162,7 @@ describe('recalculateClosedPeriodSnapshotUseCase', () => {
       'closed-1',
       expect.objectContaining({
         spendable_spent: '0',
-        reserve_saved: '0',
+        reserve_saved: null,
       })
     );
   });

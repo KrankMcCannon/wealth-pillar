@@ -1,7 +1,12 @@
-import type { Transaction, Budget, UserBudgetSummary } from '@/lib/types';
-import { toDateTime, toDateString, today as luxonToday, diffInDays } from '@/lib/utils/date-utils';
-import { filterTransactionsForBudgetsUnion, effectiveSpentFromTransactions } from './budget.logic';
+import type { Account, Budget, Transaction, UserBudgetSummary } from '@/lib/types';
 import type { DateInput } from '@/lib/utils/date-utils';
+import { diffInDays, today as luxonToday, toDateString, toDateTime } from '@/lib/utils/date-utils';
+import {
+  accountsToMap,
+  budgetSignedForUser,
+  transactionInvolvesUser,
+} from '../shared/transaction-impact.logic';
+import { effectiveSpentFromTransactions, filterTransactionsForBudgetsUnion } from './budget.logic';
 
 export interface ChartDataPoint {
   x: number;
@@ -30,7 +35,8 @@ export function buildBudgetChartViewModel(
   userId: string,
   periodStart: DateInput | null,
   periodEnd: DateInput | null,
-  userBudgetSummary: UserBudgetSummary | null
+  userBudgetSummary: UserBudgetSummary | null,
+  accounts: Account[] = []
 ): BudgetChartViewModel {
   if (!periodStart || userBudgets.length === 0) {
     return {
@@ -41,7 +47,7 @@ export function buildBudgetChartViewModel(
     };
   }
 
-  const userTransactions = transactions.filter((t) => t.user_id === userId);
+  const userTransactions = transactions.filter((t) => transactionInvolvesUser(t, userId, accounts));
   const periodTransactions = filterTransactionsForBudgetsUnion(
     userTransactions,
     userBudgets,
@@ -49,8 +55,9 @@ export function buildBudgetChartViewModel(
     periodEnd
   );
 
-  const chartAggregateSpent = effectiveSpentFromTransactions(periodTransactions);
+  const chartAggregateSpent = effectiveSpentFromTransactions(periodTransactions, accounts, userId);
 
+  const accountMap = accountsToMap(accounts);
   const groupedMap: Record<string, Transaction[]> = {};
   for (const transaction of periodTransactions) {
     const dateKey = toDateString(transaction.date);
@@ -68,11 +75,10 @@ export function buildBudgetChartViewModel(
       txsWithTime.sort((a, b) => b.time - a.time);
 
       const sortedTxs = txsWithTime.map((item) => item.tx);
-      const total = sortedTxs.reduce((sum, tx) => {
-        if (tx.type === 'income') return sum - tx.amount;
-        if (tx.type === 'expense') return sum + tx.amount;
-        return sum;
-      }, 0);
+      const total = sortedTxs.reduce(
+        (sum, tx) => sum + budgetSignedForUser(tx, accountMap, userId),
+        0
+      );
 
       return {
         date,
@@ -85,7 +91,9 @@ export function buildBudgetChartViewModel(
     periodTransactions,
     periodStart,
     periodEnd,
-    userBudgetSummary?.totalBudget ?? 1
+    userBudgetSummary?.totalBudget ?? 1,
+    accountMap,
+    userId
   );
 
   return { chartAggregateSpent, chartData, groupedTransactions, periodTransactions };
@@ -95,7 +103,9 @@ function buildCumulativeChartPoints(
   periodTransactions: Transaction[],
   periodStart: DateInput,
   periodEnd: DateInput | null,
-  totalBudget: number
+  totalBudget: number,
+  accountMap: ReturnType<typeof accountsToMap>,
+  userId: string
 ): ChartDataPoint[] | null {
   if (periodTransactions.length === 0) return null;
 
@@ -110,9 +120,8 @@ function buildCumulativeChartPoints(
 
   const dailySpending: Record<string, number> = {};
   for (const tx of periodTransactions) {
-    if (tx.type === 'transfer') continue;
     const dateKey = toDateString(tx.date);
-    const amount = tx.type === 'income' ? -tx.amount : tx.amount;
+    const amount = budgetSignedForUser(tx, accountMap, userId);
     dailySpending[dateKey] = (dailySpending[dateKey] || 0) + amount;
   }
 

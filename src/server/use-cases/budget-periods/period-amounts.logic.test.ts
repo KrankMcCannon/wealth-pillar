@@ -70,24 +70,6 @@ describe('computePeriodLiquidityAmounts', () => {
     expect(result.spendableSpent).toBe(50);
     expect(result.categorySpending).toEqual({ food: 50 });
   });
-
-  it('computes reserve_saved from spendable-to-reserve transfers', () => {
-    const result = computePeriodLiquidityAmounts(
-      [
-        tx({
-          type: 'transfer',
-          amount: 75,
-          account_id: 'a1',
-          to_account_id: 'a2',
-          category: 'savings',
-        }),
-      ],
-      accounts,
-      window,
-      'u1'
-    );
-    expect(result.reserveSaved).toBe(75);
-  });
 });
 
 describe('resolvePeriodAmounts', () => {
@@ -103,7 +85,6 @@ describe('resolvePeriodAmounts', () => {
 
     const result = resolvePeriodAmounts(frozen, [tx({ amount: 999 })], accounts);
     expect(result.spendableSpent).toBe(1200);
-    expect(result.reserveSaved).toBe(300);
     expect(result.categorySpending).toEqual({ food: 800, transport: 400 });
   });
 

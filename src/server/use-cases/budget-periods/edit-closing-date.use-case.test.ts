@@ -17,12 +17,12 @@ vi.mock('@/server/repositories/budget-periods.repository', () => ({
 
 vi.mock('@/server/repositories/accounts.repository', () => ({
   AccountsRepository: {
-    findByUser: vi.fn(),
+    findByGroup: vi.fn(),
   },
 }));
 
-vi.mock('../transactions/get-transactions.use-case', () => ({
-  getTransactionsByUserUseCase: vi.fn(),
+vi.mock('./load-period-liquidity-data', () => ({
+  loadPeriodLiquidityData: vi.fn(),
 }));
 
 vi.mock('next/cache', () => ({
@@ -34,8 +34,7 @@ vi.mock('@/lib/utils/cache-utils', () => ({
 }));
 
 import { BudgetPeriodsRepository } from '@/server/repositories/budget-periods.repository';
-import { AccountsRepository } from '@/server/repositories/accounts.repository';
-import { getTransactionsByUserUseCase } from '../transactions/get-transactions.use-case';
+import { loadPeriodLiquidityData } from './load-period-liquidity-data';
 
 function closedPeriod(overrides: Partial<BudgetPeriod> = {}): BudgetPeriod {
   return {
@@ -82,8 +81,10 @@ describe('findLatestClosedPeriod', () => {
 describe('editPeriodDatesUseCase', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(getTransactionsByUserUseCase).mockResolvedValue([] as Transaction[]);
-    vi.mocked(AccountsRepository.findByUser).mockResolvedValue([] as Account[]);
+    vi.mocked(loadPeriodLiquidityData).mockResolvedValue({
+      transactions: [] as Transaction[],
+      accounts: [] as Account[],
+    });
   });
 
   it('shifts the next period start and recalculates both when a closed end changes', async () => {
@@ -172,8 +173,10 @@ describe('editPeriodDatesUseCase', () => {
 describe('editBudgetPeriodClosingDateUseCase', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(getTransactionsByUserUseCase).mockResolvedValue([] as Transaction[]);
-    vi.mocked(AccountsRepository.findByUser).mockResolvedValue([] as Account[]);
+    vi.mocked(loadPeriodLiquidityData).mockResolvedValue({
+      transactions: [] as Transaction[],
+      accounts: [] as Account[],
+    });
   });
 
   it('updates closed snapshot and shifts active start date', async () => {

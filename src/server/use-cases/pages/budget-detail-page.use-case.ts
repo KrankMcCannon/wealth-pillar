@@ -1,30 +1,40 @@
+import { CACHE_TAGS } from '@/lib/cache/config';
+import type { Account, Budget, Category, Transaction, User } from '@/lib/types';
+import { toDateTime } from '@/lib/utils/date-utils';
+import { BUDGET_DETAIL_TX_PREVIEW } from '@/server/db/query-limits';
+import { scopeBudgetDetailPageData } from '@/server/permissions/scope-page-data';
+import {
+  getAccountsByGroupDeduped,
+  getAllCategoriesDeduped,
+} from '@/server/request-cache/services';
 import { cacheLife, cacheTag } from 'next/cache';
 import { notFound } from 'next/navigation';
-import { CACHE_TAGS } from '@/lib/cache/config';
-import { getBudgetByIdUseCase } from '../budgets/get-budgets.use-case';
 import { getActiveBudgetPeriodUseCase } from '../budget-periods/get-active-budget-period.use-case';
-import { getTransactionsByUserUseCase } from '../transactions/get-transactions.use-case';
-import {
-  getAllCategoriesDeduped,
-  getAccountsByGroupDeduped,
-} from '@/server/request-cache/services';
-import {
-  filterTransactionsForBudget,
-  calculateBudgetProgress,
-  buildBudgetCategoryBreakdown,
-} from '../budgets/budget.logic';
 import type { GroupedBudgetTransaction } from '../budgets/budget-chart.logic';
-import { toDateTime } from '@/lib/utils/date-utils';
+import {
+  buildBudgetCategoryBreakdown,
+  calculateBudgetProgress,
+  filterTransactionsForBudget,
+} from '../budgets/budget.logic';
+import { getBudgetByIdUseCase } from '../budgets/get-budgets.use-case';
 import { parsePeriodDates } from '../shared/period.logic';
-import type { Account, Budget, Category, Transaction, User } from '@/lib/types';
+import {
+  accountsToMap,
+  budgetSignedForUser,
+  transactionInvolvesUser,
+} from '../shared/transaction-impact.logic';
+import { getTransactionsByGroupUseCase } from '../transactions/get-transactions.use-case';
 import type { BudgetDetailPageData } from './budget-detail-page.types';
-import { scopeBudgetDetailPageData } from '@/server/permissions/scope-page-data';
-import { BUDGET_DETAIL_TX_PREVIEW } from '@/server/db/query-limits';
 
 export type { BudgetDetailPageData } from './budget-detail-page.types';
 
-function groupTransactionsByDay(transactions: Transaction[]): GroupedBudgetTransaction[] {
+function groupTransactionsByDay(
+  transactions: Transaction[],
+  accounts: Account[],
+  userId: string
+): GroupedBudgetTransaction[] {
   const groupedMap: Record<string, Transaction[]> = {};
+  const accountMap = accountsToMap(accounts);
   for (const transaction of transactions) {
     const dateKey =
       typeof transaction.date === 'string'
@@ -44,11 +54,7 @@ function groupTransactionsByDay(transactions: Transaction[]): GroupedBudgetTrans
         if (!dtA || !dtB) return 0;
         return dtB.toMillis() - dtA.toMillis();
       }),
-      total: txs.reduce((sum, tx) => {
-        if (tx.type === 'income') return sum + tx.amount;
-        if (tx.type === 'expense') return sum - tx.amount;
-        return sum;
-      }, 0),
+      total: txs.reduce((sum, tx) => sum - budgetSignedForUser(tx, accountMap, userId), 0),
     }));
 }
 
@@ -130,11 +136,17 @@ async function getCachedBudgetDetailPageData(
     ...(budget.categories.length > 0 ? { categoryKeys: budget.categories } : {}),
   };
 
-  const [accounts, categories, userTransactions] = await Promise.all([
+  const [accounts, categories, groupTransactions] = await Promise.all([
     getAccountsByGroupDeduped(groupId).catch(() => [] as Account[]),
     getAllCategoriesDeduped().catch(() => [] as Category[]),
-    getTransactionsByUserUseCase(budget.user_id, txOptions).catch(() => [] as Transaction[]),
+    getTransactionsByGroupUseCase(groupId, txOptions)
+      .then((result) => result.data)
+      .catch(() => [] as Transaction[]),
   ]);
+
+  const userTransactions = groupTransactions.filter((tx) =>
+    transactionInvolvesUser(tx, budget.user_id, accounts)
+  );
 
   const budgetTransactions = filterTransactionsForBudget(
     userTransactions,
@@ -142,10 +154,16 @@ async function getCachedBudgetDetailPageData(
     periodStart,
     periodEnd
   );
-  const progress = calculateBudgetProgress(budget, budgetTransactions);
-  const categoryBreakdown = buildBudgetCategoryBreakdown(budget, budgetTransactions, categories);
+  const progress = calculateBudgetProgress(budget, budgetTransactions, accounts, budget.user_id);
+  const categoryBreakdown = buildBudgetCategoryBreakdown(
+    budget,
+    budgetTransactions,
+    categories,
+    accounts,
+    budget.user_id
+  );
   const groupedTransactions = previewGroupedBudgetTransactions(
-    groupTransactionsByDay(budgetTransactions),
+    groupTransactionsByDay(budgetTransactions, accounts, budget.user_id),
     BUDGET_DETAIL_TX_PREVIEW
   );
   const slim = slimDetailPayload(accounts, categories, budget, budgetTransactions);

@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { classifyTransferSavingsDelta, computeNetSavings } from './savings.logic';
+import { classifyTransferSavingsDelta } from './savings.logic';
+import { computeNetSavings } from './transaction-impact.logic';
 import type { Account, Transaction } from '@/lib/types';
 
 const window = {
@@ -73,7 +74,10 @@ describe('classifyTransferSavingsDelta', () => {
 });
 
 describe('computeNetSavings', () => {
-  const accounts = [account({ id: 'a1', type: 'payroll' }), account({ id: 'a2', type: 'savings' })];
+  const accounts = [
+    account({ id: 'a1', name: 'Payroll', type: 'payroll' }),
+    account({ id: 'a2', name: 'Savings', type: 'savings' }),
+  ];
 
   it('sums deposits and withdrawals in window', () => {
     const result = computeNetSavings(
@@ -100,5 +104,16 @@ describe('computeNetSavings', () => {
     expect(result.deposits).toBe(100);
     expect(result.withdrawals).toBe(40);
     expect(result.net).toBe(60);
+    expect(result.count).toBe(2);
+  });
+
+  it('credits a dest-shared save to the source actor, not every pot member', () => {
+    const joint = [
+      account({ id: 'a1', type: 'payroll', user_ids: ['u1'] }),
+      account({ id: 'a2', type: 'savings', user_ids: ['u1', 'u2'] }),
+    ];
+    const rows = [tx({ user_id: 'u1', account_id: 'a1', to_account_id: 'a2', amount: 100 })];
+    expect(computeNetSavings(rows, joint, window, 'u1').net).toBe(100);
+    expect(computeNetSavings(rows, joint, window, 'u2').net).toBe(0);
   });
 });

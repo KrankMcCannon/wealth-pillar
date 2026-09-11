@@ -2,18 +2,15 @@
 
 import { TrendingDown, TrendingUp } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { PlainListRow } from '@/components/ui/layout/plain-list-row';
 import { cn } from '@/lib/utils';
 import { stitchHome, stitchReports } from '@/styles/home-design-foundation';
 import { useFormatCurrency } from '@/features/reports/hooks/use-format-currency';
-import type { NetSavingsResult } from '@/server/use-cases/shared/savings.logic';
 import { SplitBar } from './split-bar';
 
 interface ReportsHeroProps {
   netFlow: number;
   income: number;
   expenses: number;
-  netSavings?: NetSavingsResult;
   /** Delta vs previous window; `null` = no data to compare. Ignored when `omitComparison`. */
   comparisonPercent?: number | null;
   comparisonLabel?: string;
@@ -25,7 +22,6 @@ export function ReportsHero({
   netFlow,
   income,
   expenses,
-  netSavings,
   comparisonPercent,
   comparisonLabel,
   omitComparison = false,
@@ -35,8 +31,6 @@ export function ReportsHero({
   const positive = netFlow >= 0;
   const pct = comparisonPercent ?? null;
   const trendUp = pct !== null && pct >= 0;
-  const savings = netSavings ?? { deposits: 0, withdrawals: 0, net: 0 };
-  const showSavings = savings.deposits !== 0 || savings.withdrawals !== 0;
   const flowTotal = income + expenses;
   const incomeShare = flowTotal > 0 ? (income / flowTotal) * 100 : 0;
 
@@ -100,29 +94,6 @@ export function ReportsHero({
           <p className="mt-1 text-sm text-muted-foreground">{t('noComparison')}</p>
         ) : null}
       </div>
-      {showSavings ? (
-        <ul className={stitchHome.plainList}>
-          <li>
-            <PlainListRow
-              title={t('movedToSavings')}
-              meta={t('savingsMeta', {
-                deposits: formatMoney(savings.deposits),
-                withdrawals: formatMoney(savings.withdrawals),
-              })}
-            >
-              <span
-                className={cn(
-                  'text-base font-semibold tabular-nums',
-                  savings.net < 0 ? stitchHome.amountExpense : stitchHome.amountIncome
-                )}
-              >
-                {savings.net >= 0 ? '+' : ''}
-                {formatMoney(savings.net)}
-              </span>
-            </PlainListRow>
-          </li>
-        </ul>
-      ) : null}
     </section>
   );
 }

@@ -79,7 +79,7 @@ function budget(overrides: Partial<Budget> = {}): Budget {
 }
 
 describe('calculatePeriodSummariesUseCase', () => {
-  it('keeps reserve from the snapshot and spends from current budget txs', () => {
+  it('keeps leftover from live envelope spend, not closed snapshot spend', () => {
     const [summary] = calculatePeriodSummariesUseCase(
       [
         makePeriod({
@@ -95,7 +95,6 @@ describe('calculatePeriodSummariesUseCase', () => {
     );
 
     expect(summary!.spendableSpent).toBe(99);
-    expect(summary!.reserveSaved).toBe(1000);
     expect(summary!.allocated).toBe(4000);
     expect(summary!.remaining).toBe(3901);
   });
@@ -132,7 +131,6 @@ describe('calculatePeriodSummariesUseCase', () => {
 
     expect(summary!.spendableSpent).toBe(50);
     expect(summary!.remaining).toBe(2150);
-    expect(summary!.reserveSaved).toBe(-11203.31);
   });
 
   it('ignores a mutuo round-trip that is not in the budget categories', () => {
@@ -173,7 +171,29 @@ describe('calculatePeriodSummariesUseCase', () => {
     );
 
     expect(summary!.spendableSpent).toBe(0);
-    expect(summary!.reserveSaved).toBe(1000);
+  });
+
+  it('counts a dest-shared save toward the envelope that lists its category', () => {
+    const envelopes = [budget({ amount: 1000, categories: ['trasferimento'] })];
+    const joint = { ...reserve, user_ids: [userId, 'u2'] };
+    const [summary] = calculatePeriodSummariesUseCase(
+      [makePeriod({ budgets_snapshot: envelopes })],
+      [
+        tx({
+          type: 'transfer',
+          category: 'trasferimento',
+          account_id: 'a-spend',
+          to_account_id: 'a-reserve',
+          amount: 1000,
+        }),
+      ],
+      [spendable, joint],
+      envelopes
+    );
+
+    expect(summary!.spendableSpent).toBe(1000);
+    expect(summary!.allocated).toBe(1000);
+    expect(summary!.remaining).toBe(0);
   });
 
   it('does not treat a transfer between spendable accounts as expense or income', () => {
@@ -193,7 +213,6 @@ describe('calculatePeriodSummariesUseCase', () => {
     );
 
     expect(summary!.spendableSpent).toBe(0);
-    expect(summary!.reserveSaved).toBe(0);
   });
 
   it('counts live budget-category expenses, not salary or unbudgeted spend', () => {
@@ -208,7 +227,6 @@ describe('calculatePeriodSummariesUseCase', () => {
     );
 
     expect(summary!.spendableSpent).toBe(80);
-    expect(summary!.reserveSaved).toBe(0);
     expect(summary!.allocated).toBe(200);
     expect(summary!.remaining).toBe(120);
   });
@@ -261,53 +279,6 @@ describe('calculatePeriodSummariesUseCase', () => {
     expect(summary!.remaining).toBe(0);
   });
 
-  it('unwinds risparmi start/end from current reserve and period savings', () => {
-    const closed = makePeriod({
-      id: 'closed',
-      start_date: '2024-06-01',
-      end_date: '2024-06-30',
-      snapshot_at: '2024-07-01',
-      reserve_saved: 100,
-    });
-    const open = makePeriod({
-      id: 'open',
-      start_date: '2024-07-01',
-      end_date: null,
-      is_active: true,
-      snapshot_at: null,
-    });
-    const summaries = calculatePeriodSummariesUseCase(
-      [closed, open],
-      [
-        tx({
-          id: 'save',
-          type: 'transfer',
-          category: 'savings',
-          date: '2024-07-10',
-          account_id: 'a-spend',
-          to_account_id: 'a-reserve',
-          amount: 200,
-        }),
-      ],
-      [spendable, { ...reserve, balance: 500 }],
-      [budget({ amount: 2200 })]
-    );
-
-    const byId = Object.fromEntries(summaries.map((s) => [s.id, s]));
-    expect(byId.open).toMatchObject({
-      reserveSaved: 200,
-      reserveStart: 300,
-      reserveEnd: 500,
-      isOpen: true,
-    });
-    expect(byId.closed).toMatchObject({
-      reserveSaved: 100,
-      reserveStart: 200,
-      reserveEnd: 300,
-      isOpen: false,
-    });
-  });
-
   it('sums leftover across envelopes for remaining', () => {
     const envelopes = [
       budget({ id: 'food', amount: 400, categories: ['food'] }),
@@ -323,106 +294,6 @@ describe('calculatePeriodSummariesUseCase', () => {
     expect(summary!.allocated).toBe(1100);
     expect(summary!.spendableSpent).toBe(90);
     expect(summary!.remaining).toBe(1010);
-  });
-
-  it('does not invent a negative opening on the first closed period', () => {
-    const closed = makePeriod({
-      id: 'first',
-      start_date: '2024-06-01',
-      end_date: '2024-06-30',
-      snapshot_at: '2024-07-01',
-      reserve_saved: 50,
-    });
-    const [summary] = calculatePeriodSummariesUseCase(
-      [closed],
-      [],
-      [spendable, { ...reserve, balance: 0 }],
-      [budget({ amount: 200 })]
-    );
-
-    expect(summary).toMatchObject({
-      reserveSaved: 50,
-      reserveStart: 0,
-      reserveEnd: 50,
-    });
-  });
-
-  it('does not rewrite Present when the oldest period would open negative', () => {
-    const closed = makePeriod({
-      id: 'closed',
-      start_date: '2024-06-01',
-      end_date: '2024-06-30',
-      snapshot_at: '2024-07-01',
-      reserve_saved: 400,
-    });
-    const open = makePeriod({
-      id: 'open',
-      start_date: '2024-07-01',
-      end_date: null,
-      is_active: true,
-      snapshot_at: null,
-    });
-    const summaries = calculatePeriodSummariesUseCase(
-      [closed, open],
-      [],
-      [spendable, { ...reserve, balance: 50 }],
-      [budget({ amount: 200 })]
-    );
-    const byId = Object.fromEntries(summaries.map((s) => [s.id, s]));
-
-    expect(byId.open).toMatchObject({
-      reserveSaved: 0,
-      reserveStart: 50,
-      reserveEnd: 50,
-      isOpen: true,
-    });
-    expect(byId.closed).toMatchObject({
-      reserveSaved: 400,
-      reserveStart: 0,
-      reserveEnd: 400,
-    });
-  });
-
-  it('keeps a shared reserve account at the same Present end for every owner', () => {
-    const alice = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
-    const bob = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
-    const shared = { ...reserve, user_ids: [alice, bob], balance: 8495.61 };
-    const summaries = calculatePeriodSummariesUseCase(
-      [
-        makePeriod({
-          id: 'alice-closed',
-          user_id: alice,
-          start_date: '2024-06-01',
-          end_date: '2024-06-30',
-          snapshot_at: '2024-07-01',
-          reserve_saved: 12000,
-        }),
-        makePeriod({
-          id: 'alice-open',
-          user_id: alice,
-          start_date: '2024-07-07',
-          end_date: null,
-          is_active: true,
-          snapshot_at: null,
-        }),
-        makePeriod({
-          id: 'bob-open',
-          user_id: bob,
-          start_date: '2024-06-27',
-          end_date: null,
-          is_active: true,
-          snapshot_at: null,
-        }),
-      ],
-      [],
-      [spendable, shared],
-      []
-    );
-    const byId = Object.fromEntries(summaries.map((s) => [s.id, s]));
-
-    expect(byId['alice-open']!.reserveEnd).toBe(8495.61);
-    expect(byId['bob-open']!.reserveEnd).toBe(8495.61);
-    expect(byId['alice-open']!.reserveEnd).toBe(byId['bob-open']!.reserveEnd);
   });
 });
 

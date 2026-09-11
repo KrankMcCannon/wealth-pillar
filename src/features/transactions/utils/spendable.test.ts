@@ -62,4 +62,34 @@ describe('spendableByDay', () => {
     expect(byDay.get('2024-06-02')).toBe(500);
     expect(byDay.get('2024-06-01')).toBe(580);
   });
+
+  it('rewinds spendable-to-reserve transfers on older days', () => {
+    const accounts = [
+      account({ id: 'cash', type: 'payroll', balance: 400 }),
+      account({ id: 'vault', type: 'savings', user_ids: ['u1'] }),
+    ];
+    const days = [
+      {
+        isoDate: '2024-06-02',
+        transactions: [
+          tx({
+            id: 'save',
+            amount: 100,
+            type: 'transfer',
+            account_id: 'cash',
+            to_account_id: 'vault',
+            date: '2024-06-02',
+          }),
+        ],
+      },
+      {
+        isoDate: '2024-06-01',
+        transactions: [],
+      },
+    ];
+
+    const byDay = spendableByDay(days, 400, accounts);
+    expect(byDay.get('2024-06-02')).toBe(400);
+    expect(byDay.get('2024-06-01')).toBe(500);
+  });
 });

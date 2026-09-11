@@ -1,32 +1,35 @@
-import { cacheLife, cacheTag } from 'next/cache';
-import { notFound } from 'next/navigation';
 import { CACHE_TAGS } from '@/lib/cache/config';
 import { AccessScope } from '@/lib/permissions/access-scope';
-import { calculateBudgetsWithProgress } from '../budgets/budget.logic';
-import { parsePeriodDates } from '../shared/period.logic';
-import { resolvePeriodBudgets } from '../budget-periods/period-budgets.logic';
 import type { Budget, BudgetProgress, Category, PeriodLiquidityAmounts, User } from '@/lib/types';
 import { roundMoney } from '@/lib/utils/money';
+import { REPORTS_TRANSACTIONS_LIMIT } from '@/server/db/query-limits';
 import { BudgetPeriodsRepository } from '@/server/repositories/budget-periods.repository';
-import { AccountsRepository } from '@/server/repositories/accounts.repository';
 import { UsersRepository } from '@/server/repositories/users.repository';
-import { getAllCategoriesDeduped } from '@/server/request-cache/services';
-import { getBudgetsByUserUseCase } from '../budgets/get-budgets.use-case';
-import { getTransactionsByUserUseCase } from '../transactions/get-transactions.use-case';
+import {
+  getAccountsByGroupDeduped,
+  getAllCategoriesDeduped,
+} from '@/server/request-cache/services';
+import { cacheLife, cacheTag } from 'next/cache';
+import { notFound } from 'next/navigation';
 import { findLatestClosedPeriod } from '../budget-periods/edit-closing-date.use-case';
-import { findPreviousPeriod } from '../budget-periods/rewind-closed-period.use-case';
-import { isSyntheticBudgetPeriodId } from '../budget-periods/synthetic-active-period.logic';
 import {
   computePeriodLiquidityAmounts,
   periodToDateWindow,
   resolvePeriodAmounts,
 } from '../budget-periods/period-amounts.logic';
-import {
-  getProcessedUserPeriodsUseCase,
-  calculatePeriodSummariesUseCase,
-} from '../reports/reports.use-cases';
-import type { ReportPeriodSummary } from '../reports/reports.use-cases';
+import { resolvePeriodBudgets } from '../budget-periods/period-budgets.logic';
+import { findPreviousPeriod } from '../budget-periods/rewind-closed-period.use-case';
+import { isSyntheticBudgetPeriodId } from '../budget-periods/synthetic-active-period.logic';
+import { calculateBudgetsWithProgress } from '../budgets/budget.logic';
+import { getBudgetsByUserUseCase } from '../budgets/get-budgets.use-case';
 import type { ReportsTopExpenseRow } from '../reports/report.logic';
+import type { ReportPeriodSummary } from '../reports/reports.use-cases';
+import {
+  calculatePeriodSummariesUseCase,
+  getProcessedUserPeriodsUseCase,
+} from '../reports/reports.use-cases';
+import { parsePeriodDates } from '../shared/period.logic';
+import { getTransactionsByGroupUseCase } from '../transactions/get-transactions.use-case';
 
 export interface ReportPeriodDetailPageData {
   periodId: string;
@@ -48,7 +51,7 @@ export interface ReportPeriodDetailPageData {
 }
 
 function periodAmountsMatch(a: PeriodLiquidityAmounts, b: PeriodLiquidityAmounts): boolean {
-  if (a.spendableSpent !== b.spendableSpent || a.reserveSaved !== b.reserveSaved) return false;
+  if (a.spendableSpent !== b.spendableSpent) return false;
   const keys = new Set([...Object.keys(a.categorySpending), ...Object.keys(b.categorySpending)]);
   for (const key of keys) {
     if (roundMoney(a.categorySpending[key] ?? 0) !== roundMoney(b.categorySpending[key] ?? 0)) {
@@ -109,13 +112,17 @@ async function getCachedReportPeriodDetailPageData(
   }
   const owner = ownerRow as unknown as User;
 
-  const [transactions, accounts, budgets, categories, periods] = await Promise.all([
-    getTransactionsByUserUseCase(period.user_id),
-    AccountsRepository.findByUser(period.user_id),
+  const [transactionResult, accounts, budgets, categories, periods] = await Promise.all([
+    getTransactionsByGroupUseCase(groupId, {
+      limit: REPORTS_TRANSACTIONS_LIMIT,
+      countTotal: false,
+    }),
+    getAccountsByGroupDeduped(groupId),
     getBudgetsByUserUseCase(period.user_id),
     getAllCategoriesDeduped().catch(() => [] as Category[]),
     getProcessedUserPeriodsUseCase(owner),
   ]);
+  const transactions = transactionResult.data;
 
   const summaries = calculatePeriodSummariesUseCase(periods, transactions, accounts, budgets);
   const summary = summaries.find((row) => row.id === period.id);
@@ -156,7 +163,9 @@ async function getCachedReportPeriodDetailPageData(
       periodBudgets,
       transactions,
       periodStart,
-      periodEnd
+      periodEnd,
+      accounts,
+      period.user_id
     ),
     categories,
   };

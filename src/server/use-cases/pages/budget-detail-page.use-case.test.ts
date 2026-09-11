@@ -22,7 +22,7 @@ vi.mock('../budget-periods/get-active-budget-period.use-case', () => ({
 }));
 
 vi.mock('../transactions/get-transactions.use-case', () => ({
-  getTransactionsByUserUseCase: vi.fn(),
+  getTransactionsByGroupUseCase: vi.fn(),
 }));
 
 vi.mock('@/server/request-cache/services', () => ({
@@ -33,7 +33,7 @@ vi.mock('@/server/request-cache/services', () => ({
 import { notFound } from 'next/navigation';
 import { getBudgetByIdUseCase } from '../budgets/get-budgets.use-case';
 import { getActiveBudgetPeriodUseCase } from '../budget-periods/get-active-budget-period.use-case';
-import { getTransactionsByUserUseCase } from '../transactions/get-transactions.use-case';
+import { getTransactionsByGroupUseCase } from '../transactions/get-transactions.use-case';
 import {
   getAllCategoriesDeduped,
   getAccountsByGroupDeduped,
@@ -136,14 +136,22 @@ describe('getBudgetDetailPageData', () => {
     vi.clearAllMocks();
     vi.mocked(getBudgetByIdUseCase).mockResolvedValue(budget);
     vi.mocked(getActiveBudgetPeriodUseCase).mockResolvedValue(null);
-    vi.mocked(getTransactionsByUserUseCase).mockResolvedValue([tx()]);
+    vi.mocked(getTransactionsByGroupUseCase).mockResolvedValue({
+      data: [tx()],
+      total: 1,
+      hasMore: false,
+    });
     vi.mocked(getAllCategoriesDeduped).mockResolvedValue(categories);
     vi.mocked(getAccountsByGroupDeduped).mockResolvedValue(accounts);
   });
 
   it('returns budget detail with progress and category breakdown', async () => {
     const txDate = luxonToday().toISODate() ?? '';
-    vi.mocked(getTransactionsByUserUseCase).mockResolvedValue([tx({ date: txDate })]);
+    vi.mocked(getTransactionsByGroupUseCase).mockResolvedValue({
+      data: [tx({ date: txDate })],
+      total: 1,
+      hasMore: false,
+    });
     const data = await getBudgetDetailPageData('group-1', 'b-1', owner);
     expect(data.budget.id).toBe('b-1');
     expect(data.progress.spent).toBe(100);
@@ -152,8 +160,8 @@ describe('getBudgetDetailPageData', () => {
     expect(data.categoryBreakdown[0]?.spent).toBe(100);
     expect(data.groupedTransactions).toHaveLength(1);
     expect(data.groupedTransactions[0]?.total).toBe(-100);
-    expect(getTransactionsByUserUseCase).toHaveBeenCalledWith(
-      'user-1',
+    expect(getTransactionsByGroupUseCase).toHaveBeenCalledWith(
+      'group-1',
       expect.objectContaining({
         categoryKeys: ['food', 'transport'],
       })
@@ -193,10 +201,14 @@ describe('getBudgetDetailPageData', () => {
 
   it('stores daily net as income minus expenses', async () => {
     const txDate = luxonToday().toISODate() ?? '';
-    vi.mocked(getTransactionsByUserUseCase).mockResolvedValue([
-      tx({ id: 'in', type: 'income', amount: 9.89, category: 'food', date: txDate }),
-      tx({ id: 'out', type: 'expense', amount: 0.8, category: 'food', date: txDate }),
-    ]);
+    vi.mocked(getTransactionsByGroupUseCase).mockResolvedValue({
+      data: [
+        tx({ id: 'in', type: 'income', amount: 9.89, category: 'food', date: txDate }),
+        tx({ id: 'out', type: 'expense', amount: 0.8, category: 'food', date: txDate }),
+      ],
+      total: 2,
+      hasMore: false,
+    });
 
     const data = await getBudgetDetailPageData('group-1', 'b-1', owner);
 

@@ -6,7 +6,7 @@ import {
   buildBudgetCategoryBreakdown,
 } from './budget.logic';
 import { resolveEffectivePeriod, resolveChartPeriodEnd } from '../shared/period.logic';
-import type { Budget, Transaction, User, BudgetPeriod, Category } from '@/lib/types';
+import type { Budget, Transaction, User, BudgetPeriod, Category, Account } from '@/lib/types';
 
 const user = {
   id: 'user-1',
@@ -68,12 +68,41 @@ describe('effectiveSpentFromTransactions', () => {
     expect(spent).toBe(150);
   });
 
-  it('ignores transfers (not counted as spent)', () => {
+  it('ignores transfers when accounts are unknown', () => {
     const spent = effectiveSpentFromTransactions([
       tx({ amount: 200, type: 'expense' }),
       tx({ amount: 100, type: 'transfer', to_account_id: 'acc-2' }),
     ]);
     expect(spent).toBe(200);
+  });
+
+  it('counts a dest-shared transfer as source spent when accounts are known', () => {
+    const accounts: Account[] = [
+      {
+        id: 'acc-1',
+        name: 'Payroll',
+        type: 'payroll',
+        user_ids: ['user-1'],
+        group_id: 'group-1',
+        created_at: '2024-01-01',
+        updated_at: '2024-01-01',
+      },
+      {
+        id: 'acc-2',
+        name: 'Joint savings',
+        type: 'savings',
+        user_ids: ['user-1', 'user-2'],
+        group_id: 'group-1',
+        created_at: '2024-01-01',
+        updated_at: '2024-01-01',
+      },
+    ];
+    const spent = effectiveSpentFromTransactions(
+      [tx({ amount: 100, type: 'transfer', account_id: 'acc-1', to_account_id: 'acc-2' })],
+      accounts,
+      'user-1'
+    );
+    expect(spent).toBe(100);
   });
 });
 
@@ -186,6 +215,67 @@ describe('buildBudgetsByUserPure', () => {
       fixedNow
     );
     expect(result['user-1']?.totalSpent).toBe(25);
+  });
+
+  it('puts a categorized transfer on the envelope that includes that category', () => {
+    const period: BudgetPeriod = {
+      id: 'p-1',
+      user_id: 'user-1',
+      start_date: '2024-06-01',
+      end_date: null,
+      is_active: true,
+      created_at: '2024-06-01',
+      updated_at: '2024-06-01',
+    };
+    const payroll: Account = {
+      id: 'acc-1',
+      name: 'Payroll',
+      type: 'payroll',
+      user_ids: ['user-1'],
+      group_id: 'group-1',
+      created_at: '2024-01-01',
+      updated_at: '2024-01-01',
+    };
+    const savings: Account = {
+      id: 'acc-2',
+      name: 'Joint savings',
+      type: 'savings',
+      user_ids: ['user-1', 'user-2'],
+      group_id: 'group-1',
+      created_at: '2024-01-01',
+      updated_at: '2024-01-01',
+    };
+    const result = buildBudgetsByUserPure(
+      [user],
+      [
+        budget({ id: 'b-spese', categories: ['food'], amount: 500, description: 'Spese' }),
+        budget({
+          id: 'b-save',
+          categories: ['trasferimento'],
+          amount: 1000,
+          description: 'Risparmi',
+        }),
+      ],
+      [
+        tx({ id: 'food', date: '2024-06-10', amount: 80, category: 'food' }),
+        tx({
+          id: 'save',
+          date: '2024-06-10',
+          amount: 100,
+          type: 'transfer',
+          category: 'trasferimento',
+          account_id: 'acc-1',
+          to_account_id: 'acc-2',
+        }),
+      ],
+      { 'user-1': period },
+      fixedNow,
+      [payroll, savings]
+    );
+    const byId = Object.fromEntries((result['user-1']?.budgets ?? []).map((b) => [b.id, b]));
+    expect(byId['b-spese']?.spent).toBe(80);
+    expect(byId['b-save']?.spent).toBe(100);
+    expect(result['user-1']?.totalSpent).toBe(180);
   });
 });
 

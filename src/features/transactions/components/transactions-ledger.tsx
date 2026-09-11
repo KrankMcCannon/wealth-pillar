@@ -133,6 +133,7 @@ export function TransactionsLedger(props: TransactionsLedgerProps) {
               { key: 'all' as const, label: tFilters('typeOptions.all') },
               { key: 'income' as const, label: tFilters('typeOptions.income') },
               { key: 'expense' as const, label: tFilters('typeOptions.expense') },
+              { key: 'transfer' as const, label: tFilters('typeOptions.transfer') },
             ]}
           />
         </FilterDock>

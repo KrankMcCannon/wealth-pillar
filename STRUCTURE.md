@@ -20,6 +20,7 @@ Whole-app, mobile-first, **scannable** density on operator screens. Auth and emp
 | Investments | `/investments` | Track retail holdings (illustrative, not advice). | page | scannable | Add holding | Tabs (portfolio / sandbox); FAB |
 | Add investment | investments overlay | Record a holding. | drawer | scannable | Save | Combobox (share), number, date |
 | Reports | `/reports` | Understand inflow vs outflow for a window. | page | scannable | Open a period | Time chips; user scope |
+| Riserva | `/reports` module | See net spendable↔reserve flow for the report window. | module | scannable | View movements | Same time chips + UserSelector; link into ledger |
 | Period detail | `/reports/periods/[periodId]` | Read one closed period against its budget snapshot. | page | scannable | Back to reports | Modules only |
 | Settings | `/settings` | Profile, group, preferences. | page | scannable | Edit the tapped row | Rows → sheets; theme switch |
 | Currency / language / timezone | settings overlay | Pick one preference. | modal | compact | Confirm | Searchable select (long lists) |

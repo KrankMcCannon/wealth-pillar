@@ -1,19 +1,18 @@
 import type { BudgetPeriod } from '@/lib/types';
 import { toDateTime } from '@/lib/utils/date-utils';
 import { BudgetPeriodsRepository } from '@/server/repositories/budget-periods.repository';
-import { AccountsRepository } from '@/server/repositories/accounts.repository';
 import { createBudgetPeriodUseCase } from './create-budget-period.use-case';
 import { DateTime } from 'luxon';
 import { revalidateTag } from 'next/cache';
 import { CACHE_TAGS } from '@/lib/cache/config';
 import { invalidateBudgetPeriodCaches } from '@/lib/utils/cache-utils';
-import { getTransactionsByUserUseCase } from '../transactions/get-transactions.use-case';
 import { getBudgetsByUserUseCase } from '../budgets/get-budgets.use-case';
 import {
   computePeriodLiquidityAmounts,
   periodToDateWindow,
   snapshotFieldsFromAmounts,
 } from './period-amounts.logic';
+import { loadPeriodLiquidityData } from './load-period-liquidity-data';
 import { toBudgetsSnapshot } from './period-budgets.logic';
 
 const autoCreateNextPeriod = async (userId: string, endDt: DateTime): Promise<void> => {
@@ -49,11 +48,11 @@ export const closeBudgetPeriodUseCase = async (
 
   const endDateStr = endDt.toISODate() as string;
 
-  const [transactions, accounts, budgets] = await Promise.all([
-    getTransactionsByUserUseCase(userId),
-    AccountsRepository.findByUser(userId),
+  const [liquidity, budgets] = await Promise.all([
+    loadPeriodLiquidityData(period.group_id, userId),
     getBudgetsByUserUseCase(userId),
   ]);
+  const { transactions, accounts } = liquidity;
 
   const closingPeriod: BudgetPeriod = {
     ...period,

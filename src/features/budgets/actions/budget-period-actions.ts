@@ -470,7 +470,6 @@ export async function getPeriodPreviewAction(
 ): Promise<
   ServiceResult<{
     totalSpent: number;
-    totalSaved: number;
     totalBudget: number;
     categorySpending: Record<string, number>;
   }>
@@ -516,7 +515,6 @@ export async function getPeriodPreviewAction(
     return {
       data: {
         totalSpent: totals.totalSpent,
-        totalSaved: totals.totalSaved,
         totalBudget,
         categorySpending: totals.categorySpending,
       },

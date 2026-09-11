@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Account, Budget, BudgetPeriod, Category, Transaction, User } from '@/lib/types';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('next/cache', () => ({
   cacheLife: vi.fn(),
@@ -20,12 +20,6 @@ vi.mock('@/server/repositories/budget-periods.repository', () => ({
   },
 }));
 
-vi.mock('@/server/repositories/accounts.repository', () => ({
-  AccountsRepository: {
-    findByUser: vi.fn(),
-  },
-}));
-
 vi.mock('@/server/repositories/users.repository', () => ({
   UsersRepository: {
     findById: vi.fn(),
@@ -34,6 +28,7 @@ vi.mock('@/server/repositories/users.repository', () => ({
 
 vi.mock('@/server/request-cache/services', () => ({
   getAllCategoriesDeduped: vi.fn(),
+  getAccountsByGroupDeduped: vi.fn(),
 }));
 
 vi.mock('../budgets/get-budgets.use-case', () => ({
@@ -41,7 +36,7 @@ vi.mock('../budgets/get-budgets.use-case', () => ({
 }));
 
 vi.mock('../transactions/get-transactions.use-case', () => ({
-  getTransactionsByUserUseCase: vi.fn(),
+  getTransactionsByGroupUseCase: vi.fn(),
 }));
 
 vi.mock('../reports/reports.use-cases', async () => {
@@ -54,14 +49,16 @@ vi.mock('../reports/reports.use-cases', async () => {
   };
 });
 
-import { notFound } from 'next/navigation';
 import { BudgetPeriodsRepository } from '@/server/repositories/budget-periods.repository';
-import { AccountsRepository } from '@/server/repositories/accounts.repository';
 import { UsersRepository } from '@/server/repositories/users.repository';
-import { getAllCategoriesDeduped } from '@/server/request-cache/services';
+import {
+  getAccountsByGroupDeduped,
+  getAllCategoriesDeduped,
+} from '@/server/request-cache/services';
+import { notFound } from 'next/navigation';
 import { getBudgetsByUserUseCase } from '../budgets/get-budgets.use-case';
-import { getTransactionsByUserUseCase } from '../transactions/get-transactions.use-case';
 import { getProcessedUserPeriodsUseCase } from '../reports/reports.use-cases';
+import { getTransactionsByGroupUseCase } from '../transactions/get-transactions.use-case';
 import { getReportPeriodDetailPageData } from './report-period-detail-page.use-case';
 
 const owner = {
@@ -181,10 +178,14 @@ describe('getReportPeriodDetailPageData', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(UsersRepository.findById).mockResolvedValue(owner as never);
-    vi.mocked(AccountsRepository.findByUser).mockResolvedValue([payroll]);
+    vi.mocked(getAccountsByGroupDeduped).mockResolvedValue([payroll]);
     vi.mocked(getBudgetsByUserUseCase).mockResolvedValue([foodBudget]);
     vi.mocked(getAllCategoriesDeduped).mockResolvedValue([foodCategory]);
-    vi.mocked(getTransactionsByUserUseCase).mockResolvedValue([tx()]);
+    vi.mocked(getTransactionsByGroupUseCase).mockResolvedValue({
+      data: [tx()],
+      total: 1,
+      hasMore: false,
+    });
   });
 
   it('returns summary and edit flags for the latest closed period without rewind', async () => {

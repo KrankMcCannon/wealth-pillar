@@ -92,7 +92,60 @@ describe('sumIncomeExpenseInWindow', () => {
     expect(expenses).toBe(40);
   });
 
-  it('ignores transfers in income and expense totals', () => {
+  it('counts a P2P transfer as personal expense and income, not household net-flow', () => {
+    const accounts: Account[] = [
+      {
+        id: 'a1',
+        name: 'Alice',
+        type: 'cash',
+        user_ids: ['u1'],
+        group_id: 'g1',
+        balance: 100,
+        created_at: '',
+        updated_at: '',
+      },
+      {
+        id: 'a2',
+        name: 'Bob',
+        type: 'cash',
+        user_ids: ['u2'],
+        group_id: 'g1',
+        balance: 100,
+        created_at: '',
+        updated_at: '',
+      },
+    ];
+    const txs: Transaction[] = [
+      {
+        id: 'tr',
+        description: '',
+        amount: 40,
+        type: 'transfer',
+        category: 'food',
+        date: '2024-06-10',
+        user_id: 'u1',
+        account_id: 'a1',
+        to_account_id: 'a2',
+        frequency: 'once',
+        recurring_series_id: null,
+        group_id: 'g1',
+        created_at: '',
+        updated_at: '',
+      },
+    ];
+    const household = sumIncomeExpenseInWindow(txs, window, undefined, accounts);
+    expect(household).toEqual({ income: 0, expenses: 0 });
+    expect(sumIncomeExpenseInWindow(txs, window, 'u1', accounts)).toEqual({
+      income: 0,
+      expenses: 40,
+    });
+    expect(sumIncomeExpenseInWindow(txs, window, 'u2', accounts)).toEqual({
+      income: 40,
+      expenses: 0,
+    });
+  });
+
+  it('ignores transfers in household income and expense totals', () => {
     const { income, expenses } = sumIncomeExpenseInWindow(
       [
         {
@@ -295,6 +348,7 @@ describe('buildReportsSectionViewModel', () => {
     expect(vm.totalReserve).toBe(500);
     expect(vm.netSavings.net).toBe(100);
     expect(vm.netSavings.deposits).toBe(100);
+    expect(vm.netSavings.count).toBe(1);
   });
 
   it('returns every expense category with filter key and color, not UUID as key', () => {

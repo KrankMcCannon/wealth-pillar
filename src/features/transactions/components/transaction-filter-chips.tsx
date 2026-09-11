@@ -75,10 +75,14 @@ export function TransactionFilterChips({
     onFiltersChange({ ...filters, searchQuery: '' });
   }, [filters, onFiltersChange]);
 
-  const types: { key: TransactionTypeFilter; labelKey: 'all' | 'income' | 'expense' }[] = [
+  const types: {
+    key: TransactionTypeFilter;
+    labelKey: 'all' | 'income' | 'expense' | 'transfer';
+  }[] = [
     { key: 'all', labelKey: 'all' },
     { key: 'income', labelKey: 'income' },
     { key: 'expense', labelKey: 'expense' },
+    { key: 'transfer', labelKey: 'transfer' },
   ];
   const showUserChips =
     (currentUser?.role === 'admin' || currentUser?.role === 'superadmin') &&

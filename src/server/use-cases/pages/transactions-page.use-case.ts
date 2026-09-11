@@ -74,6 +74,16 @@ async function safeFetch<T>(promise: Promise<T>, fallback: T): Promise<T> {
   }
 }
 
+const LIST_QUERY_TYPES = ['all', 'income', 'expense', 'transfer'] as const;
+
+export function parseTransactionsListType(
+  raw: string | undefined
+): TransactionsListQuery['type'] | undefined {
+  return raw && (LIST_QUERY_TYPES as readonly string[]).includes(raw)
+    ? (raw as TransactionsListQuery['type'])
+    : undefined;
+}
+
 export function resolveDateRange(query: TransactionsListQuery): {
   startDate?: Date;
   endDate?: Date;

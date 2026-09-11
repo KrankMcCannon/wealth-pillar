@@ -1,16 +1,15 @@
-import type { BudgetPeriod } from '@/lib/types';
+import type { Account, BudgetPeriod, Transaction } from '@/lib/types';
 import { toDateTime } from '@/lib/utils/date-utils';
 import { UsersRepository } from '@/server/repositories/users.repository';
 import { BudgetPeriodsRepository } from '@/server/repositories/budget-periods.repository';
-import { AccountsRepository } from '@/server/repositories/accounts.repository';
 import { invalidateBudgetPeriodCaches } from '@/lib/utils/cache-utils';
 import { DateTime } from 'luxon';
-import { getTransactionsByUserUseCase } from '../transactions/get-transactions.use-case';
 import {
   computePeriodLiquidityAmounts,
   periodToDateWindow,
   snapshotFieldsFromAmounts,
 } from './period-amounts.logic';
+import { loadPeriodLiquidityData } from './load-period-liquidity-data';
 
 const validateNewPeriod = (userId: string, startDate: string | Date): DateTime => {
   if (!userId) throw new Error('User ID is required');
@@ -25,8 +24,8 @@ const validateNewPeriod = (userId: string, startDate: string | Date): DateTime =
 async function snapshotAndDeactivateActive(
   active: BudgetPeriod,
   endDate: string,
-  transactions: Awaited<ReturnType<typeof getTransactionsByUserUseCase>>,
-  accounts: Awaited<ReturnType<typeof AccountsRepository.findByUser>>
+  transactions: Transaction[],
+  accounts: Account[]
 ): Promise<void> {
   const closedPeriod: BudgetPeriod = { ...active, end_date: endDate, is_active: false };
   const window = periodToDateWindow(closedPeriod);
@@ -51,11 +50,11 @@ export const createBudgetPeriodUseCase = async (
 
   const dayBeforeStart = startDt.minus({ days: 1 }).toISODate() as string;
 
-  const [active, transactions, accounts] = await Promise.all([
+  const [active, liquidity] = await Promise.all([
     BudgetPeriodsRepository.findActiveByUser(userId),
-    getTransactionsByUserUseCase(userId),
-    AccountsRepository.findByUser(userId),
+    loadPeriodLiquidityData(user.group_id, userId),
   ]);
+  const { transactions, accounts } = liquidity;
 
   if (active) {
     await snapshotAndDeactivateActive(active, dayBeforeStart, transactions, accounts);

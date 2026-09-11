@@ -1,13 +1,12 @@
 import type { Account, BudgetPeriod, Transaction } from '@/lib/types';
 import { toDateTime, todayDateString } from '@/lib/utils/date-utils';
 import { BudgetPeriodsRepository } from '@/server/repositories/budget-periods.repository';
-import { AccountsRepository } from '@/server/repositories/accounts.repository';
-import { getTransactionsByUserUseCase } from '../transactions/get-transactions.use-case';
 import {
   computePeriodLiquidityAmounts,
   periodToDateWindow,
   snapshotFieldsFromAmounts,
 } from './period-amounts.logic';
+import { loadPeriodLiquidityData } from './load-period-liquidity-data';
 import { findNextPeriod, findPreviousPeriod } from './rewind-closed-period.use-case';
 import { isSyntheticBudgetPeriodId } from './synthetic-active-period.logic';
 import { revalidateTag } from 'next/cache';
@@ -151,10 +150,7 @@ export async function editPeriodDatesUseCase(
     }
   }
 
-  const [transactions, accounts] = await Promise.all([
-    getTransactionsByUserUseCase(userId),
-    AccountsRepository.findByUser(userId),
-  ]);
+  const { transactions, accounts } = await loadPeriodLiquidityData(period.group_id, userId);
 
   const thisRow: BudgetPeriod = {
     ...period,

@@ -12,7 +12,10 @@ import {
   getSeriesByGroupUseCase,
   getSeriesByUserUseCase,
 } from '@/server/use-cases/recurring/recurring.use-cases';
-import type { TransactionsListQuery } from '@/server/use-cases/pages/transactions-page.use-case';
+import {
+  parseTransactionsListType,
+  type TransactionsListQuery,
+} from '@/server/use-cases/pages/transactions-page.use-case';
 import TransactionsContent from './transactions-content';
 import TransactionPageLoading from './loading';
 
@@ -30,8 +33,7 @@ async function TransactionsPageData({
 
   const typeRaw =
     typeof resolvedSearchParams.type === 'string' ? resolvedSearchParams.type : undefined;
-  const typeParam: TransactionsListQuery['type'] =
-    typeRaw === 'all' || typeRaw === 'income' || typeRaw === 'expense' ? typeRaw : undefined;
+  const typeParam = parseTransactionsListType(typeRaw);
   const dateRangeRaw =
     typeof resolvedSearchParams.dateRange === 'string' ? resolvedSearchParams.dateRange : undefined;
   const dateRangeParam: TransactionsListQuery['dateRange'] =

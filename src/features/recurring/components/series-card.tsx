@@ -90,7 +90,7 @@ function SeriesCardInner({
   };
 
   const getAmountType = (): 'income' | 'expense' | 'neutral' => {
-    if (!series.is_active) return 'neutral';
+    if (!series.is_active || series.type === 'transfer') return 'neutral';
     return series.type === 'income' ? 'income' : 'expense';
   };
 

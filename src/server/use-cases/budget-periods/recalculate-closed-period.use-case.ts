@@ -1,12 +1,11 @@
 import type { BudgetPeriod } from '@/lib/types';
 import { BudgetPeriodsRepository } from '@/server/repositories/budget-periods.repository';
-import { AccountsRepository } from '@/server/repositories/accounts.repository';
-import { getTransactionsByUserUseCase } from '../transactions/get-transactions.use-case';
 import {
   computePeriodLiquidityAmounts,
   periodToDateWindow,
   snapshotFieldsFromAmounts,
 } from './period-amounts.logic';
+import { loadPeriodLiquidityData } from './load-period-liquidity-data';
 import { isSyntheticBudgetPeriodId } from './synthetic-active-period.logic';
 import { revalidateTag } from 'next/cache';
 import { CACHE_TAGS } from '@/lib/cache/config';
@@ -32,10 +31,7 @@ export async function recalculateClosedPeriodSnapshotUseCase(
     throw new RecalculateClosedPeriodError('periodNotFound');
   }
 
-  const [transactions, accounts] = await Promise.all([
-    getTransactionsByUserUseCase(userId),
-    AccountsRepository.findByUser(userId),
-  ]);
+  const { transactions, accounts } = await loadPeriodLiquidityData(period.group_id, userId);
 
   const window = periodToDateWindow(period);
   const amounts = computePeriodLiquidityAmounts(transactions, accounts, window, userId);
@@ -49,6 +45,7 @@ export async function recalculateClosedPeriodSnapshotUseCase(
   if (period.group_id) {
     revalidateTag(`group:${period.group_id}:budgets`, 'max');
     revalidateTag(`group:${period.group_id}:transactions`, 'max');
+    revalidateTag(`group:${period.group_id}:accounts`, 'max');
   }
 
   return updated;

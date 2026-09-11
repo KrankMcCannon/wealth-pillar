@@ -12,7 +12,6 @@ import { Link } from '@/i18n/routing';
 import { cn } from '@/lib/utils';
 import { stitchHome, stitchReports, stitchSurface } from '@/styles/home-design-foundation';
 import { useFormatCurrency } from '@/features/reports/hooks/use-format-currency';
-import { PeriodMetric } from '@/features/reports/components/budget-period-section';
 import { TopExpensesRanking } from '@/features/reports/components/top-expenses-ranking';
 import {
   buildPeriodTransactionsHref,
@@ -116,8 +115,6 @@ export default function PeriodDetailContent({
 
   const remaining = pageData.summary.remaining;
   const remainingSigned = `${remaining > 0 ? '+' : ''}${formatMoney(remaining)}`;
-  const saved = pageData.summary.reserveSaved;
-  const savedSigned = `${saved > 0 ? '+' : ''}${formatMoney(saved)}`;
 
   const handleRecalculate = useCallback(async () => {
     if (isRecalculating) return;
@@ -185,26 +182,23 @@ export default function PeriodDetailContent({
       <HomeDashboardMain id="main-report-period-detail">
         <div className={stitchReports.sectionStack}>
           <section className={stitchHome.scanSection} aria-labelledby="period-metrics-heading">
-            <h2 id="period-metrics-heading" className={stitchHome.scanSectionTitle}>
-              {t('metricsTitle')}
-            </h2>
-            <div className={stitchReports.snapshotGrid}>
-              <PeriodMetric
-                label={tPeriods('reserve')}
-                signed={savedSigned}
-                tone={saved < 0 ? 'expense' : 'income'}
-                from={formatMoney(pageData.summary.reserveStart)}
-                to={formatMoney(pageData.summary.reserveEnd)}
-              />
-              <PeriodMetric
-                label={tPeriods('budget')}
-                signed={remainingSigned}
-                tone={remaining < 0 ? 'expense' : 'income'}
-                from={formatMoney(pageData.summary.allocated)}
-                to={formatMoney(pageData.summary.spendableSpent)}
-                join=" − "
-              />
+            <div className={stitchHome.scanSectionHeader}>
+              <h2 id="period-metrics-heading" className={stitchHome.scanSectionTitle}>
+                {t('metricsTitle')}
+              </h2>
+              <span
+                className={cn(
+                  'shrink-0 text-base font-semibold tabular-nums',
+                  remaining < 0 ? stitchHome.amountExpense : stitchHome.amountIncome
+                )}
+                aria-label={`${remaining < 0 ? tPeriods('badgeOverBudget') : tPeriods('badgeOnTrack')} ${remainingSigned}`}
+              >
+                {remainingSigned}
+              </span>
             </div>
+            <p className="text-sm tabular-nums text-muted-foreground">
+              {`${formatMoney(pageData.summary.allocated)} − ${formatMoney(pageData.summary.spendableSpent)}`}
+            </p>
             {pageData.snapshotMatchesLive ? (
               <p id="period-snapshot-status" className={stitchReports.periodStatus} role="status">
                 {t('snapshotUpToDate')}
@@ -213,7 +207,7 @@ export default function PeriodDetailContent({
               <>
                 <p
                   id="period-snapshot-status"
-                  className={cn(stitchReports.incompleteNotice, 'mt-3')}
+                  className={stitchReports.incompleteNotice}
                   role="status"
                 >
                   {t('snapshotOutOfDate')}
@@ -235,12 +229,6 @@ export default function PeriodDetailContent({
                       label={t('spendLabel')}
                       stored={pageData.storedAmounts.spendableSpent}
                       live={pageData.liveAmounts.spendableSpent}
-                      formatMoney={formatMoney}
-                    />
-                    <CompareRow
-                      label={tPeriods('reserve')}
-                      stored={pageData.storedAmounts.reserveSaved}
-                      live={pageData.liveAmounts.reserveSaved}
                       formatMoney={formatMoney}
                     />
                   </tbody>
@@ -359,10 +347,13 @@ export default function PeriodDetailContent({
         }}
       />
 
-      {!pageData.summary.isOpen ? (
+      {budgetFormOpen && !pageData.summary.isOpen ? (
         <BudgetFormModal
-          isOpen={budgetFormOpen}
-          onClose={() => setBudgetFormOpen(false)}
+          isOpen
+          onClose={() => {
+            setBudgetFormOpen(false);
+            setBudgetEditId(null);
+          }}
           editId={budgetEditId}
           periodId={pageData.periodId}
           periodUserId={pageData.userId}

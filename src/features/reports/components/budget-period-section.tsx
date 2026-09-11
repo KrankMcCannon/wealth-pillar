@@ -70,48 +70,10 @@ function groupPeriodsByUser(
   }));
 }
 
-export function PeriodMetric({
-  label,
-  signed,
-  tone,
-  from,
-  to,
-  signedAria,
-  join = ' → ',
-}: {
-  label: string;
-  signed: string;
-  tone: 'income' | 'expense';
-  from: string;
-  to: string;
-  signedAria?: string;
-  join?: string;
-}) {
-  return (
-    <span className={stitchReports.periodMetricCol}>
-      <span className={stitchReports.periodMetricLabel}>{label}</span>
-      <span
-        className={cn(
-          'mt-0.5 block text-base font-semibold tabular-nums',
-          tone === 'expense' ? stitchHome.amountExpense : stitchHome.amountIncome
-        )}
-        aria-label={signedAria ?? `${label} ${signed}`}
-      >
-        {signed}
-      </span>
-      <span className="mt-0.5 block text-sm tabular-nums leading-snug text-muted-foreground">
-        {`${from}${join}${to}`}
-      </span>
-    </span>
-  );
-}
-
 function PeriodRow({
   period,
   formatMoney,
   nameAsHeading,
-  budgetLabel,
-  reserveLabel,
   onTrackLabel,
   overBudgetLabel,
   href,
@@ -120,8 +82,6 @@ function PeriodRow({
   period: ReportPeriodSummary;
   formatMoney: (n: number) => string;
   nameAsHeading: boolean;
-  budgetLabel: string;
-  reserveLabel: string;
   onTrackLabel: string;
   overBudgetLabel: string;
   href?: string | undefined;
@@ -130,32 +90,25 @@ function PeriodRow({
   const TitleTag = nameAsHeading ? 'h4' : 'span';
   const remaining = period.remaining;
   const remainingSigned = `${remaining > 0 ? '+' : ''}${formatMoney(remaining)}`;
-  const saved = period.reserveSaved;
-  const savedSigned = `${saved > 0 ? '+' : ''}${formatMoney(saved)}`;
+  const allocatedVsSpent = `${formatMoney(period.allocated)} − ${formatMoney(period.spendableSpent)}`;
 
   const body = (
     <>
-      <span className="flex min-w-0 items-center justify-between gap-2">
-        <TitleTag className={stitchReports.periodRangeLabel}>{period.name}</TitleTag>
-        {href ? <ChevronRight className={stitchReports.rankingChevron} aria-hidden /> : null}
+      <span className="min-w-0">
+        <TitleTag className={stitchHome.plainRowTitle}>{period.name}</TitleTag>
+        <span className="block text-sm tabular-nums text-muted-foreground">{allocatedVsSpent}</span>
       </span>
-      <span className={stitchReports.snapshotGrid}>
-        <PeriodMetric
-          label={reserveLabel}
-          signed={savedSigned}
-          tone={saved < 0 ? 'expense' : 'income'}
-          from={formatMoney(period.reserveStart)}
-          to={formatMoney(period.reserveEnd)}
-        />
-        <PeriodMetric
-          label={budgetLabel}
-          signed={remainingSigned}
-          tone={remaining < 0 ? 'expense' : 'income'}
-          from={formatMoney(period.allocated)}
-          to={formatMoney(period.spendableSpent)}
-          join=" − "
-          signedAria={`${remaining < 0 ? overBudgetLabel : onTrackLabel} ${remainingSigned}`}
-        />
+      <span className="flex shrink-0 items-center gap-1">
+        <span
+          className={cn(
+            'text-base font-semibold tabular-nums',
+            remaining < 0 ? stitchHome.amountExpense : stitchHome.amountIncome
+          )}
+          aria-label={`${remaining < 0 ? overBudgetLabel : onTrackLabel} ${remainingSigned}`}
+        >
+          {remainingSigned}
+        </span>
+        {href ? <ChevronRight className={stitchReports.rankingChevron} aria-hidden /> : null}
       </span>
     </>
   );
@@ -234,8 +187,6 @@ export function BudgetPeriodSection({
     [periods, users, viewerId]
   );
   const showGroups = groups.length > 1;
-  const budgetLabel = t('budget');
-  const reserveLabel = t('reserve');
   const onTrackLabel = t('badgeOnTrack');
   const overBudgetLabel = t('badgeOverBudget');
   const [openByUser, setOpenByUser] = useState<Record<string, boolean>>({});
@@ -272,12 +223,18 @@ export function BudgetPeriodSection({
         period={period}
         formatMoney={formatMoney}
         nameAsHeading={nameAsHeading}
-        budgetLabel={budgetLabel}
-        reserveLabel={reserveLabel}
         onTrackLabel={onTrackLabel}
         overBudgetLabel={overBudgetLabel}
         href={href}
-        openLabel={href ? t('openPeriodAria', { name: period.name }) : undefined}
+        openLabel={
+          href
+            ? t('openPeriodAria', {
+                name: period.name,
+                status: period.remaining < 0 ? overBudgetLabel : onTrackLabel,
+                remaining: `${period.remaining > 0 ? '+' : ''}${formatMoney(period.remaining)}`,
+              })
+            : undefined
+        }
       />
     );
   };

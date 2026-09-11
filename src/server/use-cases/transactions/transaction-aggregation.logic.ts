@@ -36,59 +36,6 @@ export function filterByCategories(
   return transactions.filter((t) => categorySet.has(t.category));
 }
 
-export interface OverviewMetrics {
-  totalEarned: number;
-  totalSpent: number;
-  totalTransferred: number;
-  totalBalance: number;
-}
-
-/**
- * Calculate overall metrics
- */
-export function calculateOverviewMetrics(
-  transactions: Transaction[],
-  userAccountIds: string[],
-  userId?: string
-): OverviewMetrics {
-  const accountSet = new Set(userAccountIds);
-  let totalEarned = 0;
-  let totalSpent = 0;
-  let totalTransferred = 0;
-
-  for (const t of transactions) {
-    if (userId && t.user_id !== userId) continue;
-
-    if (t.type === 'income' && accountSet.has(t.account_id)) {
-      totalEarned += t.amount;
-    } else if (t.type === 'expense' && accountSet.has(t.account_id)) {
-      totalSpent += t.amount;
-    } else if (t.type === 'transfer') {
-      const fromUserAccount = accountSet.has(t.account_id);
-      const toUserAccount = t.to_account_id && accountSet.has(t.to_account_id);
-
-      if (fromUserAccount) {
-        totalTransferred += t.amount;
-      }
-
-      if (fromUserAccount && toUserAccount) {
-        // Internal transfer: no net change to total balance
-      } else if (fromUserAccount) {
-        totalSpent += t.amount; // External OUT
-      } else if (toUserAccount) {
-        totalEarned += t.amount; // External IN
-      }
-    }
-  }
-
-  return {
-    totalEarned,
-    totalSpent,
-    totalTransferred,
-    totalBalance: totalEarned - totalSpent,
-  };
-}
-
 /**
  * Calculate category breakdown with NET analysis
  */

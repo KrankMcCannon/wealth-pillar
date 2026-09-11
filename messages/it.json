@@ -414,19 +414,20 @@
       "netFlow": "Entrate meno uscite",
       "incomeThisPeriod": "Entrate",
       "expenseThisPeriod": "Uscite",
-      "movedToSavings": "Messo da parte",
-      "movedToSavingsNet": "Netto spostato",
-      "deposits": "Versamenti",
-      "withdrawals": "Prelievi",
-      "savingsMeta": "Versamenti {deposits} · prelievi {withdrawals}",
-      "spendableBalance": "Disponibile",
-      "reserveBalance": "In riserva",
       "splitAria": "Entrate {income}, uscite {expense}",
       "noComparison": "Non c’è ancora un periodo precedente da confrontare.",
       "vsLastMonth": "rispetto al mese scorso",
       "vsLastWeek": "rispetto alla settimana scorsa",
       "vsLastYear": "rispetto all’anno scorso",
       "vsPreviousRange": "rispetto al periodo precedente"
+    },
+    "Reserve": {
+      "title": "Riserva",
+      "savingsMeta": "Versamenti {deposits} · prelievi {withdrawals}",
+      "empty": "Nessun movimento da o verso la riserva in questo intervallo.",
+      "addTransfer": "Aggiungi un trasferimento",
+      "viewMoves": "{count, plural, one {Vedi # movimento} other {Vedi # movimenti}}",
+      "viewMovesAria": "Vedi i movimenti della riserva in questo intervallo, {count}"
     },
     "TopExpenses": {
       "title": "Dove sono andate le uscite",
@@ -458,14 +459,9 @@
     "BudgetPeriods": {
       "title": "Spendibile nei periodi",
       "empty": "Nessun periodo di budget in questo intervallo.",
-      "spendable": "Spendibile",
-      "budget": "Budget",
-      "reserve": "Riserva",
-      "initial": "Iniziale",
-      "final": "Finale",
       "badgeOnTrack": "In linea",
       "badgeOverBudget": "Fuori budget",
-      "openPeriodAria": "Apri il periodo {name}",
+      "openPeriodAria": "Apri il periodo {name}, {status} {remaining}",
       "toggleUserPeriodsAria": "Mostra o nascondi i periodi di {name}"
     },
     "PeriodDetail": {
@@ -749,7 +745,8 @@
       "typeOptions": {
         "all": "Tutti",
         "income": "Entrate",
-        "expense": "Uscite"
+        "expense": "Uscite",
+        "transfer": "Trasferimenti"
       },
       "dateOptions": {
         "all": "Sempre",
@@ -1123,7 +1120,8 @@
       },
       "typeOptions": {
         "expense": "Uscita",
-        "income": "Entrata"
+        "income": "Entrata",
+        "transfer": "Trasferimento"
       },
       "frequencyOptions": {
         "once": "Una tantum",

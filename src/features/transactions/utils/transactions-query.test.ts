@@ -53,12 +53,14 @@ describe('buildTransactionsQueryString', () => {
 });
 
 describe('appliedQueryToFiltersState', () => {
-  it('keeps income/expense chips and treats other types as all', () => {
+  it('keeps income, expense, and transfer types', () => {
     expect(appliedQueryToFiltersState({ type: 'income', dateRange: 'all' }, '').type).toBe(
       'income'
     );
     expect(appliedQueryToFiltersState({ type: 'all', dateRange: 'all' }, '').type).toBe('all');
-    expect(appliedQueryToFiltersState({ type: 'transfer', dateRange: 'all' }, '').type).toBe('all');
+    expect(appliedQueryToFiltersState({ type: 'transfer', dateRange: 'all' }, '').type).toBe(
+      'transfer'
+    );
   });
 });
 

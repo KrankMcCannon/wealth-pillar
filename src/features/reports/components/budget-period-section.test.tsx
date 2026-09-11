@@ -27,11 +27,8 @@ function period(
     startDate: '2026-09-01',
     endDate: '2026-09-30',
     spendableSpent: 50,
-    reserveSaved: 0,
     allocated: 0,
     remaining: 0,
-    reserveStart: 0,
-    reserveEnd: 0,
     isOpen: false,
     ...partial,
   };
@@ -45,7 +42,7 @@ describe('BudgetPeriodSection', () => {
   afterEach(() => {
     sessionStorage.clear();
   });
-  it('shows labeled riserva and budget columns with colored deltas', () => {
+  it('shows leftover vs allocation for each period', () => {
     render(
       <BudgetPeriodSection
         periods={[
@@ -56,9 +53,6 @@ describe('BudgetPeriodSection', () => {
             allocated: 4000,
             spendableSpent: 3345.97,
             remaining: 654.03,
-            reserveSaved: 1000,
-            reserveStart: 2000,
-            reserveEnd: 3000,
           }),
         ]}
       />
@@ -66,33 +60,10 @@ describe('BudgetPeriodSection', () => {
 
     expect(screen.getByRole('heading', { name: 'title' })).toBeTruthy();
     expect(screen.getByRole('heading', { name: '1–30 Sep' })).toBeTruthy();
-    expect(screen.getByText('reserve')).toBeTruthy();
-    expect(screen.getByText('budget')).toBeTruthy();
-    expect(screen.getByText('€2000 → €3000')).toBeTruthy();
+    expect(screen.queryByText('budget')).toBeNull();
+    expect(screen.queryByText('reserve')).toBeNull();
     expect(screen.getByText('€4000 − €3345.97')).toBeTruthy();
-    expect(screen.getByLabelText('reserve +€1000')).toHaveClass('text-income');
     expect(screen.getByLabelText('badgeOnTrack +€654.03')).toHaveClass('text-income');
-  });
-
-  it('uses the period savings total, not reconstructed end minus start', () => {
-    render(
-      <BudgetPeriodSection
-        periods={[
-          period({
-            id: 'p1',
-            name: '1–30 Sep',
-            userId: 'u1',
-            reserveSaved: 0,
-            reserveStart: 8495.61,
-            reserveEnd: 11191.58,
-          }),
-        ]}
-      />
-    );
-
-    expect(screen.getByLabelText('reserve €0')).toBeTruthy();
-    expect(screen.queryByLabelText('reserve +€2695.97')).toBeNull();
-    expect(screen.getByText('€8495.61 → €11191.58')).toBeTruthy();
   });
 
   it('shows remaining in red when spend exceeds allocation', () => {

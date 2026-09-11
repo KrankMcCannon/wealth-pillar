@@ -1,35 +1,36 @@
-import { cacheLife, cacheTag } from 'next/cache';
 import { CACHE_TAGS } from '@/lib/cache/config';
-import { getActiveBudgetPeriodsForUsersUseCase } from '../budget-periods/get-active-budget-periods-for-users.use-case';
-import { getSeriesByGroupUseCase } from '../recurring/recurring.use-cases';
-import {
-  getAccountsByGroupDeduped,
-  getAllCategoriesDeduped,
-  getGroupUsersByGroupIdDeduped,
-} from '@/server/request-cache/services';
-import { getTransactionsByGroupUseCase } from '../transactions/get-transactions.use-case';
+import type {
+  Account,
+  Budget,
+  BudgetPeriod,
+  Category,
+  RecurringTransactionSeries,
+  Transaction,
+  User,
+  UserBudgetSummary,
+} from '@/lib/types';
 import {
   DASHBOARD_TRANSACTIONS_LIMIT,
   RECENT_ACTIVITY_LIMIT,
   dashboardTransactionStartDate,
 } from '@/server/db/query-limits';
-import { getBudgetsByGroupUseCase } from '../budgets/get-budgets.use-case';
-import { buildBudgetsByUserPure } from '../budgets/budget.logic';
+import { scopeDashboardPageData } from '@/server/permissions/scope-page-data';
+import {
+  getAccountsByGroupDeduped,
+  getAllCategoriesDeduped,
+  getGroupUsersByGroupIdDeduped,
+} from '@/server/request-cache/services';
+import { cacheLife, cacheTag } from 'next/cache';
 import {
   computeDashboardBalanceViewModel,
   type DashboardBalanceViewModel,
 } from '../accounts/account.logic';
-import type {
-  Account,
-  Transaction,
-  Budget,
-  BudgetPeriod,
-  Category,
-  RecurringTransactionSeries,
-  UserBudgetSummary,
-  User,
-} from '@/lib/types';
-import { scopeDashboardPageData } from '@/server/permissions/scope-page-data';
+import { getActiveBudgetPeriodsForUsersUseCase } from '../budget-periods/get-active-budget-periods-for-users.use-case';
+import { buildBudgetsByUserPure } from '../budgets/budget.logic';
+import { getBudgetsByGroupUseCase } from '../budgets/get-budgets.use-case';
+import { getSeriesByGroupUseCase } from '../recurring/recurring.use-cases';
+import { transactionInvolvesUser } from '../shared/transaction-impact.logic';
+import { getTransactionsByGroupUseCase } from '../transactions/get-transactions.use-case';
 
 /**
  * Check if an error is a request abort error (specific to Next.js/Supabase)
@@ -66,15 +67,18 @@ export interface RecentActivityByScope {
 
 export function buildRecentActivityByScope(
   transactions: Transaction[],
-  userIds: string[]
+  userIds: string[],
+  accounts: Account[] = []
 ): RecentActivityByScope {
   const byUserId: Record<string, Transaction[]> = {};
   for (const userId of userIds) {
     byUserId[userId] = [];
   }
   for (const tx of transactions) {
-    const bucket = tx.user_id ? byUserId[tx.user_id] : undefined;
-    if (bucket && bucket.length < RECENT_ACTIVITY_LIMIT) {
+    for (const userId of userIds) {
+      const bucket = byUserId[userId];
+      if (!bucket || bucket.length >= RECENT_ACTIVITY_LIMIT) continue;
+      if (!transactionInvolvesUser(tx, userId, accounts)) continue;
       bucket.push(tx);
     }
   }
@@ -160,7 +164,9 @@ async function getCachedDashboardPageData(groupId: string): Promise<DashboardPag
     groupUsers,
     budgets,
     transactionResult.data,
-    budgetPeriods
+    budgetPeriods,
+    undefined,
+    accounts
   );
 
   const accountBalances: Record<string, number> = {};
@@ -172,7 +178,7 @@ async function getCachedDashboardPageData(groupId: string): Promise<DashboardPag
 
   return {
     accounts,
-    recentActivityByScope: buildRecentActivityByScope(transactionResult.data, userIds),
+    recentActivityByScope: buildRecentActivityByScope(transactionResult.data, userIds, accounts),
     budgetPeriods,
     recurringSeries,
     categories,

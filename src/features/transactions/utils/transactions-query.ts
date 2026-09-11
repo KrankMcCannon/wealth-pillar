@@ -1,6 +1,7 @@
 import type { TransactionFiltersState } from '@/server/use-cases/transactions/transaction.logic';
 import { filterTransactions } from '@/server/use-cases/transactions/transaction.logic';
-import type { Transaction } from '@/lib/types';
+import type { Transaction, Account } from '@/lib/types';
+import { transactionInvolvesUser } from '@/server/use-cases/shared/transaction-impact.logic';
 import type {
   AppliedTransactionsQuery,
   TransactionsListQuery,
@@ -12,7 +13,9 @@ export function appliedQueryToFiltersState(
   searchQuery: string
 ): TransactionFiltersState {
   const resolvedType =
-    applied.type === 'income' || applied.type === 'expense' ? applied.type : 'all';
+    applied.type === 'income' || applied.type === 'expense' || applied.type === 'transfer'
+      ? applied.type
+      : 'all';
   const keysFromCsv = applied.categories
     ? applied.categories
         .split(',')
@@ -36,9 +39,12 @@ export function appliedQueryToFiltersState(
 export function matchesAppliedQuery(
   transaction: Transaction,
   applied: AppliedTransactionsQuery,
-  searchQuery: string
+  searchQuery: string,
+  accounts: Account[] = []
 ): boolean {
-  if (applied.user && transaction.user_id !== applied.user) return false;
+  if (applied.user && !transactionInvolvesUser(transaction, applied.user, accounts)) {
+    return false;
+  }
 
   const filters = appliedQueryToFiltersState(applied, searchQuery);
   return filterTransactions([transaction], filters).length > 0;

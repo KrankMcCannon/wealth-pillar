@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { format } from 'date-fns';
 import { getCurrentReportingWindow, type ReportsTimePreset } from './reporting-window';
-import { buildReportsCategoryTransactionsHref, buildReportsPeriodHref, buildPeriodTransactionsHref, canOpenPeriodDetail } from './reports-transactions-href';
+import { buildReportsCategoryTransactionsHref, buildReportsPeriodHref, buildPeriodTransactionsHref, buildReportsReserveTransactionsHref, canOpenPeriodDetail } from './reports-transactions-href';
 
 const now = new Date('2024-06-15T12:00:00');
 const categoryKey = 'food';
@@ -123,6 +123,27 @@ describe('buildPeriodTransactionsHref', () => {
     expect(url.searchParams.get('startDate')).toBe('2024-05-01');
     expect(url.searchParams.get('endDate')).toBe('2024-05-31');
     expect(url.searchParams.get('type')).toBeNull();
+  });
+});
+
+describe('buildReportsReserveTransactionsHref', () => {
+  it('opens the ledger on transfers in the report window', () => {
+    const window = getCurrentReportingWindow('yearly', null, now);
+    const href = buildReportsReserveTransactionsHref({
+      preset: 'yearly',
+      customRange: null,
+      scope: 'member-9',
+      now,
+    });
+    const url = parseHref(href);
+
+    expect(url.pathname).toBe('/transactions');
+    expect(url.searchParams.get('type')).toBe('transfer');
+    expect(url.searchParams.get('dateRange')).toBe('custom');
+    expect(url.searchParams.get('startDate')).toBe(format(window.start, 'yyyy-MM-dd'));
+    expect(url.searchParams.get('endDate')).toBe(format(window.end, 'yyyy-MM-dd'));
+    expect(url.searchParams.get('user')).toBe('member-9');
+    expect(url.searchParams.get('member')).toBeNull();
   });
 });
 

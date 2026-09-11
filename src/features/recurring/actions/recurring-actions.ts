@@ -26,7 +26,7 @@ import type { ServiceResult } from '@/lib/types/service-result';
 export interface CreateRecurringSeriesInput {
   description: string;
   amount: number;
-  type: 'income' | 'expense';
+  type: 'income' | 'expense' | 'transfer';
   category: string;
   frequency: 'once' | 'weekly' | 'biweekly' | 'monthly' | 'yearly';
   user_ids: string[]; // Array of user IDs who can access this series
@@ -43,7 +43,7 @@ export interface UpdateRecurringSeriesInput {
   id: string;
   description?: string;
   amount?: number;
-  type?: 'income' | 'expense';
+  type?: 'income' | 'expense' | 'transfer';
   category?: string;
   frequency?: 'once' | 'weekly' | 'biweekly' | 'monthly' | 'yearly';
   user_ids?: string[]; // Array of user IDs who can access this series

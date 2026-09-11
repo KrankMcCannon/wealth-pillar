@@ -159,7 +159,6 @@ export interface BudgetPeriod {
 /** Resolved liquidity amounts for a budget period (live or snapshot). */
 export interface PeriodLiquidityAmounts {
   spendableSpent: number;
-  reserveSaved: number;
   categorySpending: Record<string, number>;
 }
 

@@ -86,3 +86,20 @@ export function buildReportsCategoryTransactionsHref(input: {
   );
   return `/transactions?${qs}`;
 }
+
+/** Ledger for the report window, transfers only (server `type=transfer`). */
+export function buildReportsReserveTransactionsHref(input: {
+  preset: ReportsTimePreset;
+  customRange: { start: string; end: string } | null;
+  scope: ReportsScope;
+  now?: Date;
+}): string {
+  const window = getCurrentReportingWindow(input.preset, input.customRange, input.now);
+  const params = new URLSearchParams();
+  params.set('type', 'transfer');
+  params.set('dateRange', 'custom');
+  params.set('startDate', format(window.start, 'yyyy-MM-dd'));
+  params.set('endDate', format(window.end, 'yyyy-MM-dd'));
+  if (input.scope !== 'all') params.set('user', input.scope);
+  return `/transactions?${params.toString()}`;
+}

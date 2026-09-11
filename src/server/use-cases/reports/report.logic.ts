@@ -1,6 +1,11 @@
 import type { Account, Category, Transaction } from '@/lib/types';
 import { resolveAccountLiquidity } from '@/lib/utils/account-classification';
-import { computeNetSavings, type NetSavingsResult } from '../shared/savings.logic';
+import type { NetSavingsResult } from '../shared/savings.logic';
+import {
+  accountsToMap,
+  computeNetSavings,
+  computeTransactionImpact,
+} from '../shared/transaction-impact.logic';
 import type {
   AccountTypeSummary,
   ReportPeriodSummary,
@@ -27,18 +32,28 @@ export function normalizeAccountType(type: string | undefined): string {
 export function sumIncomeExpenseInWindow(
   transactions: Transaction[],
   window: DateWindow,
-  userId?: string
+  userId?: string,
+  accounts: Account[] = []
 ): { income: number; expenses: number } {
   const t0 = window.start.getTime();
   const t1 = window.end.getTime();
+  const accountMap = accountsToMap(accounts);
   let income = 0;
   let expenses = 0;
   for (const row of transactions) {
     const d = new Date(row.date).getTime();
     if (d < t0 || d > t1) continue;
-    if (userId !== undefined && row.user_id !== userId) continue;
-    if (row.type === 'income') income += row.amount;
-    else if (row.type === 'expense') expenses += row.amount;
+    const impact = computeTransactionImpact(row, accountMap);
+    if (userId === undefined) {
+      if (impact.cashFlow > 0) income += impact.cashFlow;
+      else if (impact.cashFlow < 0) expenses += -impact.cashFlow;
+      continue;
+    }
+    for (const leg of impact.budgetLegs) {
+      if (leg.userId !== userId) continue;
+      if (leg.signed > 0) expenses += leg.signed;
+      else if (leg.signed < 0) income += -leg.signed;
+    }
   }
   return { income, expenses };
 }
@@ -55,26 +70,20 @@ export function computeCategoryStats(
   transactions: Transaction[],
   categories: Category[],
   window: DateWindow,
-  userId?: string
+  userId?: string,
+  accounts: Account[] = []
 ) {
   const t0 = window.start.getTime();
   const t1 = window.end.getTime();
-  const filtered = transactions.filter((row) => {
-    const d = new Date(row.date).getTime();
-    if (d < t0 || d > t1) return false;
-    if (userId !== undefined && row.user_id !== userId) return false;
-    return true;
-  });
-
+  const accountMap = accountsToMap(accounts);
   const categoryMap = new Map(categories.map((c) => [c.id, c]));
   const statsMap = new Map<
     string,
     { id: string; key: string; name: string; type: string; total: number; color: string }
   >();
 
-  for (const tx of filtered) {
-    if (tx.type === 'transfer') continue;
-
+  const addExpense = (tx: Transaction, amount: number) => {
+    if (amount <= 0) return;
     const catId = tx.category;
     let catKey = catId;
     const category =
@@ -87,17 +96,30 @@ export function computeCategoryStats(
         id: catKey,
         key: category?.key ?? catId,
         name: category?.label || formatCategoryFallback(catId),
-        type: tx.type,
+        type: 'expense',
         total: 0,
         color: category?.color || 'var(--color-muted-foreground)',
       });
     }
+    statsMap.get(catKey)!.total += amount;
+  };
 
-    statsMap.get(catKey)!.total += tx.amount;
+  for (const tx of transactions) {
+    const d = new Date(tx.date).getTime();
+    if (d < t0 || d > t1) continue;
+    const impact = computeTransactionImpact(tx, accountMap);
+    if (userId === undefined) {
+      if (tx.type !== 'expense') continue;
+      addExpense(tx, tx.amount);
+      continue;
+    }
+    for (const leg of impact.budgetLegs) {
+      if (leg.userId !== userId || leg.signed <= 0) continue;
+      addExpense(tx, leg.signed);
+    }
   }
 
-  const allStats = Array.from(statsMap.values());
-  return allStats.filter((s) => s.type === 'expense').sort((a, b) => b.total - a.total);
+  return Array.from(statsMap.values()).sort((a, b) => b.total - a.total);
 }
 
 export function computeUserFlows(
@@ -136,14 +158,9 @@ export function computeUserFlows(
   }
 
   for (const tx of filtered) {
-    const uid = tx.user_id;
-    if (!uid || !userFlows.has(uid)) continue;
-
-    const account = accountMap.get(tx.account_id);
-    if (!account) continue;
-
-    const type = normalizeAccountType(account.type);
-    const typeMap = userFlows.get(uid)!;
+    const impact = computeTransactionImpact(tx, accountMap);
+    const source = accountMap.get(tx.account_id);
+    const dest = tx.to_account_id ? accountMap.get(tx.to_account_id) : undefined;
 
     const ensureBucket = (
       m: Map<string, { earned: number; spent: number; balance: number }>,
@@ -153,10 +170,13 @@ export function computeUserFlows(
       return m.get(key)!;
     };
 
-    if (tx.type === 'income') {
-      ensureBucket(typeMap, type).earned += tx.amount;
-    } else if (tx.type === 'expense') {
-      ensureBucket(typeMap, type).spent += tx.amount;
+    for (const leg of impact.budgetLegs) {
+      const typeMap = userFlows.get(leg.userId);
+      if (!typeMap) continue;
+      const account = leg.signed > 0 ? source : (dest ?? source);
+      const type = normalizeAccountType(account?.type);
+      if (leg.signed > 0) ensureBucket(typeMap, type).spent += leg.signed;
+      else ensureBucket(typeMap, type).earned += -leg.signed;
     }
   }
 
@@ -192,10 +212,11 @@ export function computeGroupAccountTypeSummary(
   userIds: string[],
   window: DateWindow
 ): AccountTypeSummary[] {
-  const flows = computeUserFlows(transactions, accounts, userIds, window);
+  const accountMap = accountsToMap(accounts);
+  const t0 = window.start.getTime();
+  const t1 = window.end.getTime();
   const merged = new Map<string, { balance: number; earned: number; spent: number }>();
 
-  // Sum balances of unique accounts associated with the selected users to avoid duplicates for shared accounts
   const uniqueAccounts = accounts.filter((account) =>
     account.user_ids.some((uid) => userIds.includes(uid))
   );
@@ -209,14 +230,19 @@ export function computeGroupAccountTypeSummary(
     });
   }
 
-  for (const flow of flows) {
-    for (const row of flow.accounts) {
-      const existing = merged.get(row.accountType) ?? { balance: 0, earned: 0, spent: 0 };
-      merged.set(row.accountType, {
-        balance: existing.balance, // keep unique sum
-        earned: existing.earned + row.earned,
-        spent: existing.spent + row.spent,
-      });
+  for (const tx of transactions) {
+    const d = new Date(tx.date).getTime();
+    if (d < t0 || d > t1) continue;
+    const impact = computeTransactionImpact(tx, accountMap);
+    if (impact.cashFlow === 0) continue;
+    const account = accountMap.get(tx.account_id);
+    if (!account || !account.user_ids.some((uid) => userIds.includes(uid))) continue;
+    const type = normalizeAccountType(account.type);
+    const existing = merged.get(type) ?? { balance: 0, earned: 0, spent: 0 };
+    if (impact.cashFlow > 0) {
+      merged.set(type, { ...existing, earned: existing.earned + impact.cashFlow });
+    } else {
+      merged.set(type, { ...existing, spent: existing.spent + -impact.cashFlow });
     }
   }
 
@@ -277,17 +303,17 @@ export function buildReportsSectionViewModel(
   comparisonWindow: DateWindow | null,
   userId?: string
 ): ReportsSectionViewModel {
-  const totals = sumIncomeExpenseInWindow(transactions, window, userId);
+  const totals = sumIncomeExpenseInWindow(transactions, window, userId, accounts);
   const netFlow = totals.income - totals.expenses;
 
   let comparisonPercent: number | null = null;
   if (comparisonWindow) {
-    const prevTotals = sumIncomeExpenseInWindow(transactions, comparisonWindow, userId);
+    const prevTotals = sumIncomeExpenseInWindow(transactions, comparisonWindow, userId, accounts);
     const prevNet = prevTotals.income - prevTotals.expenses;
     comparisonPercent = netFlowDeltaPercent(netFlow, prevNet);
   }
 
-  const expenseStats = computeCategoryStats(transactions, categories, window, userId);
+  const expenseStats = computeCategoryStats(transactions, categories, window, userId, accounts);
   const topExpenses = expenseStats.map((s) => ({
     id: s.id,
     key: s.key,

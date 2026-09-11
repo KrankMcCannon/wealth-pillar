@@ -48,7 +48,7 @@ function mapSeriesToFormData(series: RecurringTransactionSeries): RecurringFormD
   return {
     description: series.description,
     amount: series.amount.toString(),
-    type: series.type === 'transfer' ? 'expense' : series.type,
+    type: series.type,
     category: series.category,
     frequency: series.frequency,
     user_ids: series.user_ids,

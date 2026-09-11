@@ -11,12 +11,14 @@ import { stitchReports } from '@/styles/home-design-foundation';
 import UserSelector from '@/components/shared/user-selector';
 import { ReportsTimeFilter } from '@/features/reports/components/reports-time-filter';
 import { ReportsHero } from '@/features/reports/components/reports-hero';
+import { ReserveSection } from '@/features/reports/components/reserve-section';
 import { TopExpensesRanking } from '@/features/reports/components/top-expenses-ranking';
 import { AccountBreakdownSection } from '@/features/reports/components/account-breakdown-section';
 import { BudgetPeriodSection } from '@/features/reports/components/budget-period-section';
 import {
   buildReportsCategoryTransactionsHref,
   buildReportsPeriodHref,
+  buildReportsReserveTransactionsHref,
   buildReportsSearchQuery,
 } from '@/features/reports/utils/reports-transactions-href';
 import type { ReportsTimePreset } from '@/features/reports/utils/reporting-window';
@@ -165,9 +167,17 @@ export default function ReportsContent({
             netFlow={section.netFlow}
             income={section.income}
             expenses={section.expenses}
-            netSavings={section.netSavings}
             comparisonPercent={section.comparisonPercent}
             comparisonLabel={comparisonLabel}
+          />
+
+          <ReserveSection
+            savings={section.netSavings}
+            movementsHref={buildReportsReserveTransactionsHref({
+              preset,
+              customRange,
+              scope: selectedScope,
+            })}
           />
 
           <TopExpensesRanking

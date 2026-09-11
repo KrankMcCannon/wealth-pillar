@@ -133,9 +133,9 @@ export function useTransactionsContent({
   const listItems = useMemo(
     () =>
       mergeOptimisticTransactions(serverList, optimisticOverlay, (transaction) =>
-        matchesAppliedQuery(transaction, appliedQuery, searchDraft)
+        matchesAppliedQuery(transaction, appliedQuery, searchDraft, accounts)
       ),
-    [serverList, optimisticOverlay, appliedQuery, searchDraft]
+    [serverList, optimisticOverlay, appliedQuery, searchDraft, accounts]
   );
 
   const debouncedSearch = useDebouncedValue(searchDraft, 300);
