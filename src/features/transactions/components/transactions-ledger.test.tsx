@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import type { SetStateAction } from 'react';
 import { TransactionsLedger } from './transactions-ledger';
 import type { Transaction } from '@/lib/types';
 import type { TransactionFiltersState } from '@/server/use-cases/transactions/transaction.logic';
@@ -46,6 +47,10 @@ const filters: TransactionFiltersState = {
   categoryKey: 'all',
 };
 
+function mockSetFilters() {
+  return vi.fn<(value: SetStateAction<TransactionFiltersState>) => void>();
+}
+
 const tx = (overrides: Partial<Transaction> & Pick<Transaction, 'id' | 'amount' | 'description'>): Transaction => ({
   user_id: 'u1',
   group_id: 'g1',
@@ -70,7 +75,7 @@ describe('TransactionsLedger day totals', () => {
         accountNames={{ a1: 'Revolut' }}
         categories={[]}
         filters={filters}
-        setFilters={vi.fn()}
+        setFilters={mockSetFilters()}
         hasMore={false}
         isLoadingMore={false}
         isNavigatingFilters={false}
@@ -107,11 +112,11 @@ describe('TransactionsLedger day totals', () => {
 function renderLedger(
   filterOverrides: Partial<TransactionFiltersState> = {},
   extras: {
-    setFilters?: ReturnType<typeof vi.fn>;
+    setFilters?: ReturnType<typeof mockSetFilters>;
     onClearBudgetFilter?: () => void;
   } = {}
 ) {
-  const setFilters = extras.setFilters ?? vi.fn();
+  const setFilters = extras.setFilters ?? mockSetFilters();
   render(
     <TransactionsLedger
       accounts={[]}
@@ -150,7 +155,7 @@ describe('TransactionsLedger filter button', () => {
   });
 
   it('clears advanced filters from the ledger toolbar', () => {
-    const setFilters = vi.fn();
+    const setFilters = mockSetFilters();
     const onClearBudgetFilter = vi.fn();
     renderLedger(
       { dateRange: 'month', searchQuery: 'rent', type: 'expense' },
@@ -184,6 +189,25 @@ describe('TransactionsLedger spendable', () => {
     ]);
     renderLedger();
     expect(screen.getByText('2.293,07 €')).toBeInTheDocument();
+    mockStoreAccounts.mockReturnValue([]);
+  });
+
+  it('hides the spendable total when a ledger filter is on', () => {
+    mockStoreAccounts.mockReturnValue([
+      {
+        id: 'cash',
+        name: 'Cash',
+        type: 'payroll',
+        user_ids: ['u1'],
+        group_id: 'g1',
+        balance: 2293.07,
+        created_at: '2026-01-01',
+        updated_at: '2026-01-01',
+      },
+    ]);
+    renderLedger({ type: 'expense' });
+    expect(screen.queryByText('canSpend')).toBeNull();
+    expect(screen.queryByText('2.293,07 €')).toBeNull();
     mockStoreAccounts.mockReturnValue([]);
   });
 });

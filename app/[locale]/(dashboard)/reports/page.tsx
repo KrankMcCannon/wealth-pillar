@@ -1,4 +1,3 @@
-import { Suspense } from 'react';
 import { getTranslations } from 'next-intl/server';
 import { resolvePageContext } from '@/lib/auth/page-auth';
 import {
@@ -6,7 +5,6 @@ import {
   type ReportsPageParams,
 } from '@/server/use-cases/pages/reports-page.use-case';
 import ReportsContent from './reports-content';
-import ReportsLoading from './loading';
 import { resolveReportsPreset } from '@/features/reports/utils/reporting-window';
 
 function parseReportsParams(
@@ -72,9 +70,5 @@ export default function ReportsPage({
   params: Promise<{ locale: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }>) {
-  return (
-    <Suspense fallback={<ReportsLoading />}>
-      <ReportsPageData params={params} searchParams={searchParams} />
-    </Suspense>
-  );
+  return <ReportsPageData params={params} searchParams={searchParams} />;
 }

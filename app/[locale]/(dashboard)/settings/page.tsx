@@ -1,20 +1,19 @@
 /**
  * Settings Page - Server Component
+ *
+ * Route `loading.tsx` is the navigation fallback. Do not wrap this file in Suspense.
  */
 
-import { Suspense } from 'react';
 import { requireUserAuth } from '@/lib/auth/page-auth';
 import { getUserPreferencesUseCase } from '@/server/use-cases/users/get-user-preferences.use-case';
 import { getGroupByIdUseCase } from '@/server/use-cases/groups/groups.use-cases';
 import SettingsContent from './settings-content';
-import SettingsLoading from './loading';
 import { withTimeout } from '@/lib/utils/with-timeout';
 import type { UserPreferences } from '@/lib/types';
 
 async function SettingsPageData({ params }: Readonly<{ params: Promise<{ locale: string }> }>) {
   const { currentUser } = await requireUserAuth(params);
 
-  const now = new Date();
   const fallbackPreferences: UserPreferences = {
     id: `fallback-${currentUser.id}`,
     user_id: currentUser.id,
@@ -24,8 +23,8 @@ async function SettingsPageData({ params }: Readonly<{ params: Promise<{ locale:
     notifications_push: true,
     notifications_email: false,
     notifications_budget_alerts: true,
-    created_at: now,
-    updated_at: now,
+    created_at: '1970-01-01T00:00:00.000Z',
+    updated_at: '1970-01-01T00:00:00.000Z',
   };
 
   const [initialPreferences, group] = await Promise.all([
@@ -53,9 +52,5 @@ async function SettingsPageData({ params }: Readonly<{ params: Promise<{ locale:
 export default function SettingsPage({
   params,
 }: Readonly<{ params: Promise<{ locale: string }> }>) {
-  return (
-    <Suspense fallback={<SettingsLoading />}>
-      <SettingsPageData params={params} />
-    </Suspense>
-  );
+  return <SettingsPageData params={params} />;
 }

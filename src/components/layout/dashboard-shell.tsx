@@ -6,6 +6,7 @@ import { BottomNavigation } from './bottom-navigation';
 import { Header } from './header';
 import { PageContainer } from './page-container';
 import { useDashboardHeaderStore } from './dashboard-header-store';
+import { DashboardRouteWarmer } from './dashboard-route-warmer';
 
 interface DashboardShellProps {
   children: ReactNode;
@@ -27,12 +28,13 @@ export function DashboardShell({ children }: Readonly<DashboardShellProps>) {
         ready={headerConfig.ready === true}
         {...(headerConfig.title !== undefined ? { title: headerConfig.title } : {})}
         showBack={headerConfig.showBack ?? false}
-        {...(headerConfig.onBack !== undefined ? { onBack: headerConfig.onBack } : {})}
+        {...(headerConfig.backHref !== undefined ? { backHref: headerConfig.backHref } : {})}
       />
       <div id="content-start" tabIndex={-1} className="outline-none">
         {children}
       </div>
       <BottomNavigation />
+      <DashboardRouteWarmer />
     </PageContainer>
   );
 }

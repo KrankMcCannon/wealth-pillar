@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 
 import { useLocale, useTranslations } from 'next-intl';
+import { Link } from '@/i18n/routing';
 import type { BudgetProgress, Category } from '@/lib/types';
 import { stitchBudgets } from '@/styles/home-design-foundation';
 import { formatCurrencyLocale } from '@/lib/utils/currency-formatter';
@@ -21,14 +22,17 @@ export interface BudgetCategoryCardProps {
   readonly progress: BudgetProgress;
   readonly categories: Category[];
   readonly isSelected: boolean;
-  /** Seleziona il budget e apre la pagina di dettaglio. */
-  readonly onPress: () => void;
+  /** Detail route — use a Link so the destination can prefetch. */
+  readonly href?: string;
+  /** Seleziona il budget (modals / non-route targets). */
+  readonly onPress?: () => void;
 }
 
 export function BudgetCategoryCard({
   progress,
   categories,
   isSelected,
+  href,
   onPress,
 }: Readonly<BudgetCategoryCardProps>) {
   const locale = useLocale();
@@ -53,18 +57,15 @@ export function BudgetCategoryCard({
         ? stitchBudgets.iconWrapFixed
         : stitchBudgets.iconWrapOnTrack;
 
-  return (
-    <button
-      type="button"
-      onClick={onPress}
-      aria-current={isSelected ? 'true' : undefined}
-      aria-label={t('categoryCard.ariaOpenDetail', { name: progress.description })}
-      className={cn(
-        stitchBudgets.categoryCard,
-        status === 'over' && stitchBudgets.categoryCardOver,
-        isSelected && stitchBudgets.categoryCardSelected
-      )}
-    >
+  const className = cn(
+    stitchBudgets.categoryCard,
+    status === 'over' && stitchBudgets.categoryCardOver,
+    isSelected && stitchBudgets.categoryCardSelected
+  );
+  const ariaLabel = t('categoryCard.ariaOpenDetail', { name: progress.description });
+
+  const body = (
+    <>
       <div className={stitchBudgets.categoryHeaderRow}>
         <div className={stitchBudgets.categoryTitleRow}>
           <span className={iconWrapClass} aria-hidden>
@@ -98,6 +99,32 @@ export function BudgetCategoryCard({
         )}
         limitMarkerLeftPct={status === 'over' ? limitMarkerLeftPct : null}
       />
+    </>
+  );
+
+  if (href) {
+    return (
+      <Link
+        href={href}
+        prefetch
+        aria-current={isSelected ? 'true' : undefined}
+        aria-label={ariaLabel}
+        className={className}
+      >
+        {body}
+      </Link>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={onPress}
+      aria-current={isSelected ? 'true' : undefined}
+      aria-label={ariaLabel}
+      className={className}
+    >
+      {body}
     </button>
   );
 }

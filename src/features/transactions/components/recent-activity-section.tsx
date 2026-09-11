@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { Amount } from '@/components/ui/primitives/amount';
 import { PlainListRow } from '@/components/ui/layout/plain-list-row';
 import { formatDateSmart, toDateTime } from '@/lib/utils/date-utils';
+import { withReturnTo } from '@/lib/navigation/return-to';
 import type { Transaction, Category } from '@/lib/types';
 import { stitchHome } from '@/styles/home-design-foundation';
 import { cn } from '@/lib/utils';
@@ -28,7 +29,7 @@ export function RecentActivitySection({
         <h2 id="home-recent-heading" className={stitchHome.scanSectionTitle}>
           {t('recentActivityTitle')}
         </h2>
-        <Link href="/transactions" className={cn(stitchHome.viewAllLink, 'min-w-0')}>
+        <Link href={withReturnTo('/transactions', '/home')} className={cn(stitchHome.viewAllLink, 'min-w-0')}>
           {t('recentActivityViewAll')}
         </Link>
       </div>

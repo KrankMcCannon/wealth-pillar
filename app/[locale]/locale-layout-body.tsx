@@ -36,7 +36,7 @@ export function LocaleLayoutHtmlFallback({ className }: { className: string }): 
 
 /**
  * Resolves locale params + i18n inside the parent Suspense boundary.
- * Session data is a nested hole so a blank html fallback cannot block the page.
+ * Clerk waits on `connection()` in a nested hole so html/theme can paint first.
  */
 export async function LocaleLayoutBody({
   children,
@@ -55,9 +55,6 @@ export async function LocaleLayoutBody({
 
   setRequestLocale(locale);
   const messages = await getMessages();
-  // ClerkProvider reads `new Date()` (keyless drift). cacheComponents requires
-  // request data first: https://nextjs.org/docs/messages/next-prerender-current-time
-  await connection();
 
   return (
     <html lang={locale} data-scroll-behavior="smooth" suppressHydrationWarning>
@@ -65,36 +62,43 @@ export async function LocaleLayoutBody({
         className={`${className} antialiased min-h-screen bg-background text-foreground`}
         suppressHydrationWarning
       >
-        <ClerkProvider telemetry={false}>
-          <NextIntlClientProvider messages={messages}>
-            <NuqsAdapter>
-              <ThemeProvider
-                attribute="class"
-                defaultTheme="light"
-                enableSystem={false}
-                storageKey="wp-theme"
-                disableTransitionOnChange
-              >
-                <Suspense fallback={children}>
-                  <UserSessionGate>{children}</UserSessionGate>
-                </Suspense>
-                <Toaster />
-              </ThemeProvider>
-            </NuqsAdapter>
-          </NextIntlClientProvider>
-        </ClerkProvider>
+        <NextIntlClientProvider messages={messages}>
+          <NuqsAdapter>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="light"
+              enableSystem={false}
+              storageKey="wp-theme"
+              disableTransitionOnChange
+            >
+              <Suspense fallback={<div className="min-h-screen bg-background" aria-hidden />}>
+                <ClerkRuntime>{children}</ClerkRuntime>
+              </Suspense>
+              <Toaster />
+            </ThemeProvider>
+          </NuqsAdapter>
+        </NextIntlClientProvider>
       </body>
     </html>
   );
 }
 
-async function UserSessionGate({ children }: { children: React.ReactNode }) {
-  const currentUser = await withTimeout(
-    getCurrentUser(),
-    2000,
-    null,
-    'locale-layout:getCurrentUser'
+async function ClerkRuntime({ children }: { children: React.ReactNode }) {
+  // ClerkProvider reads `new Date()` (keyless drift). cacheComponents requires
+  // request data first: https://nextjs.org/docs/messages/next-prerender-current-time
+  await connection();
+
+  return (
+    <ClerkProvider telemetry={false}>
+      <Suspense fallback={children}>
+        <UserSessionGate>{children}</UserSessionGate>
+      </Suspense>
+    </ClerkProvider>
   );
+}
+
+async function UserSessionGate({ children }: { children: React.ReactNode }) {
+  const currentUser = await getCurrentUser();
 
   if (!currentUser) {
     return children;

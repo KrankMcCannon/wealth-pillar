@@ -1,11 +1,9 @@
-import { Suspense } from 'react';
 import { getTranslations } from 'next-intl/server';
 import { resolvePageContext } from '@/lib/auth/page-auth';
 import { getReportPeriodDetailPageData } from '@/server/use-cases/pages/report-period-detail-page.use-case';
 import { resolveReportsPreset } from '@/features/reports/utils/reporting-window';
 import type { ReportsScope } from '@/server/use-cases/pages/reports-page.use-case';
 import PeriodDetailContent from './period-detail-content';
-import PeriodDetailLoading from './loading';
 
 async function PeriodDetailPageData({
   params,
@@ -56,9 +54,5 @@ export default function PeriodDetailPage({
   params: Promise<{ locale: string; periodId: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }>) {
-  return (
-    <Suspense fallback={<PeriodDetailLoading />}>
-      <PeriodDetailPageData params={params} searchParams={searchParams} />
-    </Suspense>
-  );
+  return <PeriodDetailPageData params={params} searchParams={searchParams} />;
 }

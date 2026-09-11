@@ -29,6 +29,7 @@
 
 import { SectionHeader } from '@/components/layout';
 import { EmptyState } from '@/components/shared';
+import { Link } from '@/i18n/routing';
 import { Transaction, Category } from '@/lib';
 import { GroupedTransactionCard } from './grouped-transaction-card';
 import { transactionStyles } from '@/features/transactions/theme/transaction-styles';
@@ -87,10 +88,12 @@ export interface TransactionDayListProps {
   emptyDescription?: string;
 
   // View all button (for budget page)
-  /** Whether to show the "View All" button */
+  /** Whether to show the "View All" control */
   showViewAll?: boolean;
-  /** Label for view all button */
+  /** Label for view all */
   viewAllLabel?: string;
+  /** Prefetchable ledger URL (preferred over onViewAll) */
+  viewAllHref?: string;
   /** Callback when "View All" is clicked */
   onViewAll?: () => void;
 
@@ -117,6 +120,7 @@ export function TransactionDayList({
   emptyDescription,
   showViewAll = false,
   viewAllLabel,
+  viewAllHref,
   onViewAll,
   variant = 'regular',
   className,
@@ -182,16 +186,25 @@ export function TransactionDayList({
       </div>
 
       {/* View All Button */}
-      {showViewAll && hasTransactions && onViewAll && (
+      {showViewAll && hasTransactions && (viewAllHref || onViewAll) ? (
         <div className={transactionStyles.dayList.viewAllWrap}>
-          <button type="button" onClick={onViewAll} className={stitchHome.viewAllLink}>
-            {resolvedViewAllLabel}
-            <span className="ml-1" aria-hidden>
-              →
-            </span>
-          </button>
+          {viewAllHref ? (
+            <Link href={viewAllHref} prefetch className={stitchHome.viewAllLink}>
+              {resolvedViewAllLabel}
+              <span className="ml-1" aria-hidden>
+                →
+              </span>
+            </Link>
+          ) : (
+            <button type="button" onClick={onViewAll} className={stitchHome.viewAllLink}>
+              {resolvedViewAllLabel}
+              <span className="ml-1" aria-hidden>
+                →
+              </span>
+            </button>
+          )}
         </div>
-      )}
+      ) : null}
     </section>
   );
 }

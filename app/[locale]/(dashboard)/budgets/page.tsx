@@ -1,15 +1,13 @@
 /**
  * Budgets Page - Server Component
  *
- * Auth and page data resolve inside Suspense.
+ * Route `loading.tsx` is the tab-click fallback. Do not wrap this file in Suspense.
  */
 
-import { Suspense } from 'react';
 import { getTranslations } from 'next-intl/server';
 import { resolvePageContext } from '@/lib/auth/page-auth';
 import { getBudgetsPageData } from '@/server/use-cases';
 import BudgetsContent from './budgets-content';
-import BudgetsLoading from './loading';
 
 async function BudgetsPageData({ params }: Readonly<{ params: Promise<{ locale: string }> }>) {
   const { currentUser, groupUsers, groupId } = await resolvePageContext(params);
@@ -29,9 +27,5 @@ async function BudgetsPageData({ params }: Readonly<{ params: Promise<{ locale: 
 }
 
 export default function BudgetsPage({ params }: Readonly<{ params: Promise<{ locale: string }> }>) {
-  return (
-    <Suspense fallback={<BudgetsLoading />}>
-      <BudgetsPageData params={params} />
-    </Suspense>
-  );
+  return <BudgetsPageData params={params} />;
 }

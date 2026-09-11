@@ -6,6 +6,7 @@ import { useDebouncedValue } from '@/hooks/use-debounced-value';
 import { defaultFiltersState } from '../components/transaction-filters';
 import type { TransactionFiltersState } from '@/server/use-cases/transactions/transaction.logic';
 import type { Transaction, Budget, Account } from '@/lib/types';
+import { parseReturnTo, withReturnTo } from '@/lib/navigation/return-to';
 import { useModalState, useTabState, type ModalType } from '@/lib/navigation/url-state';
 import { useRouter } from '@/i18n/routing';
 import { toast } from '@/hooks/use-toast';
@@ -23,6 +24,12 @@ import {
   buildTransactionsQueryString,
   matchesAppliedQuery,
 } from '../utils/transactions-query';
+
+function transactionsHref(qs: string, searchParams: URLSearchParams): string {
+  const href = `/transactions?${qs}`;
+  const from = parseReturnTo(searchParams);
+  return from ? withReturnTo(href, from) : href;
+}
 
 export { appliedQueryToListQuery } from '../utils/transactions-query';
 
@@ -158,7 +165,7 @@ export function useTransactionsContent({
       if (tab && tab !== 'Transactions') parts.push(`tab=${encodeURIComponent(tab)}`);
       const qs = parts.filter(Boolean).join('&');
       startNavigation(() => {
-        router.push(`/transactions?${qs}`);
+        router.push(transactionsHref(qs, searchParams));
       });
     },
     [router, searchParams, startNavigation]
@@ -235,7 +242,7 @@ export function useTransactionsContent({
     const query = buildTransactionsQueryString(nextFilters, selectedUserId);
     const qs = tab && tab !== 'Transactions' ? `${query}&tab=${encodeURIComponent(tab)}` : query;
     startNavigation(() => {
-      router.push(`/transactions?${qs}`);
+      router.push(transactionsHref(qs, searchParams));
     });
   }, [router, searchParams, selectedUserId, startNavigation]);
 

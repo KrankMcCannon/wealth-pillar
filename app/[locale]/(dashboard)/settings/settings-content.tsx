@@ -2,7 +2,6 @@
 
 import { useTranslations } from 'next-intl';
 import { usePageHeader } from '@/hooks/use-page-header';
-import { useRouter } from '@/i18n/routing';
 import { HomeDashboardMain } from '@/components/layout';
 import { stitchSettings } from '@/styles/home-design-foundation';
 import {
@@ -45,12 +44,9 @@ export default function SettingsContent({
     handleGroupUpdate,
   } = useSettings(currentUser, initialPreferences, initialGroupName);
 
-  const router = useRouter();
-
   usePageHeader({
     title: t('headerTitle'),
-    showBack: true,
-    onBack: () => router.push('/home'),
+    backHref: '/home',
   });
 
   if (!displayUser) return null;

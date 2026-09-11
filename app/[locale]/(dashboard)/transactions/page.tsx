@@ -4,7 +4,6 @@
  * Keyset list window (30 rows); load-more via server action.
  */
 
-import { Suspense } from 'react';
 import { resolvePageContext } from '@/lib/auth/page-auth';
 import { getTransactionsListData } from '@/server/use-cases';
 import { isAdmin } from '@/lib/utils/permissions';
@@ -17,7 +16,6 @@ import {
   type TransactionsListQuery,
 } from '@/server/use-cases/pages/transactions-page.use-case';
 import TransactionsContent from './transactions-content';
-import TransactionPageLoading from './loading';
 
 async function TransactionsPageData({
   params,
@@ -101,9 +99,5 @@ export default function TransactionsPage({
   params: Promise<{ locale: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }>) {
-  return (
-    <Suspense fallback={<TransactionPageLoading />}>
-      <TransactionsPageData params={params} searchParams={searchParams} />
-    </Suspense>
-  );
+  return <TransactionsPageData params={params} searchParams={searchParams} />;
 }

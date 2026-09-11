@@ -2,7 +2,7 @@
 
 import { use, useMemo } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { HomeDashboardMain } from '@/components/layout';
+import { HomeDashboardMain } from '@/components/layout/home-dashboard-layout';
 import { usePageHeader } from '@/hooks/use-page-header';
 import { BudgetCategoryLucideIcon } from '@/features/budgets/components/budget-category-lucide-icon';
 import { getBudgetCategoryStatus } from '@/features/budgets/components/budget-category-card';
@@ -17,7 +17,7 @@ import type { BudgetDetailPageData } from '@/server/use-cases/pages/budget-detai
 import { formatGroupedTransactionsForClient } from '@/features/budgets/utils/format-budget-detail-transactions';
 import { stitchBudgets, stitchHome } from '@/styles/home-design-foundation';
 import { cn } from '@/lib/utils';
-import { useRouter } from '@/i18n/routing';
+import { withReturnTo } from '@/lib/navigation/return-to';
 
 interface BudgetDetailContentProps {
   currentUser: User;
@@ -38,7 +38,6 @@ export default function BudgetDetailContent({ pageDataPromise }: BudgetDetailCon
 
   const t = useTranslations('Budgets.Detail');
   const locale = useLocale();
-  const router = useRouter();
   const { openModal } = useModalState();
   const setTransactionEditSeed = useTransactionEditStore((state) => state.setSeed);
 
@@ -50,6 +49,24 @@ export default function BudgetDetailContent({ pageDataPromise }: BudgetDetailCon
     [groupedTransactions, locale]
   );
 
+  const viewAllHref = useMemo(() => {
+    const params = new URLSearchParams();
+    params.set('user', budget.user_id);
+    if (budget.categories.length > 0) {
+      params.set('categories', budget.categories.join(','));
+    }
+    params.set('dateRange', 'custom');
+    if (periodStart) {
+      const startDt = toDateTime(periodStart);
+      if (startDt) params.set('startDate', startDt.toISODate() ?? periodStart);
+    }
+    if (periodEnd) {
+      const endDt = toDateTime(periodEnd);
+      if (endDt) params.set('endDate', endDt.toISODate() ?? periodEnd);
+    }
+    return withReturnTo(`/transactions?${params.toString()}`, `/budgets/${budget.id}`);
+  }, [budget.id, budget.user_id, budget.categories, periodStart, periodEnd]);
+
   const iconWrapClass =
     status === 'over'
       ? stitchBudgets.iconWrapOver
@@ -59,8 +76,7 @@ export default function BudgetDetailContent({ pageDataPromise }: BudgetDetailCon
 
   usePageHeader({
     title: budget.description,
-    showBack: true,
-    onBack: () => router.push(`/budgets?user=${encodeURIComponent(budget.user_id)}`),
+    backHref: `/budgets?user=${encodeURIComponent(budget.user_id)}`,
   });
 
   return (
@@ -145,24 +161,7 @@ export default function BudgetDetailContent({ pageDataPromise }: BudgetDetailCon
             emptyDescription={t('transactions.emptyDescription')}
             showViewAll
             viewAllLabel={t('transactions.viewAll')}
-            onViewAll={() => {
-              const params = new URLSearchParams();
-              params.set('from', 'budgets');
-              params.set('user', budget.user_id);
-              if (budget.categories.length > 0) {
-                params.set('categories', budget.categories.join(','));
-              }
-              params.set('dateRange', 'custom');
-              if (periodStart) {
-                const startDt = toDateTime(periodStart);
-                if (startDt) params.set('startDate', startDt.toISODate() ?? periodStart);
-              }
-              if (periodEnd) {
-                const endDt = toDateTime(periodEnd);
-                if (endDt) params.set('endDate', endDt.toISODate() ?? periodEnd);
-              }
-              router.push(`/transactions?${params.toString()}`);
-            }}
+            viewAllHref={viewAllHref}
             onEditTransaction={(transaction) => {
               setTransactionEditSeed(transaction);
               openModal('transaction', transaction.id);

@@ -1,8 +1,9 @@
 'use client';
 
+import { useLinkStatus } from 'next/link';
 import { Link, usePathname } from '@/i18n/routing';
 import { useTranslations } from 'next-intl';
-import { Home, CreditCard, TrendingUp, BarChart3, Wallet } from 'lucide-react';
+import { Home, CreditCard, TrendingUp, BarChart3, Wallet, type LucideIcon } from 'lucide-react';
 import { cn } from '@/lib';
 import { stitchDashboardShell as shell } from '@/styles/home-design-foundation';
 
@@ -24,29 +25,48 @@ export function BottomNavigation() {
       aria-label={t('ariaNav')}
     >
       {NAV_ITEMS.map((item) => {
-        const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
-        const Icon = item.icon;
+        const isCurrent = pathname === item.href || pathname.startsWith(`${item.href}/`);
         const label = t(item.labelKey);
         return (
           <Link
             key={item.href}
             href={item.href}
             prefetch
-            className={cn(shell.bottomNavItem, isActive && shell.bottomNavItemActive)}
-            aria-current={isActive ? 'page' : undefined}
+            className={shell.bottomNavItem}
+            aria-current={isCurrent ? 'page' : undefined}
             title={label}
           >
-            <span
-              className={cn(shell.bottomNavIconWell, isActive && shell.bottomNavIconWellActive)}
-            >
-              <Icon className={shell.bottomNavIcon} aria-hidden />
-            </span>
-            <span className={cn(shell.bottomNavLabel, isActive && shell.bottomNavLabelActive)}>
-              {label}
-            </span>
+            <BottomNavItemChrome Icon={item.icon} label={label} isCurrent={isCurrent} />
           </Link>
         );
       })}
     </nav>
+  );
+}
+
+function BottomNavItemChrome({
+  Icon,
+  label,
+  isCurrent,
+}: Readonly<{
+  Icon: LucideIcon;
+  label: string;
+  isCurrent: boolean;
+}>) {
+  const { pending } = useLinkStatus();
+  const active = isCurrent || pending;
+
+  return (
+    <>
+      <span
+        className={cn(shell.bottomNavIconWell, active && shell.bottomNavIconWellActive)}
+        aria-busy={pending || undefined}
+      >
+        <Icon className={shell.bottomNavIcon} aria-hidden />
+      </span>
+      <span className={cn(shell.bottomNavLabel, active && shell.bottomNavLabelActive)}>
+        {label}
+      </span>
+    </>
   );
 }

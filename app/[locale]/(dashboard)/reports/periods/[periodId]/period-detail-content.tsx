@@ -10,6 +10,7 @@ import { toast } from '@/hooks/use-toast';
 import { useRouter } from '@/i18n/routing';
 import { Link } from '@/i18n/routing';
 import { cn } from '@/lib/utils';
+import { pathWithoutReturnTo, withReturnTo } from '@/lib/navigation/return-to';
 import { stitchHome, stitchReports, stitchSurface } from '@/styles/home-design-foundation';
 import { useFormatCurrency } from '@/features/reports/hooks/use-format-currency';
 import { TopExpensesRanking } from '@/features/reports/components/top-expenses-ranking';
@@ -99,17 +100,23 @@ export default function PeriodDetailContent({
     scope: backScope,
   });
   const backHref = backQuery ? `/reports?${backQuery}` : '/reports';
+  const here = pathWithoutReturnTo(
+    `/reports/periods/${pageData.periodId}`,
+    backQuery
+  );
 
-  const transactionsHref = buildPeriodTransactionsHref({
-    startDate: pageData.startDate,
-    endDate: pageData.endDate,
-    userId: pageData.userId,
-  });
+  const transactionsHref = withReturnTo(
+    buildPeriodTransactionsHref({
+      startDate: pageData.startDate,
+      endDate: pageData.endDate,
+      userId: pageData.userId,
+    }),
+    here
+  );
 
   usePageHeader({
     title: pageData.summary.name,
-    showBack: true,
-    onBack: () => router.push(backHref, { scroll: false }),
+    backHref,
   });
 
   const remaining = pageData.summary.remaining;
@@ -240,12 +247,15 @@ export default function PeriodDetailContent({
             items={pageData.categoryRows}
             periodExpenses={pageData.storedAmounts.spendableSpent}
             hrefForCategory={(categoryKey) =>
-              buildPeriodTransactionsHref({
-                startDate: pageData.startDate,
-                endDate: pageData.endDate,
-                userId: pageData.userId,
-                categoryKey,
-              })
+              withReturnTo(
+                buildPeriodTransactionsHref({
+                  startDate: pageData.startDate,
+                  endDate: pageData.endDate,
+                  userId: pageData.userId,
+                  categoryKey,
+                }),
+                here
+              )
             }
           />
 

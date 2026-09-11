@@ -1,7 +1,5 @@
-import { Suspense } from 'react';
 import { getTranslations } from 'next-intl/server';
 import InvestmentsContent from './investments-content';
-import InvestmentsLoading from './loading';
 import { resolvePageContext } from '@/lib/auth/page-auth';
 import { getInvestmentsPageData } from '@/server/use-cases/pages/investments-page.use-case';
 
@@ -47,9 +45,5 @@ export default function InvestmentsPage(props: {
   params: Promise<{ locale: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  return (
-    <Suspense fallback={<InvestmentsLoading />}>
-      <InvestmentsPageData params={props.params} searchParams={props.searchParams} />
-    </Suspense>
-  );
+  return <InvestmentsPageData params={props.params} searchParams={props.searchParams} />;
 }

@@ -1,15 +1,13 @@
 /**
  * Accounts Page — Server Component.
  *
- * Auth and page data resolve inside Suspense with [`AccountsLoading`](./loading.tsx) fallback.
+ * Route `loading.tsx` is the navigation fallback. Do not wrap this file in Suspense.
  */
 
-import { Suspense } from 'react';
 import { getTranslations } from 'next-intl/server';
 import { resolvePageContext } from '@/lib/auth/page-auth';
 import { getAccountsPageData } from '@/server/use-cases';
 import AccountsContent from './accounts-content';
-import AccountsLoading from './loading';
 
 async function AccountsPageData({ params }: Readonly<{ params: Promise<{ locale: string }> }>) {
   const { currentUser, groupUsers, groupId } = await resolvePageContext(params);
@@ -32,9 +30,5 @@ async function AccountsPageData({ params }: Readonly<{ params: Promise<{ locale:
 export default function AccountsPage({
   params,
 }: Readonly<{ params: Promise<{ locale: string }> }>) {
-  return (
-    <Suspense fallback={<AccountsLoading />}>
-      <AccountsPageData params={params} />
-    </Suspense>
-  );
+  return <AccountsPageData params={params} />;
 }

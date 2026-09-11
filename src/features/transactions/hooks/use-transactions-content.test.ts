@@ -9,12 +9,15 @@ import type { Transaction } from '@/lib/types';
 import { loadMoreTransactionsAction } from '../actions/transaction-actions';
 import { toast } from '@/hooks/use-toast';
 
+let search = '';
+const push = vi.fn();
+
 vi.mock('next/navigation', () => ({
-  useSearchParams: () => new URLSearchParams(),
+  useSearchParams: () => new URLSearchParams(search),
 }));
 
 vi.mock('@/i18n/routing', () => ({
-  useRouter: () => ({ push: vi.fn() }),
+  useRouter: () => ({ push }),
 }));
 
 vi.mock('@/hooks', () => ({
@@ -69,6 +72,8 @@ const baseProps = {
 
 describe('useTransactionsContent optimistic merge', () => {
   beforeEach(() => {
+    search = '';
+    push.mockReset();
     useOptimisticTransactionStore.getState().reset();
     vi.mocked(loadMoreTransactionsAction).mockReset();
     vi.mocked(toast).mockReset();
@@ -188,5 +193,21 @@ describe('useTransactionsContent optimistic merge', () => {
     });
 
     expect(loadMoreTransactionsAction).toHaveBeenCalledTimes(2);
+  });
+
+  it('keeps from on filter navigations', () => {
+    search = 'from=%2Fbudgets%2Fb1';
+    const { result } = renderHook((props) => useTransactionsContent(props), {
+      initialProps: {
+        ...baseProps,
+        transactions: [serverTx],
+      },
+    });
+
+    act(() => {
+      result.current.handleUserFilterChange('u2');
+    });
+
+    expect(push).toHaveBeenCalledWith('/transactions?user=u2&from=%2Fbudgets%2Fb1');
   });
 });

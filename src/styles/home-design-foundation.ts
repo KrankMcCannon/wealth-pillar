@@ -109,13 +109,14 @@ export const stitchDashboardShell = {
   bottomBarPad: 'px-2 pt-1.5 pb-[calc(theme(spacing.1)+env(safe-area-inset-bottom))]',
   bottomNav: 'mx-auto grid max-w-xl grid-cols-5 items-stretch',
   bottomNavItem:
-    'flex min-h-12 min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-1 py-1 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35 motion-reduce:transition-none',
-  bottomNavItemActive: 'text-foreground',
-  bottomNavIconWell: 'flex size-8 items-center justify-center rounded-full',
+    'group flex min-h-12 min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-1 py-1 text-muted-foreground transition-colors hover:text-foreground active:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35 motion-reduce:transition-none',
+  bottomNavIconWell:
+    'flex size-8 items-center justify-center rounded-full group-active:bg-accent group-active:ring-1 group-active:ring-inset group-active:ring-primary/35',
   bottomNavIconWellActive: 'bg-accent ring-1 ring-inset ring-primary/35',
   bottomNavIcon: 'size-5 shrink-0',
-  bottomNavLabel: 'max-w-full text-center text-[11px] font-medium leading-tight',
-  bottomNavLabelActive: 'font-semibold',
+  bottomNavLabel:
+    'max-w-full text-center text-[11px] font-medium leading-tight group-active:font-semibold group-active:text-foreground',
+  bottomNavLabelActive: 'font-semibold text-foreground',
 } as const;
 
 /** Capsule page tabs (Transazioni/Ricorrenti, Investimenti/Sandbox). */

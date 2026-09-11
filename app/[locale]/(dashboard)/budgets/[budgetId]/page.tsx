@@ -2,12 +2,10 @@
  * Budget Detail Page - Server Component
  */
 
-import { Suspense } from 'react';
 import { getTranslations } from 'next-intl/server';
 import { resolvePageContext } from '@/lib/auth/page-auth';
 import { getBudgetDetailPageData } from '@/server/use-cases';
 import BudgetDetailContent from './budget-detail-content';
-import BudgetDetailLoading from './loading';
 
 async function BudgetDetailPageData({
   params,
@@ -31,9 +29,5 @@ async function BudgetDetailPageData({
 export default function BudgetDetailPage({
   params,
 }: Readonly<{ params: Promise<{ locale: string; budgetId: string }> }>) {
-  return (
-    <Suspense fallback={<BudgetDetailLoading />}>
-      <BudgetDetailPageData params={params} />
-    </Suspense>
-  );
+  return <BudgetDetailPageData params={params} />;
 }

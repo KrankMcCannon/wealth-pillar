@@ -3,7 +3,7 @@ import { create } from 'zustand';
 export interface DashboardHeaderConfig {
   title?: string;
   showBack?: boolean;
-  onBack?: () => void;
+  backHref?: string;
   /** False until a page sets the bar — do not flash the app name as a fake title. */
   ready?: boolean;
 }

@@ -1,16 +1,37 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
 import { usePathname, useRouter } from '@/i18n/routing';
-import { InvestmentHistoryChart } from './investment-history-chart';
-import { BenchmarkChart } from './benchmark-chart';
 import { InvestmentsScreenList } from './investments-screen-list';
 import { WealthHeader } from './wealth-header';
-import { AssetAllocationCard } from './asset-allocation-card';
 import { useTranslations } from 'next-intl';
 import type { AssetAllocationSlice } from '@/server/use-cases/investments/investment.use-cases';
 import type { InvestmentListItem } from '@/server/use-cases/investments/investment.types';
 import { buildAllocationChartData } from '@/features/investments/utils/allocation-chart-data';
+import { stitchInvestments } from '@/styles/home-design-foundation';
+import { investmentsStyles } from '@/features/investments/theme/investments-styles';
+
+function ChartSlotFallback() {
+  return (
+    <div className={stitchInvestments.chartCard}>
+      <div className={investmentsStyles.charts.fallback} aria-busy="true" />
+    </div>
+  );
+}
+
+const AssetAllocationCard = dynamic(
+  () => import('./asset-allocation-card').then((m) => m.AssetAllocationCard),
+  { ssr: false, loading: ChartSlotFallback }
+);
+const InvestmentHistoryChart = dynamic(
+  () => import('./investment-history-chart').then((m) => m.InvestmentHistoryChart),
+  { ssr: false, loading: ChartSlotFallback }
+);
+const BenchmarkChart = dynamic(
+  () => import('./benchmark-chart').then((m) => m.BenchmarkChart),
+  { ssr: false, loading: ChartSlotFallback }
+);
 
 export type Investment = InvestmentListItem;
 
@@ -71,7 +92,7 @@ export function PersonalInvestmentTab({
         trendPercentage={summary.totalReturnPercent}
       />
 
-      <AssetAllocationCard data={allocationData} />
+      {allocationData.length > 0 ? <AssetAllocationCard data={allocationData} /> : null}
 
       <div className="flex min-w-0 flex-col gap-4">
         <InvestmentHistoryChart data={portfolioHistory} />

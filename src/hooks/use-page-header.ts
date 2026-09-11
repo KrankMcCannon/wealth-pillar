@@ -1,6 +1,6 @@
 'use client';
 
-import { useLayoutEffect, useRef } from 'react';
+import { useLayoutEffect } from 'react';
 import {
   type DashboardHeaderConfig,
   useDashboardHeaderStore,
@@ -8,20 +8,18 @@ import {
 
 export function usePageHeader(config: DashboardHeaderConfig = {}): void {
   const setHeader = useDashboardHeaderStore((state) => state.setHeader);
-  const onBackRef = useRef(config.onBack);
-  onBackRef.current = config.onBack;
 
   const title = config.title;
   const showBack = config.showBack;
-  const hasOnBack = config.onBack !== undefined;
+  const backHref = config.backHref;
 
   useLayoutEffect(() => {
     setHeader({
       ...(title !== undefined ? { title } : {}),
       ...(showBack !== undefined ? { showBack } : {}),
-      ...(hasOnBack ? { onBack: () => onBackRef.current?.() } : {}),
+      ...(backHref !== undefined ? { backHref } : {}),
     });
     // Keep the last real title through Suspense fallbacks. Reseting to the app name
     // is fake chrome and flashes on every navigation.
-  }, [title, showBack, hasOnBack, setHeader]);
+  }, [title, showBack, backHref, setHeader]);
 }

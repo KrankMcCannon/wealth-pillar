@@ -8,6 +8,7 @@ import { usePageHeader } from '@/hooks/use-page-header';
 import type { ReportsPageData, ReportsScope } from '@/server/use-cases/pages/reports-page.use-case';
 import type { User } from '@/lib/types';
 import { stitchReports } from '@/styles/home-design-foundation';
+import { pathWithoutReturnTo, withReturnTo } from '@/lib/navigation/return-to';
 import UserSelector from '@/components/shared/user-selector';
 import { ReportsTimeFilter } from '@/features/reports/components/reports-time-filter';
 import { ReportsHero } from '@/features/reports/components/reports-hero';
@@ -123,6 +124,10 @@ export default function ReportsContent({
   }, [data.periods, selectedScope]);
 
   const userSelectorValue = selectedScope === 'all' ? 'all' : selectedScope;
+  const here = pathWithoutReturnTo(
+    '/reports',
+    buildReportsSearchQuery({ preset, customRange, scope: selectedScope })
+  );
 
   usePageHeader({
     title: t('headerTitle'),
@@ -171,23 +176,29 @@ export default function ReportsContent({
 
           <ReserveSection
             savings={section.netSavings}
-            movementsHref={buildReportsReserveTransactionsHref({
-              preset,
-              customRange,
-              scope: selectedScope,
-            })}
+            movementsHref={withReturnTo(
+              buildReportsReserveTransactionsHref({
+                preset,
+                customRange,
+                scope: selectedScope,
+              }),
+              here
+            )}
           />
 
           <TopExpensesRanking
             items={section.topExpenses}
             periodExpenses={section.expenses}
             hrefForCategory={(categoryKey) =>
-              buildReportsCategoryTransactionsHref({
-                preset,
-                customRange,
-                scope: selectedScope,
-                categoryKey,
-              })
+              withReturnTo(
+                buildReportsCategoryTransactionsHref({
+                  preset,
+                  customRange,
+                  scope: selectedScope,
+                  categoryKey,
+                }),
+                here
+              )
             }
           />
 

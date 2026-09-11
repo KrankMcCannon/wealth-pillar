@@ -6,6 +6,8 @@ const withNextIntl = createNextIntlPlugin();
 const nextConfig: NextConfig = {
   reactCompiler: true,
   cacheComponents: true,
+  // Prefetch tab shells (loading.tsx), not full dynamic RSC, so clicks paint immediately.
+  partialPrefetching: true,
   experimental: {
     staleTimes: {
       dynamic: 180,

@@ -20,7 +20,11 @@ import type { TransactionTypeFilter } from '@/server/use-cases/transactions/tran
 import { useAccounts } from '@/stores/reference-data-store';
 import { CompactSegments, FilterDock } from './filter-dock';
 import { StickyTotal } from './sticky-total';
-import { getAdvancedFiltersCount, clearAdvancedFilters } from './filters/filter-helpers';
+import {
+  getAdvancedFiltersCount,
+  clearAdvancedFilters,
+  hasActiveFilters,
+} from './filters/filter-helpers';
 import type { TransactionsLedgerProps } from './transactions-workspace-props';
 
 export function TransactionsLedger(props: TransactionsLedgerProps) {
@@ -105,29 +109,32 @@ export function TransactionsLedger(props: TransactionsLedgerProps) {
   });
 
   const advancedCount = getAdvancedFiltersCount(props.filters);
+  const showSpendable = !hasActiveFilters(props.filters);
 
   return (
     <>
-      <StickyTotal totalRef={totalRef}>
-        <section aria-labelledby="spendable-total-label">
-          <p
-            id="spendable-total-label"
-            className="text-xs font-semibold uppercase tracking-wide text-muted-foreground"
-          >
-            {caption}
-          </p>
-          <p
-            className={cn(
-              'mt-0.5 text-[32px] font-semibold tabular-nums leading-none tracking-[-0.03em]',
-              total >= 0 ? stitchHome.amountIncome : stitchHome.amountExpense
-            )}
-            aria-live="polite"
-          >
-            {total < 0 ? '−' : ''}
-            {formatCurrency(Math.abs(total))}
-          </p>
-        </section>
-      </StickyTotal>
+      {showSpendable ? (
+        <StickyTotal totalRef={totalRef}>
+          <section aria-labelledby="spendable-total-label">
+            <p
+              id="spendable-total-label"
+              className="text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+            >
+              {caption}
+            </p>
+            <p
+              className={cn(
+                'mt-0.5 text-[32px] font-semibold tabular-nums leading-none tracking-[-0.03em]',
+                total >= 0 ? stitchHome.amountIncome : stitchHome.amountExpense
+              )}
+              aria-live="polite"
+            >
+              {total < 0 ? '−' : ''}
+              {formatCurrency(Math.abs(total))}
+            </p>
+          </section>
+        </StickyTotal>
+      ) : null}
 
       <HomeDashboardMain id="main-transactions" className="gap-2.5 pt-1.5">
         <FilterDock>

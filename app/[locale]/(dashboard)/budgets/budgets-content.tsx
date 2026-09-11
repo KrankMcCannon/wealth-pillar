@@ -67,7 +67,6 @@ export default function BudgetsContent({
     categories: hookCategories,
     handleCreateBudget,
     handleSelectUser,
-    handleOpenBudgetDetail,
     isModalOpen,
   } = useBudgetsContent(props);
   const [isClosePeriodModalOpen, setIsClosePeriodModalOpen] = useState(false);
@@ -136,7 +135,7 @@ export default function BudgetsContent({
                     progress={bp}
                     categories={hookCategories}
                     isSelected={false}
-                    onPress={() => handleOpenBudgetDetail(bp.id)}
+                    href={`/budgets/${encodeURIComponent(bp.id)}`}
                   />
                 ))}
               </div>

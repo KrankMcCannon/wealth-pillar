@@ -6,16 +6,16 @@ import { usePageHeader } from './use-page-header';
 function Probe({
   title,
   showBack,
-  onBack,
+  backHref,
 }: {
   title?: string;
   showBack?: boolean;
-  onBack?: () => void;
+  backHref?: string;
 }) {
   usePageHeader({
     ...(title !== undefined ? { title } : {}),
     ...(showBack !== undefined ? { showBack } : {}),
-    ...(onBack !== undefined ? { onBack } : {}),
+    ...(backHref !== undefined ? { backHref } : {}),
   });
   return null;
 }
@@ -25,19 +25,19 @@ describe('usePageHeader', () => {
     useDashboardHeaderStore.setState(useDashboardHeaderStore.getInitialState(), true);
   });
 
-  it('does not reset when only onBack identity changes', () => {
+  it('keeps the title when backHref is stable across rerenders', () => {
     const reset = vi.fn();
     useDashboardHeaderStore.setState({ resetHeader: reset });
 
     const { rerender } = render(
-      <Probe title="Period" showBack={true} onBack={() => undefined} />
+      <Probe title="Period" showBack={true} backHref="/reports" />
     );
     expect(useDashboardHeaderStore.getState().config.title).toBe('Period');
     expect(reset).not.toHaveBeenCalled();
 
-    rerender(<Probe title="Period" showBack={true} onBack={() => undefined} />);
+    rerender(<Probe title="Period" showBack={true} backHref="/reports" />);
     expect(reset).not.toHaveBeenCalled();
-    expect(useDashboardHeaderStore.getState().config.showBack).toBe(true);
+    expect(useDashboardHeaderStore.getState().config.backHref).toBe('/reports');
   });
 
   it('keeps the last title on unmount so Suspense fallbacks do not flash the app name', () => {

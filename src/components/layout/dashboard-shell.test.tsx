@@ -16,8 +16,8 @@ vi.mock('@/components/layout/header', () => ({
   ),
 }));
 
-vi.mock('@/components/layout/page-container', () => ({
-  PageContainer: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+vi.mock('@/components/layout/dashboard-route-warmer', () => ({
+  DashboardRouteWarmer: () => null,
 }));
 
 describe('DashboardShell', () => {

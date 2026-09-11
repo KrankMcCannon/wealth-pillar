@@ -9,6 +9,19 @@ vi.mock('next-intl', () => ({
 
 vi.mock('@/i18n/routing', () => ({
   useRouter: () => ({ push: vi.fn() }),
+  Link: ({
+    href,
+    children,
+    className,
+  }: {
+    href: string;
+    children: React.ReactNode;
+    className?: string;
+  }) => (
+    <a href={href} className={className}>
+      {children}
+    </a>
+  ),
 }));
 
 vi.mock('./grouped-transaction-card', () => ({
@@ -61,5 +74,25 @@ describe('TransactionDayList', () => {
     );
 
     expect(screen.getByTestId('day-group-total')).toHaveTextContent('−10,19 €');
+  });
+
+  it('renders view-all as a prefetchable link', () => {
+    render(
+      <TransactionDayList
+        groupedTransactions={[
+          { date: '2026-09-01', formattedDate: '1 set', transactions: [tx()], total: 9.09 },
+        ]}
+        categories={[]}
+        onEditTransaction={vi.fn()}
+        showViewAll
+        viewAllHref="/transactions?user=u1"
+        viewAllLabel="View all"
+      />
+    );
+
+    expect(screen.getByRole('link', { name: /View all/ })).toHaveAttribute(
+      'href',
+      '/transactions?user=u1'
+    );
   });
 });
