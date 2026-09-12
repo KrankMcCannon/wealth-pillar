@@ -1,9 +1,9 @@
 import type { Account, BudgetPeriod, PeriodLiquidityAmounts, Transaction } from '@/lib/types';
-import { isSpendableAccount } from '@/lib/utils/account-classification';
+import { foldPeriodAmounts } from '@/server/ledger';
 import { roundMoney } from '@/lib/utils/money';
-import { accountsToMap, budgetSignedForUser } from '../shared/transaction-impact.logic';
 import { parsePeriodDates } from '../shared/period.logic';
 import type { DateWindow } from '../reports/report.logic';
+import { categoryKeysFromBudgets, parseBudgetsSnapshot } from './period-budgets.logic';
 
 export function periodToDateWindow(period: BudgetPeriod, now?: Date): DateWindow {
   const [start, end] = parsePeriodDates(period, now);
@@ -11,37 +11,28 @@ export function periodToDateWindow(period: BudgetPeriod, now?: Date): DateWindow
 }
 
 /**
- * Derives period spend from transactions + account liquidity (source of truth).
+ * Envelope spend for a period window (same fold as reports leftover).
+ * Old closed rows stored expense-only spendable_spent until Recalculate.
  */
 export function computePeriodLiquidityAmounts(
   transactions: Transaction[],
   accounts: Account[],
   window: DateWindow,
-  userId: string
+  userId: string,
+  categoryKeys?: Set<string>
 ): PeriodLiquidityAmounts {
-  const t0 = window.start.getTime();
-  const t1 = window.end.getTime();
-  const accountMap = accountsToMap(accounts);
-
-  let spendableSpent = 0;
-  const categorySpending: Record<string, number> = {};
-
-  for (const tx of transactions) {
-    const d = new Date(tx.date).getTime();
-    if (d < t0 || d > t1) continue;
-    if (tx.type !== 'expense') continue;
-    if (budgetSignedForUser(tx, accountMap, userId) <= 0) continue;
-
-    const account = accountMap.get(tx.account_id);
-    if (!account || !isSpendableAccount(account)) continue;
-    spendableSpent += tx.amount;
-    categorySpending[tx.category] = (categorySpending[tx.category] || 0) + tx.amount;
-  }
-
+  const folded = foldPeriodAmounts(transactions, accounts, window, userId, categoryKeys);
   return {
-    spendableSpent: roundMoney(spendableSpent),
-    categorySpending,
+    spendableSpent: folded.spent,
+    categorySpending: folded.categorySpending,
   };
+}
+
+function liveCategoryKeys(period: BudgetPeriod, categoryKeys?: Set<string>): Set<string> | undefined {
+  if (categoryKeys) return categoryKeys;
+  const snapshot = parseBudgetsSnapshot(period.budgets_snapshot);
+  if (snapshot) return categoryKeysFromBudgets(snapshot);
+  return undefined;
 }
 
 /**
@@ -51,7 +42,8 @@ export function resolvePeriodAmounts(
   period: BudgetPeriod,
   transactions: Transaction[],
   accounts: Account[],
-  now?: Date
+  now?: Date,
+  categoryKeys?: Set<string>
 ): PeriodLiquidityAmounts {
   if (period.snapshot_at != null) {
     const rawCategories = period.category_spending;
@@ -72,7 +64,13 @@ export function resolvePeriodAmounts(
   }
 
   const window = periodToDateWindow(period, now);
-  return computePeriodLiquidityAmounts(transactions, accounts, window, period.user_id);
+  return computePeriodLiquidityAmounts(
+    transactions,
+    accounts,
+    window,
+    period.user_id,
+    liveCategoryKeys(period, categoryKeys)
+  );
 }
 
 export function snapshotFieldsFromAmounts(amounts: PeriodLiquidityAmounts) {

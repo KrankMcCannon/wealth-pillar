@@ -13,7 +13,7 @@ import {
   snapshotFieldsFromAmounts,
 } from './period-amounts.logic';
 import { loadPeriodLiquidityData } from './load-period-liquidity-data';
-import { toBudgetsSnapshot } from './period-budgets.logic';
+import { categoryKeysFromBudgets, toBudgetsSnapshot } from './period-budgets.logic';
 
 const autoCreateNextPeriod = async (userId: string, endDt: DateTime): Promise<void> => {
   const nextStartDt = endDt.plus({ days: 1 });
@@ -60,7 +60,13 @@ export const closeBudgetPeriodUseCase = async (
     is_active: false,
   };
   const window = periodToDateWindow(closingPeriod);
-  const amounts = computePeriodLiquidityAmounts(transactions, accounts, window, userId);
+  const amounts = computePeriodLiquidityAmounts(
+    transactions,
+    accounts,
+    window,
+    userId,
+    categoryKeysFromBudgets(budgets)
+  );
 
   const closedPeriod = await BudgetPeriodsRepository.update(periodId, {
     end_date: endDateStr,

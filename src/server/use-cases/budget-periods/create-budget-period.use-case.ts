@@ -10,6 +10,8 @@ import {
   snapshotFieldsFromAmounts,
 } from './period-amounts.logic';
 import { loadPeriodLiquidityData } from './load-period-liquidity-data';
+import { getBudgetsByUserUseCase } from '../budgets/get-budgets.use-case';
+import { categoryKeysFromBudgets } from './period-budgets.logic';
 
 const validateNewPeriod = (userId: string, startDate: string | Date): DateTime => {
   if (!userId) throw new Error('User ID is required');
@@ -29,7 +31,14 @@ async function snapshotAndDeactivateActive(
 ): Promise<void> {
   const closedPeriod: BudgetPeriod = { ...active, end_date: endDate, is_active: false };
   const window = periodToDateWindow(closedPeriod);
-  const amounts = computePeriodLiquidityAmounts(transactions, accounts, window, active.user_id);
+  const budgets = await getBudgetsByUserUseCase(active.user_id);
+  const amounts = computePeriodLiquidityAmounts(
+    transactions,
+    accounts,
+    window,
+    active.user_id,
+    categoryKeysFromBudgets(budgets)
+  );
 
   await BudgetPeriodsRepository.update(active.id, {
     is_active: false,

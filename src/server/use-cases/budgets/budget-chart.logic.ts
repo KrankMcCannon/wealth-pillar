@@ -5,7 +5,7 @@ import {
   accountsToMap,
   budgetSignedForUser,
   transactionInvolvesUser,
-} from '../shared/transaction-impact.logic';
+} from '@/server/ledger';
 import { effectiveSpentFromTransactions, filterTransactionsForBudgetsUnion } from './budget.logic';
 
 export interface ChartDataPoint {

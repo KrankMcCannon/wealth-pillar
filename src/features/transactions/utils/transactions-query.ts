@@ -1,7 +1,7 @@
 import type { TransactionFiltersState } from '@/server/use-cases/transactions/transaction.logic';
 import { filterTransactions } from '@/server/use-cases/transactions/transaction.logic';
 import type { Transaction, Account } from '@/lib/types';
-import { transactionInvolvesUser } from '@/server/use-cases/shared/transaction-impact.logic';
+import { transactionInvolvesUser } from '@/server/ledger';
 import type {
   AppliedTransactionsQuery,
   TransactionsListQuery,

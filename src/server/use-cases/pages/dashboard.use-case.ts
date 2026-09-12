@@ -29,7 +29,7 @@ import { getActiveBudgetPeriodsForUsersUseCase } from '../budget-periods/get-act
 import { buildBudgetsByUserPure } from '../budgets/budget.logic';
 import { getBudgetsByGroupUseCase } from '../budgets/get-budgets.use-case';
 import { getSeriesByGroupUseCase } from '../recurring/recurring.use-cases';
-import { transactionInvolvesUser } from '../shared/transaction-impact.logic';
+import { transactionInvolvesUser } from '@/server/ledger';
 import { getTransactionsByGroupUseCase } from '../transactions/get-transactions.use-case';
 
 /**

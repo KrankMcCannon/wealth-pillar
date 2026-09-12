@@ -12,7 +12,7 @@ import type { DateInput } from '@/lib/utils/date-utils';
 import { filterTransactionsByPeriod, filterByCategories } from '../transactions/transaction.logic';
 import { parsePeriodDates } from '../shared/period.logic';
 import { getCategoryColor, getCategoryLabel } from '../categories/category.logic';
-import { foldBudgetSpent } from '../shared/transaction-impact.logic';
+import { foldBudgetSpent } from '@/server/ledger';
 
 export interface BudgetCategoryBreakdownItem {
   key: string;

@@ -7,6 +7,7 @@ import {
 } from './period-amounts.logic';
 import { loadPeriodLiquidityData } from './load-period-liquidity-data';
 import { isSyntheticBudgetPeriodId } from './synthetic-active-period.logic';
+import { categoryKeysFromBudgets, parseBudgetsSnapshot } from './period-budgets.logic';
 import { revalidateTag } from 'next/cache';
 import { CACHE_TAGS } from '@/lib/cache/config';
 import { invalidateBudgetPeriodCaches } from '@/lib/utils/cache-utils';
@@ -22,6 +23,8 @@ export async function recalculateClosedPeriodSnapshotUseCase(
   userId: string,
   periodId: string
 ): Promise<BudgetPeriod> {
+  // Recompute spendable_spent with envelope budget legs (split + savings).
+  // Pre-refactor snapshots were expense-only until this runs.
   if (isSyntheticBudgetPeriodId(periodId)) {
     throw new RecalculateClosedPeriodError('syntheticPeriod');
   }
@@ -34,7 +37,13 @@ export async function recalculateClosedPeriodSnapshotUseCase(
   const { transactions, accounts } = await loadPeriodLiquidityData(period.group_id, userId);
 
   const window = periodToDateWindow(period);
-  const amounts = computePeriodLiquidityAmounts(transactions, accounts, window, userId);
+  const amounts = computePeriodLiquidityAmounts(
+    transactions,
+    accounts,
+    window,
+    userId,
+    categoryKeysFromBudgets(parseBudgetsSnapshot(period.budgets_snapshot) ?? [])
+  );
   const updated = await BudgetPeriodsRepository.update(
     periodId,
     snapshotFieldsFromAmounts(amounts)

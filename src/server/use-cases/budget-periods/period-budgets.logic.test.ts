@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { Budget, BudgetPeriod } from '@/lib/types';
 import {
   allocatedFromBudgets,
+  categoryKeysFromBudgets,
   deletePeriodBudgetList,
   materializePeriodBudgets,
   parseBudgetsSnapshot,
@@ -126,5 +127,17 @@ describe('upsertPeriodBudgetList / deletePeriodBudgetList', () => {
 describe('allocatedFromBudgets', () => {
   it('sums positive amounts', () => {
     expect(allocatedFromBudgets([live, { ...live, id: 'z', amount: 0 }, snap])).toBe(550);
+  });
+});
+
+describe('categoryKeysFromBudgets', () => {
+  it('unions categories from positive envelopes', () => {
+    expect(
+      categoryKeysFromBudgets([
+        live,
+        { ...live, id: 'z', amount: 0, categories: ['ignored'] },
+        { ...snap, categories: ['transport'] },
+      ])
+    ).toEqual(new Set(['food', 'transport']));
   });
 });

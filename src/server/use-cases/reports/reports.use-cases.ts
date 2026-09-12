@@ -8,17 +8,15 @@ import { BudgetPeriodsRepository } from '@/server/repositories/budget-periods.re
 import { CategoriesRepository } from '@/server/repositories/categories.repository';
 import { TransactionsRepository } from '@/server/repositories/transactions.repository';
 import { UsersRepository } from '@/server/repositories/users.repository';
+import { accountsToMap, computeTransactionImpact } from '@/server/ledger';
 import {
   allocatedFromBudgets,
+  categoryKeysFromBudgets,
   resolvePeriodBudgets,
 } from '@/server/use-cases/budget-periods/period-budgets.logic';
 import { addSyntheticActivePeriod } from '@/server/use-cases/budget-periods/synthetic-active-period.logic';
 import { getBudgetsByGroupUseCase } from '@/server/use-cases/budgets/get-budgets.use-case';
 import { parsePeriodDates } from '@/server/use-cases/shared/period.logic';
-import {
-  accountsToMap,
-  computeTransactionImpact,
-} from '@/server/use-cases/shared/transaction-impact.logic';
 
 /** Spent vs allocation: live envelope spend (income/expense and categorized transfers). */
 export interface ReportPeriodSummary {
@@ -41,15 +39,6 @@ interface PeriodSlot {
   spent: number;
   allocated: number;
   categoryKeys: Set<string>;
-}
-
-function categoryKeysFromBudgets(budgets: Budget[]): Set<string> {
-  const cats = new Set<string>();
-  for (const budget of budgets) {
-    if (budget.amount <= 0) continue;
-    for (const key of budget.categories) cats.add(key);
-  }
-  return cats;
 }
 
 function liveBudgetsByUserId(budgets: Budget[]): Map<string, Budget[]> {

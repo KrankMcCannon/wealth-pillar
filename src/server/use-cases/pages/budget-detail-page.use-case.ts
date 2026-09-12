@@ -22,7 +22,7 @@ import {
   accountsToMap,
   budgetSignedForUser,
   transactionInvolvesUser,
-} from '../shared/transaction-impact.logic';
+} from '@/server/ledger';
 import { getTransactionsByGroupUseCase } from '../transactions/get-transactions.use-case';
 import type { BudgetDetailPageData } from './budget-detail-page.types';
 

@@ -83,6 +83,15 @@ export function allocatedFromBudgets(budgets: Budget[]): number {
   return roundMoney(total);
 }
 
+export function categoryKeysFromBudgets(budgets: Budget[]): Set<string> {
+  const cats = new Set<string>();
+  for (const budget of budgets) {
+    if (budget.amount <= 0) continue;
+    for (const key of budget.categories) cats.add(key);
+  }
+  return cats;
+}
+
 export function upsertPeriodBudgetList(
   list: Budget[],
   input: CreateBudgetInput,

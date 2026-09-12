@@ -346,6 +346,8 @@ describe('buildReportsSectionViewModel', () => {
     const vm = buildReportsSectionViewModel(txs, accounts, [], ['u1'], window, null, 'u1');
     expect(vm.totalSpendable).toBe(300);
     expect(vm.totalReserve).toBe(500);
+    expect(vm.expenses).toBe(0);
+    expect(vm.income).toBe(0);
     expect(vm.netSavings.net).toBe(100);
     expect(vm.netSavings.deposits).toBe(100);
     expect(vm.netSavings.count).toBe(1);

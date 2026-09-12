@@ -3,6 +3,10 @@
  * whose budgets_snapshot is null or []. Does not touch open periods or
  * snapshots that already have envelopes.
  *
+ * Does not recompute spendable_spent. After the ledger classifier change,
+ * use Recalculate on each closed period (or close/edit) so snapshots match
+ * envelope leftover including split and savings transfers.
+ *
  *   pnpm exec tsx --env-file=.env scripts/backfill-closed-period-budget-snapshots.ts
  */
 import { config } from 'dotenv';

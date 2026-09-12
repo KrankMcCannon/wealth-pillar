@@ -155,6 +155,27 @@ describe('calculatePeriodSummariesUseCase', () => {
     expect(summary!.remaining).toBe(2120);
   });
 
+  it('counts exclusive savings toward the envelope that lists its category', () => {
+    const envelopes = [budget({ amount: 1000, categories: ['savings'] })];
+    const [summary] = calculatePeriodSummariesUseCase(
+      [makePeriod({ budgets_snapshot: envelopes })],
+      [
+        tx({
+          type: 'transfer',
+          category: 'savings',
+          account_id: 'a-spend',
+          to_account_id: 'a-reserve',
+          amount: 1000,
+        }),
+      ],
+      [spendable, reserve],
+      envelopes
+    );
+
+    expect(summary!.spendableSpent).toBe(1000);
+    expect(summary!.remaining).toBe(0);
+  });
+
   it('does not treat a transfer to reserve as spendable spent when computing live', () => {
     const [summary] = calculatePeriodSummariesUseCase(
       [makePeriod()],

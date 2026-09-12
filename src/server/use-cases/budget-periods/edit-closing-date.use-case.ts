@@ -7,6 +7,7 @@ import {
   snapshotFieldsFromAmounts,
 } from './period-amounts.logic';
 import { loadPeriodLiquidityData } from './load-period-liquidity-data';
+import { categoryKeysFromBudgets, parseBudgetsSnapshot } from './period-budgets.logic';
 import { findNextPeriod, findPreviousPeriod } from './rewind-closed-period.use-case';
 import { isSyntheticBudgetPeriodId } from './synthetic-active-period.logic';
 import { revalidateTag } from 'next/cache';
@@ -62,7 +63,8 @@ function snapshotPatch(
     transactions,
     accounts,
     periodToDateWindow(period),
-    period.user_id
+    period.user_id,
+    categoryKeysFromBudgets(parseBudgetsSnapshot(period.budgets_snapshot) ?? [])
   );
   return snapshotFieldsFromAmounts(amounts);
 }

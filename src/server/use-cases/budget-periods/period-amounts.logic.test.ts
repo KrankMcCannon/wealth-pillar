@@ -56,16 +56,46 @@ describe('computePeriodLiquidityAmounts', () => {
     account({ id: 'a2', type: 'savings', liquidity: 'reserve' }),
   ];
 
-  it('sums expenses on spendable accounts only', () => {
+  it('uses envelope budget legs including savings transfers', () => {
     const result = computePeriodLiquidityAmounts(
       [
         tx({ amount: 50, account_id: 'a1' }),
-        tx({ amount: 200, account_id: 'a2' }),
+        tx({
+          id: 'save',
+          amount: 40,
+          type: 'transfer',
+          category: 'savings',
+          account_id: 'a1',
+          to_account_id: 'a2',
+        }),
         tx({ amount: 30, type: 'income', account_id: 'a1' }),
       ],
       accounts,
       window,
-      'u1'
+      'u1',
+      new Set(['food', 'savings'])
+    );
+    expect(result.spendableSpent).toBe(60);
+    expect(result.categorySpending).toEqual({ food: 20, savings: 40 });
+  });
+
+  it('ignores movements whose category is not on an envelope', () => {
+    const result = computePeriodLiquidityAmounts(
+      [
+        tx({ amount: 50 }),
+        tx({
+          id: 'save',
+          amount: 40,
+          type: 'transfer',
+          category: 'savings',
+          account_id: 'a1',
+          to_account_id: 'a2',
+        }),
+      ],
+      accounts,
+      window,
+      'u1',
+      new Set(['food'])
     );
     expect(result.spendableSpent).toBe(50);
     expect(result.categorySpending).toEqual({ food: 50 });
@@ -94,7 +124,8 @@ describe('resolvePeriodAmounts', () => {
       active,
       [tx({ amount: 42 })],
       accounts,
-      new Date('2024-06-15')
+      new Date('2024-06-15'),
+      new Set(['food'])
     );
     expect(result.spendableSpent).toBe(42);
   });

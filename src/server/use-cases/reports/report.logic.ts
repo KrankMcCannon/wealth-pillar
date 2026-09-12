@@ -1,11 +1,12 @@
 import type { Account, Category, Transaction } from '@/lib/types';
 import { resolveAccountLiquidity } from '@/lib/utils/account-classification';
-import type { NetSavingsResult } from '../shared/savings.logic';
+import type { NetSavingsResult } from '@/server/ledger';
 import {
   accountsToMap,
   computeNetSavings,
   computeTransactionImpact,
-} from '../shared/transaction-impact.logic';
+  foldCashFlow,
+} from '@/server/ledger';
 import type {
   AccountTypeSummary,
   ReportPeriodSummary,
@@ -37,25 +38,11 @@ export function sumIncomeExpenseInWindow(
 ): { income: number; expenses: number } {
   const t0 = window.start.getTime();
   const t1 = window.end.getTime();
-  const accountMap = accountsToMap(accounts);
-  let income = 0;
-  let expenses = 0;
-  for (const row of transactions) {
+  const inWindow = transactions.filter((row) => {
     const d = new Date(row.date).getTime();
-    if (d < t0 || d > t1) continue;
-    const impact = computeTransactionImpact(row, accountMap);
-    if (userId === undefined) {
-      if (impact.cashFlow > 0) income += impact.cashFlow;
-      else if (impact.cashFlow < 0) expenses += -impact.cashFlow;
-      continue;
-    }
-    for (const leg of impact.budgetLegs) {
-      if (leg.userId !== userId) continue;
-      if (leg.signed > 0) expenses += leg.signed;
-      else if (leg.signed < 0) income += -leg.signed;
-    }
-  }
-  return { income, expenses };
+    return d >= t0 && d <= t1;
+  });
+  return foldCashFlow(inWindow, accounts, userId);
 }
 
 export interface ReportsTopExpenseRow {
@@ -113,7 +100,7 @@ export function computeCategoryStats(
       addExpense(tx, tx.amount);
       continue;
     }
-    for (const leg of impact.budgetLegs) {
+    for (const leg of impact.cashLegs) {
       if (leg.userId !== userId || leg.signed <= 0) continue;
       addExpense(tx, leg.signed);
     }
@@ -170,7 +157,7 @@ export function computeUserFlows(
       return m.get(key)!;
     };
 
-    for (const leg of impact.budgetLegs) {
+    for (const leg of impact.cashLegs) {
       const typeMap = userFlows.get(leg.userId);
       if (!typeMap) continue;
       const account = leg.signed > 0 ? source : (dest ?? source);

@@ -1,10 +1,7 @@
 import type { Account, Transaction } from '@/lib/types';
 import { isSpendableAccount } from '@/lib/utils/account-classification';
 import { roundMoney } from '@/lib/utils/money';
-import {
-  accountsToMap,
-  computeTransactionImpact,
-} from '@/server/use-cases/shared/transaction-impact.logic';
+import { accountsToMap, computeTransactionImpact } from '@/server/ledger';
 
 export function currentSpendable(
   accounts: Account[],

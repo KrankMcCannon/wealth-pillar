@@ -507,7 +507,14 @@ export async function getPeriodPreviewAction(
     const startDt = DateTime.fromISO(startDate);
     const endDt = DateTime.fromISO(endDate);
 
-    const totals = calculatePeriodTotalsUseCase(transactions, tempPeriod, startDt, endDt, accounts);
+    const totals = calculatePeriodTotalsUseCase(
+      transactions,
+      tempPeriod,
+      startDt,
+      endDt,
+      accounts,
+      budgets
+    );
 
     // Calculate total budget amount
     const totalBudget = budgets.filter((b) => b.amount > 0).reduce((sum, b) => sum + b.amount, 0);

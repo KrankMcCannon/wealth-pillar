@@ -18,7 +18,7 @@ import {
   periodToDateWindow,
   resolvePeriodAmounts,
 } from '../budget-periods/period-amounts.logic';
-import { resolvePeriodBudgets } from '../budget-periods/period-budgets.logic';
+import { categoryKeysFromBudgets, resolvePeriodBudgets } from '../budget-periods/period-budgets.logic';
 import { findPreviousPeriod } from '../budget-periods/rewind-closed-period.use-case';
 import { isSyntheticBudgetPeriodId } from '../budget-periods/synthetic-active-period.logic';
 import { calculateBudgetsWithProgress } from '../budgets/budget.logic';
@@ -139,8 +139,16 @@ async function getCachedReportPeriodDetailPageData(
     notFound();
   }
 
-  const storedAmounts = resolvePeriodAmounts(period, transactions, accounts);
-  const liveAmounts = computePeriodLiquidityAmounts(transactions, accounts, window, period.user_id);
+  const periodBudgets = resolvePeriodBudgets(period, budgets);
+  const envelopeKeys = categoryKeysFromBudgets(periodBudgets);
+  const storedAmounts = resolvePeriodAmounts(period, transactions, accounts, undefined, envelopeKeys);
+  const liveAmounts = computePeriodLiquidityAmounts(
+    transactions,
+    accounts,
+    window,
+    period.user_id,
+    envelopeKeys
+  );
 
   const active = periods.find((row) => row.is_active) ?? null;
   const latestClosed = findLatestClosedPeriod(periods, active);
@@ -150,7 +158,6 @@ async function getCachedReportPeriodDetailPageData(
   const canRewind = Boolean(
     isOpen && period.is_active && previous && !previous.is_active && previous.end_date
   );
-  const periodBudgets = resolvePeriodBudgets(period, budgets);
   const [periodStart, periodEnd] = parsePeriodDates(period);
 
   return {

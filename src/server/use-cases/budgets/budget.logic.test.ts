@@ -277,6 +277,56 @@ describe('buildBudgetsByUserPure', () => {
     expect(byId['b-save']?.spent).toBe(100);
     expect(result['user-1']?.totalSpent).toBe(180);
   });
+
+  it('counts exclusive personal savings on the matching envelope', () => {
+    const period: BudgetPeriod = {
+      id: 'p-1',
+      user_id: 'user-1',
+      start_date: '2024-06-01',
+      end_date: null,
+      is_active: true,
+      created_at: '2024-06-01',
+      updated_at: '2024-06-01',
+    };
+    const payroll: Account = {
+      id: 'acc-1',
+      name: 'Payroll',
+      type: 'payroll',
+      user_ids: ['user-1'],
+      group_id: 'group-1',
+      created_at: '2024-01-01',
+      updated_at: '2024-01-01',
+    };
+    const personalSave: Account = {
+      id: 'acc-2',
+      name: 'My savings',
+      type: 'savings',
+      user_ids: ['user-1'],
+      group_id: 'group-1',
+      created_at: '2024-01-01',
+      updated_at: '2024-01-01',
+    };
+    const result = buildBudgetsByUserPure(
+      [user],
+      [budget({ id: 'b-save', categories: ['risparmi'], amount: 1000, description: 'Risparmi' })],
+      [
+        tx({
+          id: 'save',
+          date: '2024-06-10',
+          amount: 70,
+          type: 'transfer',
+          category: 'risparmi',
+          account_id: 'acc-1',
+          to_account_id: 'acc-2',
+        }),
+      ],
+      { 'user-1': period },
+      fixedNow,
+      [payroll, personalSave]
+    );
+    expect(result['user-1']?.budgets[0]?.spent).toBe(70);
+    expect(result['user-1']?.totalSpent).toBe(70);
+  });
 });
 
 describe('filterTransactionsForBudgetsUnion', () => {

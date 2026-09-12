@@ -6,7 +6,7 @@ import { Link } from '@/i18n/routing';
 import { cn } from '@/lib/utils';
 import { stitchHome, stitchReports } from '@/styles/home-design-foundation';
 import { useFormatCurrency } from '@/features/reports/hooks/use-format-currency';
-import type { NetSavingsResult } from '@/server/use-cases/shared/savings.logic';
+import type { NetSavingsResult } from '@/server/ledger';
 
 interface ReserveSectionProps {
   savings: NetSavingsResult;
