@@ -120,13 +120,14 @@ export function SandboxForecastTab() {
               <FieldLabel htmlFor="amount">{t('fields.initialAmount')}</FieldLabel>
               <Input
                 id="amount"
-                type="number"
+                type="text"
                 inputMode="decimal"
                 min={0}
                 max={MAX_FORECAST_AMOUNT}
                 step={1}
                 value={amount}
                 onChange={(e) => onAmountChange(e.target.value)}
+                autoComplete="off"
                 className={investmentsStyles.sandbox.input}
               />
             </Field>
@@ -134,13 +135,14 @@ export function SandboxForecastTab() {
               <FieldLabel htmlFor="rate">{t('fields.annualReturn')}</FieldLabel>
               <Input
                 id="rate"
-                type="number"
+                type="text"
                 inputMode="decimal"
                 min={-50}
                 max={50}
                 step={0.1}
                 value={rate}
                 onChange={(e) => onRateChange(e.target.value)}
+                autoComplete="off"
                 className={investmentsStyles.sandbox.input}
               />
             </Field>
@@ -148,13 +150,14 @@ export function SandboxForecastTab() {
               <FieldLabel htmlFor="years">{t('fields.durationYears')}</FieldLabel>
               <Input
                 id="years"
-                type="number"
+                type="text"
                 inputMode="numeric"
                 min={MIN_FORECAST_YEARS}
                 max={MAX_FORECAST_YEARS}
                 step={1}
                 value={years}
                 onChange={(e) => onYearsChange(e.target.value)}
+                autoComplete="off"
                 className={investmentsStyles.sandbox.input}
               />
             </Field>

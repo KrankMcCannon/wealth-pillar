@@ -8,7 +8,7 @@ import { defaultLiquidityForType } from '@/lib/utils/account-classification';
 import {
   ModalCheckboxField,
   ModalMultiSelectField,
-  ModalSelectField,
+  ModalRadioField,
   ModalTextField,
   formModalStyles as s,
 } from '@/components/form';
@@ -50,10 +50,26 @@ export function AccountFormFields({
   }, [watchedType, setValue]);
 
   const accountTypes = [
-    { value: 'payroll', label: t('accountTypes.payroll') },
-    { value: 'cash', label: t('accountTypes.cash') },
-    { value: 'investments', label: t('accountTypes.investments') },
-    { value: 'savings', label: t('accountTypes.savings') },
+    {
+      value: 'payroll',
+      label: t('accountTypes.payroll'),
+      description: t('fields.type.descriptions.payroll'),
+    },
+    {
+      value: 'cash',
+      label: t('accountTypes.cash'),
+      description: t('fields.type.descriptions.cash'),
+    },
+    {
+      value: 'investments',
+      label: t('accountTypes.investments'),
+      description: t('fields.type.descriptions.investments'),
+    },
+    {
+      value: 'savings',
+      label: t('accountTypes.savings'),
+      description: t('fields.type.descriptions.savings'),
+    },
   ] as const;
 
   const liquidityOptions = [
@@ -71,21 +87,20 @@ export function AccountFormFields({
         disabled={isSubmitting}
       />
 
-      <ModalSelectField
+      <ModalRadioField
         control={control}
         name="type"
         label={t('fields.type.label')}
-        options={[...accountTypes]}
-        placeholder={t('fields.type.placeholder')}
+        options={accountTypes}
+        variant="cards"
         disabled={isSubmitting}
       />
 
-      <ModalSelectField
+      <ModalRadioField
         control={control}
         name="liquidity"
         label={t('fields.liquidity.label')}
-        options={[...liquidityOptions]}
-        placeholder={t('fields.liquidity.placeholder')}
+        options={liquidityOptions}
         disabled={isSubmitting}
       />
 

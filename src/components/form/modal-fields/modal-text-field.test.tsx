@@ -56,16 +56,16 @@ describe('ModalTextField', () => {
             name="email"
             layout="plain"
             label="Email"
-            placeholder="Email"
+            placeholder="you@example.com"
           />
         </form>
       );
     }
 
     render(<PlainForm />);
-    const input = screen.getByPlaceholderText('Email');
+    const input = screen.getByLabelText('Email');
     expect(input).toHaveClass('text-left');
     expect(input).not.toHaveClass('text-right');
-    expect(screen.getByText('Email')).toHaveClass('sr-only');
+    expect(screen.getByText('Email')).not.toHaveClass('sr-only');
   });
 });

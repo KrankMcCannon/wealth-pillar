@@ -30,7 +30,7 @@ export const formModalStyles = {
     sectionEyebrow: 'text-xs font-semibold uppercase tracking-wide text-muted-foreground',
   },
   field: {
-    textShell: 'flex min-h-12 items-center justify-between gap-3 px-3 py-2.5',
+    textShell: 'flex min-h-12 items-center justify-between gap-3 px-4 py-2.5',
     textLabel:
       'mb-0 min-w-0 max-w-[70%] shrink-0 text-base font-medium leading-snug text-foreground',
     textInput:
@@ -62,12 +62,32 @@ export const formModalStyles = {
     'px-4 py-3 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
   paddedBodyBleed: '-mx-4',
   amountSection: 'flex flex-col items-center py-2',
-  amountEyebrow: 'sr-only',
+  amountEyebrow: 'mb-1 text-center text-xs font-medium text-muted-foreground',
   amountRow: 'flex items-baseline justify-center gap-1 text-foreground/45',
   amountCurrency: 'font-display text-3xl font-medium tabular-nums',
   amountInput:
     'font-display w-[8ch] max-w-full border-0 bg-transparent p-0 text-center text-5xl font-semibold tabular-nums tracking-tight text-foreground shadow-none outline-none placeholder:text-muted-foreground focus:ring-0 focus-visible:border-0 focus-visible:ring-0',
   fieldStack: 'divide-y divide-foreground/10',
+  choice: {
+    fieldset: 'm-0 min-w-0 w-full border-0 p-0',
+    legend:
+      'float-none w-full px-4 pt-3 pb-1 text-[15px] font-medium leading-snug text-foreground',
+    legendFlush: 'px-0 pt-1 pb-1.5 text-sm font-medium text-foreground',
+    rows: 'divide-y divide-foreground/10',
+    row: 'flex min-h-12 w-full cursor-pointer items-center justify-between gap-3 px-4 py-2 text-left',
+    cards: 'flex flex-col gap-2 px-4 pb-3 pt-1',
+    cardsFlush: 'px-0 py-1',
+    card: 'flex min-h-11 w-full cursor-pointer items-start gap-3 rounded-xl border border-foreground/10 bg-background px-3 py-3 text-left',
+    cardSelected: 'border-foreground/25 bg-muted/40',
+    text: 'flex min-w-0 flex-1 flex-col gap-0.5',
+    title: 'block text-[15px] font-medium leading-snug text-foreground',
+    description: 'block text-sm leading-snug text-muted-foreground',
+    radio:
+      'flex size-5 shrink-0 items-center justify-center rounded-full border border-foreground/25',
+    radioCard: 'mt-0.5',
+    radioSelected: 'border-foreground bg-foreground',
+    radioDot: 'size-2 rounded-full bg-background',
+  },
   selectorTrigger:
     'flex min-h-12 w-full items-center justify-between gap-3 bg-transparent px-4 py-2 text-left transition-colors hover:bg-muted/60 focus:outline-none focus-visible:ring-0',
   selectorLabel: 'min-w-0 max-w-[70%] shrink-0 text-[15px] leading-snug text-muted-foreground',

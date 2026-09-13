@@ -27,27 +27,33 @@ export function ModalSelectField<T extends FieldValues, V extends string = strin
   options,
   placeholder,
   disabled,
+  searchable,
   hint,
 }: Readonly<ModalSelectFieldProps<T, V>>) {
   const {
     field,
     fieldState: { error },
   } = useController({ control, name });
-
-  const handleValueChange = field.onChange;
+  const errorId = `${String(name)}-error`;
+  const hintId = `${String(name)}-hint`;
 
   return (
-    <div>
+    <div aria-describedby={[hint ? hintId : null, error?.message ? errorId : null].filter(Boolean).join(' ') || undefined}>
       <FormSelect
         value={field.value ?? ''}
-        onValueChange={handleValueChange}
+        onValueChange={field.onChange}
         options={options}
         captionLabel={label}
+        searchable={searchable}
         {...(placeholder !== undefined ? { placeholder } : {})}
         {...(disabled !== undefined ? { disabled } : {})}
       />
-      {hint ? <p className="px-4 pb-2 text-xs text-muted-foreground">{hint}</p> : null}
-      {error?.message ? <ModalFieldError message={error.message} /> : null}
+      {hint ? (
+        <p id={hintId} className="px-4 pb-2 text-xs text-muted-foreground">
+          {hint}
+        </p>
+      ) : null}
+      {error?.message ? <ModalFieldError id={errorId} message={error.message} /> : null}
     </div>
   );
 }

@@ -33,14 +33,26 @@ export function ModalTextField<T extends FieldValues>({
     fieldState: { error },
   } = useController({ control, name });
   const fieldId = String(name);
+  const errorId = `${fieldId}-error`;
+  const hintId = `${fieldId}-hint`;
   const isNumeric = type === 'number';
   const isPlain = layout === 'plain';
+  const describedBy = [hint ? hintId : null, error?.message ? errorId : null]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <div>
-      <div className={s.field.textShell}>
+      <div className={isPlain ? 'flex flex-col gap-1.5 px-3 py-2.5' : s.field.textShell}>
         {label ? (
-          <label htmlFor={fieldId} className={isPlain ? 'sr-only' : s.field.textLabel}>
+          <label
+            htmlFor={fieldId}
+            className={
+              isPlain
+                ? 'mb-0 text-base font-medium leading-snug text-foreground'
+                : s.field.textLabel
+            }
+          >
             {label}
           </label>
         ) : null}
@@ -52,13 +64,18 @@ export function ModalTextField<T extends FieldValues>({
           disabled={disabled}
           autoComplete={autoComplete}
           aria-invalid={error ? true : undefined}
+          aria-describedby={describedBy || undefined}
           className={isPlain ? s.field.textInputPlain : s.field.textInput}
           {...field}
           value={field.value ?? ''}
         />
       </div>
-      {hint ? <p className="px-3 pb-2 text-xs text-muted-foreground">{hint}</p> : null}
-      {error?.message ? <ModalFieldError message={error.message} /> : null}
+      {hint ? (
+        <p id={hintId} className="px-4 pb-2 text-xs text-muted-foreground">
+          {hint}
+        </p>
+      ) : null}
+      {error?.message ? <ModalFieldError id={errorId} message={error.message} /> : null}
     </div>
   );
 }

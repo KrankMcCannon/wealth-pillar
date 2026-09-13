@@ -72,7 +72,11 @@ export function CategoryFormFields({ form, isEditMode }: CategoryFormFieldsProps
         <div className={s.noteShell}>
           <p className={s.noteLabel}>{t('fields.color.label')}</p>
           <div className={categoryStyles.formModal.colorSection}>
-            <div className={categoryStyles.formModal.palette}>
+            <div
+              className={categoryStyles.formModal.palette}
+              role="radiogroup"
+              aria-label={t('fields.color.label')}
+            >
               {colorPalette.map((color) => {
                 const isSelected = normalizedSelectedColor === color.value.toUpperCase();
 
@@ -84,7 +88,9 @@ export function CategoryFormFields({ form, isEditMode }: CategoryFormFieldsProps
                       setValue('color', color.value, { shouldDirty: true, shouldTouch: true })
                     }
                     disabled={isSubmitting}
-                    aria-pressed={isSelected}
+                    aria-pressed={undefined}
+                    role="radio"
+                    aria-checked={isSelected}
                     aria-label={color.name}
                     className={cn(
                       categoryStyles.formModal.colorButton,

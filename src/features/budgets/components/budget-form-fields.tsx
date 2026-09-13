@@ -7,6 +7,7 @@ import type { BudgetType, User } from '@/lib/types';
 import {
   ModalAmountField,
   ModalMultiSelectField,
+  ModalRadioField,
   ModalSelectField,
   ModalTextField,
   formModalStyles as s,
@@ -90,7 +91,7 @@ export function BudgetFormFields({
           disabled={isSubmitting}
         />
 
-        <ModalSelectField
+        <ModalRadioField
           control={control}
           name="type"
           label={t('fields.type.label')}
@@ -107,15 +108,25 @@ export function BudgetFormFields({
           disabled={isSubmitting}
         />
 
-        <ModalSelectField
-          control={control}
-          name="user_id"
-          label={t('fields.user.label')}
-          options={userOptions}
-          placeholder={t('fields.user.placeholder')}
-          disabled={shouldDisableUserField || isSubmitting}
-          {...(userFieldHelperText !== undefined ? { hint: userFieldHelperText } : {})}
-        />
+        {userOptions.length <= 5 ? (
+          <ModalRadioField
+            control={control}
+            name="user_id"
+            label={t('fields.user.label')}
+            options={userOptions}
+            disabled={shouldDisableUserField || isSubmitting}
+          />
+        ) : (
+          <ModalSelectField
+            control={control}
+            name="user_id"
+            label={t('fields.user.label')}
+            options={userOptions}
+            placeholder={t('fields.user.placeholder')}
+            disabled={shouldDisableUserField || isSubmitting}
+            {...(userFieldHelperText !== undefined ? { hint: userFieldHelperText } : {})}
+          />
+        )}
       </div>
     </>
   );

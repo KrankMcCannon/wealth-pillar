@@ -44,6 +44,8 @@
     "settings": "Impostazioni",
     "dashboard": "Dashboard",
     "profile": "Profilo",
+    "allTime": "Tutti i tempi",
+    "selectYear": "Seleziona {year}",
     "PageLoader": {
       "message": "Caricamento...",
       "submessage": "Attendere prego"
@@ -62,11 +64,8 @@
   "SettingsContent": {
     "headerTitle": "Impostazioni",
     "currencyModalTitle": "Seleziona Valuta",
-    "currencyModalDescription": "Scegli la valuta predefinita per le tue transazioni",
     "languageModalTitle": "Seleziona Lingua",
-    "languageModalDescription": "Scegli la lingua dell'interfaccia",
-    "timezoneModalTitle": "Seleziona Fuso Orario",
-    "timezoneModalDescription": "Scegli il fuso orario per le date e gli orari"
+    "timezoneModalTitle": "Seleziona Fuso Orario"
   },
   "SettingsSections": {
     "Profile": {
@@ -83,7 +82,6 @@
       "title": "Categorie",
       "manageTitle": "Gestisci categorie",
       "modalTitle": "Categorie",
-      "modalDescription": "Aggiungi, modifica o elimina le categorie del gruppo",
       "customTitle": "Le tue categorie",
       "systemTitle": "Categorie predefinite",
       "addLabel": "Aggiungi categoria",
@@ -144,7 +142,6 @@
         "errorDescription": "Si è verificato un errore durante l'invio dell'invito"
       },
       "title": "Invita membro",
-      "description": "Invia un invito per unirsi al gruppo",
       "emailLabel": "Email",
       "emailPlaceholder": "Email",
       "noteLabel": "Nota:",
@@ -170,7 +167,6 @@
         "updateErrorDescription": "Si è verificato un errore durante l'aggiornamento"
       },
       "title": "Modifica Profilo",
-      "description": "Aggiorna il tuo nome e indirizzo email",
       "nameLabel": "Nome completo",
       "namePlaceholder": "Mario Rossi",
       "emailLabel": "Indirizzo email",
@@ -193,7 +189,6 @@
         "updatedDescription": "Il nome del gruppo è stato salvato"
       },
       "title": "Gestione gruppo",
-      "description": "Visualizza i membri e aggiorna il nome del gruppo",
       "nameLabel": "Nome del gruppo",
       "namePlaceholder": "Famiglia Rossi",
       "membersTitle": "Membri",
@@ -627,10 +622,6 @@
         "create": "Aggiungi investimento",
         "edit": "Modifica investimento"
       },
-      "description": {
-        "create": "Inserisci i dettagli del nuovo investimento",
-        "edit": "Aggiorna i dati di questa posizione"
-      },
       "sections": {
         "identity": "Titolo",
         "amounts": "Importi e quote",
@@ -892,10 +883,6 @@
         "create": "Nuova transazione",
         "edit": "Modifica transazione"
       },
-      "description": {
-        "create": "Aggiungi una nuova transazione",
-        "edit": "Aggiorna i dettagli della transazione"
-      },
       "typeOptions": {
         "income": "Entrata",
         "expense": "Uscita",
@@ -956,7 +943,6 @@
     },
     "ImportModal": {
       "title": "Importa transazioni",
-      "description": "Carica un estratto Revolut o Credem (CSV o Excel).",
       "upload": {
         "title": "Scegli file",
         "cta": "Seleziona estratto conto",
@@ -1111,10 +1097,6 @@
       "title": {
         "create": "Nuova Serie Ricorrente",
         "edit": "Modifica Serie Ricorrente"
-      },
-      "description": {
-        "create": "Configura una nuova serie ricorrente",
-        "edit": "Aggiorna la serie ricorrente"
       },
       "errors": {
         "notFound": "Serie ricorrente non trovata",
@@ -1352,10 +1334,6 @@
         "create": "Nuovo account",
         "edit": "Modifica account"
       },
-      "description": {
-        "create": "Aggiungi un nuovo account bancario o di cassa",
-        "edit": "Aggiorna i dettagli dell'account"
-      },
       "accountTypes": {
         "payroll": "Conto Corrente",
         "savings": "Risparmio",
@@ -1369,7 +1347,13 @@
         },
         "type": {
           "label": "Tipo",
-          "placeholder": "Seleziona tipo"
+          "placeholder": "Seleziona tipo",
+          "descriptions": {
+            "payroll": "Conto principale dove arriva lo stipendio o la pensione",
+            "savings": "Conto dedicato al risparmio di lungo periodo",
+            "cash": "Contanti fisici o piccola cassa",
+            "investments": "Conto per investimenti e trading"
+          }
         },
         "liquidity": {
           "label": "Liquidità",
@@ -1574,10 +1558,6 @@
       "title": {
         "create": "Nuovo Budget",
         "edit": "Modifica Budget"
-      },
-      "description": {
-        "create": "Crea un nuovo budget",
-        "edit": "Aggiorna i dettagli del budget"
       },
       "fields": {
         "user": {
@@ -1969,7 +1949,8 @@
       "placeholder": "GG/MM/AAAA",
       "today": "Oggi",
       "clearDateAria": "Cancella data",
-      "openCalendarSr": "Apri calendario"
+      "openCalendarSr": "Apri calendario",
+      "closeCalendar": "Chiudi calendario"
     },
     "DateDrawer": {
       "drawerTitle": "Seleziona una data",

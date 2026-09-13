@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { Euro } from 'lucide-react';
-import { Input } from '../ui';
+import { Input } from '../ui/input';
 import { cn } from '@/lib';
 import { formStyles } from './theme/form-styles';
 
@@ -49,6 +49,9 @@ export interface FormCurrencyInputProps {
   max?: number | undefined;
   /** Decimal places (default: 2) */
   decimals?: number;
+  autoComplete?: string | undefined;
+  'aria-invalid'?: boolean | undefined;
+  'aria-describedby'?: string | undefined;
 }
 
 // ============================================================================
@@ -67,6 +70,9 @@ export function FormCurrencyInput({
   min,
   max,
   decimals = 2,
+  autoComplete,
+  'aria-invalid': ariaInvalid,
+  'aria-describedby': ariaDescribedBy,
 }: Readonly<FormCurrencyInputProps>) {
   // Convert value to string for input
   const stringValue = typeof value === 'number' ? value.toString() : value;
@@ -126,6 +132,9 @@ export function FormCurrencyInput({
         id={id}
         type="text"
         inputMode="decimal"
+        autoComplete={autoComplete}
+        aria-invalid={ariaInvalid}
+        aria-describedby={ariaDescribedBy}
         value={stringValue}
         onChange={handleChange}
         onBlur={handleBlur}
@@ -146,6 +155,9 @@ export function FormCurrencyInput({
       <Input
         type="text"
         inputMode="decimal"
+        autoComplete={autoComplete}
+        aria-invalid={ariaInvalid}
+        aria-describedby={ariaDescribedBy}
         value={stringValue}
         onChange={handleChange}
         onBlur={handleBlur}
@@ -160,85 +172,4 @@ export function FormCurrencyInput({
       />
     </div>
   );
-}
-
-// ============================================================================
-// UTILITY FUNCTIONS
-// ============================================================================
-
-/**
- * Formats number to EUR currency string
- */
-export function formatCurrency(
-  amount: number | string,
-  options?: {
-    showSymbol?: boolean;
-    decimals?: number;
-    locale?: string;
-  }
-): string {
-  const { showSymbol = true, decimals = 2, locale = 'it-IT' } = options || {};
-
-  const numAmount = typeof amount === 'string' ? Number.parseFloat(amount) : amount;
-
-  if (Number.isNaN(numAmount)) return showSymbol ? '€ 0.00' : '0.00';
-
-  const formatted = new Intl.NumberFormat(locale, {
-    style: showSymbol ? 'currency' : 'decimal',
-    currency: 'EUR',
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-  }).format(numAmount);
-
-  return formatted;
-}
-
-/**
- * Parses currency string to number
- */
-export function parseCurrency(value: string): number {
-  if (!value) return 0;
-  // Remove currency symbols, spaces, and replace comma with dot
-  const cleaned = value.replaceAll(/[€$\s]/g, '').replaceAll(',', '.');
-  const parsed = Number.parseFloat(cleaned);
-  return Number.isNaN(parsed) ? 0 : parsed;
-}
-
-/**
- * Validates if string is valid currency amount
- */
-export function isValidCurrency(
-  value: string,
-  options?: { min?: number; max?: number; decimals?: number }
-): boolean {
-  const { min, max, decimals = 2 } = options || {};
-
-  if (!value) return false;
-
-  const num = parseCurrency(value);
-  if (Number.isNaN(num)) return false;
-
-  if (min !== undefined && num < min) return false;
-  if (max !== undefined && num > max) return false;
-
-  // Check decimal places
-  const parts = value.split(/[.,]/);
-  if (parts[1] && parts[1].length > decimals) return false;
-
-  return true;
-}
-
-/**
- * Rounds currency to specified decimal places
- */
-export function roundCurrency(amount: number, decimals: number = 2): number {
-  return Math.round(amount * Math.pow(10, decimals)) / Math.pow(10, decimals);
-}
-
-/**
- * Converts form input to numeric amount
- */
-export function getNumericAmount(amount: string | number): number {
-  if (typeof amount === 'number') return amount;
-  return parseCurrency(amount);
 }

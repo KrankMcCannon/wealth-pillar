@@ -20,8 +20,11 @@ describe('ModalSelectorTrigger', () => {
   it('calls onClick when enabled', async () => {
     const onClick = vi.fn();
     const user = userEvent.setup();
-    render(<ModalSelectorTrigger label="Date" value="Today" onClick={onClick} />);
-    await user.click(screen.getByRole('button'));
+    render(<ModalSelectorTrigger label="Date" value="Today" onClick={onClick} expanded={false} />);
+    const button = screen.getByRole('button');
+    expect(button).toHaveAttribute('aria-haspopup', 'dialog');
+    expect(button).toHaveAttribute('aria-expanded', 'false');
+    await user.click(button);
     expect(onClick).toHaveBeenCalledOnce();
   });
 

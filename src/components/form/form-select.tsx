@@ -3,10 +3,11 @@
 import * as React from 'react';
 import * as SelectPrimitive from '@radix-ui/react-select';
 import { cn } from '@/lib';
-import { Search, ChevronRight } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { Select, SelectContent, SelectItem, SelectValue } from '../ui';
+import { Select, SelectContent, SelectItem, SelectValue } from '../ui/select';
 import { formModalStyles as s } from './form-modal-styles';
+import { ModalSearchInput } from './modal-fields/modal-search-input';
 
 export interface SelectOption {
   value: string;
@@ -25,6 +26,15 @@ export interface FormSelectProps {
   renderIcon?: (option: SelectOption) => React.ReactNode;
   /** Label on the left of the grouped row */
   captionLabel?: string;
+  /** Search UI. Defaults to on when there are 6+ options. */
+  searchable?: boolean | undefined;
+}
+
+export function isSelectSearchable(
+  optionCount: number,
+  searchable?: boolean | undefined
+): boolean {
+  return searchable ?? optionCount >= 6;
 }
 
 export function FormSelect({
@@ -36,11 +46,13 @@ export function FormSelect({
   className,
   renderIcon,
   captionLabel,
+  searchable,
 }: Readonly<FormSelectProps>) {
   const t = useTranslations('Forms.Select');
   const [searchValue, setSearchValue] = React.useState('');
   const resolvedPlaceholder = placeholder ?? t('placeholder');
   const selectedOption = options.find((o) => o.value === value);
+  const showSearch = isSelectSearchable(options.length, searchable);
 
   const filteredOptions = React.useMemo(() => {
     if (!searchValue) return options;
@@ -83,23 +95,23 @@ export function FormSelect({
         <ChevronRight className={s.selectorChevron} aria-hidden />
       </SelectPrimitive.Trigger>
       <SelectContent className={cn('bg-popover text-popover-foreground', s.select.content)}>
-        <div className={s.select.searchWrap}>
-          <div className={s.select.searchFieldWrap}>
-            <Search className={s.select.searchIcon} />
-            <input
-              type="text"
-              placeholder={t('searchPlaceholder')}
+        {showSearch ? (
+          <div
+            className={s.select.searchWrap}
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <ModalSearchInput
               value={searchValue}
-              onChange={(e) => setSearchValue(e.target.value)}
+              onChange={setSearchValue}
+              placeholder={t('searchPlaceholder')}
+              aria-label={t('searchPlaceholder')}
               onKeyDown={(e) => {
                 e.stopPropagation();
               }}
-              onClick={(e) => e.stopPropagation()}
-              onMouseDown={(e) => e.stopPropagation()}
-              className={s.select.searchInput}
             />
           </div>
-        </div>
+        ) : null}
 
         <div className={s.select.optionsWrap}>
           {filteredOptions.length === 0 ? (

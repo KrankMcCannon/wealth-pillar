@@ -76,6 +76,7 @@ export const DateOptions = memo(function DateOptions({
       <div className={transactionStyles.filters.dateCustom}>
         <DateField
           layout="stack"
+          presentation="inline"
           label={t('customRange.fromLabel')}
           value={customStartDate}
           onChange={(start) => {
@@ -85,6 +86,7 @@ export const DateOptions = memo(function DateOptions({
         />
         <DateField
           layout="stack"
+          presentation="inline"
           label={t('customRange.toLabel')}
           value={customEndDate}
           onChange={(end) => {
@@ -128,11 +130,14 @@ const CategoryOptions = memo(function CategoryOptions({
     <div className={transactionStyles.filters.categorySection}>
       {/* Search */}
       <div className={transactionStyles.filters.categorySearchWrap}>
-        <Search className={transactionStyles.filters.categorySearchIcon} />
+        <Search className={transactionStyles.filters.categorySearchIcon} aria-hidden />
         <Input
+          type="search"
+          aria-label={t('category.searchPlaceholder')}
           placeholder={t('category.searchPlaceholder')}
           value={categorySearch}
           onChange={(e) => setCategorySearch(e.target.value)}
+          autoComplete="off"
           className={transactionStyles.filters.categorySearchInput}
         />
       </div>
@@ -213,11 +218,14 @@ const AccountOptions = memo(function AccountOptions({
     <div className={transactionStyles.filters.categorySection}>
       {/* Search */}
       <div className={transactionStyles.filters.categorySearchWrap}>
-        <Search className={transactionStyles.filters.categorySearchIcon} />
+        <Search className={transactionStyles.filters.categorySearchIcon} aria-hidden />
         <Input
+          type="search"
+          aria-label={t('account.searchPlaceholder')}
           placeholder={t('account.searchPlaceholder')}
           value={accountSearch}
           onChange={(e) => setAccountSearch(e.target.value)}
+          autoComplete="off"
           className={transactionStyles.filters.categorySearchInput}
         />
       </div>

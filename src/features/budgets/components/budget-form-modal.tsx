@@ -90,7 +90,6 @@ function BudgetFormModal({
 
   const isEditMode = Boolean(editId);
   const title = isEditMode ? t('title.edit') : t('title.create');
-  const description = isEditMode ? t('description.edit') : t('description.create');
 
   const budgetSchema = useMemo(
     () =>
@@ -321,7 +320,6 @@ function BudgetFormModal({
       isOpen={isOpen}
       onClose={onClose}
       title={title}
-      description={description}
       schema={budgetSchema}
       defaultValues={createDefaults}
       resetValues={resetValues ?? createDefaults}

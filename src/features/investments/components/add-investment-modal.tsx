@@ -126,7 +126,6 @@ export default function AddInvestmentModal({
   });
 
   const title = isEditMode ? t('title.edit') : t('title.create');
-  const description = isEditMode ? t('description.edit') : t('description.create');
 
   return (
     <EntityFormModal<InvestmentFormData>
@@ -134,7 +133,6 @@ export default function AddInvestmentModal({
       isOpen={isOpen}
       onClose={onClose}
       title={title}
-      description={description}
       schema={investmentSchema}
       defaultValues={createDefaults}
       resetValues={resetValues ?? createDefaults}

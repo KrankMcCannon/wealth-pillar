@@ -52,7 +52,6 @@ export function InviteMemberModal({
       isOpen={isOpen}
       onClose={onClose}
       title={t('title')}
-      description={t('description')}
       schema={inviteMemberSchema}
       defaultValues={defaultValues}
       resetValues={defaultValues}

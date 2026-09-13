@@ -125,7 +125,6 @@ export function CurrencyPreferenceModal() {
       isOpen={modal === 'settings:currency'}
       onClose={closeModal}
       title={t('currencyModalTitle')}
-      description={t('currencyModalDescription')}
       value={preferences.currency}
       options={currencyOptions}
       isSaving={isSaving}
@@ -153,7 +152,6 @@ export function LanguagePreferenceModal() {
       isOpen={modal === 'settings:language'}
       onClose={closeModal}
       title={t('languageModalTitle')}
-      description={t('languageModalDescription')}
       value={currentLanguageValue}
       options={languageOptions}
       isSaving={isSaving}
@@ -178,7 +176,6 @@ export function TimezonePreferenceModal() {
       isOpen={modal === 'settings:timezone'}
       onClose={closeModal}
       title={t('timezoneModalTitle')}
-      description={t('timezoneModalDescription')}
       value={preferences.timezone}
       options={timezoneOptions}
       isSaving={isSaving}

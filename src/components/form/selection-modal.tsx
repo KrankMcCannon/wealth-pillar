@@ -19,7 +19,7 @@ export interface SelectionModalProps<V extends string> {
   isOpen: boolean;
   onClose: () => void;
   title: string;
-  description: string;
+  description?: string | undefined;
   value: V;
   options: SelectionOption<V>[];
   onSave: (value: V) => Promise<void>;
@@ -159,7 +159,7 @@ export function SelectionModal<V extends string>({
       isOpen={isOpen}
       onOpenChange={onClose}
       title={title}
-      description={description}
+      {...(description !== undefined ? { description } : {})}
       disableOutsideClose={isSaving}
     >
       {isOpen ? (

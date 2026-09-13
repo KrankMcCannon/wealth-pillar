@@ -2,7 +2,7 @@
 
 import type { useTranslations } from 'next-intl';
 import type { UseFormReturn } from 'react-hook-form';
-import { ModalSelectField, ModalTextField } from '@/components/form/modal-fields';
+import { ModalRadioField, ModalTextField } from '@/components/form/modal-fields';
 import type { RecurringFormData } from './recurring-form-schema';
 
 export interface RecurrencePickerProps {
@@ -16,7 +16,7 @@ export function RecurrencePicker({ form, t, isSubmitting }: RecurrencePickerProp
 
   return (
     <>
-      <ModalSelectField
+      <ModalRadioField
         control={control}
         name="frequency"
         label={t('fields.frequency.label')}

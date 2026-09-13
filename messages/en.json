@@ -44,6 +44,8 @@
     "settings": "Settings",
     "dashboard": "Dashboard",
     "profile": "Profile",
+    "allTime": "All time",
+    "selectYear": "Select {year}",
     "PageLoader": {
       "message": "Loading...",
       "submessage": "Please wait"
@@ -62,11 +64,8 @@
   "SettingsContent": {
     "headerTitle": "Settings",
     "currencyModalTitle": "Select Currency",
-    "currencyModalDescription": "Choose the default currency for your transactions",
     "languageModalTitle": "Select Language",
-    "languageModalDescription": "Choose the interface language",
-    "timezoneModalTitle": "Select Timezone",
-    "timezoneModalDescription": "Choose the timezone for dates and times"
+    "timezoneModalTitle": "Select Timezone"
   },
   "SettingsSections": {
     "Profile": {
@@ -83,7 +82,6 @@
       "title": "Categories",
       "manageTitle": "Manage categories",
       "modalTitle": "Categories",
-      "modalDescription": "Add, edit, or delete your group categories",
       "customTitle": "Your categories",
       "systemTitle": "Default categories",
       "addLabel": "Add category",
@@ -144,7 +142,6 @@
         "errorDescription": "An error occurred while sending the invitation"
       },
       "title": "Invite member",
-      "description": "Send an invitation to join the group",
       "emailLabel": "Email",
       "emailPlaceholder": "Email",
       "noteLabel": "Note:",
@@ -170,7 +167,6 @@
         "updateErrorDescription": "An error occurred while updating"
       },
       "title": "Edit Profile",
-      "description": "Update your name and email address",
       "nameLabel": "Full name",
       "namePlaceholder": "John Doe",
       "emailLabel": "Email address",
@@ -193,7 +189,6 @@
         "updatedDescription": "The group name was saved"
       },
       "title": "Group management",
-      "description": "View members and update the group name",
       "nameLabel": "Group name",
       "namePlaceholder": "Rossi household",
       "membersTitle": "Members",
@@ -627,10 +622,6 @@
         "create": "Add investment",
         "edit": "Edit investment"
       },
-      "description": {
-        "create": "Enter the details of the new investment",
-        "edit": "Update this position's details"
-      },
       "sections": {
         "identity": "Security",
         "amounts": "Amounts and shares",
@@ -892,10 +883,6 @@
         "create": "New transaction",
         "edit": "Edit transaction"
       },
-      "description": {
-        "create": "Add a new transaction",
-        "edit": "Update transaction details"
-      },
       "typeOptions": {
         "income": "Income",
         "expense": "Expense",
@@ -956,7 +943,6 @@
     },
     "ImportModal": {
       "title": "Import transactions",
-      "description": "Upload a Revolut or Credem statement (CSV or Excel).",
       "upload": {
         "title": "Choose file",
         "cta": "Select statement file",
@@ -1111,10 +1097,6 @@
       "title": {
         "create": "New recurring series",
         "edit": "Edit recurring series"
-      },
-      "description": {
-        "create": "Configure a new recurring series",
-        "edit": "Update recurring series"
       },
       "errors": {
         "notFound": "Recurring series not found",
@@ -1352,10 +1334,6 @@
         "create": "New account",
         "edit": "Edit account"
       },
-      "description": {
-        "create": "Add a new bank or cash account",
-        "edit": "Update account details"
-      },
       "accountTypes": {
         "payroll": "Checking Account",
         "savings": "Savings",
@@ -1369,7 +1347,13 @@
         },
         "type": {
           "label": "Type",
-          "placeholder": "Select type"
+          "placeholder": "Select type",
+          "descriptions": {
+            "payroll": "Primary account where salary or pension is received",
+            "savings": "Account dedicated to long-term savings",
+            "cash": "Physical cash or petty cash",
+            "investments": "Account for investments and trading"
+          }
         },
         "liquidity": {
           "label": "Liquidity",
@@ -1574,10 +1558,6 @@
       "title": {
         "create": "New Budget",
         "edit": "Edit Budget"
-      },
-      "description": {
-        "create": "Create a new budget",
-        "edit": "Update budget details"
       },
       "fields": {
         "user": {
@@ -1969,7 +1949,8 @@
       "placeholder": "DD/MM/YYYY",
       "today": "Today",
       "clearDateAria": "Clear date",
-      "openCalendarSr": "Open calendar"
+      "openCalendarSr": "Open calendar",
+      "closeCalendar": "Close calendar"
     },
     "DateDrawer": {
       "drawerTitle": "Select a date",

@@ -55,7 +55,6 @@ export function EditProfileModal({
       isOpen={isOpen}
       onClose={onClose}
       title={t('title')}
-      description={t('description')}
       schema={editProfileSchema}
       defaultValues={defaultValues}
       resetValues={defaultValues}

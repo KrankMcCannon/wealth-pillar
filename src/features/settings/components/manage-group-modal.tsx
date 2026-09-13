@@ -65,7 +65,6 @@ export function ManageGroupModal({
       isOpen={isOpen}
       onClose={onClose}
       title={t('title')}
-      description={t('description')}
       schema={manageGroupSchema}
       defaultValues={defaultValues}
       resetValues={defaultValues}

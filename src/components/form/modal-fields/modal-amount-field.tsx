@@ -33,9 +33,11 @@ export function ModalAmountField<T extends FieldValues>({
   } = useController({ control, name });
   const resolvedLabel = label ?? '';
   const fieldId = String(name);
+  const errorId = `${fieldId}-error`;
 
   const input = (
     <FormCurrencyInput
+      id={fieldId}
       value={field.value ?? ''}
       onChange={field.onChange}
       placeholder={placeholder}
@@ -43,7 +45,9 @@ export function ModalAmountField<T extends FieldValues>({
       className={variant === 'inline' ? s.field.textInput : s.amountInput}
       showSymbol={false}
       bare
-      {...(variant === 'inline' ? { id: fieldId } : {})}
+      autoComplete="off"
+      aria-invalid={error ? true : undefined}
+      aria-describedby={error?.message ? errorId : undefined}
       {...(decimals !== undefined ? { decimals } : {})}
     />
   );
@@ -59,21 +63,18 @@ export function ModalAmountField<T extends FieldValues>({
           ) : null}
           {input}
         </div>
-        {error?.message ? <ModalFieldError message={error.message} /> : null}
+        {error?.message ? <ModalFieldError id={errorId} message={error.message} /> : null}
       </div>
     );
   }
 
   return (
-    <ModalFormField
-      variant="hero"
-      {...(error?.message !== undefined ? { error: error.message } : {})}
-    >
-      <section className={s.amountSection} aria-labelledby={`${fieldId}-label`}>
+    <ModalFormField variant="hero">
+      <section className={s.amountSection}>
         {resolvedLabel ? (
-          <p id={`${fieldId}-label`} className={s.amountEyebrow}>
+          <label htmlFor={fieldId} id={`${fieldId}-label`} className={s.amountEyebrow}>
             {resolvedLabel}
-          </p>
+          </label>
         ) : null}
         <div className={s.amountRow}>
           <span className={s.amountCurrency} aria-hidden>
@@ -82,6 +83,7 @@ export function ModalAmountField<T extends FieldValues>({
           {input}
         </div>
       </section>
+      {error?.message ? <ModalFieldError id={errorId} message={error.message} /> : null}
     </ModalFormField>
   );
 }

@@ -11,6 +11,7 @@ export interface CalendarPanelProps {
   onChange: (date: string) => void;
   onClose: () => void;
   className?: string | undefined;
+  compact?: boolean | undefined;
 }
 
 export function CalendarPanel({
@@ -18,6 +19,7 @@ export function CalendarPanel({
   onChange,
   onClose,
   className,
+  compact = false,
 }: Readonly<CalendarPanelProps>) {
   const selectedDate = useMemo(
     () => (value && isValid(new Date(value)) ? new Date(value) : undefined),
@@ -47,18 +49,20 @@ export function CalendarPanel({
   );
 
   return (
-    <div className={cn(calendarDrawerStyles.panel.container, className)}>
+    <div className={cn(calendarDrawerStyles.panel.container, compact && 'flex-none', className)}>
       <MonthHeader
         currentMonth={currentMonth}
         onPrevious={handlePrevious}
         onNext={handleNext}
         onMonthChange={handleMonthYearChange}
+        {...(compact ? { className: 'px-3 py-2' } : {})}
       />
-      <WeekdayLabels highlightWeekends />
+      <WeekdayLabels highlightWeekends {...(compact ? { className: 'px-3' } : {})} />
       <MonthGrid
         currentMonth={currentMonth}
         selectedDate={selectedDate}
         onDateSelect={handleDateSelect}
+        {...(compact ? { className: 'px-3 pb-3' } : {})}
       />
     </div>
   );

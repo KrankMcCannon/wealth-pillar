@@ -24,8 +24,9 @@ test.describe('entity modals (mobile)', () => {
     await fab.click();
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 });
     await expect(page.locator('text=Nuova transazione')).toBeVisible();
-    await expect(page.locator('.text-modal-fg-muted').first()).toBeVisible();
     await expect(page.locator('input[placeholder="0,00"]').first()).toBeVisible();
+    await expect(page.getByRole('radiogroup', { name: /Tipo|Type/i })).toBeVisible();
+    await expect(page.getByRole('radio', { name: /Uscita|Expense/i })).toBeChecked();
     await expect(page.getByRole('button', { name: /annulla|cancel/i })).toBeVisible();
   });
 
@@ -42,7 +43,8 @@ test.describe('entity modals (mobile)', () => {
 
     await fab.click();
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 });
-    await expect(page.locator('.text-modal-fg-muted').first()).toBeVisible();
+    await expect(page.locator('text=Nuovo Budget')).toBeVisible();
+    await expect(page.locator('input[placeholder="0,00"]').first()).toBeVisible();
   });
 
   test('budget-close-period opens drawer from budgets page', async ({ page }) => {
@@ -115,7 +117,6 @@ test.describe('settings modals (mobile)', () => {
   test('deep-link opens profile settings drawer with dual footer', async ({ page }) => {
     await page.goto('/settings?modal=settings:profile');
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('.text-modal-fg-muted').first()).toBeVisible();
     await expect(page.getByRole('button', { name: /annulla|cancel/i })).toBeVisible();
     await expect(page.getByRole('button', { name: /salva|save/i })).toBeVisible();
   });

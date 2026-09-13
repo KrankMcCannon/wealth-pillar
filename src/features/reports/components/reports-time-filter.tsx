@@ -7,8 +7,7 @@ import { cn } from '@/lib/utils';
 import { stitchReports, stitchTransactions } from '@/styles/home-design-foundation';
 import { FilterChip, FilterChipRow, FilterDrawer } from '@/components/ui/filters';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { DateField } from '@/components/ui/fields/date-field';
 import type { ReportsTimePreset } from '@/features/reports/utils/reporting-window';
 
 interface ReportsTimeFilterProps {
@@ -95,30 +94,20 @@ export function ReportsTimeFilter({
       >
         <div className="flex flex-col gap-4 px-4 pb-6">
           <div className="grid grid-cols-1 gap-3">
-            <div className="space-y-1.5">
-              <Label htmlFor="reports-custom-start" className="text-sm text-muted-foreground">
-                {t('from')}
-              </Label>
-              <Input
-                id="reports-custom-start"
-                type="date"
-                value={draftStart}
-                onChange={(e) => setDraftStart(e.target.value)}
-                className="min-h-11 rounded-xl border-border/35 bg-input text-base text-foreground"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="reports-custom-end" className="text-sm text-muted-foreground">
-                {t('to')}
-              </Label>
-              <Input
-                id="reports-custom-end"
-                type="date"
-                value={draftEnd}
-                onChange={(e) => setDraftEnd(e.target.value)}
-                className="min-h-11 rounded-xl border-border/35 bg-input text-base text-foreground"
-              />
-            </div>
+            <DateField
+              layout="stack"
+              presentation="inline"
+              label={t('from')}
+              value={draftStart}
+              onChange={setDraftStart}
+            />
+            <DateField
+              layout="stack"
+              presentation="inline"
+              label={t('to')}
+              value={draftEnd}
+              onChange={setDraftEnd}
+            />
           </div>
           <Button
             type="button"

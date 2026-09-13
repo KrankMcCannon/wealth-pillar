@@ -123,6 +123,8 @@ test.describe('Transaction Flows', () => {
         await expect(page.locator('text=Nuova transazione')).toBeVisible({ timeout: 5000 });
 
         const uniqueDescription = `Test E2E Transaction ${Date.now()}`;
+        await expect(page.getByRole('radiogroup', { name: /Tipo|Type/i })).toBeVisible();
+        await page.getByRole('radio', { name: /Uscita|Expense/i }).check();
         await page.locator("input[placeholder='Es. Spesa supermercato']").fill(uniqueDescription);
         await page.locator('input[placeholder="0,00"]').fill('100');
 

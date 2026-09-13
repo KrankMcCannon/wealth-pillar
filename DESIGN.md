@@ -58,9 +58,13 @@ Reuse shadcn/Radix. Restyle via tokens.
 
 **Button.** Primary: pine fill, linen label, min-height 44px (52px for form submit). Secondary: wash + border. Destructive: expense wash + expense text, never a low-contrast cancel. Sentence case, verb + object. Focus: 2–3px ring, offset, `:focus-visible` only.
 
-**Input.** Label above. Placeholder is an example at muted-foreground (no `/40`–`/60` opacity). Error text + `aria-invalid` + `aria-describedby`. Fields ≥16px on iOS. No focus ring on fields — caret + border only (existing contract).
+**Input.** Two anatomies, same tokens. **Sheets:** grouped row — label left, value right, min-height 44px, hairline between rows (iOS settings). **Pages** (onboarding, sandbox, filters already open): label above, full-width control. Placeholder is an example at muted-foreground (no `/40`–`/60` opacity). Error text + `aria-invalid` + `aria-describedby`. Body ≥16px. No focus ring on fields — caret + border only (existing contract). Search: `type="search"`, labelled, `autocomplete="off"`. File: native labelled control.
 
-**Choice.** Radios when 2–5 options must be compared. Segmented control for 2–4 view modes. Select only at 6+. Combobox when the list is long (categories, shares). Switch = immediate setting; checkbox = deferred form answer.
+**Amount.** Hero in create/edit sheets: display serif, currency glyph, quiet **visible** caption (not `sr-only`). `inputMode="decimal"`, `type="text"`, `autocomplete="off"`. Inline amount uses the grouped-row anatomy.
+
+**Date.** One `DateField`. Drawer when the parent is a page or a closed trigger. When the parent is already a sheet, the calendar **overlays** that sheet (no nested drawer, no in-flow expansion that forces scroll). Locale from the app locale, not hardcoded Italian.
+
+**Choice.** Radios when 2–5 options must be compared (in place, not a select). Radio cards when options need helper text (account type). Segmented control for 2–4 view modes. Select only at 6+; search inside the select only then. Combobox when the list is long (categories, shares). Switch = immediate setting; checkbox = deferred form answer.
 
 **Nav.** Five equal tabs, labels always visible. Active = ink + pine-tinted icon well, not a filled pill.
 

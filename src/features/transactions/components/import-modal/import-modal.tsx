@@ -288,7 +288,6 @@ export default function ImportModal({ isOpen, onClose }: Readonly<ImportModalPro
         if (!open) handleClose();
       }}
       title={t('title')}
-      description={t('description')}
       isLoading={isBusy && step === 'upload'}
       disableOutsideClose={isBusy}
     >

@@ -55,7 +55,7 @@ Errors say what happened, why, and how to fix. No jokes on failure. Forecasts an
 - Next.js App Router, Tailwind v4 + OKLCH tokens, shadcn/Radix, next-intl (`it` + `en`), Clerk auth.
 - Restyle the existing component library via tokens. Do not fork a second Button/Input.
 - Stripe-backed Premium exists in the data model; the free tier must already feel finished. Do not design paywalls this pass.
-- `keep` is empty: palette, type, chrome, and copy voice may change. Routes and jobs stay unless a screen fails “one job.”
+- `keep` this pass: palette, type, chrome, nav, routes, glossary. Scope is **all input kinds** (text, amount, date, radio, select, combobox, checkbox, file, search). Clerk fields stay Clerk.
 
 ## Accessibility & inclusion
 

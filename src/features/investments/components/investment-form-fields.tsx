@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import {
   ModalAmountField,
   ModalDateField,
-  ModalSelectField,
+  ModalRadioField,
   ModalTextField,
 } from '@/components/form/modal-fields';
 import { formModalStyles as s } from '@/components/form/form-modal-styles';
@@ -92,7 +92,7 @@ export function InvestmentFormFields({ form, loadError, onRetryLoad }: Investmen
           label={t('fields.purchaseDate')}
           required
         />
-        <ModalSelectField
+        <ModalRadioField
           control={control}
           name="currency"
           label={t('fields.currency')}

@@ -10,13 +10,16 @@ vi.mock('@/components/form/form-currency-input', () => ({
     onChange,
     placeholder,
     className,
+    id,
   }: {
     value: string;
     onChange: (v: string) => void;
     placeholder?: string;
     className?: string;
+    id?: string;
   }) => (
     <input
+      id={id}
       className={className}
       value={value}
       placeholder={placeholder}
@@ -50,10 +53,11 @@ function InlineAmountForm() {
 }
 
 describe('ModalAmountField', () => {
-  it('renders hero variant with currency and a visually hidden label', () => {
+  it('renders hero variant with currency and a visible caption', () => {
     render(<HeroAmountForm />);
-    expect(screen.getByText('Amount')).toHaveClass('sr-only');
+    expect(screen.getByText('Amount')).not.toHaveClass('sr-only');
     expect(screen.getByText('€')).toBeInTheDocument();
+    expect(screen.getByLabelText('Amount')).toBeInTheDocument();
   });
 
   it('accepts amount input in inline variant', async () => {

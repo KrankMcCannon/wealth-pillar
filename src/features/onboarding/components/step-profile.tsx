@@ -1,16 +1,8 @@
 'use client';
 
 import { PlusCircle, Star, Trash2 } from 'lucide-react';
-import {
-  Button,
-  Input,
-  Label,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui';
+import { Button, Field, FieldLabel, Input } from '@/components/ui';
+import { ChoiceRadios } from '@/components/form/modal-fields';
 import type { AccountType } from '@/lib/types';
 import type { OnboardingFormAccount } from '@/features/onboarding/types';
 import { onboardingStyles } from '@/features/onboarding/styles';
@@ -43,87 +35,85 @@ export function OnboardingStepProfile({
     <div className={onboardingStyles.form.section}>
       {accounts.length > 1 && (
         <div className={onboardingStyles.accounts.infoBanner}>
-          <Label className={onboardingStyles.label}>{t('fields.accounts.defaultTitle')}</Label>
+          <p className={onboardingStyles.label}>{t('fields.accounts.defaultTitle')}</p>
           <p className={onboardingStyles.accounts.infoText}>{t('fields.accounts.defaultInfo')}</p>
         </div>
       )}
 
-      {accounts.map((account, index) => (
-        <div key={account.id} className={onboardingStyles.card}>
-          <div className={onboardingStyles.cardHeader}>
-            <div className={onboardingStyles.accounts.labelRow}>
-              <p className={onboardingStyles.cardTitle}>
-                {t('fields.accounts.cardTitle', { index: index + 1 })}
-              </p>
+      {accounts.map((account, index) => {
+        const nameId = `account-name-${account.id}`;
+        return (
+          <div key={account.id} className={onboardingStyles.card}>
+            <div className={onboardingStyles.cardHeader}>
+              <div className={onboardingStyles.accounts.labelRow}>
+                <p className={onboardingStyles.cardTitle}>
+                  {t('fields.accounts.cardTitle', { index: index + 1 })}
+                </p>
+
+                {accounts.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => setAccountAsDefault(index)}
+                    className={`${onboardingStyles.accounts.defaultToggle} ${
+                      account.isDefault
+                        ? onboardingStyles.accounts.defaultActive
+                        : onboardingStyles.accounts.defaultInactive
+                    }`}
+                    aria-pressed={account.isDefault}
+                    aria-label={
+                      account.isDefault
+                        ? t('fields.accounts.defaultAccountTitle')
+                        : t('fields.accounts.setDefaultTitle')
+                    }
+                    disabled={loading}
+                  >
+                    <Star
+                      className={`${onboardingStyles.accounts.defaultIcon} ${account.isDefault ? onboardingStyles.accounts.defaultIconFilled : ''}`}
+                    />
+                  </button>
+                )}
+              </div>
 
               {accounts.length > 1 && (
                 <button
                   type="button"
-                  onClick={() => setAccountAsDefault(index)}
-                  className={`${onboardingStyles.accounts.defaultToggle} ${
-                    account.isDefault
-                      ? onboardingStyles.accounts.defaultActive
-                      : onboardingStyles.accounts.defaultInactive
-                  }`}
-                  title={
-                    account.isDefault
-                      ? t('fields.accounts.defaultAccountTitle')
-                      : t('fields.accounts.setDefaultTitle')
-                  }
+                  onClick={() => removeAccount(index)}
+                  className={onboardingStyles.deleteButton}
+                  aria-label={t('fields.accounts.cardTitle', { index: index + 1 })}
                   disabled={loading}
                 >
-                  <Star
-                    className={`${onboardingStyles.accounts.defaultIcon} ${account.isDefault ? onboardingStyles.accounts.defaultIconFilled : ''}`}
-                  />
+                  <Trash2 className={onboardingStyles.accounts.deleteIcon} />
                 </button>
               )}
             </div>
-
-            {accounts.length > 1 && (
-              <button
-                type="button"
-                onClick={() => removeAccount(index)}
-                className={onboardingStyles.deleteButton}
+            <Field>
+              <FieldLabel htmlFor={nameId}>{t('fields.accounts.nameLabel')}</FieldLabel>
+              <Input
+                id={nameId}
+                value={account.name}
+                onChange={(e) => updateAccountField(index, 'name', e.target.value)}
+                placeholder={t('fields.accounts.namePlaceholder')}
                 disabled={loading}
-              >
-                <Trash2 className={onboardingStyles.accounts.deleteIcon} />
-              </button>
-            )}
-          </div>
-          <div className={onboardingStyles.form.field}>
-            <Label className={onboardingStyles.label}>{t('fields.accounts.nameLabel')}</Label>
-            <Input
-              value={account.name}
-              onChange={(e) => updateAccountField(index, 'name', e.target.value)}
-              placeholder={t('fields.accounts.namePlaceholder')}
+                className={onboardingStyles.input}
+              />
+            </Field>
+            <ChoiceRadios
+              name={`account-type-${account.id}`}
+              value={account.type}
+              onChange={(value) => updateAccountField(index, 'type', value as AccountType)}
+              label={t('fields.accounts.typeLabel')}
+              variant="cards"
+              padded={false}
               disabled={loading}
-              className={onboardingStyles.input}
+              options={accountTypeOptions.map((option) => ({
+                value: option.value,
+                label: option.label,
+                description: accountTypeDescriptions[option.value],
+              }))}
             />
           </div>
-          <div className={onboardingStyles.form.field}>
-            <Label className={onboardingStyles.label}>{t('fields.accounts.typeLabel')}</Label>
-            <Select
-              value={account.type}
-              onValueChange={(value) => updateAccountField(index, 'type', value as AccountType)}
-              disabled={loading}
-            >
-              <SelectTrigger className={onboardingStyles.select}>
-                <SelectValue placeholder={t('fields.accounts.typePlaceholder')} />
-              </SelectTrigger>
-              <SelectContent className={onboardingStyles.selectContent}>
-                {accountTypeOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <p className={onboardingStyles.accounts.typeDescription} aria-live="polite">
-              {accountTypeDescriptions[account.type]}
-            </p>
-          </div>
-        </div>
-      ))}
+        );
+      })}
       <Button
         type="button"
         onClick={addAccount}

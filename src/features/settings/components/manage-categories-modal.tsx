@@ -44,7 +44,6 @@ export function ManageCategoriesModal({ isOpen, onClose }: Readonly<ManageCatego
       isOpen={isOpen}
       onOpenChange={onClose}
       title={t('modalTitle')}
-      description={t('modalDescription')}
     >
       <ModalBody className="flex flex-col gap-5 pb-4">
         <ModalSection title={t('customTitle')}>

@@ -7,6 +7,7 @@ import {
   ModalCategoryField,
   ModalDateField,
   ModalMultiSelectField,
+  ModalRadioField,
   ModalSelectField,
   ModalTextField,
 } from '@/components/form';
@@ -53,7 +54,7 @@ export function RecurringFormFields({
         disabled={isSubmitting}
       />
 
-      <ModalSelectField
+      <ModalRadioField
         control={control}
         name="type"
         label={t('fields.type.label')}

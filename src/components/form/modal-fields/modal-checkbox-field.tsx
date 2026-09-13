@@ -28,6 +28,7 @@ export function ModalCheckboxField<T extends FieldValues>({
 
   const checked = Boolean(field.value);
   const fieldId = String(name);
+  const errorId = `${fieldId}-error`;
 
   return (
     <div>
@@ -38,11 +39,13 @@ export function ModalCheckboxField<T extends FieldValues>({
           checked={checked}
           onCheckedChange={(value) => field.onChange(value === true)}
           disabled={disabled}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error?.message ? errorId : undefined}
           className={s.multiUser.checkbox}
         />
       </label>
       {hint ? <p className="px-4 pb-2 text-xs text-muted-foreground">{hint}</p> : null}
-      {error?.message ? <ModalFieldError message={error.message} /> : null}
+      {error?.message ? <ModalFieldError id={errorId} message={error.message} /> : null}
     </div>
   );
 }

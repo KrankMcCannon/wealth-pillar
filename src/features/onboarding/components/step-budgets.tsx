@@ -3,14 +3,16 @@
 import { HelpCircle, PlusCircle, Trash2 } from 'lucide-react';
 import {
   Button,
+  Field,
+  FieldLabel,
   Input,
-  Label,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui';
+import { ChoiceRadios } from '@/components/form/modal-fields';
 import type { BudgetType, Category } from '@/lib/types';
 import type { OnboardingFormBudget } from '@/features/onboarding/types';
 import { onboardingStyles } from '@/features/onboarding/styles';
@@ -74,104 +76,97 @@ export function OnboardingStepBudgets({
       {categories.length === 0 && (
         <div className={onboardingStyles.warningMessage}>{t('categories.noneAvailable')}</div>
       )}
-      {budgets.map((budget, index) => (
-        <div key={budget.id} className={onboardingStyles.card}>
-          <div className={onboardingStyles.cardHeader}>
-            <p className={onboardingStyles.cardTitle}>
-              {t('fields.budgets.cardTitle', { index: index + 1 })}
-            </p>
-            {budgets.length > 1 && (
-              <button
-                type="button"
-                onClick={() => removeBudget(index)}
-                className={onboardingStyles.deleteButton}
-                disabled={loading}
-              >
-                <Trash2 className={onboardingStyles.budgets.deleteIcon} />
-              </button>
-            )}
-          </div>
-          <div className={onboardingStyles.form.field}>
-            <Label className={onboardingStyles.label}>{t('fields.budgets.descriptionLabel')}</Label>
-            <Input
-              value={budget.description}
-              onChange={(e) => updateBudgetField(index, 'description', e.target.value)}
-              placeholder={t('fields.budgets.descriptionPlaceholder')}
-              disabled={loading}
-              className={onboardingStyles.input}
-            />
-          </div>
-          <div className={onboardingStyles.budgets.grid}>
-            <div className={onboardingStyles.budgets.field}>
-              <Label className={onboardingStyles.label}>{t('fields.budgets.amountLabel')}</Label>
+      {budgets.map((budget, index) => {
+        const descriptionId = `budget-description-${budget.id}`;
+        const amountId = `budget-amount-${budget.id}`;
+        const categoryId = `budget-category-${budget.id}`;
+        return (
+          <div key={budget.id} className={onboardingStyles.card}>
+            <div className={onboardingStyles.cardHeader}>
+              <p className={onboardingStyles.cardTitle}>
+                {t('fields.budgets.cardTitle', { index: index + 1 })}
+              </p>
+              {budgets.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => removeBudget(index)}
+                  className={onboardingStyles.deleteButton}
+                  aria-label={t('fields.budgets.cardTitle', { index: index + 1 })}
+                  disabled={loading}
+                >
+                  <Trash2 className={onboardingStyles.budgets.deleteIcon} />
+                </button>
+              )}
+            </div>
+            <Field>
+              <FieldLabel htmlFor={descriptionId}>{t('fields.budgets.descriptionLabel')}</FieldLabel>
               <Input
-                type="number"
-                min="0"
-                step="0.01"
+                id={descriptionId}
+                value={budget.description}
+                onChange={(e) => updateBudgetField(index, 'description', e.target.value)}
+                placeholder={t('fields.budgets.descriptionPlaceholder')}
+                disabled={loading}
+                className={onboardingStyles.input}
+              />
+            </Field>
+            <Field>
+              <FieldLabel htmlFor={amountId}>{t('fields.budgets.amountLabel')}</FieldLabel>
+              <Input
+                id={amountId}
+                type="text"
+                inputMode="decimal"
                 value={budget.amount}
                 onChange={(e) => updateBudgetField(index, 'amount', e.target.value)}
                 placeholder={t('fields.budgets.amountPlaceholder')}
                 disabled={loading}
                 className={onboardingStyles.input}
               />
-            </div>
-            <div className={onboardingStyles.budgets.field}>
-              <Label className={onboardingStyles.label}>{t('fields.budgets.periodLabel')}</Label>
+            </Field>
+            <ChoiceRadios
+              name={`budget-type-${budget.id}`}
+              value={budget.type}
+              onChange={(value) => updateBudgetField(index, 'type', value as BudgetType)}
+              label={t('fields.budgets.periodLabel')}
+              padded={false}
+              disabled={loading}
+              options={budgetTypeOptions}
+            />
+            <Field>
+              <FieldLabel htmlFor={categoryId}>{t('fields.budgets.categoryLabel')}</FieldLabel>
               <Select
-                value={budget.type}
-                onValueChange={(value: BudgetType) => updateBudgetField(index, 'type', value)}
+                value={budget.categoryId}
+                onValueChange={(value) => updateBudgetField(index, 'categoryId', value)}
                 disabled={loading}
               >
-                <SelectTrigger className={onboardingStyles.select}>
-                  <SelectValue placeholder={t('fields.budgets.periodPlaceholder')} />
+                <SelectTrigger id={categoryId} className={onboardingStyles.select}>
+                  <SelectValue
+                    placeholder={
+                      categoryOptions.length
+                        ? t('fields.budgets.categoryPlaceholder')
+                        : t('fields.budgets.categoryUnavailable')
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent className={onboardingStyles.selectContent}>
-                  {budgetTypeOptions.map((option) => (
+                  {categoryOptions.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-            </div>
+            </Field>
           </div>
-          <div className={onboardingStyles.form.field}>
-            <Label className={onboardingStyles.label}>{t('fields.budgets.categoryLabel')}</Label>
-            <Select
-              value={budget.categoryId}
-              onValueChange={(value) => updateBudgetField(index, 'categoryId', value)}
-              disabled={loading}
-            >
-              <SelectTrigger className={onboardingStyles.select}>
-                <SelectValue
-                  placeholder={
-                    categoryOptions.length
-                      ? t('fields.budgets.categoryPlaceholder')
-                      : t('fields.budgets.categoryUnavailable')
-                  }
-                />
-              </SelectTrigger>
-              <SelectContent className={onboardingStyles.selectContent}>
-                {categoryOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      ))}
+        );
+      })}
       <div className={onboardingStyles.budgets.startDay}>
-        <Label htmlFor="budgetStartDay" className={onboardingStyles.primaryLabel}>
-          {t('fields.budgets.startDayLabel')}
-        </Label>
+        <FieldLabel htmlFor="budgetStartDay">{t('fields.budgets.startDayLabel')}</FieldLabel>
         <Select
           value={budgetStartDay.toString()}
           onValueChange={(value) => setBudgetStartDay(Number.parseInt(value, 10))}
           disabled={loading}
         >
-          <SelectTrigger className={onboardingStyles.select}>
+          <SelectTrigger id="budgetStartDay" className={onboardingStyles.select}>
             <SelectValue placeholder={t('fields.budgets.startDayPlaceholder')} />
           </SelectTrigger>
           <SelectContent className={onboardingStyles.selectContent}>

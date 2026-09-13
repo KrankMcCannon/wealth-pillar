@@ -1,6 +1,6 @@
 'use client';
 
-import { Input, Label } from '@/components/ui';
+import { Field, FieldLabel, Input } from '@/components/ui';
 import { onboardingStyles } from '@/features/onboarding/styles';
 import type { OnboardingWizardApi } from './use-onboarding-wizard';
 
@@ -23,24 +23,21 @@ export function OnboardingStepGroup({
 }: Readonly<OnboardingStepGroupProps>) {
   return (
     <div className={onboardingStyles.form.section}>
-      <div className={onboardingStyles.form.field}>
-        <Label htmlFor="groupName" className={onboardingStyles.primaryLabel}>
-          {t('fields.group.nameLabel')}
-        </Label>
+      <Field>
+        <FieldLabel htmlFor="groupName">{t('fields.group.nameLabel')}</FieldLabel>
         <Input
           id="groupName"
           type="text"
+          autoComplete="organization"
           placeholder={t('fields.group.namePlaceholder')}
           value={groupName}
           onChange={(e) => setGroupName(e.target.value)}
           disabled={loading}
           className={onboardingStyles.input}
         />
-      </div>
-      <div className={onboardingStyles.form.field}>
-        <Label htmlFor="groupDescription" className={onboardingStyles.primaryLabel}>
-          {t('fields.group.descriptionLabel')}
-        </Label>
+      </Field>
+      <Field>
+        <FieldLabel htmlFor="groupDescription">{t('fields.group.descriptionLabel')}</FieldLabel>
         <Input
           id="groupDescription"
           type="text"
@@ -50,7 +47,7 @@ export function OnboardingStepGroup({
           disabled={loading}
           className={onboardingStyles.input}
         />
-      </div>
+      </Field>
     </div>
   );
 }

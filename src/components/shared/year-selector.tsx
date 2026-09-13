@@ -2,6 +2,7 @@
 
 import { memo, useCallback, useMemo } from 'react';
 import { Calendar, Infinity as InfinityIcon } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 const yearSelectorStyles = {
   loading: {
     container: 'bg-background p-2 border-b border-border/25 shadow-sm',
@@ -63,15 +64,14 @@ const YearSelector = memo(
     availableYears,
     isLoading = false,
   }: YearSelectorProps) => {
-    // Memoized year list with "All Time" option
+    const t = useTranslations('Common');
     const yearsList = useMemo(() => {
-      // Sort years descending (most recent first)
       const sortedYears = [...availableYears].sort((a, b) => b - a);
 
       return [
         {
           id: 'all' as const,
-          label: 'Tutti i Tempi',
+          label: t('allTime'),
           icon: InfinityIcon,
           isSpecial: true,
         },
@@ -82,7 +82,7 @@ const YearSelector = memo(
           isSpecial: false,
         })),
       ];
-    }, [availableYears]);
+    }, [availableYears, t]);
 
     // Memoized click handler
     const handleYearClick = useCallback(
@@ -131,7 +131,7 @@ const YearSelector = memo(
                 }`}
                 disabled={isLoading}
                 aria-pressed={isSelected}
-                aria-label={`Seleziona ${yearItem.label}`}
+                aria-label={t('selectYear', { year: yearItem.label })}
               >
                 <div
                   className={`${yearSelectorStyles.icon.containerBase} ${

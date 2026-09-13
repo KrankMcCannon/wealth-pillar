@@ -13,6 +13,7 @@ export interface ModalSelectorTriggerProps {
   onClick?: () => void;
   className?: string;
   children?: ReactNode;
+  expanded?: boolean;
 }
 
 export function ModalSelectorTrigger({
@@ -23,6 +24,7 @@ export function ModalSelectorTrigger({
   onClick,
   className,
   children,
+  expanded,
 }: Readonly<ModalSelectorTriggerProps>) {
   const inner = (
     <>
@@ -38,6 +40,8 @@ export function ModalSelectorTrigger({
       type="button"
       disabled={disabled}
       onClick={onClick}
+      aria-haspopup="dialog"
+      aria-expanded={expanded}
       className={cn(s.selectorTrigger, className)}
     >
       {inner}
