@@ -1,7 +1,6 @@
 import type { Account, Budget, BudgetPeriod, Transaction } from '@/lib/types';
 import { DateTime } from 'luxon';
-import { resolvePeriodAmounts } from './period-amounts.logic';
-import { categoryKeysFromBudgets } from './period-budgets.logic';
+import { calculatePeriodBudgetRollup } from '../budgets/budget.logic';
 
 export const calculatePeriodTotalsUseCase = (
   transactions: Transaction[],
@@ -14,22 +13,17 @@ export const calculatePeriodTotalsUseCase = (
   totalSpent: number;
   categorySpending: Record<string, number>;
 } => {
-  const periodForResolve: BudgetPeriod = {
-    ...period,
-    start_date: startDt.toISODate() ?? period.start_date,
-    end_date: endDt?.toISODate() ?? period.end_date,
-  };
-
-  const amounts = resolvePeriodAmounts(
-    periodForResolve,
+  const rollup = calculatePeriodBudgetRollup(
+    budgets,
     transactions,
+    startDt,
+    endDt ?? startDt,
     accounts,
-    undefined,
-    categoryKeysFromBudgets(budgets)
+    period.user_id
   );
 
   return {
-    totalSpent: amounts.spendableSpent,
-    categorySpending: amounts.categorySpending,
+    totalSpent: rollup.spent,
+    categorySpending: rollup.categorySpending,
   };
 };

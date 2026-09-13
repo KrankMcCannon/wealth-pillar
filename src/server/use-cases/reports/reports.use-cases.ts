@@ -1,6 +1,5 @@
 import type { Account, Budget, BudgetPeriod, Transaction, User } from '@/lib/types';
 import { formatDateShort, toDateString, toDateTime } from '@/lib/utils';
-import { roundMoney } from '@/lib/utils/money';
 import { REPORTS_TRANSACTIONS_LIMIT } from '@/server/db/query-limits';
 import { transactions } from '@/server/db/schema';
 import { AccountsRepository } from '@/server/repositories/accounts.repository';
@@ -8,13 +7,9 @@ import { BudgetPeriodsRepository } from '@/server/repositories/budget-periods.re
 import { CategoriesRepository } from '@/server/repositories/categories.repository';
 import { TransactionsRepository } from '@/server/repositories/transactions.repository';
 import { UsersRepository } from '@/server/repositories/users.repository';
-import { accountsToMap, computeTransactionImpact } from '@/server/ledger';
-import {
-  allocatedFromBudgets,
-  categoryKeysFromBudgets,
-  resolvePeriodBudgets,
-} from '@/server/use-cases/budget-periods/period-budgets.logic';
+import { resolvePeriodBudgets } from '@/server/use-cases/budget-periods/period-budgets.logic';
 import { addSyntheticActivePeriod } from '@/server/use-cases/budget-periods/synthetic-active-period.logic';
+import { calculateEnvelopePeriodTotals } from '@/server/use-cases/budgets/budget.logic';
 import { getBudgetsByGroupUseCase } from '@/server/use-cases/budgets/get-budgets.use-case';
 import { parsePeriodDates } from '@/server/use-cases/shared/period.logic';
 
@@ -32,15 +27,6 @@ export interface ReportPeriodSummary {
   isOpen: boolean;
 }
 
-interface PeriodSlot {
-  period: BudgetPeriod;
-  startMs: number;
-  endMs: number;
-  spent: number;
-  allocated: number;
-  categoryKeys: Set<string>;
-}
-
 function liveBudgetsByUserId(budgets: Budget[]): Map<string, Budget[]> {
   const map = new Map<string, Budget[]>();
   for (const budget of budgets) {
@@ -49,13 +35,6 @@ function liveBudgetsByUserId(budgets: Budget[]): Map<string, Budget[]> {
     else map.set(budget.user_id, [budget]);
   }
   return map;
-}
-
-function slotContaining(slots: PeriodSlot[], t: number): PeriodSlot | undefined {
-  for (const candidate of slots) {
-    if (t >= candidate.startMs && t <= candidate.endMs) return candidate;
-  }
-  return undefined;
 }
 
 export interface UserAccountFlow {
@@ -184,7 +163,7 @@ export async function getReportsTransactionsUseCase(
   return { transactions: normalizedTransactions, hasMore };
 }
 
-/** One pass over txs: leftover vs allocation. Reserve flow lives on the reports window. */
+/** Leftover vs allocation: sum of period envelope spent (same as the cards). */
 export function calculatePeriodSummariesUseCase(
   periods: BudgetPeriod[],
   transactions: Transaction[],
@@ -193,55 +172,30 @@ export function calculatePeriodSummariesUseCase(
 ): ReportPeriodSummary[] {
   const now = new Date();
   const liveByUser = liveBudgetsByUserId(budgets);
-  const accountMap = accountsToMap(accounts);
-  const slotsByUser = new Map<string, PeriodSlot[]>();
+  const summaries: ReportPeriodSummary[] = [];
 
   for (const period of periods) {
     const [start, end] = parsePeriodDates(period, now);
     const periodBudgets = resolvePeriodBudgets(period, liveByUser.get(period.user_id) ?? []);
-    const slot: PeriodSlot = {
-      period,
-      startMs: start.toMillis(),
-      endMs: end.toMillis(),
-      spent: 0,
-      allocated: allocatedFromBudgets(periodBudgets),
-      categoryKeys: categoryKeysFromBudgets(periodBudgets),
-    };
-    const list = slotsByUser.get(period.user_id);
-    if (list) list.push(slot);
-    else slotsByUser.set(period.user_id, [slot]);
-  }
-
-  for (const tx of transactions) {
-    const impact = computeTransactionImpact(tx, accountMap);
-    const t = toDateTime(tx.date)?.toMillis();
-    if (t == null) continue;
-
-    for (const leg of impact.budgetLegs) {
-      const slot = slotContaining(slotsByUser.get(leg.userId) ?? [], t);
-      if (!slot || !slot.categoryKeys.has(tx.category)) continue;
-      slot.spent += leg.signed;
-    }
-  }
-
-  const summaries: ReportPeriodSummary[] = [];
-  for (const slots of slotsByUser.values()) {
-    for (const slot of slots) {
-      const spent = roundMoney(Math.max(0, slot.spent));
-      const period = slot.period;
-      const allocated = slot.allocated;
-      summaries.push({
-        id: period.id,
-        name: `${formatDateShort(period.start_date)} - ${period.end_date ? formatDateShort(period.end_date) : 'Present'}`,
-        startDate: toDateString(period.start_date),
-        endDate: toDateString(period.end_date ?? now),
-        spendableSpent: spent,
-        allocated,
-        remaining: roundMoney(allocated - spent),
-        userId: period.user_id,
-        isOpen: period.end_date == null,
-      });
-    }
+    const totals = calculateEnvelopePeriodTotals(
+      periodBudgets,
+      transactions,
+      start,
+      end,
+      accounts,
+      period.user_id
+    );
+    summaries.push({
+      id: period.id,
+      name: `${formatDateShort(period.start_date)} - ${period.end_date ? formatDateShort(period.end_date) : 'Present'}`,
+      startDate: toDateString(period.start_date),
+      endDate: toDateString(period.end_date ?? now),
+      spendableSpent: totals.spent,
+      allocated: totals.allocated,
+      remaining: totals.remaining,
+      userId: period.user_id,
+      isOpen: period.end_date == null,
+    });
   }
 
   summaries.sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());

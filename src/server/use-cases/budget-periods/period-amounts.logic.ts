@@ -1,8 +1,9 @@
-import type { Account, BudgetPeriod, PeriodLiquidityAmounts, Transaction } from '@/lib/types';
+import type { Account, Budget, BudgetPeriod, PeriodLiquidityAmounts, Transaction } from '@/lib/types';
 import { foldPeriodAmounts } from '@/server/ledger';
 import { roundMoney } from '@/lib/utils/money';
 import { parsePeriodDates } from '../shared/period.logic';
 import type { DateWindow } from '../reports/report.logic';
+import { calculatePeriodBudgetRollup } from '../budgets/budget.logic';
 import { categoryKeysFromBudgets, parseBudgetsSnapshot } from './period-budgets.logic';
 
 export function periodToDateWindow(period: BudgetPeriod, now?: Date): DateWindow {
@@ -11,16 +12,33 @@ export function periodToDateWindow(period: BudgetPeriod, now?: Date): DateWindow
 }
 
 /**
- * Envelope spend for a period window (same fold as reports leftover).
- * Old closed rows stored expense-only spendable_spent until Recalculate.
+ * Envelope spend for a period window (same rollup as leftover and active budgets).
+ * Pass `budgets` so spent is the sum of envelope cards. Category-key-only
+ * callers keep the union fold for tests and unscoped snapshots.
  */
 export function computePeriodLiquidityAmounts(
   transactions: Transaction[],
   accounts: Account[],
   window: DateWindow,
   userId: string,
-  categoryKeys?: Set<string>
+  categoryKeys?: Set<string>,
+  budgets?: Budget[]
 ): PeriodLiquidityAmounts {
+  if (budgets) {
+    const rollup = calculatePeriodBudgetRollup(
+      budgets,
+      transactions,
+      window.start,
+      window.end,
+      accounts,
+      userId
+    );
+    return {
+      spendableSpent: rollup.spent,
+      categorySpending: rollup.categorySpending,
+    };
+  }
+
   const folded = foldPeriodAmounts(transactions, accounts, window, userId, categoryKeys);
   return {
     spendableSpent: folded.spent,

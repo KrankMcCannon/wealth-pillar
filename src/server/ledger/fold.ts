@@ -1,11 +1,7 @@
 import type { Account, DateString, Transaction } from '@/lib/types';
+import { toDateTime } from '@/lib/utils/date-utils';
 import { fromCents } from '@/lib/utils/money';
-import {
-  accountsToMap,
-  classifyMovement,
-  type LedgerLeg,
-  type Movement,
-} from './classify';
+import { accountsToMap, classifyMovement, type LedgerLeg, type Movement } from './classify';
 
 export interface DateWindow {
   start: Date;
@@ -123,8 +119,11 @@ export function transactionInvolvesUser(
 }
 
 function isInWindow(date: DateString, window: DateWindow): boolean {
-  const t = new Date(date).getTime();
-  return t >= window.start.getTime() && t <= window.end.getTime();
+  const txDate = toDateTime(date);
+  const start = toDateTime(window.start);
+  const end = toDateTime(window.end);
+  if (!txDate || !start || !end) return false;
+  return txDate >= start && txDate <= end;
 }
 
 export function computeNetSavings(
@@ -164,14 +163,11 @@ export function foldPeriodAmounts(
   categoryKeys?: Set<string>
 ): { spent: number; categorySpending: Record<string, number> } {
   const accountMap = accountsToMap(accounts);
-  const t0 = window.start.getTime();
-  const t1 = window.end.getTime();
   let spentCents = 0;
   const categorySpendingCents: Record<string, number> = {};
 
   for (const tx of transactions) {
-    const d = new Date(tx.date).getTime();
-    if (d < t0 || d > t1) continue;
+    if (!isInWindow(tx.date, window)) continue;
     if (categoryKeys && !categoryKeys.has(tx.category)) continue;
     const signedCents = classifyMovement(tx, accountMap)
       .budgetLegs.filter((leg) => leg.userId === userId)

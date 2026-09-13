@@ -1,9 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import {
+  calculateEnvelopePeriodTotals,
   effectiveSpentFromTransactions,
   buildBudgetsByUserPure,
   filterTransactionsForBudgetsUnion,
   buildBudgetCategoryBreakdown,
+  calculateBudgetsWithProgress,
 } from './budget.logic';
 import { resolveEffectivePeriod, resolveChartPeriodEnd } from '../shared/period.logic';
 import type { Budget, Transaction, User, BudgetPeriod, Category, Account } from '@/lib/types';
@@ -131,7 +133,7 @@ describe('buildBudgetsByUserPure', () => {
     expect(result['user-1']?.totalSpent).toBe(80);
   });
 
-  it('dedupes overlapping categories in totalSpent (fix #2)', () => {
+  it('adds each envelope spent into totalSpent', () => {
     const period: BudgetPeriod = {
       id: 'p-1',
       user_id: 'user-1',
@@ -153,7 +155,7 @@ describe('buildBudgetsByUserPure', () => {
       { 'user-1': period },
       fixedNow
     );
-    expect(result['user-1']?.totalSpent).toBe(100);
+    expect(result['user-1']?.totalSpent).toBe(200);
     const sumPerBudget = (result['user-1']?.budgets ?? []).reduce((s, b) => s + b.spent, 0);
     expect(sumPerBudget).toBe(200);
   });
@@ -339,6 +341,45 @@ describe('filterTransactionsForBudgetsUnion', () => {
       period.end
     );
     expect(txs).toHaveLength(2);
+  });
+});
+
+describe('calculateEnvelopePeriodTotals', () => {
+  const periodStart = '2024-06-01';
+  const periodEnd = '2024-06-30';
+
+  it('sums envelope spent so leftover matches the cards', () => {
+    const budgets = [
+      budget({ id: 'personal', amount: 200, categories: ['hobby'] }),
+      budget({ id: 'food-a', amount: 400, categories: ['food'] }),
+      budget({ id: 'food-b', amount: 100, categories: ['food'] }),
+    ];
+    const transactions = [
+      tx({ id: 'refund', amount: 50, type: 'income', category: 'hobby', date: '2024-06-10' }),
+      tx({ id: 'groceries', amount: 80, category: 'food', date: '2024-06-10' }),
+    ];
+    const totals = calculateEnvelopePeriodTotals(
+      budgets,
+      transactions,
+      periodStart,
+      periodEnd,
+      [],
+      'user-1'
+    );
+    const cards = calculateBudgetsWithProgress(
+      budgets,
+      transactions,
+      periodStart,
+      periodEnd,
+      [],
+      'user-1'
+    );
+    const cardSpent = cards.reduce((sum, row) => sum + row.spent, 0);
+
+    expect(totals.allocated).toBe(700);
+    expect(totals.spent).toBe(cardSpent);
+    expect(totals.spent).toBe(160);
+    expect(totals.remaining).toBe(540);
   });
 });
 

@@ -235,6 +235,37 @@ describe('getReportPeriodDetailPageData', () => {
     expect(data.summary.allocated).toBe(0);
   });
 
+  it('uses the same spent for leftover, ranking, and envelope cards', async () => {
+    const foodA = { ...foodBudget, id: 'b1', amount: 200, categories: ['food'] };
+    const foodB = {
+      ...foodBudget,
+      id: 'b2',
+      description: 'Also food',
+      amount: 100,
+      categories: ['food'],
+    };
+    const closed = closedPeriod({
+      budgets_snapshot: [foodA, foodB],
+      spendable_spent: 80,
+      category_spending: { food: 40 },
+    });
+    vi.mocked(BudgetPeriodsRepository.findById).mockResolvedValue(closed);
+    vi.mocked(getProcessedUserPeriodsUseCase).mockResolvedValue([
+      closed,
+      previousPeriod(),
+      activePeriod(),
+    ]);
+
+    const data = await getReportPeriodDetailPageData('group-1', 'closed-1', owner);
+
+    const cardSpent = data.budgetProgress.reduce((sum, row) => sum + row.spent, 0);
+    expect(data.summary.spendableSpent).toBe(80);
+    expect(data.summary.allocated).toBe(300);
+    expect(cardSpent).toBe(80);
+    expect(data.liveAmounts.spendableSpent).toBe(80);
+    expect(data.categoryRows[0]).toMatchObject({ key: 'food', total: 40 });
+  });
+
   it('returns rewind flags for the persisted active period', async () => {
     const closed = closedPeriod();
     const previous = previousPeriod();

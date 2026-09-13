@@ -106,7 +106,11 @@ export default function BudgetDetailContent({ pageDataPromise }: BudgetDetailCon
                 <h2 className={stitchBudgets.categoryTitle}>{budget.description}</h2>
               </div>
               <p
-                className={cn(stitchBudgets.spentStrong, progress.remaining < 0 && 'text-expense')}
+                className={cn(
+                  stitchBudgets.spentStrong,
+                  progress.remaining < 0 && 'text-expense',
+                  status === 'fixed' && 'text-warning'
+                )}
               >
                 {formatCurrencyLocale(progress.remaining, locale)}
               </p>

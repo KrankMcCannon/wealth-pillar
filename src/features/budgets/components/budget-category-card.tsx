@@ -77,7 +77,13 @@ export function BudgetCategoryCard({
           </span>
           <h3 className={stitchBudgets.categoryTitle}>{progress.description}</h3>
         </div>
-        <span className={cn(stitchBudgets.spentStrong, status === 'over' && 'text-expense')}>
+        <span
+          className={cn(
+            stitchBudgets.spentStrong,
+            status === 'over' && 'text-expense',
+            status === 'fixed' && 'text-warning'
+          )}
+        >
           {remainingFormatted}
         </span>
       </div>

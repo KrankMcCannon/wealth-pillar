@@ -100,10 +100,7 @@ export default function PeriodDetailContent({
     scope: backScope,
   });
   const backHref = backQuery ? `/reports?${backQuery}` : '/reports';
-  const here = pathWithoutReturnTo(
-    `/reports/periods/${pageData.periodId}`,
-    backQuery
-  );
+  const here = pathWithoutReturnTo(`/reports/periods/${pageData.periodId}`, backQuery);
 
   const transactionsHref = withReturnTo(
     buildPeriodTransactionsHref({
@@ -148,14 +145,7 @@ export default function PeriodDetailContent({
     } finally {
       setIsRecalculating(false);
     }
-  }, [
-    isRecalculating,
-    locale,
-    pageData.periodId,
-    pageData.userId,
-    router,
-    t,
-  ]);
+  }, [isRecalculating, locale, pageData.periodId, pageData.userId, router, t]);
 
   const handleRewind = useCallback(async () => {
     if (isDeleting) return;
@@ -245,7 +235,7 @@ export default function PeriodDetailContent({
 
           <TopExpensesRanking
             items={pageData.categoryRows}
-            periodExpenses={pageData.storedAmounts.spendableSpent}
+            periodExpenses={pageData.summary.spendableSpent}
             hrefForCategory={(categoryKey) =>
               withReturnTo(
                 buildPeriodTransactionsHref({

@@ -59,12 +59,14 @@ function snapshotPatch(
   transactions: Transaction[],
   accounts: Account[]
 ) {
+  const snapshot = parseBudgetsSnapshot(period.budgets_snapshot) ?? [];
   const amounts = computePeriodLiquidityAmounts(
     transactions,
     accounts,
     periodToDateWindow(period),
     period.user_id,
-    categoryKeysFromBudgets(parseBudgetsSnapshot(period.budgets_snapshot) ?? [])
+    categoryKeysFromBudgets(snapshot),
+    snapshot
   );
   return snapshotFieldsFromAmounts(amounts);
 }

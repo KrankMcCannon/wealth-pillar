@@ -9,9 +9,11 @@ import type {
   Account,
 } from '@/lib/types';
 import type { DateInput } from '@/lib/utils/date-utils';
+import { roundMoney } from '@/lib/utils/money';
 import { filterTransactionsByPeriod, filterByCategories } from '../transactions/transaction.logic';
 import { parsePeriodDates } from '../shared/period.logic';
 import { getCategoryColor, getCategoryLabel } from '../categories/category.logic';
+import { allocatedFromBudgets } from '../budget-periods/period-budgets.logic';
 import { foldBudgetSpent } from '@/server/ledger';
 
 export interface BudgetCategoryBreakdownItem {
@@ -94,6 +96,98 @@ export function effectiveSpentFromTransactions(
   return foldBudgetSpent(transactions, accounts, userId);
 }
 
+export interface PeriodBudgetRollup {
+  budgetProgress: BudgetProgress[];
+  allocated: number;
+  spent: number;
+  remaining: number;
+  categorySpending: Record<string, number>;
+}
+
+function categorySpendingFromUnion(
+  budgets: Budget[],
+  transactions: Transaction[],
+  periodStart: DateInput | null,
+  periodEnd: DateInput | null,
+  accounts: Account[],
+  userId: string
+): Record<string, number> {
+  const unionTransactions = filterTransactionsForBudgetsUnion(
+    transactions,
+    budgets.filter((budget) => budget.amount > 0),
+    periodStart,
+    periodEnd
+  );
+  const spending: Record<string, number> = {};
+  const keys = new Set(unionTransactions.map((tx) => tx.category));
+  for (const key of keys) {
+    const spent = effectiveSpentFromTransactions(
+      unionTransactions.filter((tx) => tx.category === key),
+      accounts,
+      userId
+    );
+    if (spent > 0) spending[key] = spent;
+  }
+  return spending;
+}
+
+/**
+ * Same rollup as active budgets: each envelope folds its own categories, and
+ * period spent is the sum of those envelopes (a matching tx raises both).
+ */
+export function calculatePeriodBudgetRollup(
+  budgets: Budget[],
+  transactions: Transaction[],
+  periodStart: DateInput | null,
+  periodEnd: DateInput | null,
+  accounts: Account[],
+  userId: string
+): PeriodBudgetRollup {
+  const budgetProgress = calculateBudgetsWithProgress(
+    budgets,
+    transactions,
+    periodStart,
+    periodEnd,
+    accounts,
+    userId
+  );
+  const allocated = allocatedFromBudgets(budgets);
+  const spent = roundMoney(budgetProgress.reduce((sum, row) => sum + row.spent, 0));
+  return {
+    budgetProgress,
+    allocated,
+    spent,
+    remaining: roundMoney(allocated - spent),
+    categorySpending: categorySpendingFromUnion(
+      budgets,
+      transactions,
+      periodStart,
+      periodEnd,
+      accounts,
+      userId
+    ),
+  };
+}
+
+export function calculateEnvelopePeriodTotals(
+  budgets: Budget[],
+  transactions: Transaction[],
+  periodStart: DateInput | null,
+  periodEnd: DateInput | null,
+  accounts: Account[],
+  userId: string
+): { allocated: number; spent: number; remaining: number } {
+  const { allocated, spent, remaining } = calculatePeriodBudgetRollup(
+    budgets,
+    transactions,
+    periodStart,
+    periodEnd,
+    accounts,
+    userId
+  );
+  return { allocated, spent, remaining };
+}
+
 /**
  * Calculate progress for a single budget
  */
@@ -145,7 +239,7 @@ export function calculateBudgetsWithProgress(
 
 /**
  * Helper to build UserBudgetSummary from computed budget progress.
- * totalSpent uses deduped union of budget category transactions (no double-count on overlap).
+ * totalSpent is the sum of envelope spent — same number as the cards.
  */
 function buildBudgetSummary(
   user: User,
@@ -153,14 +247,9 @@ function buildBudgetSummary(
   activePeriod: BudgetPeriod | null | undefined,
   periodStart: ReturnType<typeof parsePeriodDates>[0],
   periodEnd: ReturnType<typeof parsePeriodDates>[1],
-  unionTransactions: Transaction[],
-  accounts: Account[],
-  userId: string
+  totals: { allocated: number; spent: number; remaining: number }
 ): UserBudgetSummary {
-  const totalBudget = budgetProgress.reduce((sum, b) => sum + b.amount, 0);
-  const totalSpent = effectiveSpentFromTransactions(unionTransactions, accounts, userId);
-  const totalRemaining = totalBudget - totalSpent;
-  const overallPercentage = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
+  const overallPercentage = totals.allocated > 0 ? (totals.spent / totals.allocated) * 100 : 0;
 
   return {
     user,
@@ -168,9 +257,9 @@ function buildBudgetSummary(
     activePeriod: activePeriod || undefined,
     periodStart: periodStart.toISO() || null,
     periodEnd: periodEnd.toISO() || null,
-    totalBudget,
-    totalSpent,
-    totalRemaining,
+    totalBudget: totals.allocated,
+    totalSpent: totals.spent,
+    totalRemaining: totals.remaining,
     overallPercentage,
   };
 }
@@ -187,9 +276,7 @@ export function calculateUserBudgetSummaryPure(
   accounts: Account[] = []
 ): UserBudgetSummary {
   const [periodStart, periodEnd] = parsePeriodDates(activePeriod, now);
-  const validBudgets = budgets.filter((b) => b.amount > 0);
-
-  const budgetProgress = calculateBudgetsWithProgress(
+  const rollup = calculatePeriodBudgetRollup(
     budgets,
     transactions,
     periodStart,
@@ -198,22 +285,13 @@ export function calculateUserBudgetSummaryPure(
     user.id
   );
 
-  const unionTransactions = filterTransactionsForBudgetsUnion(
-    transactions,
-    validBudgets,
-    periodStart,
-    periodEnd
-  );
-
   return buildBudgetSummary(
     user,
-    budgetProgress,
+    rollup.budgetProgress,
     activePeriod,
     periodStart,
     periodEnd,
-    unionTransactions,
-    accounts,
-    user.id
+    rollup
   );
 }
 

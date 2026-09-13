@@ -143,7 +143,8 @@ export const stitchBudgets = {
   heroPrimaryBlock: 'min-w-0 flex-1 flex flex-col gap-1',
   heroEyebrow: 'text-xs font-medium text-muted-foreground',
   heroAmountRow: 'mt-0.5 flex flex-wrap items-baseline gap-x-1 gap-y-0.5',
-  heroAmount: 'font-display text-[28px] font-semibold tabular-nums leading-none tracking-[-0.02em] text-income',
+  heroAmount:
+    'font-display text-[28px] font-semibold tabular-nums leading-none tracking-[-0.02em] text-income',
   heroAmountCents: 'text-sm font-medium tabular-nums text-income/80',
   heroAmountBudget: 'text-sm font-medium tabular-nums text-primary',
   heroSpentBlock:
@@ -169,11 +170,11 @@ export const stitchBudgets = {
   categoryCardOver: 'border-expense/35',
   categoryHeaderRow: 'relative z-[1] flex items-start justify-between gap-2',
   categoryTitleRow: 'flex min-w-0 items-center gap-2.5',
-  /** Icon 40px — cerchio primary-fixed / secondary / error come Stitch. */
+  /** Icon 40px — cerchio primary / warning (100%) / expense come Stitch. */
   iconWrapOnTrack:
     'flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-primary/35 bg-primary/12 text-primary',
   iconWrapFixed:
-    'flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border/35 bg-secondary/35 text-primary',
+    'flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-warning/35 bg-warning/12 text-warning',
   iconWrapOver:
     'flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-expense/35 bg-expense/15 text-expense',
   categoryTitle:
@@ -192,7 +193,7 @@ export const stitchBudgets = {
   spentOf: 'text-sm tabular-nums text-muted-foreground',
   progressTrack: 'relative h-2 w-full overflow-hidden rounded-full bg-muted',
   progressFillPrimary: 'h-full min-h-[8px] rounded-full bg-primary',
-  progressFillFixed: 'h-full min-h-[8px] rounded-full bg-secondary',
+  progressFillFixed: 'h-full min-h-[8px] rounded-full bg-warning',
   progressFillOver: 'h-full min-h-[8px] rounded-full bg-expense',
   progressLimitMarker: 'absolute top-0 z-[2] h-full w-0.5 bg-expense',
   footerRow: 'mt-1 flex items-start justify-between gap-2 text-[11px] leading-snug',
@@ -235,7 +236,8 @@ export const stitchInvestments = {
     'flex shrink-0 flex-col items-start justify-between gap-1 border-l border-border/25 pl-3 text-left',
   heroEyebrow: 'text-xs font-medium text-muted-foreground',
   heroAmountRow: 'flex flex-wrap items-baseline gap-x-1 gap-y-0.5',
-  heroAmount: 'font-display text-[28px] font-semibold tabular-nums leading-none tracking-[-0.02em] text-foreground',
+  heroAmount:
+    'font-display text-[28px] font-semibold tabular-nums leading-none tracking-[-0.02em] text-foreground',
   heroAmountCents: 'text-sm font-medium tabular-nums text-primary/80',
   heroReturnValueRow: 'flex items-center justify-start gap-1',
   heroReturnValue: 'text-[15px] font-semibold tabular-nums leading-tight text-income',
@@ -401,7 +403,8 @@ export const stitchReports = {
   heroNetCard: stitchHome.balanceSection,
   heroNetDecor: 'hidden',
   heroEyebrow: 'text-xs font-medium text-muted-foreground',
-  heroNetAmount: 'font-display text-[30px] font-semibold tabular-nums leading-none tracking-[-0.02em]',
+  heroNetAmount:
+    'font-display text-[30px] font-semibold tabular-nums leading-none tracking-[-0.02em]',
   heroSmallCard:
     'flex min-w-0 items-baseline justify-between gap-3 py-0.5 sm:flex-col sm:items-stretch sm:justify-start sm:py-0',
   heroSmallAmount:

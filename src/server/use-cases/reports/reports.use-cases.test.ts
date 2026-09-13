@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'vitest';
-import { calculatePeriodSummariesUseCase, resolveYtdBudgetStart } from './reports.use-cases';
 import type { Account, Budget, BudgetPeriod, Transaction } from '@/lib/types';
+import { describe, expect, it } from 'vitest';
+import { calculatePeriodSummariesUseCase, resolveYtdBudgetStart } from './reports.use-cases';
 
 const userId = 'u1';
 
@@ -254,21 +254,19 @@ describe('calculatePeriodSummariesUseCase', () => {
 
   it('subtracts spendable spent from the user allocated budget', () => {
     const envelopes = [
-      budget({ id: 'b1', amount: 100 }),
-      budget({ id: 'b2', amount: 40 }),
+      budget({ id: 'b1', amount: 100, categories: ['food'] }),
+      budget({ id: 'b2', amount: 40, categories: ['rent'] }),
       budget({ id: 'b4', amount: 0 }),
     ];
     const [summary] = calculatePeriodSummariesUseCase(
       [makePeriod({ budgets_snapshot: envelopes })],
       [tx({ amount: 80 })],
       [spendable, reserve],
-      [
-        ...envelopes,
-        budget({ id: 'b3', amount: 999, user_id: 'u2' }),
-      ]
+      [...envelopes, budget({ id: 'b3', amount: 999, user_id: 'u2' })]
     );
 
     expect(summary!.allocated).toBe(140);
+    expect(summary!.spendableSpent).toBe(80);
     expect(summary!.remaining).toBe(60);
   });
 
@@ -315,6 +313,42 @@ describe('calculatePeriodSummariesUseCase', () => {
     expect(summary!.allocated).toBe(1100);
     expect(summary!.spendableSpent).toBe(90);
     expect(summary!.remaining).toBe(1010);
+  });
+
+  it('counts overlapping envelope categories on leftover the same as the cards', () => {
+    const envelopes = [
+      budget({ id: 'b1', amount: 200, categories: ['food'] }),
+      budget({ id: 'b2', amount: 200, categories: ['food'] }),
+    ];
+    const [summary] = calculatePeriodSummariesUseCase(
+      [makePeriod({ budgets_snapshot: envelopes })],
+      [tx({ amount: 80 })],
+      [spendable, reserve],
+      envelopes
+    );
+
+    expect(summary!.spendableSpent).toBe(160);
+    expect(summary!.allocated).toBe(400);
+    expect(summary!.remaining).toBe(240);
+  });
+
+  it('does not let income on one envelope reduce leftover of another', () => {
+    const envelopes = [
+      budget({ id: 'personal', amount: 200, categories: ['hobby'] }),
+      budget({ id: 'food', amount: 400, categories: ['food'] }),
+    ];
+    const [summary] = calculatePeriodSummariesUseCase(
+      [makePeriod({ budgets_snapshot: envelopes })],
+      [
+        tx({ id: 'refund', amount: 50, type: 'income', category: 'hobby' }),
+        tx({ id: 'groceries', amount: 80, category: 'food' }),
+      ],
+      [spendable, reserve],
+      envelopes
+    );
+
+    expect(summary!.spendableSpent).toBe(80);
+    expect(summary!.remaining).toBe(520);
   });
 });
 

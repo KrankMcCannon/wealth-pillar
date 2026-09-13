@@ -37,7 +37,8 @@ async function snapshotAndDeactivateActive(
     accounts,
     window,
     active.user_id,
-    categoryKeysFromBudgets(budgets)
+    categoryKeysFromBudgets(budgets),
+    budgets
   );
 
   await BudgetPeriodsRepository.update(active.id, {

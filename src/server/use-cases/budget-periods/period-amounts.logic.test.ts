@@ -1,6 +1,10 @@
-import { describe, it, expect } from 'vitest';
-import { computePeriodLiquidityAmounts, resolvePeriodAmounts } from './period-amounts.logic';
 import type { Account, BudgetPeriod, Transaction } from '@/lib/types';
+import { describe, expect, it } from 'vitest';
+import {
+  computePeriodLiquidityAmounts,
+  periodToDateWindow,
+  resolvePeriodAmounts,
+} from './period-amounts.logic';
 
 const window = {
   start: new Date('2024-06-01'),
@@ -99,6 +103,17 @@ describe('computePeriodLiquidityAmounts', () => {
     );
     expect(result.spendableSpent).toBe(50);
     expect(result.categorySpending).toEqual({ food: 50 });
+  });
+
+  it('includes a date-only transaction on the first calendar day of the period', () => {
+    const result = computePeriodLiquidityAmounts(
+      [tx({ date: '2024-06-01', amount: 25 })],
+      accounts,
+      periodToDateWindow(period()),
+      'u1',
+      new Set(['food'])
+    );
+    expect(result.spendableSpent).toBe(25);
   });
 });
 

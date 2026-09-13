@@ -63,4 +63,24 @@ describe('BudgetSection', () => {
     expect(screen.getByText('AD')).toBeTruthy();
     expect(screen.getByText('IV')).toBeTruthy();
   });
+
+  it('uses the 100% fill token when the rollup is exactly full', () => {
+    render(
+      <BudgetSection
+        budgetsByUser={{
+          u1: {
+            ...summary,
+            totalSpent: 200,
+            totalRemaining: 0,
+            overallPercentage: 100,
+          },
+        }}
+      />
+    );
+
+    const fill = screen.getByRole('progressbar').firstElementChild;
+    expect(fill?.className).toContain('bg-warning');
+    expect(fill?.className).not.toContain('bg-secondary');
+    expect(fill?.className).not.toContain('bg-muted');
+  });
 });

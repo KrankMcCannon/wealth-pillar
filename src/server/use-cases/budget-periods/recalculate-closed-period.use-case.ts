@@ -37,12 +37,14 @@ export async function recalculateClosedPeriodSnapshotUseCase(
   const { transactions, accounts } = await loadPeriodLiquidityData(period.group_id, userId);
 
   const window = periodToDateWindow(period);
+  const snapshot = parseBudgetsSnapshot(period.budgets_snapshot) ?? [];
   const amounts = computePeriodLiquidityAmounts(
     transactions,
     accounts,
     window,
     userId,
-    categoryKeysFromBudgets(parseBudgetsSnapshot(period.budgets_snapshot) ?? [])
+    categoryKeysFromBudgets(snapshot),
+    snapshot
   );
   const updated = await BudgetPeriodsRepository.update(
     periodId,

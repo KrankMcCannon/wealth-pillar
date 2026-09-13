@@ -1,8 +1,8 @@
 import { CACHE_TAGS } from '@/lib/cache/config';
 import { AccessScope } from '@/lib/permissions/access-scope';
 import type { Budget, BudgetProgress, Category, PeriodLiquidityAmounts, User } from '@/lib/types';
-import { roundMoney } from '@/lib/utils/money';
 import { toDateString } from '@/lib/utils';
+import { roundMoney } from '@/lib/utils/money';
 import { REPORTS_TRANSACTIONS_LIMIT } from '@/server/db/query-limits';
 import { BudgetPeriodsRepository } from '@/server/repositories/budget-periods.repository';
 import { UsersRepository } from '@/server/repositories/users.repository';
@@ -13,15 +13,14 @@ import {
 import { cacheLife, cacheTag } from 'next/cache';
 import { notFound } from 'next/navigation';
 import { findLatestClosedPeriod } from '../budget-periods/edit-closing-date.use-case';
+import { resolvePeriodAmounts } from '../budget-periods/period-amounts.logic';
 import {
-  computePeriodLiquidityAmounts,
-  periodToDateWindow,
-  resolvePeriodAmounts,
-} from '../budget-periods/period-amounts.logic';
-import { categoryKeysFromBudgets, resolvePeriodBudgets } from '../budget-periods/period-budgets.logic';
+  categoryKeysFromBudgets,
+  resolvePeriodBudgets,
+} from '../budget-periods/period-budgets.logic';
 import { findPreviousPeriod } from '../budget-periods/rewind-closed-period.use-case';
 import { isSyntheticBudgetPeriodId } from '../budget-periods/synthetic-active-period.logic';
-import { calculateBudgetsWithProgress } from '../budgets/budget.logic';
+import { calculatePeriodBudgetRollup } from '../budgets/budget.logic';
 import { getBudgetsByUserUseCase } from '../budgets/get-budgets.use-case';
 import type { ReportsTopExpenseRow } from '../reports/report.logic';
 import type { ReportPeriodSummary } from '../reports/reports.use-cases';
@@ -113,11 +112,8 @@ async function getCachedReportPeriodDetailPageData(
   }
   const owner = ownerRow as unknown as User;
 
-  const window = periodToDateWindow(period);
   const startDate = new Date(`${toDateString(period.start_date)}T00:00:00.000Z`);
-  const endDate = new Date(
-    `${toDateString(period.end_date ?? new Date())}T23:59:59.999Z`
-  );
+  const endDate = new Date(`${toDateString(period.end_date ?? new Date())}T23:59:59.999Z`);
 
   const [transactionResult, accounts, budgets, categories, periods] = await Promise.all([
     getTransactionsByGroupUseCase(groupId, {
@@ -133,22 +129,40 @@ async function getCachedReportPeriodDetailPageData(
   ]);
   const transactions = transactionResult.data;
 
-  const summaries = calculatePeriodSummariesUseCase([period], transactions, accounts, budgets);
-  const summary = summaries.find((row) => row.id === period.id);
-  if (!summary) {
-    notFound();
-  }
-
   const periodBudgets = resolvePeriodBudgets(period, budgets);
   const envelopeKeys = categoryKeysFromBudgets(periodBudgets);
-  const storedAmounts = resolvePeriodAmounts(period, transactions, accounts, undefined, envelopeKeys);
-  const liveAmounts = computePeriodLiquidityAmounts(
+  const [periodStart, periodEnd] = parsePeriodDates(period);
+  const rollup = calculatePeriodBudgetRollup(
+    periodBudgets,
+    transactions,
+    periodStart,
+    periodEnd,
+    accounts,
+    period.user_id
+  );
+  const summaries = calculatePeriodSummariesUseCase([period], transactions, accounts, budgets);
+  const listed = summaries.find((row) => row.id === period.id);
+  if (!listed) {
+    notFound();
+  }
+  const summary: ReportPeriodSummary = {
+    ...listed,
+    spendableSpent: rollup.spent,
+    allocated: rollup.allocated,
+    remaining: rollup.remaining,
+  };
+
+  const storedAmounts = resolvePeriodAmounts(
+    period,
     transactions,
     accounts,
-    window,
-    period.user_id,
+    undefined,
     envelopeKeys
   );
+  const liveAmounts: PeriodLiquidityAmounts = {
+    spendableSpent: rollup.spent,
+    categorySpending: rollup.categorySpending,
+  };
 
   const active = periods.find((row) => row.is_active) ?? null;
   const latestClosed = findLatestClosedPeriod(periods, active);
@@ -158,7 +172,6 @@ async function getCachedReportPeriodDetailPageData(
   const canRewind = Boolean(
     isOpen && period.is_active && previous && !previous.is_active && previous.end_date
   );
-  const [periodStart, periodEnd] = parsePeriodDates(period);
 
   return {
     periodId: period.id,
@@ -172,16 +185,9 @@ async function getCachedReportPeriodDetailPageData(
     isLatestClosed,
     canRewind,
     previousPeriodId: canRewind ? previous!.id : null,
-    categoryRows: categoryRowsFromSpending(storedAmounts.categorySpending, categories),
+    categoryRows: categoryRowsFromSpending(rollup.categorySpending, categories),
     periodBudgets,
-    budgetProgress: calculateBudgetsWithProgress(
-      periodBudgets,
-      transactions,
-      periodStart,
-      periodEnd,
-      accounts,
-      period.user_id
-    ),
+    budgetProgress: rollup.budgetProgress,
     categories,
   };
 }

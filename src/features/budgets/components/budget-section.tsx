@@ -114,7 +114,11 @@ export const BudgetSection = ({ budgetsByUser, selectedViewUserId }: BudgetSecti
                       percent: Math.round(entry.overallPercentage),
                     })}
                     fillClassName={
-                      over ? stitchBudgets.progressFillOver : stitchBudgets.progressFillPrimary
+                      over
+                        ? stitchBudgets.progressFillOver
+                        : status === 'fixed'
+                          ? stitchBudgets.progressFillFixed
+                          : stitchBudgets.progressFillPrimary
                     }
                   />
                 </Link>

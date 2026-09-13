@@ -65,7 +65,8 @@ export const closeBudgetPeriodUseCase = async (
     accounts,
     window,
     userId,
-    categoryKeysFromBudgets(budgets)
+    categoryKeysFromBudgets(budgets),
+    budgets
   );
 
   const closedPeriod = await BudgetPeriodsRepository.update(periodId, {
