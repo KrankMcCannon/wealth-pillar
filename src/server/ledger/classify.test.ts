@@ -8,6 +8,7 @@ import {
   computeNetSavings,
   computeTransactionImpact,
   foldBudgetSpent,
+  foldBudgetCategorySpending,
   foldCashFlow,
   foldPeriodAmounts,
   reserveViewerIds,
@@ -278,6 +279,30 @@ describe('foldCashFlow', () => {
     expect(foldCashFlow(rows, accounts)).toEqual({ income: 0, expenses: 0 });
     expect(foldCashFlow(rows, accounts, 'alice')).toEqual({ income: 0, expenses: 40 });
     expect(foldCashFlow(rows, accounts, 'bob')).toEqual({ income: 40, expenses: 0 });
+  });
+});
+
+describe('foldBudgetCategorySpending', () => {
+  it('keeps income as a negative category so rows can sum to envelope spent', () => {
+    const spending = foldBudgetCategorySpending(
+      [
+        tx({ amount: 70, category: 'gym' }),
+        tx({ id: 'hair', amount: 58, category: 'hair' }),
+        tx({ id: 'refund', amount: 41, type: 'income', category: 'refund' }),
+      ],
+      [alicePayroll],
+      'alice'
+    );
+    expect(spending).toEqual({ gym: 70, hair: 58, refund: -41 });
+    expect(foldBudgetSpent(
+      [
+        tx({ amount: 70, category: 'gym' }),
+        tx({ id: 'hair', amount: 58, category: 'hair' }),
+        tx({ id: 'refund', amount: 41, type: 'income', category: 'refund' }),
+      ],
+      [alicePayroll],
+      'alice'
+    )).toBe(87);
   });
 });
 

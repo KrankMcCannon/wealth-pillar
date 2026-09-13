@@ -195,7 +195,7 @@ export default function PeriodDetailContent({
             <p className="text-sm tabular-nums text-muted-foreground">
               {`${formatMoney(pageData.summary.allocated)} − ${formatMoney(pageData.summary.spendableSpent)}`}
             </p>
-            {pageData.snapshotMatchesLive ? (
+            {pageData.summary.isOpen ? null : pageData.snapshotMatchesLive ? (
               <p id="period-snapshot-status" className={stitchReports.periodStatus} role="status">
                 {t('snapshotUpToDate')}
               </p>

@@ -12,6 +12,7 @@ export {
   computeNetSavings,
   computeTransactionImpact,
   foldBudgetSpent,
+  foldBudgetCategorySpending,
   foldCashFlow,
   foldPeriodAmounts,
   transactionInvolvesUser,

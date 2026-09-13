@@ -109,7 +109,7 @@ describe('editPeriodDatesUseCase', () => {
     expect(BudgetPeriodsRepository.update).toHaveBeenNthCalledWith(
       2,
       'active-1',
-      expect.objectContaining({ start_date: '2024-05-29', snapshot_at: expect.any(Date) })
+      expect.objectContaining({ start_date: '2024-05-29', snapshot_at: null })
     );
   });
 
@@ -148,6 +148,11 @@ describe('editPeriodDatesUseCase', () => {
 
     expect(result.period.start_date).toBe('2024-05-20');
     expect(result.previousPeriod?.end_date).toBe('2024-05-19');
+    expect(BudgetPeriodsRepository.update).toHaveBeenNthCalledWith(
+      1,
+      'active-1',
+      expect.objectContaining({ start_date: '2024-05-20', snapshot_at: null })
+    );
   });
 
   it('rejects editing the end date of an active period', async () => {

@@ -144,4 +144,22 @@ describe('resolvePeriodAmounts', () => {
     );
     expect(result.spendableSpent).toBe(42);
   });
+
+  it('ignores leftover snapshot_at on an open period', () => {
+    const active = period({
+      is_active: true,
+      end_date: null,
+      snapshot_at: '2024-08-01',
+      spendable_spent: 2039.49,
+      category_spending: { food: 10 },
+    });
+    const result = resolvePeriodAmounts(
+      active,
+      [tx({ amount: 42 })],
+      accounts,
+      new Date('2024-06-15'),
+      new Set(['food'])
+    );
+    expect(result.spendableSpent).toBe(42);
+  });
 });

@@ -437,6 +437,7 @@
       "title": "Where spending went",
       "empty": "No expenses in this period.",
       "percentOfExpenses": "{percent}%",
+      "incomeOffset": "Reduces the budget",
       "remainingCategories": "{count, plural, one {# more category} other {# more categories}}",
       "remainingSpending": "Remaining spending",
       "openCategoryAria": "{name}, {amount}, {percent}% of spending"

@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   calculateEnvelopePeriodTotals,
+  calculatePeriodBudgetRollup,
   effectiveSpentFromTransactions,
   buildBudgetsByUserPure,
   filterTransactionsForBudgetsUnion,
@@ -380,6 +381,35 @@ describe('calculateEnvelopePeriodTotals', () => {
     expect(totals.spent).toBe(cardSpent);
     expect(totals.spent).toBe(160);
     expect(totals.remaining).toBe(540);
+  });
+
+  it('keeps category credits so ranking can sum to envelope spent', () => {
+    const budgets = [
+      budget({
+        id: 'spese',
+        amount: 1100,
+        categories: ['gym', 'hair', 'refund'],
+        description: 'Spese',
+      }),
+    ];
+    const transactions = [
+      tx({ id: 'gym', amount: 70, category: 'gym', date: '2024-06-10' }),
+      tx({ id: 'hair', amount: 58, category: 'hair', date: '2024-06-10' }),
+      tx({ id: 'refund', amount: 41, type: 'income', category: 'refund', date: '2024-06-10' }),
+    ];
+    const rollup = calculatePeriodBudgetRollup(
+      budgets,
+      transactions,
+      periodStart,
+      periodEnd,
+      [],
+      'user-1'
+    );
+
+    expect(rollup.spent).toBe(87);
+    expect(rollup.remaining).toBe(1013);
+    expect(rollup.categorySpending).toEqual({ gym: 70, hair: 58, refund: -41 });
+    expect(70 + 58 - 41).toBe(rollup.spent);
   });
 });
 

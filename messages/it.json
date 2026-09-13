@@ -437,6 +437,7 @@
       "title": "Dove sono andate le uscite",
       "empty": "Nessuna uscita in questo periodo.",
       "percentOfExpenses": "{percent}%",
+      "incomeOffset": "Riduce il budget",
       "remainingCategories": "{count, plural, one {# altra categoria} other {# altre categorie}}",
       "remainingSpending": "Altre spese",
       "openCategoryAria": "{name}, {amount}, {percent}% delle uscite"

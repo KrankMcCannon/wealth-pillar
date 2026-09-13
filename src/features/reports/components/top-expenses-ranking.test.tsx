@@ -126,4 +126,33 @@ describe('TopExpensesRanking', () => {
     expect(remaining.textContent).toContain('remainingSpending');
     expect(remaining.textContent).toContain('€10');
   });
+
+  it('shows budget credits so category rows sum to net spent', () => {
+    const refund: TopExpenseRow = {
+      id: 'uuid-refund',
+      key: 'refund',
+      name: 'Refund',
+      total: -41,
+      color: '#00aa00',
+    };
+    render(
+      <TopExpensesRanking
+        items={[
+          { ...food, total: 70, name: 'Gym' },
+          { ...housing, total: 58, name: 'Hair' },
+          refund,
+        ]}
+        periodExpenses={87}
+      />
+    );
+
+    expect(screen.getByText('Gym')).toBeTruthy();
+    expect(screen.getByText('Hair')).toBeTruthy();
+    expect(screen.getByText('Refund')).toBeTruthy();
+    expect(screen.getByText('incomeOffset')).toBeTruthy();
+    expect(screen.getByText('55% of spend')).toBeTruthy();
+    expect(screen.getByText('45% of spend')).toBeTruthy();
+    expect(screen.queryByText('80% of spend')).toBeNull();
+    expect(screen.queryByTestId('reports-remaining-categories')).toBeNull();
+  });
 });

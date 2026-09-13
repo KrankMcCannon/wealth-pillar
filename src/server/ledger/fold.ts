@@ -81,6 +81,30 @@ export function foldBudgetSpent(
   return fromCents(Math.max(0, spentCents));
 }
 
+/** Per-category signed budget legs (income −). Does not floor; callers can hide zeros. */
+export function foldBudgetCategorySpending(
+  transactions: Transaction[],
+  accounts: Account[],
+  userId?: string
+): Record<string, number> {
+  const accountMap = accountsToMap(accounts);
+  const cents: Record<string, number> = {};
+  for (const tx of transactions) {
+    let signedCents = 0;
+    for (const leg of classifyMovement(tx, accountMap).budgetLegs) {
+      if (userId === undefined || leg.userId === userId) signedCents += leg.signedCents;
+    }
+    if (signedCents === 0) continue;
+    cents[tx.category] = (cents[tx.category] ?? 0) + signedCents;
+  }
+  const spending: Record<string, number> = {};
+  for (const [key, value] of Object.entries(cents)) {
+    const euros = fromCents(value);
+    if (euros !== 0) spending[key] = euros;
+  }
+  return spending;
+}
+
 export function foldCashFlow(
   transactions: Transaction[],
   accounts: Account[],

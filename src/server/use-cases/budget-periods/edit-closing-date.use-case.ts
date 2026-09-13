@@ -5,6 +5,7 @@ import {
   computePeriodLiquidityAmounts,
   periodToDateWindow,
   snapshotFieldsFromAmounts,
+  clearOpenPeriodSnapshotFields,
 } from './period-amounts.logic';
 import { loadPeriodLiquidityData } from './load-period-liquidity-data';
 import { categoryKeysFromBudgets, parseBudgetsSnapshot } from './period-budgets.logic';
@@ -54,11 +55,14 @@ export function findLatestClosedPeriod(
   );
 }
 
-function snapshotPatch(
+function amountsPatch(
   period: BudgetPeriod,
   transactions: Transaction[],
   accounts: Account[]
 ) {
+  if (period.end_date == null) {
+    return clearOpenPeriodSnapshotFields();
+  }
   const snapshot = parseBudgetsSnapshot(period.budgets_snapshot) ?? [];
   const amounts = computePeriodLiquidityAmounts(
     transactions,
@@ -164,7 +168,7 @@ export async function editPeriodDatesUseCase(
   const updatedPeriod = await BudgetPeriodsRepository.update(periodId, {
     start_date: newStart,
     end_date: newEnd,
-    ...snapshotPatch(thisRow, transactions, accounts),
+    ...amountsPatch(thisRow, transactions, accounts),
   });
 
   let previousPeriod: BudgetPeriod | null = null;
@@ -172,7 +176,7 @@ export async function editPeriodDatesUseCase(
     const prevRow: BudgetPeriod = { ...previous, end_date: previousEnd };
     previousPeriod = await BudgetPeriodsRepository.update(previous.id, {
       end_date: previousEnd,
-      ...snapshotPatch(prevRow, transactions, accounts),
+      ...amountsPatch(prevRow, transactions, accounts),
     });
   }
 
@@ -181,7 +185,7 @@ export async function editPeriodDatesUseCase(
     const nextRow: BudgetPeriod = { ...next, start_date: nextStart };
     nextPeriod = await BudgetPeriodsRepository.update(next.id, {
       start_date: nextStart,
-      ...snapshotPatch(nextRow, transactions, accounts),
+      ...amountsPatch(nextRow, transactions, accounts),
     });
   }
 

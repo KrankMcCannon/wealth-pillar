@@ -54,6 +54,14 @@ function liveCategoryKeys(period: BudgetPeriod, categoryKeys?: Set<string>): Set
 }
 
 /**
+ * Frozen spend is only for closed periods. An open row may still have leftover
+ * snapshot_at from a neighbor date edit — ignore it.
+ */
+export function periodHasFrozenSnapshot(period: BudgetPeriod): boolean {
+  return period.end_date != null && period.snapshot_at != null;
+}
+
+/**
  * Returns frozen snapshot for closed periods, or live computation for active/open periods.
  */
 export function resolvePeriodAmounts(
@@ -63,7 +71,7 @@ export function resolvePeriodAmounts(
   now?: Date,
   categoryKeys?: Set<string>
 ): PeriodLiquidityAmounts {
-  if (period.snapshot_at != null) {
+  if (periodHasFrozenSnapshot(period)) {
     const rawCategories = period.category_spending;
     const categorySpending: Record<string, number> =
       rawCategories && typeof rawCategories === 'object' && !Array.isArray(rawCategories)
@@ -97,5 +105,14 @@ export function snapshotFieldsFromAmounts(amounts: PeriodLiquidityAmounts) {
     reserve_saved: null,
     category_spending: amounts.categorySpending,
     snapshot_at: new Date(),
+  };
+}
+
+export function clearOpenPeriodSnapshotFields() {
+  return {
+    spendable_spent: null,
+    reserve_saved: null,
+    category_spending: null,
+    snapshot_at: null,
   };
 }

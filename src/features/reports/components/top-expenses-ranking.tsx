@@ -39,8 +39,9 @@ function RankingRowBody({
   percentLabel: string;
   showChevron: boolean;
 }) {
-  const pct = spendSharePercent(row.total, periodExpenses);
-  const barLabel = `${row.name}, ${percentLabel}`;
+  const isCredit = row.total < 0;
+  const pct = spendSharePercent(Math.abs(row.total), periodExpenses);
+  const barLabel = percentLabel ? `${row.name}, ${percentLabel}` : row.name;
 
   return (
     <>
@@ -67,7 +68,12 @@ function RankingRowBody({
           </span>
         </span>
         <span className="flex shrink-0 items-center gap-1">
-          <span className={cn(stitchReports.rankingAmount, 'text-expense')}>
+          <span
+            className={cn(
+              stitchReports.rankingAmount,
+              isCredit ? stitchHome.amountIncome : 'text-expense'
+            )}
+          >
             {formatMoney(row.total)}
           </span>
           {showChevron ? (
@@ -75,16 +81,22 @@ function RankingRowBody({
           ) : null}
         </span>
       </div>
-      <div
-        className={cn(stitchReports.progressTrack, 'h-2')}
-        {...getBudgetProgressbarProps({ percent: pct, label: barLabel })}
-      >
-        <div
-          className={cn('h-full min-h-[8px] rounded-full', stitchReports.progressFillPrimary)}
-          style={{ width: `${Math.min(100, pct)}%` }}
-        />
-      </div>
-      <p className={stitchReports.rankingMeta}>{percentLabel}</p>
+      {isCredit ? (
+        <p className={stitchReports.rankingMeta}>{percentLabel}</p>
+      ) : (
+        <>
+          <div
+            className={cn(stitchReports.progressTrack, 'h-2')}
+            {...getBudgetProgressbarProps({ percent: pct, label: barLabel })}
+          >
+            <div
+              className={cn('h-full min-h-[8px] rounded-full', stitchReports.progressFillPrimary)}
+              style={{ width: `${Math.min(100, pct)}%` }}
+            />
+          </div>
+          <p className={stitchReports.rankingMeta}>{percentLabel}</p>
+        </>
+      )}
     </>
   );
 }
@@ -96,6 +108,9 @@ export function TopExpensesRanking({
 }: TopExpensesRankingProps) {
   const t = useTranslations('Reports.TopExpenses');
   const { format: formatMoney } = useFormatCurrency();
+  const outflowTotal = roundMoney(items.filter((row) => row.total > 0).reduce((sum, row) => sum + row.total, 0));
+  const hasCredits = items.some((row) => row.total < 0);
+  const shareBase = hasCredits && outflowTotal > 0 ? outflowTotal : periodExpenses;
   const visible = items.slice(0, RANKING_VISIBLE);
   const foldedItems = items.slice(RANKING_VISIBLE);
   const folded = roundMoney(foldedItems.reduce((sum, row) => sum + row.total, 0));
@@ -128,12 +143,13 @@ export function TopExpensesRanking({
       <div className="flex flex-col">
         {visible.map((row) => {
           const href = hrefForCategory?.(row.key);
-          const percent = spendSharePercent(row.total, periodExpenses);
-          const percentLabel = t('percentOfExpenses', { percent });
+          const percent = spendSharePercent(Math.abs(row.total), shareBase);
+          const percentLabel =
+            row.total < 0 ? t('incomeOffset') : t('percentOfExpenses', { percent });
           const body = (
             <RankingRowBody
               row={row}
-              periodExpenses={periodExpenses}
+              periodExpenses={shareBase}
               formatMoney={formatMoney}
               percentLabel={percentLabel}
               showChevron={Boolean(href)}
@@ -162,10 +178,10 @@ export function TopExpensesRanking({
                 total: remainingTotal,
                 color: '',
               }}
-              periodExpenses={periodExpenses}
+              periodExpenses={shareBase}
               formatMoney={formatMoney}
               percentLabel={t('percentOfExpenses', {
-                percent: spendSharePercent(remainingTotal, periodExpenses),
+                percent: spendSharePercent(remainingTotal, shareBase),
               })}
               showChevron={false}
             />

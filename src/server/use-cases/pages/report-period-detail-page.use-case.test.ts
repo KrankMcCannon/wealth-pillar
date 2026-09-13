@@ -282,6 +282,24 @@ describe('getReportPeriodDetailPageData', () => {
     expect(data.previousPeriodId).toBe('closed-1');
   });
 
+  it('does not flag snapshot drift on an open period with leftover saved totals', async () => {
+    const closed = closedPeriod();
+    const previous = previousPeriod();
+    const active = {
+      ...activePeriod(),
+      snapshot_at: '2024-08-27T00:00:00.000Z',
+      spendable_spent: 2039.49,
+      category_spending: { food: 10 },
+    };
+    vi.mocked(BudgetPeriodsRepository.findById).mockResolvedValue(active);
+    vi.mocked(getProcessedUserPeriodsUseCase).mockResolvedValue([closed, previous, active]);
+
+    const data = await getReportPeriodDetailPageData('group-1', 'active-1', owner);
+
+    expect(data.summary.isOpen).toBe(true);
+    expect(data.snapshotMatchesLive).toBe(true);
+  });
+
   it('calls notFound when a member loads another user period', async () => {
     const closed = closedPeriod();
     vi.mocked(BudgetPeriodsRepository.findById).mockResolvedValue(closed);

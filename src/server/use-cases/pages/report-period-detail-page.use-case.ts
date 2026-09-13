@@ -67,7 +67,7 @@ function categoryRowsFromSpending(
 ): ReportsTopExpenseRow[] {
   const byKey = new Map(categories.map((category) => [category.key, category]));
   return Object.entries(spending)
-    .filter(([, total]) => total > 0)
+    .filter(([, total]) => total !== 0)
     .sort((a, b) => b[1] - a[1])
     .map(([key, total]) => {
       const category = byKey.get(key);
@@ -181,7 +181,7 @@ async function getCachedReportPeriodDetailPageData(
     endDate: summary.endDate,
     storedAmounts,
     liveAmounts,
-    snapshotMatchesLive: periodAmountsMatch(storedAmounts, liveAmounts),
+    snapshotMatchesLive: isOpen || periodAmountsMatch(storedAmounts, liveAmounts),
     isLatestClosed,
     canRewind,
     previousPeriodId: canRewind ? previous!.id : null,

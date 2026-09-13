@@ -14,7 +14,7 @@ import { filterTransactionsByPeriod, filterByCategories } from '../transactions/
 import { parsePeriodDates } from '../shared/period.logic';
 import { getCategoryColor, getCategoryLabel } from '../categories/category.logic';
 import { allocatedFromBudgets } from '../budget-periods/period-budgets.logic';
-import { foldBudgetSpent } from '@/server/ledger';
+import { foldBudgetCategorySpending, foldBudgetSpent } from '@/server/ledger';
 
 export interface BudgetCategoryBreakdownItem {
   key: string;
@@ -118,17 +118,7 @@ function categorySpendingFromUnion(
     periodStart,
     periodEnd
   );
-  const spending: Record<string, number> = {};
-  const keys = new Set(unionTransactions.map((tx) => tx.category));
-  for (const key of keys) {
-    const spent = effectiveSpentFromTransactions(
-      unionTransactions.filter((tx) => tx.category === key),
-      accounts,
-      userId
-    );
-    if (spent > 0) spending[key] = spent;
-  }
-  return spending;
+  return foldBudgetCategorySpending(unionTransactions, accounts, userId);
 }
 
 /**
