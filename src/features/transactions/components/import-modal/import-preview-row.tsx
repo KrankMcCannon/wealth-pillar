@@ -12,6 +12,7 @@ import { stitchHome } from '@/styles/home-design-foundation';
 export type PreviewRow = PrepareImportRowResult & {
   include: boolean;
   category: string;
+  user_id: string;
 };
 
 function statusBadgeVariant(status: PrepareImportRowResult['status']) {

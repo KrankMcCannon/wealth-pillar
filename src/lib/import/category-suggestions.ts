@@ -32,6 +32,18 @@ const KEYWORD_CATEGORY_RULES: Array<{ pattern: RegExp; category: string }> = [
 
 export const DEFAULT_IMPORT_CATEGORY = 'altro';
 
+export function matchCategoryHint(
+  hint: string | undefined,
+  categories: Array<{ key: string; label: string }>
+): string | undefined {
+  if (!hint?.trim()) return undefined;
+  const normalized = hint.trim().toLowerCase();
+  return categories.find(
+    (category) =>
+      category.key.toLowerCase() === normalized || category.label.toLowerCase() === normalized
+  )?.key;
+}
+
 export function suggestCategoryFromImportRow(input: {
   description: string;
   type: 'income' | 'expense';

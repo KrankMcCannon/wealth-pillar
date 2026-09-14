@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Upload } from 'lucide-react';
 import { useVirtualizer } from '@tanstack/react-virtual';
@@ -13,7 +13,7 @@ import {
   Spinner,
 } from '@/components/ui';
 import { ModalSelectField } from '@/components/form';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch, type Control, type UseFormSetValue } from 'react-hook-form';
 import { useAccounts, useCategories } from '@/stores/reference-data-store';
 import {
   useRequiredCurrentUser,
@@ -23,6 +23,7 @@ import {
 import { useToast } from '@/hooks';
 import {
   assignImportHashes,
+  matchCategoryHint,
   parseImportFile,
   type ParseImportFileResult,
   type BulkImportResult,
@@ -33,14 +34,12 @@ import {
 } from '@/features/transactions/actions/import-actions';
 import { toSelectOptions, sortSelectOptions } from '@/components/form/form-select';
 import { getDefaultAccountIdForUser } from '@/features/accounts/utils/default-account-id';
+import type { Account, User } from '@/lib/types';
 import { ImportPreviewRow, type PreviewRow } from './import-preview-row';
 
 type ImportStep = 'upload' | 'mapping' | 'preview' | 'result';
 
-type ProductMappingForm = {
-  user_id: string;
-  [key: string]: string;
-};
+type ProductMappingForm = Record<string, string>;
 
 interface ImportModalProps {
   isOpen: boolean;
@@ -49,6 +48,94 @@ interface ImportModalProps {
 
 /** Estimated collapsed row height (px) used before the virtualizer measures the real element. */
 const PREVIEW_ROW_ESTIMATED_SIZE = 196;
+
+function mappingUserField(productKey: string): string {
+  return `user_${productKey}`;
+}
+
+function mappingAccountField(productKey: string): string {
+  return `account_${productKey}`;
+}
+
+interface GroupMappingFieldsProps {
+  productKey: string;
+  productLabel: string;
+  rowsCount: number;
+  excludedCount: number;
+  control: Control<ProductMappingForm>;
+  setValue: UseFormSetValue<ProductMappingForm>;
+  accounts: Account[];
+  groupUsers: User[];
+  userOptions: Array<{ value: string; label: string }>;
+  t: ReturnType<typeof useTranslations<'Transactions.ImportModal'>>;
+}
+
+function GroupMappingFields({
+  productKey,
+  productLabel,
+  rowsCount,
+  excludedCount,
+  control,
+  setValue,
+  accounts,
+  groupUsers,
+  userOptions,
+  t,
+}: Readonly<GroupMappingFieldsProps>) {
+  const userField = mappingUserField(productKey);
+  const accountField = mappingAccountField(productKey);
+  const userId = useWatch({ control, name: userField });
+  const accountId = useWatch({ control, name: accountField });
+
+  const userAccounts = useMemo(
+    () => accounts.filter((account) => account.user_ids?.includes(userId)),
+    [accounts, userId]
+  );
+
+  const accountOptions = useMemo(
+    () => [
+      { value: '__exclude__', label: t('mapping.excludeProduct') },
+      ...sortSelectOptions(
+        toSelectOptions(
+          userAccounts,
+          (account) => account.id,
+          (account) => account.name
+        )
+      ),
+    ],
+    [t, userAccounts]
+  );
+
+  useEffect(() => {
+    if (!accountId || accountId === '__exclude__') return;
+    if (userAccounts.some((account) => account.id === accountId)) return;
+    setValue(
+      accountField,
+      getDefaultAccountIdForUser(userId, accounts, groupUsers) || '__exclude__'
+    );
+  }, [accountField, accountId, accounts, groupUsers, setValue, userAccounts, userId]);
+
+  return (
+    <>
+      <ModalSelectField
+        control={control}
+        name={userField}
+        label={t('mapping.userForProduct', { product: productLabel })}
+        options={userOptions}
+      />
+      <ModalSelectField
+        control={control}
+        name={accountField}
+        label={t('mapping.accountForProduct', { product: productLabel })}
+        options={accountOptions}
+        hint={t('mapping.rowsCount', {
+          count: rowsCount,
+          excluded: excludedCount,
+        })}
+      />
+    </>
+  );
+}
 
 export default function ImportModal({ isOpen, onClose }: Readonly<ImportModalProps>) {
   const t = useTranslations('Transactions.ImportModal');
@@ -72,26 +159,8 @@ export default function ImportModal({ isOpen, onClose }: Readonly<ImportModalPro
     getDefaultAccountIdForUser(defaultUserId, accounts, groupUsers) || accounts[0]?.id || '';
 
   const mappingForm = useForm<ProductMappingForm>({
-    defaultValues: { user_id: defaultUserId },
+    defaultValues: {},
   });
-
-  const watchedUserId = mappingForm.watch('user_id');
-  const userAccounts = useMemo(
-    () => accounts.filter((account) => account.user_ids?.includes(watchedUserId)),
-    [accounts, watchedUserId]
-  );
-
-  const accountOptions = useMemo(
-    () =>
-      sortSelectOptions(
-        toSelectOptions(
-          userAccounts,
-          (account) => account.id,
-          (account) => account.name
-        )
-      ),
-    [userAccounts]
-  );
 
   const userOptions = useMemo(
     () => sortSelectOptions(groupUsers.map((user) => ({ value: user.id, label: user.name ?? '' }))),
@@ -105,8 +174,8 @@ export default function ImportModal({ isOpen, onClose }: Readonly<ImportModalPro
     setResult(null);
     setIsBusy(false);
     setFileName('');
-    mappingForm.reset({ user_id: defaultUserId });
-  }, [defaultUserId, mappingForm]);
+    mappingForm.reset({});
+  }, [mappingForm]);
 
   const handleClose = useCallback(() => {
     resetState();
@@ -124,9 +193,10 @@ export default function ImportModal({ isOpen, onClose }: Readonly<ImportModalPro
       try {
         const parsed = await parseImportFile(file);
         setParseResult(parsed);
-        const defaults: ProductMappingForm = { user_id: defaultUserId };
+        const defaults: ProductMappingForm = {};
         for (const group of parsed.groups) {
-          defaults[`product_${group.productKey}`] = defaultAccountId;
+          defaults[mappingUserField(group.productKey)] = defaultUserId;
+          defaults[mappingAccountField(group.productKey)] = defaultAccountId;
         }
         mappingForm.reset(defaults);
         setStep('mapping');
@@ -148,13 +218,19 @@ export default function ImportModal({ isOpen, onClose }: Readonly<ImportModalPro
     setIsBusy(true);
     try {
       const preparedInputs = [];
+      const userByRowId = new Map<string, string>();
+      const categoryHintByRowId = new Map<string, string | undefined>();
+
       for (const group of parseResult.groups) {
-        const accountId = values[`product_${group.productKey}`];
-        if (!accountId || accountId === '__exclude__') continue;
+        const accountId = values[mappingAccountField(group.productKey)];
+        const userId = values[mappingUserField(group.productKey)];
+        if (!accountId || accountId === '__exclude__' || !userId) continue;
 
         const withHashes = await assignImportHashes(group.rows, accountId);
         for (const row of withHashes) {
           if (row.amount <= 0) continue;
+          userByRowId.set(row.rowId, userId);
+          categoryHintByRowId.set(row.rowId, row.categoryHint);
           preparedInputs.push({
             rowId: row.rowId,
             account_id: accountId,
@@ -191,7 +267,10 @@ export default function ImportModal({ isOpen, onClose }: Readonly<ImportModalPro
         response.data.map((row) => ({
           ...row,
           include: row.includeByDefault,
-          category: row.suggestedCategory,
+          category:
+            matchCategoryHint(categoryHintByRowId.get(row.rowId), categories) ??
+            row.suggestedCategory,
+          user_id: userByRowId.get(row.rowId) ?? defaultUserId,
         }))
       );
       setStep('preview');
@@ -226,7 +305,7 @@ export default function ImportModal({ isOpen, onClose }: Readonly<ImportModalPro
           type: row.type,
           import_hash: row.import_hash,
           category: row.category,
-          user_id: watchedUserId,
+          user_id: row.user_id,
           ...(row.suggestedRecurringSeriesId
             ? { recurring_series_id: row.suggestedRecurringSeriesId }
             : {}),
@@ -253,7 +332,7 @@ export default function ImportModal({ isOpen, onClose }: Readonly<ImportModalPro
     } finally {
       setIsBusy(false);
     }
-  }, [groupId, previewRows, t, toast, watchedUserId]);
+  }, [groupId, previewRows, t, toast]);
 
   // Referential equality of unchanged rows is preserved by these updaters (see ImportPreviewRow),
   // which keeps the virtualized list from re-rendering rows the user didn't touch.
@@ -317,26 +396,19 @@ export default function ImportModal({ isOpen, onClose }: Readonly<ImportModalPro
             <p className="text-sm text-muted-foreground">
               {t('mapping.fileLabel', { file: fileName, format: parseResult.format })}
             </p>
-            <ModalSelectField
-              control={mappingForm.control}
-              name="user_id"
-              label={t('mapping.user')}
-              options={userOptions}
-            />
             {parseResult.groups.map((group) => (
-              <ModalSelectField
+              <GroupMappingFields
                 key={group.productKey}
+                productKey={group.productKey}
+                productLabel={group.productLabel}
+                rowsCount={group.rows.length}
+                excludedCount={group.excludedCount}
                 control={mappingForm.control}
-                name={`product_${group.productKey}`}
-                label={t('mapping.accountForProduct', { product: group.productLabel })}
-                options={[
-                  { value: '__exclude__', label: t('mapping.excludeProduct') },
-                  ...accountOptions,
-                ]}
-                hint={t('mapping.rowsCount', {
-                  count: group.rows.length,
-                  excluded: group.excludedCount,
-                })}
+                setValue={mappingForm.setValue}
+                accounts={accounts}
+                groupUsers={groupUsers}
+                userOptions={userOptions}
+                t={t}
               />
             ))}
           </form>

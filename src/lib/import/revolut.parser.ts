@@ -1,5 +1,6 @@
 import type { ImportRowType, NormalizedImportRow, ParsedImportGroup } from './types';
 import { parseImportAmount } from './parse-import-amount';
+import { collapseDescription, createRowId, rowsMatchHeaderSignatures } from './import-row-utils';
 
 const REVOLUT_HEADER_ALIASES: Record<string, string> = {
   type: 'type',
@@ -27,8 +28,17 @@ const COMPLETED_STATES = new Set(['completed', 'completato']);
 const PENDING_STATES = new Set(['pending', 'in sospeso']);
 const REVERTED_STATES = new Set(['reverted', 'operazione annullata', 'declined', 'failed']);
 
+const REVOLUT_HEADER_SIGNATURES = [
+  ['type', 'product', 'started date', 'completed date', 'description', 'amount'],
+  ['tipo', 'prodotto', 'data di inizio', 'data di completamento', 'descrizione', 'importo'],
+] as const;
+
 function normalizeHeader(value: string): string {
   return value.trim().toLowerCase();
+}
+
+export function matchesRevolutRows(rows: string[][]): boolean {
+  return rowsMatchHeaderSignatures(rows, REVOLUT_HEADER_SIGNATURES);
 }
 
 function mapHeaders(headerRow: string[]): Record<string, number> | null {
@@ -68,17 +78,6 @@ function parseRevolutDate(value: string | undefined): string | null {
 
 function parseDecimalAmount(value: string | undefined): number | null {
   return parseImportAmount(value);
-}
-
-function collapseDescription(value: string): string {
-  return value.trim().replace(/\s+/g, ' ');
-}
-
-function createRowId(): string {
-  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
-    return crypto.randomUUID();
-  }
-  return `import-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
 export function parseRevolutRows(rows: string[][]): ParsedImportGroup[] {

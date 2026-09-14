@@ -946,11 +946,12 @@
       "upload": {
         "title": "Scegli file",
         "cta": "Seleziona estratto conto",
-        "hint": "Supportati: estratto Revolut, lista movimenti Credem"
+        "hint": "Supportati: estratto Revolut, lista movimenti Credem, elenco spese"
       },
       "mapping": {
         "fileLabel": "{file} · formato rilevato: {format}",
         "user": "Assegna al membro",
+        "userForProduct": "Membro per {product}",
         "accountForProduct": "Conto per {product}",
         "excludeProduct": "Escludi questo prodotto",
         "rowsCount": "{count} righe importabili · {excluded} escluse (in sospeso/non EUR)"

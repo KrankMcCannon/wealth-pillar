@@ -1,20 +1,29 @@
 import type { ParseImportFileResult } from './types';
-import { detectFormatFromRows } from './detect-format';
-import { parseCredemRows } from './credem.parser';
-import { parseRevolutRows } from './revolut.parser';
+import { parseImportRows } from './import-templates';
 
 function sheetToRows(matrix: unknown[][]): string[][] {
   return matrix.map((row) => row.map((cell) => String(cell ?? '')));
 }
 
+function isZipWorkbook(bytes: Uint8Array): boolean {
+  return bytes.length >= 2 && bytes[0] === 0x50 && bytes[1] === 0x4b;
+}
+
 export async function readSpreadsheetRows(file: File): Promise<string[][]> {
   const XLSX = await import('xlsx');
   const buffer = await file.arrayBuffer();
-  const workbook = XLSX.read(buffer, {
-    type: 'array',
-    raw: false,
-    cellDates: false,
-  });
+  const bytes = new Uint8Array(buffer);
+  const workbook = isZipWorkbook(bytes)
+    ? XLSX.read(buffer, {
+        type: 'array',
+        raw: false,
+        cellDates: false,
+      })
+    : XLSX.read(new TextDecoder('utf-8').decode(bytes), {
+        type: 'string',
+        raw: false,
+        cellDates: false,
+      });
 
   const firstSheetName = workbook.SheetNames[0];
   if (!firstSheetName) {
@@ -37,23 +46,14 @@ export async function readSpreadsheetRows(file: File): Promise<string[][]> {
 
 export async function parseImportFile(file: File): Promise<ParseImportFileResult> {
   const rows = await readSpreadsheetRows(file);
-  const format = detectFormatFromRows(rows);
-
-  if (!format) {
-    throw new Error('Unsupported bank statement format');
-  }
-
-  const groups = format === 'revolut' ? parseRevolutRows(rows) : parseCredemRows(rows);
-  if (groups.length === 0) {
-    throw new Error('No importable transactions found in file');
-  }
-
-  return { format, groups };
+  return parseImportRows(rows, { fileName: file.name });
 }
 
-export { detectFormatFromRows } from './detect-format';
+export { detectFormatFromRows, parseImportRows } from './import-templates';
 export { parseRevolutRows } from './revolut.parser';
 export { parseCredemRows } from './credem.parser';
+export { parseHouseholdRows } from './household.parser';
+export { parseYearFromFileName, resolveImportYear } from './import-row-utils';
 export * from './import-hash';
 export * from './types';
 export * from './category-suggestions';

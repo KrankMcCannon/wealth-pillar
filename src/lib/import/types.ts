@@ -1,6 +1,17 @@
-export type ImportBankFormat = 'revolut' | 'credem';
+export type ImportFormat = 'revolut' | 'credem' | 'household';
 
 export type ImportRowType = 'income' | 'expense';
+
+export type ImportParseContext = {
+  fileName: string;
+  now?: Date;
+};
+
+export type ImportTemplate = {
+  id: ImportFormat;
+  matches(rows: string[][]): boolean;
+  parse(rows: string[][], ctx: ImportParseContext): ParsedImportGroup[];
+};
 
 export type NormalizedImportRow = {
   rowId: string;
@@ -9,8 +20,9 @@ export type NormalizedImportRow = {
   amount: number;
   type: ImportRowType;
   currency: string;
+  categoryHint?: string;
   rawSource: {
-    bank: ImportBankFormat;
+    bank: ImportFormat;
     product?: string;
     causale?: string;
     state?: string;
@@ -19,7 +31,7 @@ export type NormalizedImportRow = {
 };
 
 export type ParsedImportGroup = {
-  format: ImportBankFormat;
+  format: ImportFormat;
   productKey: string;
   productLabel: string;
   rows: NormalizedImportRow[];
@@ -27,7 +39,7 @@ export type ParsedImportGroup = {
 };
 
 export type ParseImportFileResult = {
-  format: ImportBankFormat;
+  format: ImportFormat;
   groups: ParsedImportGroup[];
 };
 

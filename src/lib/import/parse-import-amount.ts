@@ -1,7 +1,8 @@
 export function parseImportAmount(value: string | undefined): number | null {
   if (!value?.trim()) return null;
 
-  const trimmed = value.trim().replace(/[€$\s]/g, '');
+  const trimmed = value.trim().replace(/[^\d,.\-]/g, '');
+  if (!trimmed || trimmed === '-') return null;
 
   if (trimmed.includes(',')) {
     const normalized = trimmed.replace(/\./g, '').replace(',', '.');
@@ -9,7 +10,6 @@ export function parseImportAmount(value: string | undefined): number | null {
     return Number.isFinite(parsed) ? parsed : null;
   }
 
-  const normalized = trimmed.replace(/,/g, '');
-  const parsed = Number.parseFloat(normalized);
+  const parsed = Number.parseFloat(trimmed);
   return Number.isFinite(parsed) ? parsed : null;
 }

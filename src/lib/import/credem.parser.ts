@@ -1,5 +1,11 @@
 import type { ImportRowType, ParsedImportGroup } from './types';
 import { parseImportAmount } from './parse-import-amount';
+import {
+  collapseDescription,
+  createRowId,
+  normalizeHeaderCell,
+  rowsMatchHeaderSignatures,
+} from './import-row-utils';
 
 const CREDEM_HEADERS = [
   'data contabile',
@@ -17,14 +23,16 @@ const CREDEM_HEADERS = [
 
 type CredemColumn = (typeof CREDEM_HEADERS)[number];
 
-function normalizeHeader(value: string): string {
-  return value.trim().toLowerCase().replace(/:$/, '');
+const CREDEM_HEADER_SIGNATURES = [['data contabile', 'data valuta', 'importo']] as const;
+
+export function matchesCredemRows(rows: string[][]): boolean {
+  return rowsMatchHeaderSignatures(rows, CREDEM_HEADER_SIGNATURES);
 }
 
 function mapCredemHeaders(headerRow: string[]): Record<CredemColumn, number> | null {
   const mapped = {} as Record<CredemColumn, number>;
   headerRow.forEach((cell, index) => {
-    const normalized = normalizeHeader(cell);
+    const normalized = normalizeHeaderCell(cell);
     if ((CREDEM_HEADERS as readonly string[]).includes(normalized)) {
       mapped[normalized as CredemColumn] = index;
     }
@@ -45,17 +53,6 @@ function parseItalianDate(value: string | undefined): string | null {
 
 function parseItalianAmount(value: string | undefined): number | null {
   return parseImportAmount(value);
-}
-
-function collapseDescription(value: string): string {
-  return value.trim().replace(/\s+/g, ' ');
-}
-
-function createRowId(): string {
-  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
-    return crypto.randomUUID();
-  }
-  return `import-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
 function isProvisionalMovement(causaleAbi: string, description: string): boolean {

@@ -946,11 +946,12 @@
       "upload": {
         "title": "Choose file",
         "cta": "Select statement file",
-        "hint": "Supported: Revolut account statement, Credem lista movimenti"
+        "hint": "Supported: Revolut account statement, Credem lista movimenti, household expense list"
       },
       "mapping": {
         "fileLabel": "{file} · detected format: {format}",
         "user": "Assign to member",
+        "userForProduct": "Member for {product}",
         "accountForProduct": "Account for {product}",
         "excludeProduct": "Exclude this product",
         "rowsCount": "{count} rows importable · {excluded} excluded (pending/non-EUR)"

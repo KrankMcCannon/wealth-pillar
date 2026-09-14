@@ -13,6 +13,11 @@ describe('parseImportAmount', () => {
     expect(parseImportAmount('15,00')).toBe(15);
   });
 
+  it('parses euro amounts even when the currency symbol is mangled', () => {
+    expect(parseImportAmount('€ 16,84')).toBe(16.84);
+    expect(parseImportAmount('â\u0082¬ 16,84')).toBe(16.84);
+  });
+
   it('returns null for empty values', () => {
     expect(parseImportAmount('')).toBeNull();
     expect(parseImportAmount(undefined)).toBeNull();
