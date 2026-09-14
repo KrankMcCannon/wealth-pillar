@@ -31,22 +31,39 @@ export interface DateFieldProps {
 const OVERLAY_MARGIN = 12;
 const OVERLAY_MAX_HEIGHT = 380;
 
+type OverlayTriggerRect = Pick<DOMRect, 'top' | 'bottom' | 'left' | 'width'>;
+type OverlayViewport = { width: number; height: number };
+type OverlayHostRect = Pick<DOMRect, 'top' | 'left' | 'width' | 'height'>;
+
+/** Vaul marks body siblings inert while a drawer is open — portal into the enclosing drawer. */
+function calendarOverlayHost(from: HTMLElement | null): HTMLElement | null {
+  if (typeof document === 'undefined') return null;
+  return from?.closest('[data-slot="drawer-content"]') ?? document.body;
+}
+
 export function overlayRectForTrigger(
-  trigger: Pick<DOMRect, 'top' | 'bottom' | 'left' | 'width'>,
-  viewport: { width: number; height: number }
+  trigger: OverlayTriggerRect,
+  viewport: OverlayViewport,
+  host?: OverlayHostRect | null
 ): { top: number; left: number; width: number; maxHeight: number } {
-  const width = Math.min(
-    Math.max(trigger.width, 280),
-    viewport.width - OVERLAY_MARGIN * 2
-  );
-  const maxHeight = Math.min(OVERLAY_MAX_HEIGHT, viewport.height * 0.62);
-  let top = trigger.bottom + 8;
-  if (top + maxHeight > viewport.height - OVERLAY_MARGIN) {
-    top = Math.max(OVERLAY_MARGIN, trigger.top - maxHeight - 8);
+  const frame = host ? { width: host.width, height: host.height } : viewport;
+  const local = host
+    ? {
+        top: trigger.top - host.top,
+        bottom: trigger.bottom - host.top,
+        left: trigger.left - host.left,
+        width: trigger.width,
+      }
+    : trigger;
+  const width = Math.min(Math.max(local.width, 280), frame.width - OVERLAY_MARGIN * 2);
+  const maxHeight = Math.min(OVERLAY_MAX_HEIGHT, frame.height * 0.62);
+  let top = local.bottom + 8;
+  if (top + maxHeight > frame.height - OVERLAY_MARGIN) {
+    top = Math.max(OVERLAY_MARGIN, local.top - maxHeight - 8);
   }
-  let left = trigger.left;
-  if (left + width > viewport.width - OVERLAY_MARGIN) {
-    left = viewport.width - OVERLAY_MARGIN - width;
+  let left = local.left;
+  if (left + width > frame.width - OVERLAY_MARGIN) {
+    left = frame.width - OVERLAY_MARGIN - width;
   }
   left = Math.max(OVERLAY_MARGIN, left);
   return { top, left, width, maxHeight };
@@ -69,6 +86,7 @@ export function DateField({
   const wrapRef = useRef<HTMLDivElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const [overlay, setOverlay] = useState<ReturnType<typeof overlayRectForTrigger> | null>(null);
+  const [overlayHost, setOverlayHost] = useState<HTMLElement | null>(null);
 
   const displayText = useMemo(() => {
     if (!value) return '';
@@ -95,16 +113,22 @@ export function DateField({
   useLayoutEffect(() => {
     if (!isOpen || presentation !== 'inline') {
       setOverlay(null);
+      setOverlayHost(null);
       return;
     }
     const node = wrapRef.current;
     if (!node) return;
     const update = () => {
+      const host = calendarOverlayHost(node);
+      setOverlayHost(host);
+      const hostRect =
+        host && host !== document.body ? host.getBoundingClientRect() : null;
       setOverlay(
-        overlayRectForTrigger(node.getBoundingClientRect(), {
-          width: window.innerWidth,
-          height: window.innerHeight,
-        })
+        overlayRectForTrigger(
+          node.getBoundingClientRect(),
+          { width: window.innerWidth, height: window.innerHeight },
+          hostRect
+        )
       );
     };
     update();
@@ -162,14 +186,22 @@ export function DateField({
       />
     );
 
+  const overlayInDrawer = Boolean(overlayHost && overlayHost !== document.body);
+  const overlayPosition = overlayInDrawer ? 'absolute' : 'fixed';
+
   const overlayCalendar =
-    typeof document !== 'undefined' && presentation === 'inline' && isOpen && overlay
+    overlayHost && presentation === 'inline' && isOpen && overlay
       ? createPortal(
           <>
             <button
               type="button"
-              className="fixed inset-0 z-200 cursor-default bg-foreground/20"
+              data-vaul-no-drag=""
+              className={cn(
+                overlayPosition,
+                'inset-0 z-200 cursor-default bg-foreground/20 pointer-events-auto'
+              )}
               aria-label={t('closeCalendar')}
+              onPointerDown={(event) => event.stopPropagation()}
               onClick={closeCalendar}
             />
             <div
@@ -178,18 +210,23 @@ export function DateField({
               aria-modal="true"
               aria-label={resolvedLabel}
               tabIndex={-1}
-              className="fixed z-201 overflow-hidden rounded-2xl border border-foreground/10 bg-background shadow-xl outline-none"
+              data-vaul-no-drag=""
+              className={cn(
+                overlayPosition,
+                'z-201 overflow-hidden rounded-2xl border border-foreground/10 bg-background shadow-xl outline-none pointer-events-auto'
+              )}
               style={{
                 top: overlay.top,
                 left: overlay.left,
                 width: overlay.width,
                 maxHeight: overlay.maxHeight,
               }}
+              onPointerDown={(event) => event.stopPropagation()}
             >
               <CalendarPanel compact value={value} onChange={onChange} onClose={closeCalendar} />
             </div>
           </>,
-          document.body
+          overlayHost
         )
       : null;
 

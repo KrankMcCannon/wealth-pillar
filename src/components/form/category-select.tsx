@@ -26,6 +26,14 @@ export interface CategorySelectProps {
   captionLabel?: string;
 }
 
+export function findCategoryByValue(
+  categories: Category[],
+  value: string | undefined
+): Category | undefined {
+  if (!value) return undefined;
+  return categories.find((cat) => cat.key === value || cat.id === value);
+}
+
 /**
  * CategorySelect - Specialized category picker with search, icons, and recent tracking
  *
@@ -108,11 +116,13 @@ export const CategorySelect = React.memo<CategorySelectProps>(
     // Handle value change with usage tracking
     const handleValueChange = React.useCallback(
       (newValue: string) => {
-        onValueChange(newValue);
-        recordCategoryUsage(newValue);
+        if (!newValue) return;
+        const key = findCategoryByValue(categories, newValue)?.key ?? newValue;
+        onValueChange(key);
+        recordCategoryUsage(key);
         setIsOpen(false);
       },
-      [onValueChange, recordCategoryUsage]
+      [categories, onValueChange, recordCategoryUsage]
     );
 
     // Reset search when dropdown closes
@@ -123,8 +133,7 @@ export const CategorySelect = React.memo<CategorySelectProps>(
       }
     }, []);
 
-    // Get selected category for display
-    const selectedCategory = categories.find((cat) => cat.key === value);
+    const selectedCategory = findCategoryByValue(categories, value);
 
     // Calculate optimal width based on longest category label
     const optimalWidth = React.useMemo(() => {
@@ -164,7 +173,7 @@ export const CategorySelect = React.memo<CategorySelectProps>(
 
     return (
       <SelectPrimitive.Root
-        value={value}
+        {...(value ? { value } : {})}
         onValueChange={handleValueChange}
         disabled={disabled}
         open={isOpen}

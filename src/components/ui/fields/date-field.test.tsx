@@ -25,6 +25,17 @@ describe('overlayRectForTrigger', () => {
     expect(rect.top).toBeLessThan(500);
     expect(rect.width).toBeLessThanOrEqual(343);
   });
+
+  it('positions relative to a drawer host so the overlay stays inside the sheet', () => {
+    const rect = overlayRectForTrigger(
+      { top: 100, bottom: 148, left: 16, width: 300 },
+      { width: 800, height: 800 },
+      { top: 50, left: 0, width: 400, height: 600 }
+    );
+    expect(rect.top).toBe(106);
+    expect(rect.left).toBe(16);
+    expect(rect.width).toBe(300);
+  });
 });
 
 describe('DateField', () => {
@@ -55,5 +66,25 @@ describe('DateField', () => {
     fireEvent.click(screen.getByRole('button', { name: /When/ }));
     expect(screen.getByTestId('calendar-drawer')).toBeInTheDocument();
     expect(screen.queryByTestId('calendar-panel')).not.toBeInTheDocument();
+  });
+
+  it('portals the overlay into the open drawer so it can receive clicks', () => {
+    render(
+      <div data-slot="drawer-content">
+        <DateField
+          value="2026-06-15"
+          onChange={() => {}}
+          label="When"
+          layout="stack"
+          presentation="inline"
+        />
+      </div>
+    );
+    fireEvent.click(screen.getByRole('button', { name: /When/ }));
+    const dialog = screen.getByRole('dialog', { name: 'When' });
+    expect(dialog.closest('[data-slot="drawer-content"]')).not.toBeNull();
+    expect(dialog).toHaveClass('pointer-events-auto');
+    expect(screen.getByRole('button', { name: 'closeCalendar' })).toHaveClass('pointer-events-auto');
+    expect(screen.queryByTestId('calendar-drawer')).not.toBeInTheDocument();
   });
 });

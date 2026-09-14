@@ -73,8 +73,11 @@ export function FormSelect({
 
   return (
     <Select
-      value={value}
-      onValueChange={onValueChange}
+      {...(value ? { value } : {})}
+      onValueChange={(next) => {
+        if (!next) return;
+        onValueChange(next);
+      }}
       disabled={disabled}
       onOpenChange={handleOpenChange}
     >
