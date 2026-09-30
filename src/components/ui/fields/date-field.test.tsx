@@ -36,6 +36,15 @@ describe('overlayRectForTrigger', () => {
     expect(rect.left).toBe(16);
     expect(rect.width).toBe(300);
   });
+
+  it('does not artificially clamp calendar height to a fraction of the modal host', () => {
+    const rect = overlayRectForTrigger(
+      { top: 200, bottom: 248, left: 16, width: 320 },
+      { width: 1200, height: 900 },
+      { top: 100, left: 100, width: 500, height: 500 }
+    );
+    expect(rect.maxHeight).toBe(400);
+  });
 });
 
 describe('DateField', () => {
@@ -60,15 +69,13 @@ describe('DateField', () => {
   });
 
   it('opens a nested drawer when presentation is drawer', () => {
-    render(
-      <DateField value="2026-06-15" onChange={() => {}} label="When" presentation="drawer" />
-    );
+    render(<DateField value="2026-06-15" onChange={() => {}} label="When" presentation="drawer" />);
     fireEvent.click(screen.getByRole('button', { name: /When/ }));
     expect(screen.getByTestId('calendar-drawer')).toBeInTheDocument();
     expect(screen.queryByTestId('calendar-panel')).not.toBeInTheDocument();
   });
 
-  it('portals the overlay into the open drawer so it can receive clicks', () => {
+  it('renders the overlay as a floating fixed dialog in body so it is not clipped by parent modal', () => {
     render(
       <div data-slot="drawer-content">
         <DateField
@@ -82,9 +89,11 @@ describe('DateField', () => {
     );
     fireEvent.click(screen.getByRole('button', { name: /When/ }));
     const dialog = screen.getByRole('dialog', { name: 'When' });
-    expect(dialog.closest('[data-slot="drawer-content"]')).not.toBeNull();
     expect(dialog).toHaveClass('pointer-events-auto');
-    expect(screen.getByRole('button', { name: 'closeCalendar' })).toHaveClass('pointer-events-auto');
+    expect(dialog).toHaveClass('fixed');
+    expect(screen.getByRole('button', { name: 'closeCalendar' })).toHaveClass(
+      'pointer-events-auto'
+    );
     expect(screen.queryByTestId('calendar-drawer')).not.toBeInTheDocument();
   });
 });

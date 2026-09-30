@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import * as SelectPrimitive from '@radix-ui/react-select';
+import { Popover as PopoverPrimitive } from 'radix-ui';
 import { Search, Clock, TrendingUp, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLocale, useTranslations } from 'next-intl';
@@ -63,6 +63,8 @@ export const CategorySelect = React.memo<CategorySelectProps>(
     const [isOpen, setIsOpen] = React.useState(false);
     const [isHydrated, setIsHydrated] = React.useState(false);
     const resolvedPlaceholder = placeholder ?? t('placeholder');
+    const searchInputRef = React.useRef<HTMLInputElement>(null);
+    const triggerRef = React.useRef<HTMLButtonElement>(null);
 
     // Debounce search for performance
     const debouncedSearch = useDebouncedValue(searchValue, 200);
@@ -172,61 +174,87 @@ export const CategorySelect = React.memo<CategorySelectProps>(
     };
 
     return (
-      <SelectPrimitive.Root
-        {...(value ? { value } : {})}
-        onValueChange={handleValueChange}
-        disabled={disabled}
-        open={isOpen}
-        onOpenChange={handleOpenChange}
-      >
+      <PopoverPrimitive.Root open={isOpen} onOpenChange={handleOpenChange}>
         {/* Trigger */}
-        <SelectPrimitive.Trigger
-          className={cn(s.selectorTrigger, className)}
-          aria-label={resolvedPlaceholder}
-        >
-          <div className="flex min-w-0 flex-1 items-center justify-between gap-4">
-            {captionLabel ? <p className={s.selectorLabel}>{captionLabel}</p> : null}
-            <p className={selectedCategory ? s.selectorValue : s.selectorValueMuted}>
-              {selectedCategory ? selectedCategory.label : resolvedPlaceholder}
-            </p>
-          </div>
-          <ChevronRight className={s.selectorChevron} aria-hidden />
-        </SelectPrimitive.Trigger>
+        <PopoverPrimitive.Trigger asChild>
+          <button
+            ref={triggerRef}
+            type="button"
+            role="combobox"
+            aria-expanded={isOpen}
+            aria-haspopup="listbox"
+            disabled={disabled}
+            className={cn(s.selectorTrigger, className)}
+            aria-label={resolvedPlaceholder}
+            onPointerDown={(e) => {
+              if (e.button !== 0) return;
+              if (
+                document.activeElement instanceof HTMLElement &&
+                document.activeElement !== document.body
+              ) {
+                document.activeElement.blur();
+              }
+            }}
+          >
+            <div className="flex min-w-0 flex-1 items-center justify-between gap-4">
+              {captionLabel ? <p className={s.selectorLabel}>{captionLabel}</p> : null}
+              <p className={selectedCategory ? s.selectorValue : s.selectorValueMuted}>
+                {selectedCategory ? selectedCategory.label : resolvedPlaceholder}
+              </p>
+            </div>
+            <ChevronRight className={s.selectorChevron} aria-hidden />
+          </button>
+        </PopoverPrimitive.Trigger>
 
         {/* Content */}
-        <SelectPrimitive.Portal>
-          <SelectPrimitive.Content
+        <PopoverPrimitive.Portal>
+          <PopoverPrimitive.Content
+            data-vaul-no-drag=""
             className={cn(
               'bg-popover text-popover-foreground',
               s.categoryDropdown.content,
               s.categoryDropdown.contentAnim
             )}
             style={getCategorySelectWidthStyle(optimalWidth)}
-            position="popper"
             side="top"
             align="start"
             sideOffset={4}
             avoidCollisions
             collisionPadding={8}
+            onOpenAutoFocus={(e) => {
+              e.preventDefault();
+              searchInputRef.current?.focus();
+            }}
           >
             {/* Search Input - Outside viewport for sticky behavior */}
             <div className={s.categoryDropdown.searchWrap}>
               <div className={s.categoryDropdown.searchFieldWrap}>
                 <Search className={s.categoryDropdown.searchIcon} />
                 <input
+                  ref={searchInputRef}
                   type="text"
                   placeholder={t('searchPlaceholder')}
                   value={searchValue}
                   onChange={(e) => setSearchValue(e.target.value)}
-                  onKeyDown={(e) => e.stopPropagation()}
-                  onClick={(e) => e.stopPropagation()}
+                  onKeyDown={(e) => {
+                    e.stopPropagation();
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      const first = filteredCategories[0];
+                      if (first) {
+                        handleValueChange(first.key);
+                      }
+                    } else if (e.key === 'Escape') {
+                      setIsOpen(false);
+                    }
+                  }}
                   className={s.categorySearchInput}
                 />
               </div>
             </div>
 
             {/* Scrollable Viewport */}
-            <SelectPrimitive.Viewport className={s.categoryDropdown.viewport}>
+            <div className={s.categoryDropdown.viewport} role="listbox" tabIndex={-1}>
               {/* Recent Categories Section */}
               <AnimatePresence>
                 {!debouncedSearch && recentCategories.length > 0 && (
@@ -244,8 +272,11 @@ export const CategorySelect = React.memo<CategorySelectProps>(
                       {recentCategories.map((category) => (
                         <button
                           key={`recent-${category.key}`}
+                          type="button"
+                          role="option"
+                          aria-selected={category.key === value}
                           onClick={() => handleValueChange(category.key)}
-                          className={s.categoryDropdown.recentItem}
+                          className={cn('w-full text-left', s.categoryDropdown.recentItem)}
                         >
                           {renderCategoryItem(category, false)}
                         </button>
@@ -270,23 +301,24 @@ export const CategorySelect = React.memo<CategorySelectProps>(
                 ) : (
                   <div className={s.categoryDropdown.list}>
                     {filteredCategories.map((category) => (
-                      <SelectPrimitive.Item
+                      <button
                         key={`all-${category.key}`}
-                        value={category.key}
-                        className={s.categoryDropdown.item}
+                        type="button"
+                        role="option"
+                        aria-selected={category.key === value}
+                        onClick={() => handleValueChange(category.key)}
+                        className={cn('w-full text-left', s.categoryDropdown.item)}
                       >
-                        <SelectPrimitive.ItemText>
-                          {renderCategoryItem(category, category.key === value)}
-                        </SelectPrimitive.ItemText>
-                      </SelectPrimitive.Item>
+                        {renderCategoryItem(category, category.key === value)}
+                      </button>
                     ))}
                   </div>
                 )}
               </div>
-            </SelectPrimitive.Viewport>
-          </SelectPrimitive.Content>
-        </SelectPrimitive.Portal>
-      </SelectPrimitive.Root>
+            </div>
+          </PopoverPrimitive.Content>
+        </PopoverPrimitive.Portal>
+      </PopoverPrimitive.Root>
     );
   }
 );

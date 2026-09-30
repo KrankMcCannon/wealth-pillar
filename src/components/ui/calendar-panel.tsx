@@ -49,7 +49,12 @@ export function CalendarPanel({
   );
 
   return (
-    <div className={cn(calendarDrawerStyles.panel.container, compact && 'flex-none', className)}>
+    <div
+      className={cn(
+        compact ? 'flex min-h-0 flex-none flex-col' : calendarDrawerStyles.panel.container,
+        className
+      )}
+    >
       <MonthHeader
         currentMonth={currentMonth}
         onPrevious={handlePrevious}
