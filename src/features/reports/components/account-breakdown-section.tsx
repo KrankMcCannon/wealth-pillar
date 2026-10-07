@@ -66,14 +66,19 @@ export function AccountBreakdownSection({ rows, totalWealth }: AccountBreakdownS
                   <h4 id={headingId} className={stitchReports.rankingLabel}>
                     {label}
                   </h4>
-                  <span className={stitchReports.rankingAmount}>{formatMoney(row.totalBalance)}</span>
+                  <span className={stitchReports.rankingAmount}>
+                    {formatMoney(row.totalBalance)}
+                  </span>
                 </div>
                 <div
                   className={cn(stitchReports.progressTrack, 'h-2')}
                   {...getBudgetProgressbarProps({ percent: pct, label: `${label}, ${shareLabel}` })}
                 >
                   <div
-                    className={cn('h-full min-h-[8px] rounded-full', stitchReports.progressFillPrimary)}
+                    className={cn(
+                      'h-full min-h-[8px] rounded-full',
+                      stitchReports.progressFillPrimary
+                    )}
                     style={{ width: `${Math.min(100, Math.max(0, pct))}%` }}
                   />
                 </div>

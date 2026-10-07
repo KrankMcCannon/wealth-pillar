@@ -35,8 +35,15 @@ export default function InvestmentsContent({
   pageDataPromise,
 }: InvestmentsContentProps) {
   const pageData = use(pageDataPromise);
-  const { summary, assetAllocation, portfolioHistory, indexData, currentIndex, holdings } =
-    pageData;
+  const {
+    summary,
+    assetAllocation,
+    portfolioHistory,
+    marketDataUpdatedAt,
+    indexData,
+    currentIndex,
+    holdings,
+  } = pageData;
 
   const t = useTranslations('InvestmentsContent');
   const tActionMenu = useTranslations('Header.ActionMenu');
@@ -103,6 +110,7 @@ export default function InvestmentsContent({
               summary={summary}
               assetAllocation={assetAllocation}
               portfolioHistory={portfolioHistory}
+              marketDataUpdatedAt={marketDataUpdatedAt}
               indexData={indexData}
               currentIndex={currentIndex}
               holdings={holdings}

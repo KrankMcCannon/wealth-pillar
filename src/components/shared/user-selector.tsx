@@ -108,17 +108,19 @@ const UserSelector = memo(
     }
 
     return (
-      <section
-        className={`${userSelectorStyles.container} ${className}`}
-        aria-label={hideTitle ? t('contextLabel') : undefined}
-        aria-labelledby={hideTitle ? undefined : headingId}
-      >
+      <section className={`${userSelectorStyles.container} ${className}`}>
         {!hideTitle ? (
           <h2 id={headingId} className={userSelectorStyles.heading}>
             {t('contextLabel')}
           </h2>
         ) : null}
-        <div className={userSelectorStyles.list} style={userSelectorStyles.listStyle}>
+        <div
+          role="radiogroup"
+          aria-label={hideTitle ? t('contextLabel') : undefined}
+          aria-labelledby={hideTitle ? undefined : headingId}
+          className={userSelectorStyles.list}
+          style={userSelectorStyles.listStyle}
+        >
           {membersList.map((member) => {
             const isSelected = currentSelection === member.id;
             const isAll = member.id === 'all';
@@ -127,12 +129,13 @@ const UserSelector = memo(
               <button
                 key={member.id}
                 type="button"
+                role="radio"
                 onClick={() => handleMemberClick(member.id)}
                 className={cn(
                   userSelectorStyles.item.base,
                   isSelected ? userSelectorStyles.item.active : userSelectorStyles.item.inactive
                 )}
-                aria-pressed={isSelected}
+                aria-checked={isSelected}
                 aria-label={t('selectUserAria', { name: member.name })}
               >
                 <div

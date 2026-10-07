@@ -25,12 +25,13 @@ vi.mock('@/i18n/routing', () => ({
   Link: ({
     children,
     href,
-    ...props
-  }: {
-    children: React.ReactNode;
+    prefetch: _prefetch,
+    ...anchorProps
+  }: React.AnchorHTMLAttributes<HTMLAnchorElement> & {
     href: string;
+    prefetch?: boolean;
   }) => (
-    <a href={href} {...props}>
+    <a href={href} {...anchorProps}>
       {children}
     </a>
   ),
@@ -75,10 +76,7 @@ describe('Header', () => {
     searchParamsHolder.current = new URLSearchParams('from=%2Fbudgets%2Fb1');
     render(<Header title="Transactions" />);
 
-    expect(screen.getByRole('link', { name: 'aria.back' })).toHaveAttribute(
-      'href',
-      '/budgets/b1'
-    );
+    expect(screen.getByRole('link', { name: 'aria.back' })).toHaveAttribute('href', '/budgets/b1');
   });
 
   it('prefers an explicit backHref over the from query', () => {

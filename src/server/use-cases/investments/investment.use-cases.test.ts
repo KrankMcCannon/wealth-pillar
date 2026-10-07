@@ -79,6 +79,7 @@ describe('getInvestmentsOverviewUseCase', () => {
       {
         symbol: 'AAA',
         data: [{ datetime: '2024-01-01', close: 10 }],
+        lastUpdated: '2024-01-01T12:00:00.000Z',
       },
     ]);
 

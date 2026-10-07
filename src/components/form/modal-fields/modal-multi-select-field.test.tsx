@@ -48,11 +48,7 @@ const users = [
   { id: 'u2', name: 'Ivana' },
 ] as User[];
 
-function TestForm({
-  shape = 'rows' as const,
-}: {
-  shape?: 'rows' | 'chips';
-}) {
+function TestForm({ shape = 'rows' as const }: { shape?: 'rows' | 'chips' }) {
   const form = useForm({ defaultValues: { user_ids: ['u1'] } });
   return (
     <ModalMultiSelectField

@@ -1,50 +1,36 @@
 'use client';
 
 import { useMemo, useState, useCallback } from 'react';
-import { Building2, Target, Wallet } from 'lucide-react';
+import { Building2, Wallet } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import type { Category, BudgetType } from '@/lib/types';
-import type {
-  OnboardingPayload,
-  OnboardingFormAccount,
-  OnboardingFormBudget,
-} from '@/features/onboarding/types';
+import type { OnboardingPayload, OnboardingFormAccount } from '@/features/onboarding/types';
 
 function createInitialWizardState(): {
   currentStep: number;
   groupName: string;
   groupDescription: string;
-  budgetStartDay: number;
   accounts: OnboardingFormAccount[];
-  budgets: OnboardingFormBudget[];
 } {
   return {
     currentStep: 0,
     groupName: '',
     groupDescription: '',
-    budgetStartDay: 1,
     accounts: [{ id: crypto.randomUUID(), name: '', type: 'payroll', isDefault: true }],
-    budgets: [
-      { id: crypto.randomUUID(), description: '', amount: '', type: 'monthly', categoryId: '' },
-    ],
   };
 }
 
 export type UseOnboardingWizardOptions = {
-  categories: Category[];
   onComplete: (data: OnboardingPayload) => Promise<void>;
 };
 
-export function useOnboardingWizard({ categories, onComplete }: UseOnboardingWizardOptions) {
+export function useOnboardingWizard({ onComplete }: UseOnboardingWizardOptions) {
   const t = useTranslations('OnboardingModal');
   const initial = useMemo(() => createInitialWizardState(), []);
 
   const [currentStep, setCurrentStep] = useState(initial.currentStep);
   const [groupName, setGroupName] = useState(initial.groupName);
   const [groupDescription, setGroupDescription] = useState(initial.groupDescription);
-  const [budgetStartDay, setBudgetStartDay] = useState<number>(initial.budgetStartDay);
   const [accounts, setAccounts] = useState<OnboardingFormAccount[]>(initial.accounts);
-  const [budgets, setBudgets] = useState<OnboardingFormBudget[]>(initial.budgets);
   const [localError, setLocalError] = useState<string | null>(null);
 
   const steps = useMemo(
@@ -60,12 +46,6 @@ export function useOnboardingWizard({ categories, onComplete }: UseOnboardingWiz
         title: t('steps.accounts.title'),
         description: t('steps.accounts.description'),
         icon: Wallet,
-      },
-      {
-        id: 'budgets',
-        title: t('steps.budgets.title'),
-        description: t('steps.budgets.description'),
-        icon: Target,
       },
     ],
     [t]
@@ -90,14 +70,6 @@ export function useOnboardingWizard({ categories, onComplete }: UseOnboardingWiz
     [t]
   );
 
-  const budgetTypeOptions: { value: BudgetType; label: string }[] = useMemo(
-    () => [
-      { value: 'monthly', label: t('budgetTypes.monthly') },
-      { value: 'annually', label: t('budgetTypes.annually') },
-    ],
-    [t]
-  );
-
   const canProceed = useMemo(() => {
     if (currentStep === 0) {
       return groupName.trim().length > 1;
@@ -107,26 +79,8 @@ export function useOnboardingWizard({ categories, onComplete }: UseOnboardingWiz
       return accounts.every((account) => account.name.trim() && account.type);
     }
 
-    if (currentStep === 2) {
-      if (categories.length === 0) return false;
-      return budgets.every((budget) => {
-        const amount = Number.parseFloat(budget.amount);
-        return (
-          budget.description.trim().length > 1 &&
-          !Number.isNaN(amount) &&
-          amount > 0 &&
-          Boolean(budget.categoryId)
-        );
-      });
-    }
-
     return true;
-  }, [currentStep, groupName, accounts, budgets, categories.length]);
-
-  const categoryOptions = categories.map((category) => ({
-    value: category.id,
-    label: category.label,
-  }));
+  }, [currentStep, groupName, accounts]);
 
   const handleNext = useCallback(() => {
     if (!canProceed) {
@@ -134,9 +88,9 @@ export function useOnboardingWizard({ categories, onComplete }: UseOnboardingWiz
       return;
     }
     const nextStep = Math.min(currentStep + 1, steps.length - 1);
-    setLocalError(nextStep === 2 && categories.length === 0 ? t('categories.noneAvailable') : null);
+    setLocalError(null);
     setCurrentStep(nextStep);
-  }, [canProceed, currentStep, steps.length, categories.length, t]);
+  }, [canProceed, currentStep, steps.length, t]);
 
   const handleBack = useCallback(() => {
     setLocalError(null);
@@ -144,7 +98,7 @@ export function useOnboardingWizard({ categories, onComplete }: UseOnboardingWiz
   }, []);
 
   const buildOnboardingPayload = useCallback(
-    (options?: { emptyBudgets?: boolean }): OnboardingPayload => ({
+    (): OnboardingPayload => ({
       group: {
         name: groupName.trim(),
         description: groupDescription.trim(),
@@ -154,17 +108,10 @@ export function useOnboardingWizard({ categories, onComplete }: UseOnboardingWiz
         type: account.type,
         isDefault: account.isDefault || false,
       })),
-      budgets: options?.emptyBudgets
-        ? []
-        : budgets.map((budget) => ({
-            description: budget.description.trim(),
-            amount: Number.parseFloat(budget.amount),
-            type: budget.type,
-            categories: [budget.categoryId],
-          })),
-      budgetStartDay,
+      budgets: [],
+      budgetStartDay: 1,
     }),
-    [groupName, groupDescription, accounts, budgets, budgetStartDay]
+    [groupName, groupDescription, accounts]
   );
 
   const handleSubmit = useCallback(async () => {
@@ -179,15 +126,6 @@ export function useOnboardingWizard({ categories, onComplete }: UseOnboardingWiz
       setLocalError(err instanceof Error ? err.message : t('errors.saveFailed'));
     }
   }, [canProceed, onComplete, buildOnboardingPayload, t]);
-
-  const handleSkipBudgets = useCallback(async () => {
-    setLocalError(null);
-    try {
-      await onComplete(buildOnboardingPayload({ emptyBudgets: true }));
-    } catch (err) {
-      setLocalError(err instanceof Error ? err.message : t('errors.saveFailed'));
-    }
-  }, [onComplete, buildOnboardingPayload, t]);
 
   const updateAccountField = useCallback(
     (index: number, field: keyof OnboardingFormAccount, value: string) => {
@@ -226,55 +164,26 @@ export function useOnboardingWizard({ categories, onComplete }: UseOnboardingWiz
     });
   }, []);
 
-  const updateBudgetField = useCallback(
-    (index: number, field: keyof OnboardingFormBudget, value: string) => {
-      setBudgets((prev) =>
-        prev.map((budget, idx) => (idx === index ? { ...budget, [field]: value } : budget))
-      );
-    },
-    []
-  );
-
-  const addBudget = useCallback(() => {
-    setBudgets((prev) => [
-      ...prev,
-      { id: crypto.randomUUID(), description: '', amount: '', type: 'monthly', categoryId: '' },
-    ]);
-  }, []);
-
-  const removeBudget = useCallback((index: number) => {
-    setBudgets((prev) => prev.filter((_, idx) => idx !== index));
-  }, []);
-
   return {
     t,
     steps,
     currentStep,
     accountTypeOptions,
     accountTypeDescriptions,
-    budgetTypeOptions,
-    categoryOptions,
     groupName,
     setGroupName,
     groupDescription,
     setGroupDescription,
-    budgetStartDay,
-    setBudgetStartDay,
     accounts,
-    budgets,
     localError,
     canProceed,
     handleNext,
     handleBack,
     handleSubmit,
-    handleSkipBudgets,
     updateAccountField,
     setAccountAsDefault,
     addAccount,
     removeAccount,
-    updateBudgetField,
-    addBudget,
-    removeBudget,
     buildOnboardingPayload,
   };
 }

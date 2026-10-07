@@ -36,12 +36,18 @@ export function ModalSelectField<T extends FieldValues, V extends string = strin
   } = useController({ control, name });
   const errorId = `${String(name)}-error`;
   const hintId = `${String(name)}-hint`;
+  const handleValueChange = field.onChange;
 
   return (
-    <div aria-describedby={[hint ? hintId : null, error?.message ? errorId : null].filter(Boolean).join(' ') || undefined}>
+    <div
+      aria-describedby={
+        [hint ? hintId : null, error?.message ? errorId : null].filter(Boolean).join(' ') ||
+        undefined
+      }
+    >
       <FormSelect
         value={field.value ?? ''}
-        onValueChange={field.onChange}
+        onValueChange={handleValueChange}
         options={options}
         captionLabel={label}
         searchable={searchable}

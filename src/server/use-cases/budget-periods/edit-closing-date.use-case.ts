@@ -55,11 +55,7 @@ export function findLatestClosedPeriod(
   );
 }
 
-function amountsPatch(
-  period: BudgetPeriod,
-  transactions: Transaction[],
-  accounts: Account[]
-) {
+function amountsPatch(period: BudgetPeriod, transactions: Transaction[], accounts: Account[]) {
   if (period.end_date == null) {
     return clearOpenPeriodSnapshotFields();
   }

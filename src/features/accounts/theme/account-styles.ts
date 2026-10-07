@@ -38,8 +38,7 @@ const accountTokens = {
       embeddedBadge: `flex min-h-10 items-center gap-1.5 rounded-full border border-primary/25 bg-primary/10 px-3.5 py-2 sm:min-h-11 sm:px-4`,
       embeddedValuePositive: `text-2xl font-bold tabular-nums tracking-tight text-foreground sm:text-3xl`,
       embeddedValueNegative: `text-2xl font-bold tabular-nums tracking-tight text-destructive sm:text-3xl`,
-      embeddedLabel:
-        'mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground',
+      embeddedLabel: 'mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground',
       embeddedIconSvg: 'h-6 w-6 text-foreground sm:h-7 sm:w-7',
       embeddedArrow: 'h-6 w-6 shrink-0 text-muted-foreground',
     },

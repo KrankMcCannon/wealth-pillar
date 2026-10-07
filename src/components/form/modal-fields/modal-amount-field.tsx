@@ -34,12 +34,13 @@ export function ModalAmountField<T extends FieldValues>({
   const resolvedLabel = label ?? '';
   const fieldId = String(name);
   const errorId = `${fieldId}-error`;
+  const handleChange = field.onChange;
 
   const input = (
     <FormCurrencyInput
       id={fieldId}
       value={field.value ?? ''}
-      onChange={field.onChange}
+      onChange={handleChange}
       placeholder={placeholder}
       disabled={disabled}
       className={variant === 'inline' ? s.field.textInput : s.amountInput}

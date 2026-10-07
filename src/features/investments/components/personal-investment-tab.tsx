@@ -1,7 +1,9 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { ChevronDown } from 'lucide-react';
 import { usePathname, useRouter } from '@/i18n/routing';
 import { InvestmentsScreenList } from './investments-screen-list';
 import { WealthHeader } from './wealth-header';
@@ -9,7 +11,7 @@ import { useTranslations } from 'next-intl';
 import type { AssetAllocationSlice } from '@/server/use-cases/investments/investment.use-cases';
 import type { InvestmentListItem } from '@/server/use-cases/investments/investment.types';
 import { buildAllocationChartData } from '@/features/investments/utils/allocation-chart-data';
-import { stitchInvestments } from '@/styles/home-design-foundation';
+import { stitchHome, stitchInvestments } from '@/styles/home-design-foundation';
 import { investmentsStyles } from '@/features/investments/theme/investments-styles';
 
 function ChartSlotFallback() {
@@ -28,10 +30,10 @@ const InvestmentHistoryChart = dynamic(
   () => import('./investment-history-chart').then((m) => m.InvestmentHistoryChart),
   { ssr: false, loading: ChartSlotFallback }
 );
-const BenchmarkChart = dynamic(
-  () => import('./benchmark-chart').then((m) => m.BenchmarkChart),
-  { ssr: false, loading: ChartSlotFallback }
-);
+const BenchmarkChart = dynamic(() => import('./benchmark-chart').then((m) => m.BenchmarkChart), {
+  ssr: false,
+  loading: ChartSlotFallback,
+});
 
 export type Investment = InvestmentListItem;
 
@@ -47,6 +49,7 @@ interface PersonalInvestmentTabProps {
   };
   assetAllocation: AssetAllocationSlice[];
   portfolioHistory: { date: string; value: number }[];
+  marketDataUpdatedAt: string | null;
   indexData?:
     | Array<{
         datetime?: string | undefined;
@@ -63,6 +66,7 @@ export function PersonalInvestmentTab({
   summary,
   assetAllocation,
   portfolioHistory,
+  marketDataUpdatedAt,
   indexData,
   currentIndex = 'IVV',
   holdings,
@@ -72,6 +76,7 @@ export function PersonalInvestmentTab({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const t = useTranslations('Investments.PersonalTab');
+  const [analyticsOpen, setAnalyticsOpen] = useState(false);
 
   const handleBenchmarkChange = (symbol: string) => {
     if (!symbol || symbol === currentIndex) return;
@@ -83,6 +88,8 @@ export function PersonalInvestmentTab({
   };
 
   const allocationData = buildAllocationChartData(assetAllocation, t('fallback.others'));
+  const hasAnalytics =
+    allocationData.length > 0 || portfolioHistory.length > 0 || (indexData?.length ?? 0) > 0;
 
   return (
     <>
@@ -90,22 +97,48 @@ export function PersonalInvestmentTab({
         totalValue={summary.totalCurrentValue}
         trendAmount={summary.totalReturn}
         trendPercentage={summary.totalReturnPercent}
+        marketDataUpdatedAt={marketDataUpdatedAt}
       />
 
-      {allocationData.length > 0 ? <AssetAllocationCard data={allocationData} /> : null}
-
-      <div className="flex min-w-0 flex-col gap-4">
-        <InvestmentHistoryChart data={portfolioHistory} />
-
-        <BenchmarkChart
-          indexData={indexData}
-          currentIndex={currentIndex}
-          onBenchmarkChange={handleBenchmarkChange}
-          anchorId={benchmarkAnchorId}
-        />
-      </div>
-
       <InvestmentsScreenList holdings={holdings} />
+
+      {hasAnalytics ? (
+        <details
+          className={stitchHome.scanSection}
+          open={analyticsOpen}
+          onToggle={(event) => setAnalyticsOpen(event.currentTarget.open)}
+        >
+          <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40">
+            <span className="min-w-0">
+              <span className={stitchHome.scanSectionTitle}>{t('analyticsTitle')}</span>
+              <span className="mt-1 block text-sm leading-relaxed text-muted-foreground">
+                {t('analyticsDescription')}
+              </span>
+            </span>
+            <ChevronDown
+              className={`size-4 shrink-0 transition-transform ${
+                analyticsOpen ? 'rotate-180' : ''
+              }`}
+              aria-hidden
+            />
+          </summary>
+
+          {analyticsOpen ? (
+            <div className="mt-4 flex min-w-0 flex-col gap-4">
+              {allocationData.length > 0 ? <AssetAllocationCard data={allocationData} /> : null}
+
+              <InvestmentHistoryChart data={portfolioHistory} />
+
+              <BenchmarkChart
+                indexData={indexData}
+                currentIndex={currentIndex}
+                onBenchmarkChange={handleBenchmarkChange}
+                anchorId={benchmarkAnchorId}
+              />
+            </div>
+          ) : null}
+        </details>
+      ) : null}
     </>
   );
 }

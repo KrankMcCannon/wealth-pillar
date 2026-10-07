@@ -203,9 +203,9 @@ describe('useOptimisticTransactionStore', () => {
     useOptimisticTransactionStore.getState().commitUpdateOptimistic('real-1', optimistic);
     useOptimisticTransactionStore.getState().pruneCommitted([tx('other')]);
 
-    expect(useOptimisticTransactionStore.getState().updated['real-1']?.transaction.description).toBe(
-      'Updated'
-    );
+    expect(
+      useOptimisticTransactionStore.getState().updated['real-1']?.transaction.description
+    ).toBe('Updated');
   });
 
   it('drops a pending transfer overlay once the server already has the conversion', () => {

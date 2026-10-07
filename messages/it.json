@@ -1,5 +1,10 @@
 {
   "Auth": {
+    "productIntro": {
+      "title": "Le finanze di casa, in un solo posto.",
+      "subtitle": "Sai quanto puoi spendere oggi e tieni conti, budget, riserva e investimenti nello stesso quadro.",
+      "trustNote": "Accesso personale e ruoli del gruppo mantengono chiara la prospettiva di ogni membro."
+    },
     "error": {
       "title": "Si è verificato un errore",
       "subtitle": "Riprova o contatta il supporto",
@@ -90,10 +95,6 @@
       "emptyCustom": "Nessuna categoria personalizzata",
       "emptySystem": "Nessuna categoria predefinita"
     },
-    "Data": {
-      "title": "Dati",
-      "importTransactions": "Importa transazioni"
-    },
     "Preferences": {
       "title": "Preferenze",
       "currencyLabel": "Valuta",
@@ -126,7 +127,7 @@
       },
       "currentBadge": "Attuale",
       "cancelButton": "Annulla",
-      "saveButton": "Salva",
+      "saveButton": "Salva preferenza",
       "savingButton": "Salvataggio..."
     },
     "InviteMember": {
@@ -194,7 +195,7 @@
       "membersTitle": "Membri",
       "inviteButton": "Invita membro",
       "cancelButton": "Annulla",
-      "saveButton": "Salva",
+      "saveButton": "Salva gruppo",
       "roles": {
         "admin": "Amministratore",
         "member": "Membro"
@@ -393,7 +394,9 @@
   },
   "ReportsContent": {
     "headerTitle": "Rapporti",
-    "incompleteData": "Alcuni movimenti non rientrano nel calcolo. I totali possono essere parziali."
+    "incompleteData": "Alcuni movimenti non rientrano nel calcolo. I totali possono essere parziali.",
+    "insightsTitle": "Approfondimenti",
+    "insightsDescription": "Conti e periodi budget, quando ti serve più dettaglio."
   },
   "Reports": {
     "TimeFilter": {
@@ -450,7 +453,7 @@
       "types": {
         "checking": "Conto corrente",
         "savings": "Risparmio",
-        "payroll": "Stipendio",
+        "payroll": "Conto corrente",
         "cash": "Contante",
         "investments": "Investimenti",
         "other": "Altro"
@@ -508,8 +511,8 @@
     "tabLoading": "Caricamento sezione…",
     "newInvestment": "Nuovo Investimento",
     "tabs": {
-      "personal": "Investimenti Personali",
-      "sandbox": "Simulazione scenari"
+      "personal": "Investimenti",
+      "sandbox": "Simulazione"
     }
   },
   "Investments": {
@@ -517,9 +520,13 @@
     "emptyWatchlist": "Nessun titolo nella lista di controllo.",
     "PersonalTab": {
       "totalPortfolioValue": "Valore del portafoglio",
-      "totalReturn": "Rendimento Totale",
+      "totalReturn": "Rendimento totale",
       "today": "Oggi",
-      "assetAllocation": "Ripartizione Asset",
+      "assetAllocation": "Ripartizione asset",
+      "marketDataFreshness": "Prezzi aggiornati {date} · dati non in tempo reale",
+      "marketDataFreshnessUnknown": "Prezzi di mercato non in tempo reale",
+      "analyticsTitle": "Analisi portafoglio",
+      "analyticsDescription": "Allocazione, andamento e confronto con un indice",
       "assetsLabel": "Asset",
       "allocationLabel": "Allocazione",
       "currentValueLabel": "Valore Attuale",
@@ -535,7 +542,7 @@
       }
     },
     "InvestmentList": {
-      "title": "Le Tue Partecipazioni",
+      "title": "Le tue partecipazioni",
       "recentActivity": "Attività Recente",
       "viewAll": "Vedi Tutti",
       "shares": "{shares} {count, plural, one {quota} other {quote}}",
@@ -546,7 +553,7 @@
       "changeUp": "in utile di {amount} ({percent})",
       "changeDown": "in perdita di {amount} ({percent})",
       "empty": "Ancora nessuna posizione",
-      "emptyDescription": "Tocca Aggiungi nella barra in basso, poi Nuovo investimento. Su schermi grandi usa il menu + in alto a destra.",
+      "emptyDescription": "Aggiungi il tuo primo investimento con il pulsante +.",
       "columns": {
         "instrument": "Titolo",
         "shares": "Quote",
@@ -569,7 +576,7 @@
       }
     },
     "HistoryChart": {
-      "title": "Andamento Storico",
+      "title": "Andamento storico",
       "description": "Valore effettivo del portafoglio nel tempo",
       "valueSeriesLabel": "Valore",
       "fallback": "Dati storici non sufficienti",
@@ -586,10 +593,13 @@
       "description": "Stima come potrebbe crescere un capitale nel tempo. Solo a titolo illustrativo, non è un consiglio finanziario.",
       "chartDataSummary": "Previsione dal {startYear} al {endYear}. Valore finale stimato {value}.",
       "fields": {
-        "initialAmount": "Importo Iniziale (€)",
-        "annualReturn": "Rendimento Annuo (%)",
-        "durationYears": "Durata (Anni)"
+        "initialAmount": "Importo iniziale (€)",
+        "annualReturn": "Rendimento annuo ipotetico (%)",
+        "annualReturnPlaceholder": "Es. 5",
+        "annualReturnHint": "Inserisci tu l'ipotesi di rendimento: Wealth Pillar non stima i rendimenti futuri.",
+        "durationYears": "Durata (anni)"
       },
+      "rateRequired": "Inserisci un rendimento ipotetico per vedere la simulazione.",
       "valueSeriesLabel": "Valore"
     },
     "ShareSelector": {
@@ -644,7 +654,7 @@
         "tax": "0.00",
         "shares": "10"
       },
-      "saveButton": "Salva",
+      "saveButton": "Salva investimento",
       "cancelButton": "Annulla",
       "retryLoad": "Riprova",
       "toast": {
@@ -669,6 +679,7 @@
     "Ledger": {
       "canSpend": "Puoi spendere",
       "asOf": "Al {date}",
+      "importTransactions": "Importa movimenti",
       "typesAria": "Filtra per tipo",
       "usersAria": "Filtra per membro",
       "monthlyNet": "Netto / mese",
@@ -923,8 +934,8 @@
         }
       },
       "buttons": {
-        "create": "Crea",
-        "update": "Aggiorna",
+        "create": "Crea transazione",
+        "update": "Salva modifiche",
         "cancel": "Annulla",
         "delete": "Elimina transazione",
         "saveTransaction": "Salva transazione"
@@ -1196,13 +1207,13 @@
     "ActionMenu": {
       "openMenuAria": "Apri menu azioni",
       "fabIntroAccounts": "Suggerimento: nella pagina Conti, «Nuovo conto» è in cima al menu per un accesso rapido. Apri la riga sotto per categoria, investimento e ricorrenti.",
-      "newTransaction": "Nuova Transazione",
-      "newBudget": "Nuovo Budget",
-      "newCategory": "Nuova Categoria",
+      "newTransaction": "Nuova transazione",
+      "newBudget": "Nuovo budget",
+      "newCategory": "Nuova categoria",
       "recurring": "Ricorrenti",
-      "newAccount": "Nuovo Account",
-      "newInvestment": "Nuovo Investimento",
-      "goToBudgets": "Vai ai Budget",
+      "newAccount": "Nuovo conto",
+      "newInvestment": "Nuovo investimento",
+      "goToBudgets": "Vai ai budget",
       "moreActions": "Categoria, investimento, ricorrente…",
       "showLessActions": "Nascondi le altre azioni",
       "fabIntro": "Sotto trovi le azioni più frequenti. Apri la riga evidenziata per categoria, investimento e pagamenti ricorrenti.",
@@ -1263,11 +1274,11 @@
   },
   "Accounts": {
     "Home": {
-      "addAccount": "Aggiungi Account",
+      "addAccount": "Aggiungi conto",
       "totalBalanceLabel": "Saldo Totale",
       "spendableBalanceLabel": "Disponibilità",
       "reserveBalanceLabel": "Risparmi e riserve",
-      "accountCount": "{count} {count, plural, one {Conto} other {Conti}}"
+      "accountCount": "{count} {count, plural, one {conto} other {conti}}"
     },
     "Content": {
       "headerTitle": "Conti",
@@ -1289,8 +1300,8 @@
       },
       "dialogs": {
         "delete": {
-          "title": "Elimina Account",
-          "message": "Sei sicuro di voler eliminare l'account \"{name}\"? Questa azione non può essere annullata.",
+          "title": "Elimina conto",
+          "message": "Sei sicuro di voler eliminare il conto \"{name}\"? Questa azione non può essere annullata.",
           "messageFallback": "Eliminare questo conto? L'operazione non può essere annullata.",
           "confirm": "Elimina",
           "cancel": "Annulla"
@@ -1304,9 +1315,9 @@
       }
     },
     "List": {
-      "header": "Tutti gli Account",
+      "header": "Tutti i conti",
       "empty": {
-        "title": "Nessun account trovato",
+        "title": "Nessun conto trovato",
         "description": "Aggiungi il tuo primo conto"
       }
     },
@@ -1316,8 +1327,8 @@
       "debt": "DEBITO",
       "delete": "Elimina",
       "accountTypes": {
-        "payroll": "Conto Corrente",
-        "savings": "Conto Risparmio",
+        "payroll": "Conto corrente",
+        "savings": "Conto risparmio",
         "cash": "Contanti",
         "investments": "Investimenti"
       },
@@ -1332,11 +1343,11 @@
         "userRequired": "Seleziona almeno un proprietario"
       },
       "title": {
-        "create": "Nuovo account",
-        "edit": "Modifica account"
+        "create": "Nuovo conto",
+        "edit": "Modifica conto"
       },
       "accountTypes": {
-        "payroll": "Conto Corrente",
+        "payroll": "Conto corrente",
         "savings": "Risparmio",
         "cash": "Contanti",
         "investments": "Investimenti"
@@ -1370,42 +1381,42 @@
         "isDefault": "Predefinito"
       },
       "buttons": {
-        "create": "Crea",
-        "update": "Aggiorna",
+        "create": "Crea conto",
+        "update": "Salva modifiche",
         "cancel": "Annulla",
         "delete": "Elimina conto"
       },
       "toast": {
         "errorTitle": "Errore",
-        "updatedTitle": "Account aggiornato",
+        "updatedTitle": "Conto aggiornato",
         "updatedDescription": "Modifiche salvate correttamente.",
-        "createdTitle": "Account creato",
-        "createdDescription": "Account aggiunto correttamente.",
+        "createdTitle": "Conto creato",
+        "createdDescription": "Conto aggiunto correttamente.",
         "deletedTitle": "Conto eliminato",
         "deletedDescription": "Il conto è stato rimosso.",
         "revertedHint": "I dati mostrati sono tornati allo stato precedente.",
         "optimisticCreateFailedHint": "La bozza è stata rimossa dalla lista."
       },
       "errors": {
-        "notFound": "Account non trovato",
+        "notFound": "Conto non trovato",
         "unknown": "Errore sconosciuto"
       }
     },
     "Actions": {
       "errors": {
         "unauthenticated": "Non autenticato. Effettua il login per continuare.",
-        "noPermissionCreate": "Non hai i permessi per creare un account per questo utente.",
-        "nameRequired": "Il nome account è obbligatorio.",
-        "typeRequired": "Il tipo account è obbligatorio.",
+        "noPermissionCreate": "Non hai i permessi per creare un conto per questo utente.",
+        "nameRequired": "Il nome del conto è obbligatorio.",
+        "typeRequired": "Il tipo di conto è obbligatorio.",
         "groupRequired": "Il gruppo è obbligatorio.",
         "userRequired": "Almeno un utente è richiesto.",
-        "createFailed": "Impossibile creare l'account",
-        "noPermissionUpdate": "Non hai i permessi per modificare questo account.",
-        "nameEmpty": "Il nome account non può essere vuoto.",
-        "updateFailed": "Impossibile aggiornare l'account",
-        "noPermissionDelete": "Non hai i permessi per eliminare questo account.",
-        "deleteFailed": "Impossibile eliminare l'account",
-        "recalculateFailed": "Impossibile ricalcolare l'account"
+        "createFailed": "Impossibile creare il conto",
+        "noPermissionUpdate": "Non hai i permessi per modificare questo conto.",
+        "nameEmpty": "Il nome del conto non può essere vuoto.",
+        "updateFailed": "Impossibile aggiornare il conto",
+        "noPermissionDelete": "Non hai i permessi per eliminare questo conto.",
+        "deleteFailed": "Impossibile eliminare il conto",
+        "recalculateFailed": "Impossibile ricalcolare il conto"
       }
     }
   },
@@ -1466,8 +1477,9 @@
       "editDatesHint": "I periodi vicini restano consecutivi. I totali dei periodi modificati vengono ricalcolati.",
       "noClosedPeriodAlert": "Nessun periodo chiuso disponibile da modificare.",
       "buttons": {
-        "closePeriod": "Chiudi periodo",
-        "editClosingDate": "Modifica ultima chiusura",
+        "closePeriod": "Chiudi ora",
+        "editClosingDate": "Modifica periodo precedente",
+        "autoRenewal": "Il prossimo periodo inizierà automaticamente il {date}.",
         "saveClosingDate": "Salva data di chiusura",
         "editDates": "Modifica date",
         "saveDates": "Salva date",
@@ -1490,11 +1502,13 @@
       },
       "closePeriod": "Chiudi periodo",
       "editClosingDate": "Modifica ultima chiusura",
+      "startSalaryPeriod": "Nuovo ciclo",
       "periodActionsAria": "Azioni del periodo",
-      "periodCloseSuccess": "Periodo chiuso. Il periodo successivo è iniziato.",
+      "periodCloseSuccess": "Periodo chiuso.",
+      "salaryPeriodSuccess": "Nuovo periodo iniziato dalla data di accredito dello stipendio.",
       "fabAddBudget": "Aggiungi budget",
       "categoryCard": {
-        "ariaOpenDetail": "Open budget details: {name}",
+        "ariaOpenDetail": "Apri dettagli budget: {name}",
         "badgeOnTrack": "In linea",
         "badgeFixed": "Fisso",
         "badgeOver": "Oltre il budget",
@@ -1518,6 +1532,23 @@
         "title": "Nessun budget disponibile",
         "description": "Crea il tuo primo budget per iniziare",
         "createButton": "Crea budget"
+      }
+    },
+    "SalaryPeriod": {
+      "title": "Nuovo ciclo stipendio",
+      "description": "Inizia un nuovo periodo quando lo stipendio è stato realmente accreditato.",
+      "hint": "Conferma la data effettiva dell'accredito. Il periodo corrente verrà chiuso al giorno precedente e il nuovo periodo inizierà da questa data. Non avviene alcun rinnovo automatico.",
+      "dateLabel": "Data accredito stipendio",
+      "submit": "Inizia nuovo periodo",
+      "cancel": "Annulla",
+      "successTitle": "Nuovo ciclo iniziato",
+      "successDescription": "Il budget è ora allineato al nuovo accredito.",
+      "errors": {
+        "dateRequired": "Seleziona la data di accredito.",
+        "futureDate": "L'accredito non può avere una data futura.",
+        "afterCurrentStart": "La nuova data deve essere successiva all'inizio del periodo corrente.",
+        "operationFailed": "Impossibile iniziare il nuovo periodo",
+        "unknown": "Si è verificato un errore imprevisto."
       }
     },
     "Detail": {
@@ -1597,10 +1628,10 @@
         }
       },
       "buttons": {
-        "save": "Salva",
+        "save": "Salva modifiche",
         "create": "Crea Budget",
         "cancel": "Annulla",
-        "confirmChanges": "Conferma",
+        "confirmChanges": "Salva modifiche",
         "deleteBudget": "Elimina"
       },
       "deleteDialogTitle": "Eliminare il budget?",
@@ -1751,7 +1782,7 @@
         }
       },
       "buttons": {
-        "save": "Salva",
+        "save": "Salva modifiche",
         "create": "Crea Categoria",
         "cancel": "Annulla",
         "delete": "Elimina categoria"
@@ -1893,7 +1924,7 @@
     "buttons": {
       "back": "Indietro",
       "next": "Avanti",
-      "confirm": "Conferma",
+      "confirm": "Vai alla Home",
       "saving": "Salvataggio...",
       "skip": "Salta",
       "addAccount": "Aggiungi un conto",

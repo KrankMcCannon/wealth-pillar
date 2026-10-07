@@ -2,19 +2,13 @@
 
 import { useCallback, useState } from 'react';
 import { AlertCircle, HelpCircle } from 'lucide-react';
-import type { Category } from '@/lib/types';
 import type { OnboardingPayload } from '@/features/onboarding/types';
 import { useOnboardingSubmission } from '@/features/auth/hooks/use-onboarding-submission';
 import { onboardingStyles, getOnboardingProgressStyle } from '@/features/onboarding/styles';
-import { OnboardingStepBudgets } from './step-budgets';
 import { OnboardingStepGroup } from './step-group';
 import { OnboardingStepNavigation } from './step-navigation';
 import { OnboardingStepProfile } from './step-profile';
 import { useOnboardingWizard } from './use-onboarding-wizard';
-
-interface OnboardingWizardProps {
-  categories: Category[];
-}
 
 function getStepDotClass(index: number, currentStep: number) {
   if (index === currentStep) return onboardingStyles.steps.dotActive;
@@ -22,7 +16,7 @@ function getStepDotClass(index: number, currentStep: number) {
   return onboardingStyles.steps.dotIdle;
 }
 
-export function OnboardingWizard({ categories }: Readonly<OnboardingWizardProps>) {
+export function OnboardingWizard() {
   const { submit } = useOnboardingSubmission();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -41,7 +35,7 @@ export function OnboardingWizard({ categories }: Readonly<OnboardingWizardProps>
     [submit]
   );
 
-  const wizard = useOnboardingWizard({ categories, onComplete: handleComplete });
+  const wizard = useOnboardingWizard({ onComplete: handleComplete });
   const {
     t,
     steps,
@@ -50,10 +44,7 @@ export function OnboardingWizard({ categories }: Readonly<OnboardingWizardProps>
     setGroupName,
     groupDescription,
     setGroupDescription,
-    budgetStartDay,
-    setBudgetStartDay,
     accounts,
-    budgets,
     localError,
     canProceed,
     handleNext,
@@ -61,16 +52,10 @@ export function OnboardingWizard({ categories }: Readonly<OnboardingWizardProps>
     handleSubmit,
     accountTypeOptions,
     accountTypeDescriptions,
-    budgetTypeOptions,
-    categoryOptions,
-    handleSkipBudgets,
     updateAccountField,
     setAccountAsDefault,
     addAccount,
     removeAccount,
-    updateBudgetField,
-    addBudget,
-    removeBudget,
   } = wizard;
 
   const StepIcon = steps[currentStep]?.icon ?? HelpCircle;
@@ -103,22 +88,7 @@ export function OnboardingWizard({ categories }: Readonly<OnboardingWizardProps>
         />
       );
     }
-    return (
-      <OnboardingStepBudgets
-        t={t}
-        loading={isSubmitting}
-        categories={categories}
-        budgets={budgets}
-        budgetStartDay={budgetStartDay}
-        setBudgetStartDay={setBudgetStartDay}
-        budgetTypeOptions={budgetTypeOptions}
-        categoryOptions={categoryOptions}
-        updateBudgetField={updateBudgetField}
-        addBudget={addBudget}
-        removeBudget={removeBudget}
-        handleSkipBudgets={handleSkipBudgets}
-      />
-    );
+    return null;
   };
 
   return (

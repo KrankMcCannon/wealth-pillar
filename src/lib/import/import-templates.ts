@@ -1,4 +1,9 @@
-import type { ImportFormat, ImportParseContext, ImportTemplate, ParseImportFileResult } from './types';
+import type {
+  ImportFormat,
+  ImportParseContext,
+  ImportTemplate,
+  ParseImportFileResult,
+} from './types';
 import { matchesCredemRows, parseCredemRows } from './credem.parser';
 import { matchesHouseholdRows, parseHouseholdRows } from './household.parser';
 import { matchesRevolutRows, parseRevolutRows } from './revolut.parser';
@@ -33,10 +38,7 @@ export function detectFormatFromRows(rows: string[][]): ImportFormat | null {
   return IMPORT_TEMPLATES.find((template) => template.matches(rows))?.id ?? null;
 }
 
-export function parseImportRows(
-  rows: string[][],
-  ctx: ImportParseContext
-): ParseImportFileResult {
+export function parseImportRows(rows: string[][], ctx: ImportParseContext): ParseImportFileResult {
   const template = IMPORT_TEMPLATES.find((candidate) => candidate.matches(rows));
   if (!template) {
     throw new Error('Unsupported import format');

@@ -1,4 +1,10 @@
-import type { Account, Budget, BudgetPeriod, PeriodLiquidityAmounts, Transaction } from '@/lib/types';
+import type {
+  Account,
+  Budget,
+  BudgetPeriod,
+  PeriodLiquidityAmounts,
+  Transaction,
+} from '@/lib/types';
 import { foldPeriodAmounts } from '@/server/ledger';
 import { roundMoney } from '@/lib/utils/money';
 import { parsePeriodDates } from '../shared/period.logic';
@@ -46,7 +52,10 @@ export function computePeriodLiquidityAmounts(
   };
 }
 
-function liveCategoryKeys(period: BudgetPeriod, categoryKeys?: Set<string>): Set<string> | undefined {
+function liveCategoryKeys(
+  period: BudgetPeriod,
+  categoryKeys?: Set<string>
+): Set<string> | undefined {
   if (categoryKeys) return categoryKeys;
   const snapshot = parseBudgetsSnapshot(period.budgets_snapshot);
   if (snapshot) return categoryKeysFromBudgets(snapshot);

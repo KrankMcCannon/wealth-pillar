@@ -16,4 +16,5 @@ export { BudgetChart } from './budget-chart';
 export type { BudgetChartProps } from './budget-chart';
 
 export { default as CloseBudgetPeriodModal } from './close-budget-period-modal';
+export { default as StartSalaryPeriodModal } from './start-salary-period-modal';
 export { default as EditClosingDateModal } from './edit-closing-date-modal';

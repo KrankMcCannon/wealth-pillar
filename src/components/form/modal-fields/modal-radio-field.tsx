@@ -28,13 +28,14 @@ export function ModalRadioField<T extends FieldValues>({
     fieldState: { error },
   } = useController({ control, name });
   const errorId = `${String(name)}-error`;
+  const handleChange = field.onChange;
 
   return (
     <div>
       <ChoiceRadios
         name={String(name)}
         value={field.value ?? ''}
-        onChange={field.onChange}
+        onChange={handleChange}
         options={options}
         label={label}
         variant={variant}

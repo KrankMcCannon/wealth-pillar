@@ -30,10 +30,7 @@ export interface FormSelectProps {
   searchable?: boolean | undefined;
 }
 
-export function isSelectSearchable(
-  optionCount: number,
-  searchable?: boolean | undefined
-): boolean {
+export function isSelectSearchable(optionCount: number, searchable?: boolean | undefined): boolean {
   return searchable ?? optionCount >= 6;
 }
 

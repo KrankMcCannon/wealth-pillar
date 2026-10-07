@@ -13,9 +13,7 @@ vi.mock('@/i18n/routing', () => ({
 
 function TestForm() {
   const form = useForm({ defaultValues: { isDefault: false } });
-  return (
-    <ModalCheckboxField control={form.control} name="isDefault" label="Default" />
-  );
+  return <ModalCheckboxField control={form.control} name="isDefault" label="Default" />;
 }
 
 describe('ModalCheckboxField', () => {

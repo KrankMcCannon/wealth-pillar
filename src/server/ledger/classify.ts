@@ -81,11 +81,7 @@ export function classifyTransferSavingsDeltaCents(
   return 0;
 }
 
-function isSplitTransfer(
-  source: Account,
-  dest: Account,
-  sourceActorId: string | null
-): boolean {
+function isSplitTransfer(source: Account, dest: Account, sourceActorId: string | null): boolean {
   if (resolveAccountLiquidity(source) !== 'spendable') return false;
   if (resolveAccountLiquidity(dest) !== 'spendable') return false;
   const destExclusive = exclusiveUserId(dest);
@@ -93,10 +89,7 @@ function isSplitTransfer(
   return sourceActorId !== destExclusive;
 }
 
-export function classifyMovement(
-  tx: Transaction,
-  accountMap: Map<string, Account>
-): Movement {
+export function classifyMovement(tx: Transaction, accountMap: Map<string, Account>): Movement {
   const amountCents = toCents(Number(tx.amount) || 0);
   const source = accountMap.get(tx.account_id);
   const dest = tx.to_account_id ? accountMap.get(tx.to_account_id) : undefined;
@@ -179,10 +172,7 @@ export function classifyMovement(
   };
 }
 
-export function reserveViewerIds(
-  tx: Transaction,
-  accountMap: Map<string, Account>
-): string[] {
+export function reserveViewerIds(tx: Transaction, accountMap: Map<string, Account>): string[] {
   const source = accountMap.get(tx.account_id);
   const dest = tx.to_account_id ? accountMap.get(tx.to_account_id) : undefined;
   const ids = new Set<string>();

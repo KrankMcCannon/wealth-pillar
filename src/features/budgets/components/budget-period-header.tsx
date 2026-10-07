@@ -15,7 +15,7 @@ interface BudgetPeriodHeaderProps {
   readonly periodStart: string | null;
   readonly periodEnd: string | null;
   readonly disabled?: boolean;
-  readonly onClosePeriod: () => void;
+  readonly onStartSalaryPeriod: () => void;
   readonly onEditClosingDate: () => void;
 }
 
@@ -23,7 +23,7 @@ export function BudgetPeriodHeader({
   periodStart,
   periodEnd,
   disabled = false,
-  onClosePeriod,
+  onStartSalaryPeriod,
   onEditClosingDate,
 }: BudgetPeriodHeaderProps) {
   const t = useTranslations('Budgets.Page');
@@ -42,6 +42,7 @@ export function BudgetPeriodHeader({
         <CalendarDays className={stitchBudgets.periodHeaderIcon} aria-hidden />
         <span className="truncate">{periodLabel}</span>
       </p>
+
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button
@@ -53,21 +54,13 @@ export function BudgetPeriodHeader({
             <MoreVertical className="h-5 w-5" aria-hidden />
           </button>
         </DropdownMenuTrigger>
+
         <DropdownMenuContent align="end">
-          <DropdownMenuItem
-            className="min-h-11"
-            onSelect={() => {
-              onClosePeriod();
-            }}
-          >
-            {t('closePeriod')}
+          <DropdownMenuItem className="min-h-11" onSelect={onStartSalaryPeriod}>
+            {t('startSalaryPeriod')}
           </DropdownMenuItem>
-          <DropdownMenuItem
-            className="min-h-11"
-            onSelect={() => {
-              onEditClosingDate();
-            }}
-          >
+
+          <DropdownMenuItem className="min-h-11" onSelect={onEditClosingDate}>
             {t('editClosingDate')}
           </DropdownMenuItem>
         </DropdownMenuContent>

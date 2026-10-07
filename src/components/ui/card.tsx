@@ -68,12 +68,7 @@ const CardDescription = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>
 >(({ className, ...props }, ref) => (
-  <p
-    ref={ref}
-    data-slot="card-description"
-    className={cn(cardDescription, className)}
-    {...props}
-  />
+  <p ref={ref} data-slot="card-description" className={cn(cardDescription, className)} {...props} />
 ));
 CardDescription.displayName = 'CardDescription';
 

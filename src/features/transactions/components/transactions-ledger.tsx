@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { Search, SlidersHorizontal, X } from 'lucide-react';
+import { Search, SlidersHorizontal, Upload, X } from 'lucide-react';
 import { HomeDashboardMain, PageFab } from '@/components/layout';
 import { Button, Input, Spinner } from '@/components/ui';
 import { FilterDrawer } from '@/components/ui/filters';
@@ -149,61 +149,71 @@ export function TransactionsLedger(props: TransactionsLedgerProps) {
               { key: 'transfer' as const, label: tFilters('typeOptions.transfer') },
             ]}
           />
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={props.onImportTransactions}
+              className={cn(stitchHome.viewAllLink, 'min-h-11 gap-1.5')}
+            >
+              <Upload className="size-4" aria-hidden />
+              <span>{tLedger('importTransactions')}</span>
+            </button>
+          </div>
         </FilterDock>
 
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-2">
-          <div className="relative min-w-0 flex-1">
-            <Search
-              className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-              aria-hidden
-            />
-            <Input
-              type="text"
-              enterKeyHint="search"
-              autoComplete="off"
-              value={props.filters.searchQuery}
-              onChange={(event) =>
-                props.setFilters({ ...props.filters, searchQuery: event.target.value })
+            <div className="relative min-w-0 flex-1">
+              <Search
+                className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+                aria-hidden
+              />
+              <Input
+                type="text"
+                enterKeyHint="search"
+                autoComplete="off"
+                value={props.filters.searchQuery}
+                onChange={(event) =>
+                  props.setFilters({ ...props.filters, searchQuery: event.target.value })
+                }
+                placeholder={tFilters('searchPlaceholder')}
+                aria-label={tFilters('searchPlaceholder')}
+                className="min-h-11 rounded-xl border-border/30 bg-muted/70 pl-10 pr-10"
+              />
+              {props.filters.searchQuery ? (
+                <button
+                  type="button"
+                  onClick={() => props.setFilters({ ...props.filters, searchQuery: '' })}
+                  className="absolute right-2 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+                  aria-label={tFilters('clearSearchAria')}
+                >
+                  <X className="size-4" aria-hidden />
+                </button>
+              ) : null}
+            </div>
+            <button
+              type="button"
+              onClick={() => setFiltersOpen(true)}
+              className={cn(
+                'relative flex size-11 shrink-0 items-center justify-center rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40',
+                advancedCount > 0
+                  ? 'border border-transparent bg-accent text-foreground ring-1 ring-inset ring-primary/35'
+                  : 'border border-border/35 bg-muted/80 text-muted-foreground hover:text-foreground'
+              )}
+              aria-pressed={advancedCount > 0}
+              aria-label={
+                advancedCount > 0
+                  ? tChips('filtersActiveAria', { count: advancedCount })
+                  : tChips('filters')
               }
-              placeholder={tFilters('searchPlaceholder')}
-              aria-label={tFilters('searchPlaceholder')}
-              className="min-h-11 rounded-xl border-border/30 bg-muted/70 pl-10 pr-10"
-            />
-            {props.filters.searchQuery ? (
-              <button
-                type="button"
-                onClick={() => props.setFilters({ ...props.filters, searchQuery: '' })}
-                className="absolute right-2 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
-                aria-label={tFilters('clearSearchAria')}
-              >
-                <X className="size-4" aria-hidden />
-              </button>
-            ) : null}
-          </div>
-          <button
-            type="button"
-            onClick={() => setFiltersOpen(true)}
-            className={cn(
-              'relative flex size-11 shrink-0 items-center justify-center rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40',
-              advancedCount > 0
-                ? 'border border-transparent bg-accent text-foreground ring-1 ring-inset ring-primary/35'
-                : 'border border-border/35 bg-muted/80 text-muted-foreground hover:text-foreground'
-            )}
-            aria-pressed={advancedCount > 0}
-            aria-label={
-              advancedCount > 0
-                ? tChips('filtersActiveAria', { count: advancedCount })
-                : tChips('filters')
-            }
-          >
-            <SlidersHorizontal className="size-4" aria-hidden />
-            {advancedCount > 0 ? (
-              <span className={stitchTransactions.filterCountBadge} aria-hidden>
-                {advancedCount}
-              </span>
-            ) : null}
-          </button>
+            >
+              <SlidersHorizontal className="size-4" aria-hidden />
+              {advancedCount > 0 ? (
+                <span className={stitchTransactions.filterCountBadge} aria-hidden>
+                  {advancedCount}
+                </span>
+              ) : null}
+            </button>
           </div>
           {advancedCount > 0 ? (
             <button

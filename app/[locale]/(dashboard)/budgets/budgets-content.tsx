@@ -14,7 +14,7 @@ import {
   BudgetsSummaryHero,
   BudgetCategoryCard,
   BudgetPeriodHeader,
-  CloseBudgetPeriodModal,
+  StartSalaryPeriodModal,
   EditClosingDateModal,
 } from '@/features/budgets/components';
 import { useBudgetsContent, type UseBudgetsContentProps } from '@/features/budgets';
@@ -69,7 +69,7 @@ export default function BudgetsContent({
     handleSelectUser,
     isModalOpen,
   } = useBudgetsContent(props);
-  const [isClosePeriodModalOpen, setIsClosePeriodModalOpen] = useState(false);
+  const [isStartSalaryPeriodOpen, setIsStartSalaryPeriodOpen] = useState(false);
   const [isEditClosingDateModalOpen, setIsEditClosingDateModalOpen] = useState(false);
   const [periodStatusMessage, setPeriodStatusMessage] = useState('');
 
@@ -95,7 +95,7 @@ export default function BudgetsContent({
               <BudgetPeriodHeader
                 periodStart={userBudgetSummary.periodStart}
                 periodEnd={userBudgetSummary.periodEnd}
-                onClosePeriod={() => setIsClosePeriodModalOpen(true)}
+                onStartSalaryPeriod={() => setIsStartSalaryPeriodOpen(true)}
                 onEditClosingDate={() => setIsEditClosingDateModalOpen(true)}
               />
 
@@ -113,12 +113,17 @@ export default function BudgetsContent({
                 {periodStatusMessage}
               </div>
 
-              <CloseBudgetPeriodModal
-                key={isClosePeriodModalOpen ? budgetContextUserId : 'closed'}
-                isOpen={isClosePeriodModalOpen}
-                onClose={() => setIsClosePeriodModalOpen(false)}
-                onSuccess={() => setPeriodStatusMessage(t('periodCloseSuccess'))}
+              <StartSalaryPeriodModal
+                key={
+                  isStartSalaryPeriodOpen
+                    ? `${budgetContextUserId}-salary-period`
+                    : 'salary-period-closed'
+                }
+                isOpen={isStartSalaryPeriodOpen}
+                onClose={() => setIsStartSalaryPeriodOpen(false)}
+                onSuccess={() => setPeriodStatusMessage(t('salaryPeriodSuccess'))}
                 userId={budgetContextUserId}
+                periodStart={userBudgetSummary.periodStart}
               />
 
               <EditClosingDateModal
@@ -151,7 +156,11 @@ export default function BudgetsContent({
               </p>
               <p className={stitchRecurring.emptyDescription}>{t('emptyState.description')}</p>
               <div className={stitchRecurring.emptyActions}>
-                <button type="button" onClick={handleCreateBudget} className={stitchSurface.primaryCta}>
+                <button
+                  type="button"
+                  onClick={handleCreateBudget}
+                  className={stitchSurface.primaryCta}
+                >
                   {t('emptyState.createButton')}
                 </button>
               </div>
@@ -163,7 +172,7 @@ export default function BudgetsContent({
         onClick={handleCreateBudget}
         ariaLabel={t('fabAddBudget')}
         testId="budgets-fab-add"
-        hidden={isModalOpen || isClosePeriodModalOpen || isEditClosingDateModalOpen}
+        hidden={isModalOpen || isStartSalaryPeriodOpen || isEditClosingDateModalOpen}
       />
     </>
   );

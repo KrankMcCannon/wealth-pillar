@@ -20,6 +20,5 @@ export { SettingsRow } from './sections/settings-row';
 export * from './sections/ProfileSection';
 export * from './sections/GroupSection';
 export * from './sections/CategoriesSection';
-export * from './sections/DataSection';
 export * from './sections/PreferencesSection';
 export * from './sections/SupportSection';

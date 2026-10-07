@@ -1,9 +1,6 @@
 const HEADER_SCAN_LIMIT = 30;
 
-export function normalizeHeaderCell(
-  value: unknown,
-  options?: { stripColon?: boolean }
-): string {
+export function normalizeHeaderCell(value: unknown, options?: { stripColon?: boolean }): string {
   const normalized = String(value ?? '')
     .trim()
     .toLowerCase();

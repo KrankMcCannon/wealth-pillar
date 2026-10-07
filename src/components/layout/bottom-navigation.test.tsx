@@ -20,17 +20,13 @@ vi.mock('@/i18n/routing', () => ({
   Link: ({
     children,
     href,
-    className,
-    title,
+    prefetch: _prefetch,
     ...props
-  }: {
-    children: React.ReactNode;
+  }: React.AnchorHTMLAttributes<HTMLAnchorElement> & {
     href: string;
-    className?: string;
-    title?: string;
-    'aria-current'?: 'page';
+    prefetch?: boolean;
   }) => (
-    <a href={href} className={className} title={title} {...props}>
+    <a href={href} {...props}>
       {children}
     </a>
   ),

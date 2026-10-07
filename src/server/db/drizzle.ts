@@ -28,9 +28,7 @@ const globalForDb = globalThis as unknown as {
 // Do not cache a client created without a URL — Turbopack can evaluate this
 // module before env is injected, then keep the dead pool on later reloads.
 const client =
-  connectionString &&
-  globalForDb.pgClient &&
-  globalForDb.pgConnectionString === connectionString
+  connectionString && globalForDb.pgClient && globalForDb.pgConnectionString === connectionString
     ? globalForDb.pgClient
     : postgres(connectionString ?? '', {
         prepare: false,

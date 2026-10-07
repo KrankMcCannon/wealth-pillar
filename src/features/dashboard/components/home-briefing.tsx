@@ -65,7 +65,9 @@ export function HomeBriefing({
             <p id="home-spendable-heading" className={stitchHome.sectionEyebrow}>
               {t('spendableLabel')}
             </p>
-            <span className="text-sm font-semibold text-muted-foreground">{t('spendableViewAll')}</span>
+            <span className="text-sm font-semibold text-muted-foreground">
+              {t('spendableViewAll')}
+            </span>
           </div>
           <p className="sr-only">{t('spendableHint')}</p>
           <p className="leading-none">

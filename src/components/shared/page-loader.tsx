@@ -58,10 +58,7 @@ interface PageLoaderProps {
   skipLabel?: string;
 }
 
-export function PageLoader({
-  variant = 'home',
-  skipLabel,
-}: Readonly<PageLoaderProps>) {
+export function PageLoader({ variant = 'home', skipLabel }: Readonly<PageLoaderProps>) {
   const tHome = useTranslations('HomeContent');
   const resolvedSkipLabel = skipLabel ?? tHome('skipToContent');
 

@@ -54,10 +54,7 @@ async function loadClosedPeriod(userId: string, periodId: string): Promise<Budge
   return period;
 }
 
-async function persistSnapshot(
-  period: BudgetPeriod,
-  budgets: Budget[]
-): Promise<BudgetPeriod> {
+async function persistSnapshot(period: BudgetPeriod, budgets: Budget[]): Promise<BudgetPeriod> {
   const updated = await BudgetPeriodsRepository.update(period.id, {
     budgets_snapshot: toBudgetsSnapshot(budgets),
   });

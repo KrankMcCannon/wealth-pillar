@@ -11,10 +11,7 @@ vi.mock('../ui/select', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../ui/select')>();
   return {
     ...actual,
-    Select: ({
-      children,
-      ...props
-    }: ComponentProps<typeof actual.Select>) => (
+    Select: ({ children, ...props }: ComponentProps<typeof actual.Select>) => (
       <actual.Select {...props} open>
         {children}
       </actual.Select>

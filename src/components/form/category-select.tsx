@@ -65,6 +65,7 @@ export const CategorySelect = React.memo<CategorySelectProps>(
     const resolvedPlaceholder = placeholder ?? t('placeholder');
     const searchInputRef = React.useRef<HTMLInputElement>(null);
     const triggerRef = React.useRef<HTMLButtonElement>(null);
+    const listboxId = React.useId();
 
     // Debounce search for performance
     const debouncedSearch = useDebouncedValue(searchValue, 200);
@@ -182,6 +183,7 @@ export const CategorySelect = React.memo<CategorySelectProps>(
             type="button"
             role="combobox"
             aria-expanded={isOpen}
+            aria-controls={listboxId}
             aria-haspopup="listbox"
             disabled={disabled}
             className={cn(s.selectorTrigger, className)}
@@ -254,7 +256,12 @@ export const CategorySelect = React.memo<CategorySelectProps>(
             </div>
 
             {/* Scrollable Viewport */}
-            <div className={s.categoryDropdown.viewport} role="listbox" tabIndex={-1}>
+            <div
+              id={listboxId}
+              className={s.categoryDropdown.viewport}
+              role="listbox"
+              tabIndex={-1}
+            >
               {/* Recent Categories Section */}
               <AnimatePresence>
                 {!debouncedSearch && recentCategories.length > 0 && (

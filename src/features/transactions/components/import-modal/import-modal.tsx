@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Upload } from 'lucide-react';
+import { useRouter } from '@/i18n/routing';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import {
   ModalWrapper,
@@ -139,6 +140,7 @@ function GroupMappingFields({
 
 export default function ImportModal({ isOpen, onClose }: Readonly<ImportModalProps>) {
   const t = useTranslations('Transactions.ImportModal');
+  const router = useRouter();
   const currentUser = useRequiredCurrentUser();
   const groupId = useRequiredGroupId();
   const groupUsers = useRequiredGroupUsers();
@@ -323,6 +325,7 @@ export default function ImportModal({ isOpen, onClose }: Readonly<ImportModalPro
 
       setResult(response.data);
       setStep('result');
+      router.refresh();
     } catch (error) {
       toast({
         title: t('errors.commitFailed'),
@@ -332,7 +335,7 @@ export default function ImportModal({ isOpen, onClose }: Readonly<ImportModalPro
     } finally {
       setIsBusy(false);
     }
-  }, [groupId, previewRows, t, toast]);
+  }, [groupId, previewRows, router, t, toast]);
 
   // Referential equality of unchanged rows is preserved by these updaters (see ImportPreviewRow),
   // which keeps the virtualized list from re-rendering rows the user didn't touch.

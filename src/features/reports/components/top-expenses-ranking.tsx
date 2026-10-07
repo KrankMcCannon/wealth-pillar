@@ -13,7 +13,7 @@ import type { ReportsTopExpenseRow } from '@/server/use-cases/reports/report.log
 export type TopExpenseRow = ReportsTopExpenseRow;
 
 /** Named rows on mobile; the rest folds into a remaining summary. Server still returns the full top 8. */
-const RANKING_VISIBLE = 5;
+const RANKING_VISIBLE = 3;
 
 interface TopExpensesRankingProps {
   items: TopExpenseRow[];
@@ -90,7 +90,7 @@ function RankingRowBody({
             {...getBudgetProgressbarProps({ percent: pct, label: barLabel })}
           >
             <div
-              className={cn('h-full min-h-[8px] rounded-full', stitchReports.progressFillPrimary)}
+              className={cn('h-full min-h-2 rounded-full', stitchReports.progressFillPrimary)}
               style={{ width: `${Math.min(100, pct)}%` }}
             />
           </div>
@@ -108,7 +108,9 @@ export function TopExpensesRanking({
 }: TopExpensesRankingProps) {
   const t = useTranslations('Reports.TopExpenses');
   const { format: formatMoney } = useFormatCurrency();
-  const outflowTotal = roundMoney(items.filter((row) => row.total > 0).reduce((sum, row) => sum + row.total, 0));
+  const outflowTotal = roundMoney(
+    items.filter((row) => row.total > 0).reduce((sum, row) => sum + row.total, 0)
+  );
   const hasCredits = items.some((row) => row.total < 0);
   const shareBase = hasCredits && outflowTotal > 0 ? outflowTotal : periodExpenses;
   const visible = items.slice(0, RANKING_VISIBLE);

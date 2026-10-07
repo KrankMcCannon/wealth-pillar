@@ -29,19 +29,17 @@ describe('usePageHeader', () => {
     const reset = vi.fn();
     useDashboardHeaderStore.setState({ resetHeader: reset });
 
-    const { rerender } = render(
-      <Probe title="Period" showBack={true} backHref="/reports" />
-    );
+    const { rerender } = render(<Probe title="Period" showBack backHref="/reports" />);
     expect(useDashboardHeaderStore.getState().config.title).toBe('Period');
     expect(reset).not.toHaveBeenCalled();
 
-    rerender(<Probe title="Period" showBack={true} backHref="/reports" />);
+    rerender(<Probe title="Period" showBack backHref="/reports" />);
     expect(reset).not.toHaveBeenCalled();
     expect(useDashboardHeaderStore.getState().config.backHref).toBe('/reports');
   });
 
   it('keeps the last title on unmount so Suspense fallbacks do not flash the app name', () => {
-    const { unmount } = render(<Probe title="Period" showBack={true} />);
+    const { unmount } = render(<Probe title="Period" showBack />);
     expect(useDashboardHeaderStore.getState().config.title).toBe('Period');
     unmount();
     expect(useDashboardHeaderStore.getState().config.title).toBe('Period');

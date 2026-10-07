@@ -197,8 +197,14 @@ export function BudgetPeriodSection({
       restoreReportsScrollY();
       return;
     }
-    setOpenByUser(readPeriodGroupsOpen());
-    setStorageReady(true);
+    const frameId = globalThis.window.requestAnimationFrame(() => {
+      setOpenByUser(readPeriodGroupsOpen());
+      setStorageReady(true);
+    });
+
+    return () => {
+      globalThis.window.cancelAnimationFrame(frameId);
+    };
   }, [showGroups]);
 
   useLayoutEffect(() => {
@@ -215,8 +221,7 @@ export function BudgetPeriodSection({
   };
 
   const renderRow = (period: ReportPeriodSummary, nameAsHeading: boolean) => {
-    const href =
-      hrefForPeriod && canOpenPeriodDetail(period) ? hrefForPeriod(period) : undefined;
+    const href = hrefForPeriod && canOpenPeriodDetail(period) ? hrefForPeriod(period) : undefined;
     return (
       <PeriodRow
         key={period.id}

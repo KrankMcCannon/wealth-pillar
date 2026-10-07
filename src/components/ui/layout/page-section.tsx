@@ -37,12 +37,7 @@ export function PageSection({
     <section
       id={id}
       aria-label={ariaLabel}
-      className={cn(
-        sectionContainer,
-        sectionSurface[variant],
-        sectionPadding[padding],
-        className
-      )}
+      className={cn(sectionContainer, sectionSurface[variant], sectionPadding[padding], className)}
     >
       {children}
     </section>

@@ -10,6 +10,20 @@ interface WealthHeaderProps {
   totalValue: number;
   trendAmount?: number;
   trendPercentage?: number;
+  marketDataUpdatedAt: string | null;
+}
+
+function formatMarketFreshness(value: string | null | undefined, locale: string): string | null {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+
+  return new Intl.DateTimeFormat(locale, {
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date);
 }
 
 function splitCurrencyParts(formatted: string): { main: string; rest: string } {
@@ -23,6 +37,7 @@ export function WealthHeader({
   totalValue,
   trendAmount = 0,
   trendPercentage = 0,
+  marketDataUpdatedAt,
 }: Readonly<WealthHeaderProps>) {
   const locale = useLocale();
   const t = useTranslations('Investments.PersonalTab');
@@ -35,6 +50,7 @@ export function WealthHeader({
   const { main, rest } = splitCurrencyParts(totalFormatted);
   const percentLabel = `${Math.abs(trendPercentage).toFixed(2)}%`;
   const returnWithPercent = `${isPositive ? '+' : '-'}${returnFormatted} (${percentLabel})`;
+  const freshness = formatMarketFreshness(marketDataUpdatedAt, locale);
 
   return (
     <section className={stitchInvestments.heroSection} aria-label={t('totalPortfolioValue')}>
@@ -66,6 +82,11 @@ export function WealthHeader({
           </div>
         </div>
       </div>
+      <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+        {freshness
+          ? t('marketDataFreshness', { date: freshness })
+          : t('marketDataFreshnessUnknown')}
+      </p>
     </section>
   );
 }

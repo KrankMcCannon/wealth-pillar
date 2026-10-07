@@ -1,9 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  parseReturnTo,
-  pathWithoutReturnTo,
-  withReturnTo,
-} from './return-to';
+import { parseReturnTo, pathWithoutReturnTo, withReturnTo } from './return-to';
 
 describe('withReturnTo', () => {
   it('appends a safe internal path as from', () => {

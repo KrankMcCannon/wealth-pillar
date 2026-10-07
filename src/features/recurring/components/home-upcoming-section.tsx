@@ -39,10 +39,7 @@ export function HomeUpcomingSection({
         <h2 id="home-upcoming-heading" className={stitchHome.scanSectionTitle}>
           {t('upcomingTitle')}
         </h2>
-        <Link
-          href="/transactions?tab=Recurrent"
-          className={cn(stitchHome.viewAllLink, 'min-w-0')}
-        >
+        <Link href="/transactions?tab=Recurrent" className={cn(stitchHome.viewAllLink, 'min-w-0')}>
           {t('upcomingViewAll')}
         </Link>
       </div>

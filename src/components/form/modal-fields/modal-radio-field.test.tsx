@@ -7,19 +7,21 @@ import { ModalRadioField } from './modal-radio-field';
 function TypeForm({ disabled = false }: { disabled?: boolean }) {
   const form = useForm({ defaultValues: { type: 'expense' } });
   return (
-    <form>
-      <ModalRadioField
-        control={form.control}
-        name="type"
-        label="Type"
-        disabled={disabled}
-        options={[
-          { value: 'expense', label: 'Expense' },
-          { value: 'income', label: 'Income' },
-          { value: 'transfer', label: 'Transfer', description: 'Move between accounts' },
-        ]}
-      />
-    </form>
+    <ModalRadioField
+      control={form.control}
+      name="type"
+      label="Type"
+      disabled={disabled}
+      options={[
+        { value: 'expense', label: 'Expense' },
+        { value: 'income', label: 'Income' },
+        {
+          value: 'transfer',
+          label: 'Transfer',
+          description: 'Move between accounts',
+        },
+      ]}
+    />
   );
 }
 

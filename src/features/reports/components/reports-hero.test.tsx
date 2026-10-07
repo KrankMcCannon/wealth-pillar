@@ -32,9 +32,7 @@ describe('ReportsHero', () => {
   });
 
   it('shows noComparison when comparisonPercent is null', () => {
-    render(
-      <ReportsHero netFlow={-20} income={0} expenses={20} comparisonPercent={null} />
-    );
+    render(<ReportsHero netFlow={-20} income={0} expenses={20} comparisonPercent={null} />);
 
     expect(screen.getByText('noComparison')).toBeTruthy();
   });

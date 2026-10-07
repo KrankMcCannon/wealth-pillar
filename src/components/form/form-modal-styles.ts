@@ -70,8 +70,7 @@ export const formModalStyles = {
   fieldStack: 'divide-y divide-foreground/10',
   choice: {
     fieldset: 'm-0 min-w-0 w-full border-0 p-0',
-    legend:
-      'float-none w-full px-4 pt-3 pb-1 text-[15px] font-medium leading-snug text-foreground',
+    legend: 'float-none w-full px-4 pt-3 pb-1 text-[15px] font-medium leading-snug text-foreground',
     legendFlush: 'px-0 pt-1 pb-1.5 text-sm font-medium text-foreground',
     rows: 'divide-y divide-foreground/10',
     row: 'flex min-h-12 w-full cursor-pointer items-center justify-between gap-3 px-4 py-2 text-left',

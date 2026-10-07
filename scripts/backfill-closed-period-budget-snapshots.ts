@@ -87,15 +87,18 @@ async function main(): Promise<void> {
           AND (budgets_snapshot IS NULL OR budgets_snapshot = '[]'::jsonb)
       `;
       updated += 1;
-      console.log(
-        `${period.start_date} ${period.id} user=${period.user_id} envelopes=${snapshot.length}`
+      process.stdout.write(
+        `${period.start_date} ${period.id} user=${period.user_id} envelopes=${snapshot.length}\n`
       );
     }
 
-    console.log(`updated ${updated} closed periods for ${userIds.length} users`);
+    process.stdout.write(`updated ${updated} closed periods for ${userIds.length} users\n`);
   } finally {
     await sql.end({ timeout: 5 });
   }
 }
 
-void main();
+main().catch((error: unknown) => {
+  console.error(error);
+  process.exitCode = 1;
+});

@@ -10,7 +10,7 @@ import { HomeDashboardMain } from '@/components/layout';
 import { usePageHeader } from '@/hooks/use-page-header';
 import { AccountsList, useAccountsContent } from '@/features/accounts';
 import { Amount } from '@/components/ui/primitives';
-import { PeopleChips } from '@/features/transactions/components/filter-dock';
+import UserSelector from '@/components/shared/user-selector';
 import { cn } from '@/lib/utils';
 import type { User } from '@/lib/types';
 import type { AccountsPageData } from '@/server/use-cases/pages/accounts-page.use-case';
@@ -28,33 +28,25 @@ export default function AccountsContent({
   groupUsers,
   pageData,
 }: AccountsContentProps) {
-  const { accountBalances } = pageData;
+  const accounts = useReferenceDataStore((state) => state.accounts);
   const refreshAccounts = useReferenceDataStore((state) => state.refreshAccounts);
 
   useEffect(() => {
     refreshAccounts(pageData.accounts);
   }, [pageData.accounts, refreshAccounts]);
 
-  const accounts = pageData.accounts;
   const t = useTranslations('Accounts.Content');
-  const tLedger = useTranslations('TransactionsContent.Ledger');
-  const tUsers = useTranslations('UserSelector');
   const {
     selectedUserId,
     accountStats,
     sortedAccounts,
     filteredBalances,
     handleEditAccount,
-    handleRecalculateAccount,
     handleUserFilterChange,
-    recalculatingId,
     openModal,
   } = useAccountsContent({
-    accountBalances,
     currentUser,
     accounts,
-    statsAll: pageData.statsAll,
-    statsByUserId: pageData.statsByUserId,
   });
 
   const showUserPicker =
@@ -71,13 +63,12 @@ export default function AccountsContent({
   return (
     <HomeDashboardMain id="main-accounts" className="gap-5 pt-3">
       {showUserPicker ? (
-        <PeopleChips
-          ariaLabel={tLedger('usersAria')}
-          allLabel={tUsers('all')}
-          peopleAria={(name) => tUsers('selectUserAria', { name })}
-          groupUsers={groupUsers}
-          selectedUserId={selectedUserId}
-          onUserFilterChange={handleUserFilterChange}
+        <UserSelector
+          hideTitle
+          currentUser={currentUser}
+          users={groupUsers}
+          value={selectedUserId ?? 'all'}
+          onChange={handleUserFilterChange}
         />
       ) : null}
 
@@ -117,8 +108,6 @@ export default function AccountsContent({
         accounts={sortedAccounts}
         accountBalances={filteredBalances}
         onAccountClick={handleEditAccount}
-        onRecalculateAccount={handleRecalculateAccount}
-        recalculatingId={recalculatingId}
         onAddAccount={onAddAccount}
       />
     </HomeDashboardMain>

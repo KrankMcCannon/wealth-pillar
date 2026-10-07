@@ -62,10 +62,9 @@ describe('snapshotNeedsLiveCopy', () => {
 describe('resolvePeriodBudgets', () => {
   it('uses live budgets for an open period even if a snapshot exists', () => {
     expect(
-      resolvePeriodBudgets(
-        period({ end_date: null, is_active: true, budgets_snapshot: [snap] }),
-        [live]
-      )
+      resolvePeriodBudgets(period({ end_date: null, is_active: true, budgets_snapshot: [snap] }), [
+        live,
+      ])
     ).toEqual([live]);
   });
 
@@ -112,13 +111,17 @@ describe('upsertPeriodBudgetList / deletePeriodBudgetList', () => {
   });
 
   it('replaces an existing envelope', () => {
-    const updated = upsertPeriodBudgetList([snap], {
-      description: 'Edited',
-      amount: 90,
-      type: 'monthly',
-      categories: ['food'],
-      user_id: 'u1',
-    }, snap.id);
+    const updated = upsertPeriodBudgetList(
+      [snap],
+      {
+        description: 'Edited',
+        amount: 90,
+        type: 'monthly',
+        categories: ['food'],
+        user_id: 'u1',
+      },
+      snap.id
+    );
     expect(updated).toHaveLength(1);
     expect(updated[0]).toMatchObject({ id: 'snap-1', description: 'Edited', amount: 90 });
   });

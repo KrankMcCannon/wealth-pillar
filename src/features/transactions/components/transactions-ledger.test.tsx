@@ -51,7 +51,9 @@ function mockSetFilters() {
   return vi.fn<(value: SetStateAction<TransactionFiltersState>) => void>();
 }
 
-const tx = (overrides: Partial<Transaction> & Pick<Transaction, 'id' | 'amount' | 'description'>): Transaction => ({
+const tx = (
+  overrides: Partial<Transaction> & Pick<Transaction, 'id' | 'amount' | 'description'>
+): Transaction => ({
   user_id: 'u1',
   group_id: 'g1',
   category: 'tax',
@@ -82,6 +84,7 @@ describe('TransactionsLedger day totals', () => {
         onLoadMore={vi.fn()}
         onEditTransaction={vi.fn()}
         onAddTransaction={vi.fn()}
+        onImportTransactions={vi.fn()}
         emptyTitle="Empty"
         emptyDescription="None"
         selectedUserId={undefined}
@@ -131,6 +134,7 @@ function renderLedger(
       onLoadMore={vi.fn()}
       onEditTransaction={vi.fn()}
       onAddTransaction={vi.fn()}
+      onImportTransactions={vi.fn()}
       emptyTitle="Empty"
       emptyDescription="None"
       selectedUserId={undefined}

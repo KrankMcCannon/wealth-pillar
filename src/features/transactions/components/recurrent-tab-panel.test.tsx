@@ -107,8 +107,13 @@ describe('RecurrentTabPanel', () => {
     });
   });
 
-  it('shows skeleton while promise is pending', () => {
-    renderPanel(new Promise<RecurringTransactionSeries[]>(() => undefined));
+  it('shows skeleton while promise is pending', async () => {
+    const pendingPromise = new Promise<RecurringTransactionSeries[]>(() => undefined);
+
+    await act(async () => {
+      renderPanel(pendingPromise);
+      await Promise.resolve();
+    });
 
     expect(screen.getByTestId('recurring-skeleton')).toBeInTheDocument();
   });
@@ -128,31 +133,41 @@ describe('RecurrentTabPanel', () => {
         if (this.state.hasError) {
           return <div data-testid="recurring-error">failed</div>;
         }
+
         return this.props.children;
       }
     }
 
-    await act(async () => {
-      render(
-        <TestErrorBoundary>
-          <Suspense fallback={<div data-testid="recurring-skeleton" />}>
-            <RecurrentTabPanel
-              isActive
-              recurringSeriesPromise={Promise.reject(new Error('load failed'))}
-              groupUsers={[]}
-              onUserFilterChange={vi.fn()}
-              showUserPicker={false}
-              onCreateRecurringSeries={vi.fn()}
-              onEditRecurringSeries={vi.fn()}
-            />
-          </Suspense>
-        </TestErrorBoundary>
-      );
-      await Promise.resolve();
-    });
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
 
-    await waitFor(() => {
-      expect(screen.getByTestId('recurring-error')).toBeInTheDocument();
-    });
+    try {
+      await act(async () => {
+        render(
+          <TestErrorBoundary>
+            <Suspense fallback={<div data-testid="recurring-skeleton" />}>
+              <RecurrentTabPanel
+                isActive
+                recurringSeriesPromise={Promise.reject(new Error('load failed'))}
+                groupUsers={[]}
+                onUserFilterChange={vi.fn()}
+                showUserPicker={false}
+                onCreateRecurringSeries={vi.fn()}
+                onEditRecurringSeries={vi.fn()}
+              />
+            </Suspense>
+          </TestErrorBoundary>
+        );
+
+        await Promise.resolve();
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('recurring-error')).toBeInTheDocument();
+      });
+
+      expect(consoleErrorSpy).toHaveBeenCalled();
+    } finally {
+      consoleErrorSpy.mockRestore();
+    }
   });
 });

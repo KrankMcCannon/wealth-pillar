@@ -5,11 +5,9 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { RefreshCw } from 'lucide-react';
 import type { Account } from '@/lib';
 import { AccountCard } from './account-card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { cn } from '@/lib/utils';
 import {
   stitchHome,
   stitchRecurring,
@@ -34,8 +32,6 @@ interface AccountsListProps {
   accounts: Account[];
   accountBalances: Record<string, number>;
   onAccountClick?: (account: Account) => void;
-  onRecalculateAccount?: (account: Account) => void;
-  recalculatingId?: string | null;
   onAddAccount?: () => void;
   isLoading?: boolean;
 }
@@ -44,8 +40,6 @@ export const AccountsList = ({
   accounts,
   accountBalances,
   onAccountClick,
-  onRecalculateAccount,
-  recalculatingId = null,
   onAddAccount,
   isLoading = false,
 }: Readonly<AccountsListProps>) => {
@@ -95,32 +89,15 @@ export const AccountsList = ({
             </h2>
             <ul className={stitchHome.plainList}>
               {group.accounts.map((account) => {
-                const accountBalance = accountBalances[account.id] || 0;
-                const isRecalculating = recalculatingId === account.id;
+                const accountBalance = accountBalances[account.id] ?? 0;
+
                 return (
-                  <li key={account.id} className="flex items-center gap-1">
-                    <div className="min-w-0 flex-1">
-                      <AccountCard
-                        account={account}
-                        accountBalance={accountBalance}
-                        onClick={onAccountClick ? () => onAccountClick(account) : undefined}
-                      />
-                    </div>
-                    {onRecalculateAccount ? (
-                      <button
-                        type="button"
-                        className={cn(stitchHome.viewAllLink, 'size-11 min-h-11 min-w-11 shrink-0 p-0')}
-                        disabled={isRecalculating}
-                        onClick={() => onRecalculateAccount(account)}
-                        aria-label={tCard('ariaRecalculate', { name: account.name })}
-                        data-testid={`account-recalculate-${account.id}`}
-                      >
-                        <RefreshCw
-                          className={cn('size-4', isRecalculating && 'animate-spin')}
-                          aria-hidden
-                        />
-                      </button>
-                    ) : null}
+                  <li key={account.id}>
+                    <AccountCard
+                      account={account}
+                      accountBalance={accountBalance}
+                      onClick={onAccountClick ? () => onAccountClick(account) : undefined}
+                    />
                   </li>
                 );
               })}

@@ -66,7 +66,7 @@ describe('TopExpensesRanking', () => {
     );
   });
 
-  it('folds named rows after five into remaining categories', () => {
+  it('folds named rows after three into remaining categories', () => {
     const items: TopExpenseRow[] = Array.from({ length: 12 }, (_, i) => ({
       id: `id-${i}`,
       key: `k${i}`,
@@ -74,14 +74,18 @@ describe('TopExpensesRanking', () => {
       total: 10,
       color: '#000000',
     }));
+
     render(<TopExpensesRanking items={items} periodExpenses={120} />);
 
     expect(screen.getByText('Cat 0')).toBeTruthy();
-    expect(screen.getByText('Cat 4')).toBeTruthy();
-    expect(screen.queryByText('Cat 5')).toBeNull();
+    expect(screen.getByText('Cat 1')).toBeTruthy();
+    expect(screen.getByText('Cat 2')).toBeTruthy();
+    expect(screen.queryByText('Cat 3')).toBeNull();
+
     const remaining = screen.getByTestId('reports-remaining-categories');
-    expect(remaining.textContent).toContain('7 more categories');
-    expect(remaining.textContent).toContain('€70');
+
+    expect(remaining.textContent).toContain('9 more categories');
+    expect(remaining.textContent).toContain('€90');
   });
 
   it('does not throw or show remaining when period expenses are zero', () => {
@@ -90,7 +94,7 @@ describe('TopExpensesRanking', () => {
     expect(screen.queryByTestId('reports-remaining-categories')).toBeNull();
   });
 
-  it('does not use Other as the remaining label when a category is named Other', () => {
+  it('uses a neutral remaining label when a named Other category is folded', () => {
     const namedOther: TopExpenseRow = {
       id: 'uuid-other',
       key: 'other',
@@ -98,14 +102,19 @@ describe('TopExpensesRanking', () => {
       total: 15,
       color: '#666666',
     };
+
     render(
       <TopExpensesRanking items={[food, housing, transport, namedOther]} periodExpenses={120} />
     );
 
-    expect(screen.getByText('Other')).toBeTruthy();
-    expect(screen.getByTestId('reports-remaining-categories').textContent).toContain(
-      'remainingSpending'
-    );
+    // Only the top three named categories are visible.
+    expect(screen.queryByText('Other')).toBeNull();
+
+    const remaining = screen.getByTestId('reports-remaining-categories');
+
+    expect(remaining.textContent).toContain('1 more categories');
+    expect(remaining.textContent).not.toContain('Other');
+    expect(remaining.textContent).toContain('€30');
   });
 
   it('renders a non-interactive remaining row and links category rows by key', () => {

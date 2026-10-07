@@ -69,10 +69,18 @@ export function SandboxForecastTab() {
   const chartSummaryId = useId();
   const [amount, setAmount] = useState<number>(1000);
   const [years, setYears] = useState<number>(10);
-  const [rate, setRate] = useState<number>(7);
+  const [rateInput, setRateInput] = useState('');
+
+  const rate = useMemo(() => {
+    const normalized = rateInput.trim().replace(',', '.');
+    if (!normalized) return null;
+    const parsed = Number(normalized);
+    if (!Number.isFinite(parsed)) return null;
+    return clampRate(normalized, 0);
+  }, [rateInput]);
 
   const forecastData = useMemo(
-    () => buildForecastSeries(amount, years, rate),
+    () => (rate === null ? [] : buildForecastSeries(amount, years, rate)),
     [amount, years, rate]
   );
 
@@ -98,7 +106,7 @@ export function SandboxForecastTab() {
   }, []);
 
   const onRateChange = useCallback((raw: string) => {
-    setRate((prev) => clampRate(raw, prev));
+    setRateInput(raw);
   }, []);
 
   return (
@@ -116,137 +124,153 @@ export function SandboxForecastTab() {
       </div>
       <div>
         <FieldGroup className={investmentsStyles.sandbox.fieldsWrap}>
-            <Field>
-              <FieldLabel htmlFor="amount">{t('fields.initialAmount')}</FieldLabel>
-              <Input
-                id="amount"
-                type="text"
-                inputMode="decimal"
-                min={0}
-                max={MAX_FORECAST_AMOUNT}
-                step={1}
-                value={amount}
-                onChange={(e) => onAmountChange(e.target.value)}
-                autoComplete="off"
-                className={investmentsStyles.sandbox.input}
-              />
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="rate">{t('fields.annualReturn')}</FieldLabel>
-              <Input
-                id="rate"
-                type="text"
-                inputMode="decimal"
-                min={-50}
-                max={50}
-                step={0.1}
-                value={rate}
-                onChange={(e) => onRateChange(e.target.value)}
-                autoComplete="off"
-                className={investmentsStyles.sandbox.input}
-              />
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="years">{t('fields.durationYears')}</FieldLabel>
-              <Input
-                id="years"
-                type="text"
-                inputMode="numeric"
-                min={MIN_FORECAST_YEARS}
-                max={MAX_FORECAST_YEARS}
-                step={1}
-                value={years}
-                onChange={(e) => onYearsChange(e.target.value)}
-                autoComplete="off"
-                className={investmentsStyles.sandbox.input}
-              />
-            </Field>
-          </FieldGroup>
+          <Field>
+            <FieldLabel htmlFor="amount">{t('fields.initialAmount')}</FieldLabel>
+            <Input
+              id="amount"
+              type="text"
+              inputMode="decimal"
+              min={0}
+              max={MAX_FORECAST_AMOUNT}
+              step={1}
+              value={amount}
+              onChange={(e) => onAmountChange(e.target.value)}
+              autoComplete="off"
+              className={investmentsStyles.sandbox.input}
+            />
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="rate">{t('fields.annualReturn')}</FieldLabel>
+            <Input
+              id="rate"
+              type="text"
+              inputMode="decimal"
+              min={-50}
+              max={50}
+              step={0.1}
+              value={rateInput}
+              onChange={(e) => onRateChange(e.target.value)}
+              placeholder={t('fields.annualReturnPlaceholder')}
+              autoComplete="off"
+              className={investmentsStyles.sandbox.input}
+            />
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+              {t('fields.annualReturnHint')}
+            </p>
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="years">{t('fields.durationYears')}</FieldLabel>
+            <Input
+              id="years"
+              type="text"
+              inputMode="numeric"
+              min={MIN_FORECAST_YEARS}
+              max={MAX_FORECAST_YEARS}
+              step={1}
+              value={years}
+              onChange={(e) => onYearsChange(e.target.value)}
+              autoComplete="off"
+              className={investmentsStyles.sandbox.input}
+            />
+          </Field>
+        </FieldGroup>
 
-          <div className={investmentsStyles.sandbox.chartSection}>
-            {chartSrSummary ? (
-              <p id={chartSummaryId} className="sr-only">
-                {chartSrSummary}
-              </p>
-            ) : null}
-            <InvestmentChartContainer
-              className={investmentsStyles.charts.sandboxContainer}
-              aria-hidden
-            >
-              <ResponsiveContainer
-                width="100%"
-                height="100%"
-                minWidth={0}
-                initialDimension={rechartsSandboxInitialDimension}
+        <div className={investmentsStyles.sandbox.chartSection}>
+          {rate === null ? (
+            <div className="rounded-xl border border-border/30 bg-muted/35 p-4 text-sm leading-relaxed text-muted-foreground">
+              {t('rateRequired')}
+            </div>
+          ) : (
+            <>
+              {chartSrSummary ? (
+                <p id={chartSummaryId} className="sr-only">
+                  {chartSrSummary}
+                </p>
+              ) : null}
+              <InvestmentChartContainer
+                className={investmentsStyles.charts.sandboxContainer}
+                aria-hidden
               >
-                <AreaChart data={forecastData} margin={{ top: 20, right: 10, left: 0, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="colorForecast" x1="0" y1="0" x2="0" y2="1">
-                      <stop
-                        offset="5%"
-                        stopColor={investmentChartColors.areaAccent}
-                        stopOpacity={0.3}
-                      />
-                      <stop
-                        offset="95%"
-                        stopColor={investmentChartColors.areaAccent}
-                        stopOpacity={0}
-                      />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    vertical={false}
-                    stroke={investmentChartColors.grid}
-                  />
-                  <XAxis
-                    dataKey="year"
-                    stroke={investmentChartColors.axis}
-                    fontSize={12}
-                    tickLine={false}
-                    axisLine={false}
-                    dy={10}
-                  />
-                  <YAxis
-                    stroke={investmentChartColors.axis}
-                    fontSize={12}
-                    tickLine={false}
-                    axisLine={false}
-                    tickFormatter={(value) => {
-                      const n = Number(value);
-                      if (!Number.isFinite(n)) return '';
-                      return `${new Intl.NumberFormat(locale, {
-                        notation: 'compact',
-                        compactDisplay: 'short',
-                      }).format(n)}€`;
-                    }}
-                    width={60}
-                  />
-                  <Tooltip
-                    contentStyle={rechartsTooltipContentStyle()}
-                    itemStyle={rechartsTooltipItemStyle}
-                    formatter={(value) => [
-                      new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR' }).format(
-                        Number(value ?? 0) || 0
-                      ),
-                      t('valueSeriesLabel'),
-                    ]}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="amount"
-                    stroke={investmentChartColors.areaAccent}
-                    strokeWidth={3}
-                    fillOpacity={1}
-                    fill="url(#colorForecast)"
-                    activeDot={{ r: 6, strokeWidth: 0 }}
-                    {...rechartsAnimationOff}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </InvestmentChartContainer>
-          </div>
+                <ResponsiveContainer
+                  width="100%"
+                  height="100%"
+                  minWidth={0}
+                  initialDimension={rechartsSandboxInitialDimension}
+                >
+                  <AreaChart
+                    data={forecastData}
+                    margin={{ top: 20, right: 10, left: 0, bottom: 0 }}
+                  >
+                    <defs>
+                      <linearGradient id="colorForecast" x1="0" y1="0" x2="0" y2="1">
+                        <stop
+                          offset="5%"
+                          stopColor={investmentChartColors.areaAccent}
+                          stopOpacity={0.3}
+                        />
+                        <stop
+                          offset="95%"
+                          stopColor={investmentChartColors.areaAccent}
+                          stopOpacity={0}
+                        />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      vertical={false}
+                      stroke={investmentChartColors.grid}
+                    />
+                    <XAxis
+                      dataKey="year"
+                      stroke={investmentChartColors.axis}
+                      fontSize={12}
+                      tickLine={false}
+                      axisLine={false}
+                      dy={10}
+                    />
+                    <YAxis
+                      stroke={investmentChartColors.axis}
+                      fontSize={12}
+                      tickLine={false}
+                      axisLine={false}
+                      tickFormatter={(value) => {
+                        const n = Number(value);
+                        if (!Number.isFinite(n)) return '';
+                        return `${new Intl.NumberFormat(locale, {
+                          notation: 'compact',
+                          compactDisplay: 'short',
+                        }).format(n)}€`;
+                      }}
+                      width={60}
+                    />
+                    <Tooltip
+                      contentStyle={rechartsTooltipContentStyle()}
+                      itemStyle={rechartsTooltipItemStyle}
+                      formatter={(value) => [
+                        new Intl.NumberFormat(locale, {
+                          style: 'currency',
+                          currency: 'EUR',
+                        }).format(Number(value ?? 0) || 0),
+                        t('valueSeriesLabel'),
+                      ]}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="amount"
+                      stroke={investmentChartColors.areaAccent}
+                      strokeWidth={3}
+                      fillOpacity={1}
+                      fill="url(#colorForecast)"
+                      activeDot={{ r: 6, strokeWidth: 0 }}
+                      {...rechartsAnimationOff}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </InvestmentChartContainer>
+            </>
+          )}
         </div>
+      </div>
     </section>
   );
 }

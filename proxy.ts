@@ -40,7 +40,10 @@ const CLERK_NETLIFY_VARY =
 function withClerkNetlifyVary(response: NextResponse): NextResponse {
   const current = response.headers.get('Netlify-Vary');
   if (current?.includes('cookie=__session')) return response;
-  response.headers.set('Netlify-Vary', current ? `${current},${CLERK_NETLIFY_VARY}` : CLERK_NETLIFY_VARY);
+  response.headers.set(
+    'Netlify-Vary',
+    current ? `${current},${CLERK_NETLIFY_VARY}` : CLERK_NETLIFY_VARY
+  );
   return response;
 }
 

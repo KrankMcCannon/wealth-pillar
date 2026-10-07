@@ -1,7 +1,7 @@
 export function parseImportAmount(value: string | undefined): number | null {
   if (!value?.trim()) return null;
 
-  const trimmed = value.trim().replace(/[^\d,.\-]/g, '');
+  const trimmed = value.trim().replace(/[^\d,.-]/g, '');
   if (!trimmed || trimmed === '-') return null;
 
   if (trimmed.includes(',')) {

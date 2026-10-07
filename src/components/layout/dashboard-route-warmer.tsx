@@ -13,10 +13,7 @@ export const DASHBOARD_WARM_HREFS = [
   '/accounts',
 ] as const;
 
-export function warmDashboardRoutes(
-  prefetch: (href: string) => void,
-  currentPath?: string
-): void {
+export function warmDashboardRoutes(prefetch: (href: string) => void, currentPath?: string): void {
   for (const href of DASHBOARD_WARM_HREFS) {
     if (href === currentPath) continue;
     prefetch(href);
@@ -24,13 +21,17 @@ export function warmDashboardRoutes(
 }
 
 function warmDashboardModules(): void {
-  void import('../../../app/[locale]/(dashboard)/home/home-content');
-  void import('../../../app/[locale]/(dashboard)/transactions/transactions-content');
-  void import('../../../app/[locale]/(dashboard)/budgets/budgets-content');
-  void import('../../../app/[locale]/(dashboard)/investments/investments-content');
-  void import('../../../app/[locale]/(dashboard)/reports/reports-content');
-  void import('../../../app/[locale]/(dashboard)/settings/settings-content');
-  void import('../../../app/[locale]/(dashboard)/accounts/accounts-content');
+  import('../../../app/[locale]/(dashboard)/home/home-content').catch(() => undefined);
+  import('../../../app/[locale]/(dashboard)/transactions/transactions-content').catch(
+    () => undefined
+  );
+  import('../../../app/[locale]/(dashboard)/budgets/budgets-content').catch(() => undefined);
+  import('../../../app/[locale]/(dashboard)/investments/investments-content').catch(
+    () => undefined
+  );
+  import('../../../app/[locale]/(dashboard)/reports/reports-content').catch(() => undefined);
+  import('../../../app/[locale]/(dashboard)/settings/settings-content').catch(() => undefined);
+  import('../../../app/[locale]/(dashboard)/accounts/accounts-content').catch(() => undefined);
 }
 
 function runWhenIdle(work: () => void): () => void {

@@ -167,11 +167,7 @@ DropdownMenuSeparator.displayName = DropdownMenuPrimitive.Separator.displayName;
 
 const DropdownMenuShortcut = ({ className, ...props }: React.HTMLAttributes<HTMLSpanElement>) => {
   return (
-    <span
-      data-slot="dropdown-shortcut"
-      className={cn(dropdownShortcut, className)}
-      {...props}
-    />
+    <span data-slot="dropdown-shortcut" className={cn(dropdownShortcut, className)} {...props} />
   );
 };
 DropdownMenuShortcut.displayName = 'DropdownMenuShortcut';

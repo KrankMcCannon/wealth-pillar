@@ -24,6 +24,7 @@ export interface InvestmentsPageData {
   summary: PortfolioSummary;
   assetAllocation: AssetAllocationSlice[];
   portfolioHistory: { date: string; value: number }[];
+  marketDataUpdatedAt: string | null;
   indexData: TimeSeriesEntry[];
   currentIndex: string;
   holdings: InvestmentListItem[];
@@ -74,6 +75,7 @@ async function getCachedInvestmentsPageData(
     summary: overview.summary,
     assetAllocation: overview.assetAllocation,
     portfolioHistory: overview.portfolioHistory,
+    marketDataUpdatedAt: overview.marketDataUpdatedAt,
     indexData,
     currentIndex: indexSymbol,
     holdings: mapOverviewToHoldings(overview.investments),

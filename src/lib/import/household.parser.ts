@@ -1,10 +1,6 @@
 import type { ParsedImportGroup } from './types';
 import { parseImportAmount } from './parse-import-amount';
-import {
-  collapseDescription,
-  createRowId,
-  normalizeHeaderCell,
-} from './import-row-utils';
+import { collapseDescription, createRowId, normalizeHeaderCell } from './import-row-utils';
 
 const HEADER_SCAN_LIMIT = 30;
 
@@ -88,11 +84,7 @@ function pad2(value: number): string {
   return String(value).padStart(2, '0');
 }
 
-export function buildHouseholdIsoDate(
-  year: number,
-  month: number,
-  day: number
-): string | null {
+export function buildHouseholdIsoDate(year: number, month: number, day: number): string | null {
   if (!Number.isInteger(year) || !Number.isInteger(month) || !Number.isInteger(day)) return null;
   if (month < 1 || month > 12 || day < 1 || day > 31) return null;
   const date = new Date(Date.UTC(year, month - 1, day));

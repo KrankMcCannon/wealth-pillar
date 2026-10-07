@@ -54,29 +54,43 @@ export interface UserCacheInvalidationOptions {
  * Used after creating, updating, or deleting transactions.
  */
 export function invalidateTransactionCaches(opts: TransactionCacheInvalidationOptions): void {
-  const tags: string[] = [
-    CACHE_TAGS.TRANSACTIONS,
+  const accountTags: string[] = [
     CACHE_TAGS.ACCOUNTS,
     CACHE_TAGS.ACCOUNT(opts.accountId),
+    `group:${opts.groupId}:accounts`,
+  ];
+
+  if (opts.toAccountId) {
+    accountTags.push(CACHE_TAGS.ACCOUNT(opts.toAccountId));
+  }
+
+  // Balances are correctness-critical:
+  // the next read after a financial mutation must see the new value.
+  expireTags(accountTags);
+
+  const eventuallyConsistentTags: string[] = [
+    CACHE_TAGS.TRANSACTIONS,
     `account:${opts.accountId}:transactions`,
     `group:${opts.groupId}:transactions`,
-    `group:${opts.groupId}:accounts`,
     `group:${opts.groupId}:budgets`,
   ];
 
   if (opts.userId) {
-    tags.push(`user:${opts.userId}:transactions`, `user:${opts.userId}:budgets`);
+    eventuallyConsistentTags.push(
+      `user:${opts.userId}:transactions`,
+      `user:${opts.userId}:budgets`
+    );
   }
 
   if (opts.toAccountId) {
-    tags.push(CACHE_TAGS.ACCOUNT(opts.toAccountId), `account:${opts.toAccountId}:transactions`);
+    eventuallyConsistentTags.push(`account:${opts.toAccountId}:transactions`);
   }
 
   if (opts.transactionId) {
-    tags.push(`transaction:${opts.transactionId}`);
+    eventuallyConsistentTags.push(`transaction:${opts.transactionId}`);
   }
 
-  invalidateTags(tags);
+  invalidateTags(eventuallyConsistentTags);
 }
 
 /**
@@ -219,48 +233,64 @@ export function invalidateTransactionUpdateCaches(
     groupId?: string | undefined;
   }
 ): void {
-  const tags: string[] = [CACHE_TAGS.TRANSACTIONS, CACHE_TAGS.ACCOUNTS];
+  const accountTags: string[] = [CACHE_TAGS.ACCOUNTS, CACHE_TAGS.ACCOUNT(existing.accountId)];
+
+  if (existing.toAccountId) {
+    accountTags.push(CACHE_TAGS.ACCOUNT(existing.toAccountId));
+  }
+
+  if (update.accountId && update.accountId !== existing.accountId) {
+    accountTags.push(CACHE_TAGS.ACCOUNT(update.accountId));
+  }
+
+  if (update.toAccountId && update.toAccountId !== existing.toAccountId) {
+    accountTags.push(CACHE_TAGS.ACCOUNT(update.toAccountId));
+  }
+
+  if (existing.groupId) {
+    accountTags.push(`group:${existing.groupId}:accounts`);
+  }
+
+  if (update.groupId && update.groupId !== existing.groupId) {
+    accountTags.push(`group:${update.groupId}:accounts`);
+  }
+
+  expireTags(accountTags);
+
+  const tags: string[] = [CACHE_TAGS.TRANSACTIONS];
 
   if (existing.id) {
     tags.push(`transaction:${existing.id}`);
   }
 
-  // User tags
-  if (existing.userId)
+  if (existing.userId) {
     tags.push(`user:${existing.userId}:transactions`, `user:${existing.userId}:budgets`);
+  }
+
   if (update.userId && update.userId !== existing.userId) {
     tags.push(`user:${update.userId}:transactions`, `user:${update.userId}:budgets`);
   }
 
-  // Account tags
-  tags.push(CACHE_TAGS.ACCOUNT(existing.accountId), `account:${existing.accountId}:transactions`);
+  tags.push(`account:${existing.accountId}:transactions`);
+
   if (existing.toAccountId) {
-    tags.push(
-      CACHE_TAGS.ACCOUNT(existing.toAccountId),
-      `account:${existing.toAccountId}:transactions`
-    );
-  }
-  if (update.accountId && update.accountId !== existing.accountId) {
-    tags.push(CACHE_TAGS.ACCOUNT(update.accountId), `account:${update.accountId}:transactions`);
-  }
-  if (update.toAccountId && update.toAccountId !== existing.toAccountId) {
-    tags.push(CACHE_TAGS.ACCOUNT(update.toAccountId), `account:${update.toAccountId}:transactions`);
+    tags.push(`account:${existing.toAccountId}:transactions`);
   }
 
-  // Group tags
-  if (existing.groupId) {
-    tags.push(
-      `group:${existing.groupId}:transactions`,
-      `group:${existing.groupId}:accounts`,
-      `group:${existing.groupId}:budgets`
-    );
+  if (update.accountId && update.accountId !== existing.accountId) {
+    tags.push(`account:${update.accountId}:transactions`);
   }
+
+  if (update.toAccountId && update.toAccountId !== existing.toAccountId) {
+    tags.push(`account:${update.toAccountId}:transactions`);
+  }
+
+  if (existing.groupId) {
+    tags.push(`group:${existing.groupId}:transactions`, `group:${existing.groupId}:budgets`);
+  }
+
   if (update.groupId && update.groupId !== existing.groupId) {
-    tags.push(
-      `group:${update.groupId}:transactions`,
-      `group:${update.groupId}:accounts`,
-      `group:${update.groupId}:budgets`
-    );
+    tags.push(`group:${update.groupId}:transactions`, `group:${update.groupId}:budgets`);
   }
 
   invalidateTags(tags);

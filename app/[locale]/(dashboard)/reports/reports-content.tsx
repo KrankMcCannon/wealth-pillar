@@ -2,12 +2,13 @@
 
 import { use, useCallback, useMemo, useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
+import { ChevronDown } from 'lucide-react';
 import { useRouter, usePathname } from '@/i18n/routing';
 import { HomeDashboardMain } from '@/components/layout';
 import { usePageHeader } from '@/hooks/use-page-header';
 import type { ReportsPageData, ReportsScope } from '@/server/use-cases/pages/reports-page.use-case';
 import type { User } from '@/lib/types';
-import { stitchReports } from '@/styles/home-design-foundation';
+import { stitchHome, stitchReports } from '@/styles/home-design-foundation';
 import { pathWithoutReturnTo, withReturnTo } from '@/lib/navigation/return-to';
 import UserSelector from '@/components/shared/user-selector';
 import { ReportsTimeFilter } from '@/features/reports/components/reports-time-filter';
@@ -60,6 +61,7 @@ export default function ReportsContent({
   const [selectedScope, setSelectedScope] = useState<ReportsScope>(
     initialScope ?? data.defaultScope
   );
+  const [insightsOpen, setInsightsOpen] = useState(false);
 
   const syncScopeToUrl = useCallback(
     (scope: ReportsScope) => {
@@ -154,11 +156,7 @@ export default function ReportsContent({
         />
       </ReportsTimeFilter>
 
-      <HomeDashboardMain
-        id="main-reports"
-        ariaBusy={isPending}
-        className="pt-2"
-      >
+      <HomeDashboardMain id="main-reports" ariaBusy={isPending} className="pt-2">
         <div className={stitchReports.sectionStack}>
           {data.transactionsTruncated ? (
             <p className={stitchReports.incompleteNotice} role="status">
@@ -172,18 +170,6 @@ export default function ReportsContent({
             expenses={section.expenses}
             comparisonPercent={section.comparisonPercent}
             comparisonLabel={comparisonLabel}
-          />
-
-          <ReserveSection
-            savings={section.netSavings}
-            movementsHref={withReturnTo(
-              buildReportsReserveTransactionsHref({
-                preset,
-                customRange,
-                scope: selectedScope,
-              }),
-              here
-            )}
           />
 
           <TopExpensesRanking
@@ -202,24 +188,61 @@ export default function ReportsContent({
             }
           />
 
-          <AccountBreakdownSection
-            rows={section.accountBreakdown}
-            totalWealth={section.totalWealth}
-          />
-
-          <BudgetPeriodSection
-            periods={scopedPeriods}
-            users={groupUsers}
-            viewerId={currentUser.id}
-            hrefForPeriod={(period) =>
-              buildReportsPeriodHref({
-                periodId: period.id,
+          <ReserveSection
+            savings={section.netSavings}
+            movementsHref={withReturnTo(
+              buildReportsReserveTransactionsHref({
                 preset,
                 customRange,
                 scope: selectedScope,
-              })
-            }
+              }),
+              here
+            )}
           />
+
+          <details
+            className={stitchHome.scanSection}
+            open={insightsOpen}
+            onToggle={(event) => setInsightsOpen(event.currentTarget.open)}
+          >
+            <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40">
+              <span className="min-w-0">
+                <span className={stitchHome.scanSectionTitle}>{t('insightsTitle')}</span>
+                <span className="mt-1 block text-sm leading-relaxed text-muted-foreground">
+                  {t('insightsDescription')}
+                </span>
+              </span>
+              <ChevronDown
+                className={`size-4 shrink-0 transition-transform ${
+                  insightsOpen ? 'rotate-180' : ''
+                }`}
+                aria-hidden
+              />
+            </summary>
+
+            {insightsOpen ? (
+              <div className="mt-4 flex flex-col gap-5">
+                <AccountBreakdownSection
+                  rows={section.accountBreakdown}
+                  totalWealth={section.totalWealth}
+                />
+
+                <BudgetPeriodSection
+                  periods={scopedPeriods}
+                  users={groupUsers}
+                  viewerId={currentUser.id}
+                  hrefForPeriod={(period) =>
+                    buildReportsPeriodHref({
+                      periodId: period.id,
+                      preset,
+                      customRange,
+                      scope: selectedScope,
+                    })
+                  }
+                />
+              </div>
+            ) : null}
+          </details>
         </div>
       </HomeDashboardMain>
     </div>

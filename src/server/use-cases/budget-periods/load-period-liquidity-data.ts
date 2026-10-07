@@ -10,8 +10,7 @@ export async function loadPeriodLiquidityData(
   groupId: string | null | undefined,
   userId: string
 ): Promise<{ transactions: Transaction[]; accounts: Account[] }> {
-  const resolved =
-    groupId?.trim() || (await UsersRepository.findById(userId))?.group_id || '';
+  const resolved = groupId?.trim() || (await UsersRepository.findById(userId))?.group_id || '';
   if (!resolved) throw new Error('Group ID is required');
 
   const [result, accounts] = await Promise.all([

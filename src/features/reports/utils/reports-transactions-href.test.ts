@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { format } from 'date-fns';
 import { getCurrentReportingWindow, type ReportsTimePreset } from './reporting-window';
-import { buildReportsCategoryTransactionsHref, buildReportsPeriodHref, buildPeriodTransactionsHref, buildReportsReserveTransactionsHref, canOpenPeriodDetail } from './reports-transactions-href';
+import {
+  buildReportsCategoryTransactionsHref,
+  buildReportsPeriodHref,
+  buildPeriodTransactionsHref,
+  buildReportsReserveTransactionsHref,
+  canOpenPeriodDetail,
+} from './reports-transactions-href';
 
 const now = new Date('2024-06-15T12:00:00');
 const categoryKey = 'food';
@@ -15,29 +21,32 @@ function parseHref(href: string) {
 describe('buildReportsCategoryTransactionsHref', () => {
   const presets: ReportsTimePreset[] = ['yearly', 'ytd', 'monthly', 'weekly'];
 
-  it.each(presets)('maps %s through custom date bounds from getCurrentReportingWindow', (preset) => {
-    const window = getCurrentReportingWindow(preset, null, now);
-    const href = buildReportsCategoryTransactionsHref({
-      preset,
-      customRange: null,
-      scope: 'all',
-      categoryKey,
-      now,
-    });
-    const url = parseHref(href);
+  it.each(presets)(
+    'maps %s through custom date bounds from getCurrentReportingWindow',
+    (preset) => {
+      const window = getCurrentReportingWindow(preset, null, now);
+      const href = buildReportsCategoryTransactionsHref({
+        preset,
+        customRange: null,
+        scope: 'all',
+        categoryKey,
+        now,
+      });
+      const url = parseHref(href);
 
-    expect(url.pathname).toBe('/transactions');
-    expect(url.searchParams.get('dateRange')).toBe('custom');
-    expect(url.searchParams.get('startDate')).toBe(format(window.start, 'yyyy-MM-dd'));
-    expect(url.searchParams.get('endDate')).toBe(format(window.end, 'yyyy-MM-dd'));
-    expect(url.searchParams.get('type')).toBe('expense');
-    expect(url.searchParams.get('category')).toBe(categoryKey);
-    expect(url.searchParams.get('categories')).toBeNull();
-    expect(url.searchParams.get('user')).toBeNull();
-    expect(url.searchParams.get('member')).toBeNull();
-    expect(url.searchParams.get('from')).toBeNull();
-    expect(href).not.toContain(categoryUuid);
-  });
+      expect(url.pathname).toBe('/transactions');
+      expect(url.searchParams.get('dateRange')).toBe('custom');
+      expect(url.searchParams.get('startDate')).toBe(format(window.start, 'yyyy-MM-dd'));
+      expect(url.searchParams.get('endDate')).toBe(format(window.end, 'yyyy-MM-dd'));
+      expect(url.searchParams.get('type')).toBe('expense');
+      expect(url.searchParams.get('category')).toBe(categoryKey);
+      expect(url.searchParams.get('categories')).toBeNull();
+      expect(url.searchParams.get('user')).toBeNull();
+      expect(url.searchParams.get('member')).toBeNull();
+      expect(url.searchParams.get('from')).toBeNull();
+      expect(href).not.toContain(categoryUuid);
+    }
+  );
 
   it('uses the provided custom range and omits user when scope is all', () => {
     const customRange = { start: '2024-01-10', end: '2024-02-20' };

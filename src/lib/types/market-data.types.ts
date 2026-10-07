@@ -55,6 +55,7 @@ export interface MarketQuote {
 export interface MarketDataBatchResult {
   symbol: string;
   data: TimeSeriesEntry[];
+  lastUpdated: string | null;
 }
 
 // ============================================================================

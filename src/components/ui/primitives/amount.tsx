@@ -17,7 +17,7 @@ import { cn, formatCurrency, toFiniteMoney } from '@/lib/utils';
 
 const amountVariants = cva('font-bold tabular-nums', {
   variants: {
-      type: {
+    type: {
       income: 'text-income',
       expense: 'text-expense',
       transfer: 'text-foreground',

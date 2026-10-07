@@ -1,8 +1,6 @@
 import type { BudgetPeriod } from '@/lib/types';
 import { toDateTime } from '@/lib/utils/date-utils';
 import { BudgetPeriodsRepository } from '@/server/repositories/budget-periods.repository';
-import { createBudgetPeriodUseCase } from './create-budget-period.use-case';
-import { DateTime } from 'luxon';
 import { revalidateTag } from 'next/cache';
 import { CACHE_TAGS } from '@/lib/cache/config';
 import { invalidateBudgetPeriodCaches } from '@/lib/utils/cache-utils';
@@ -14,19 +12,6 @@ import {
 } from './period-amounts.logic';
 import { loadPeriodLiquidityData } from './load-period-liquidity-data';
 import { categoryKeysFromBudgets, toBudgetsSnapshot } from './period-budgets.logic';
-
-const autoCreateNextPeriod = async (userId: string, endDt: DateTime): Promise<void> => {
-  const nextStartDt = endDt.plus({ days: 1 });
-  const nextStartDateStr = nextStartDt.toISODate();
-
-  if (nextStartDateStr) {
-    try {
-      await createBudgetPeriodUseCase(userId, nextStartDateStr);
-    } catch (createError) {
-      console.error('[BudgetPeriodService] Failed to auto-create next period:', createError);
-    }
-  }
-};
 
 export const closeBudgetPeriodUseCase = async (
   userId: string,
@@ -78,8 +63,6 @@ export const closeBudgetPeriodUseCase = async (
 
   revalidateTag(CACHE_TAGS.USER_PREFERENCE(userId), 'max');
   invalidateBudgetPeriodCaches({ userId, periodId });
-
-  await autoCreateNextPeriod(userId, endDt);
 
   return closedPeriod;
 };

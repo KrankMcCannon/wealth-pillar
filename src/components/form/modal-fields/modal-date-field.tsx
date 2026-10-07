@@ -22,11 +22,12 @@ export function ModalDateField<T extends FieldValues>({
     field,
     fieldState: { error },
   } = useController({ control, name });
+  const handleChange = field.onChange;
 
   return (
     <DateField
       value={field.value ?? ''}
-      onChange={field.onChange}
+      onChange={handleChange}
       label={label}
       presentation={presentation}
       {...(error?.message !== undefined ? { error: error.message } : {})}

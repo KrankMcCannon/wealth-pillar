@@ -135,14 +135,26 @@ describe('HomeContent', () => {
       'recentActivityTitle',
     ]);
     expect(screen.queryByTestId('action-menu')).not.toBeInTheDocument();
-    expect(screen.queryByRole('region', { name: 'contextLabel' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('radiogroup', { name: 'contextLabel' })).not.toBeInTheDocument();
   });
 
   it('shows the shared user filter chips for an admin with multiple members', async () => {
     await renderHome(adminUser, [adminUser, otherUser]);
 
-    expect(await screen.findByRole('region', { name: 'contextLabel' })).toBeInTheDocument();
-    expect(screen.getAllByRole('button', { name: 'selectUserAria' })).toHaveLength(3);
+    const userSelector = await screen.findByRole('radiogroup', {
+      name: 'contextLabel',
+    });
+
+    expect(userSelector).toBeInTheDocument();
+
+    const userOptions = screen.getAllByRole('radio', {
+      name: 'selectUserAria',
+    });
+
+    expect(userOptions).toHaveLength(3);
+    expect(userOptions[0]).toHaveAttribute('aria-checked', 'true');
+    expect(userOptions[1]).toHaveAttribute('aria-checked', 'false');
+    expect(userOptions[2]).toHaveAttribute('aria-checked', 'false');
     expect(screen.getByText('all')).toBeInTheDocument();
     expect(screen.getByText('Alex')).toBeInTheDocument();
     expect(screen.getByText('Sam')).toBeInTheDocument();

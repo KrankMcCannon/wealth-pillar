@@ -28,9 +28,7 @@ export function getActiveFiltersCount(filters: TransactionFiltersState): number 
   return count;
 }
 
-export function clearAdvancedFilters(
-  filters: TransactionFiltersState
-): TransactionFiltersState {
+export function clearAdvancedFilters(filters: TransactionFiltersState): TransactionFiltersState {
   const { budgetId: _budgetId, categoryKeys: _categoryKeys, ...rest } = filters;
   return {
     ...rest,

@@ -53,18 +53,30 @@ export async function getBatchMarketDataUseCase(
       now.getTime() - new Date(cached.last_updated).getTime() < 24 * 60 * 60 * 1000;
 
     if (isFresh && cached?.data) {
-      results.push({ symbol: sym, data: normalizeSeriesValues(cached.data) });
+      results.push({
+        symbol: sym,
+        data: normalizeSeriesValues(cached.data),
+        lastUpdated: cached.last_updated ? new Date(cached.last_updated).toISOString() : null,
+      });
       continue;
     }
 
     if (cached?.data) {
       refreshMarketDataInBackground(sym);
-      results.push({ symbol: sym, data: normalizeSeriesValues(cached.data) });
+      results.push({
+        symbol: sym,
+        data: normalizeSeriesValues(cached.data),
+        lastUpdated: cached.last_updated ? new Date(cached.last_updated).toISOString() : null,
+      });
       continue;
     }
 
     const fetched = await fetchAndCacheMarketData(sym);
-    results.push({ symbol: sym, data: fetched });
+    results.push({
+      symbol: sym,
+      data: fetched,
+      lastUpdated: fetched.length > 0 ? new Date().toISOString() : null,
+    });
   }
 
   return results;

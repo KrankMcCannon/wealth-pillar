@@ -42,6 +42,7 @@ export interface PortfolioResult {
 
 export interface InvestmentsOverviewResult extends PortfolioResult {
   portfolioHistory: { date: string; value: number }[];
+  marketDataUpdatedAt: string | null;
 }
 
 export type InvestmentInsert = Database['public']['Tables']['investments']['Insert'];

@@ -1,5 +1,10 @@
 {
   "Auth": {
+    "productIntro": {
+      "title": "Household finances, in one place.",
+      "subtitle": "Know what you can spend today and keep accounts, budgets, reserve, and investments in the same picture.",
+      "trustNote": "Personal sign-in and group roles keep each member's perspective clear."
+    },
     "error": {
       "title": "Something went wrong",
       "subtitle": "Try again or contact support",
@@ -90,10 +95,6 @@
       "emptyCustom": "No custom categories yet",
       "emptySystem": "No default categories"
     },
-    "Data": {
-      "title": "Data",
-      "importTransactions": "Import transactions"
-    },
     "Preferences": {
       "title": "Preferences",
       "currencyLabel": "Currency",
@@ -126,7 +127,7 @@
       },
       "currentBadge": "Current",
       "cancelButton": "Cancel",
-      "saveButton": "Save",
+      "saveButton": "Save preference",
       "savingButton": "Saving..."
     },
     "InviteMember": {
@@ -194,7 +195,7 @@
       "membersTitle": "Members",
       "inviteButton": "Invite member",
       "cancelButton": "Cancel",
-      "saveButton": "Save",
+      "saveButton": "Save group",
       "roles": {
         "admin": "Administrator",
         "member": "Member"
@@ -393,7 +394,9 @@
   },
   "ReportsContent": {
     "headerTitle": "Reports",
-    "incompleteData": "Some transactions fall outside this calculation. Totals may be partial."
+    "incompleteData": "Some transactions fall outside this calculation. Totals may be partial.",
+    "insightsTitle": "More detail",
+    "insightsDescription": "Accounts and budget periods when you need a deeper view."
   },
   "Reports": {
     "TimeFilter": {
@@ -524,6 +527,10 @@
       "allocationLabel": "Allocation",
       "currentValueLabel": "Current Value",
       "portfolioHeroHint": "Total market value of your positions today",
+      "marketDataFreshness": "Prices updated {date} · not real-time data",
+      "marketDataFreshnessUnknown": "Market prices are not real-time",
+      "analyticsTitle": "Portfolio analysis",
+      "analyticsDescription": "Allocation, performance history, and benchmark comparison",
       "investedLabel": "Invested",
       "investedDescription": "Share cost",
       "taxesPaidLabel": "Taxes Paid",
@@ -546,7 +553,7 @@
       "changeUp": "up {amount} ({percent})",
       "changeDown": "down {amount} ({percent})",
       "empty": "No holdings yet",
-      "emptyDescription": "Tap Add in the bottom bar, then New Investment. On a larger screen, use the + menu at the top right.",
+      "emptyDescription": "Add your first investment with the + button.",
       "columns": {
         "instrument": "Instrument",
         "shares": "Shares",
@@ -587,9 +594,11 @@
       "chartDataSummary": "Forecast from {startYear} to {endYear}. Projected final value {value}.",
       "fields": {
         "initialAmount": "Initial Amount (€)",
-        "annualReturn": "Annual Return (%)",
-        "durationYears": "Duration (Years)"
+        "annualReturn": "Assumed Annual Return (%)",
+        "annualReturnPlaceholder": "e.g. 5",
+        "annualReturnHint": "Enter your own return assumption. Wealth Pillar does not estimate future returns."
       },
+      "rateRequired": "Enter an assumed return to see the simulation.",
       "valueSeriesLabel": "Value"
     },
     "ShareSelector": {
@@ -644,7 +653,7 @@
         "tax": "0.00",
         "shares": "10"
       },
-      "saveButton": "Save",
+      "saveButton": "Save investment",
       "cancelButton": "Cancel",
       "retryLoad": "Try again",
       "toast": {
@@ -669,6 +678,7 @@
     "Ledger": {
       "canSpend": "You can spend",
       "asOf": "As of {date}",
+      "importTransactions": "Import transactions",
       "typesAria": "Filter by type",
       "usersAria": "Filter by member",
       "monthlyNet": "Net / month",
@@ -923,8 +933,8 @@
         }
       },
       "buttons": {
-        "create": "Create",
-        "update": "Update",
+        "create": "Create transaction",
+        "update": "Save changes",
         "cancel": "Cancel",
         "delete": "Delete transaction",
         "saveTransaction": "Save transaction"
@@ -1370,8 +1380,8 @@
         "isDefault": "Default"
       },
       "buttons": {
-        "create": "Create",
-        "update": "Update",
+        "create": "Create account",
+        "update": "Save changes",
         "cancel": "Cancel",
         "delete": "Delete account"
       },
@@ -1466,8 +1476,9 @@
       "editDatesHint": "Neighboring periods stay consecutive. Totals of the changed periods are recalculated.",
       "noClosedPeriodAlert": "No closed period available to edit.",
       "buttons": {
-        "closePeriod": "Close period",
-        "editClosingDate": "Adjust last closing date",
+        "closePeriod": "Close now",
+        "editClosingDate": "Edit previous period",
+        "autoRenewal": "The next period will start automatically on {date}.",
         "saveClosingDate": "Save closing date",
         "editDates": "Edit dates",
         "saveDates": "Save dates",
@@ -1490,6 +1501,8 @@
       },
       "closePeriod": "Close period",
       "editClosingDate": "Adjust last closing date",
+      "startSalaryPeriod": "New cycle",
+      "salaryPeriodSuccess": "New period started from the salary credit date.",
       "periodActionsAria": "Period actions",
       "periodCloseSuccess": "Period closed. The next period has started.",
       "fabAddBudget": "Add budget",
@@ -1518,6 +1531,23 @@
         "title": "No budget available",
         "description": "Create your first budget to get started",
         "createButton": "Create budget"
+      }
+    },
+    "SalaryPeriod": {
+      "title": "New salary cycle",
+      "description": "Start a new period when your salary has actually been credited.",
+      "hint": "Confirm the actual credit date. The current period will close on the previous day and the new period will start from this date. Nothing renews automatically.",
+      "dateLabel": "Salary credit date",
+      "submit": "Start new period",
+      "cancel": "Cancel",
+      "successTitle": "New cycle started",
+      "successDescription": "Your budget is now aligned with the new salary credit.",
+      "errors": {
+        "dateRequired": "Select the credit date.",
+        "futureDate": "The credit date cannot be in the future.",
+        "afterCurrentStart": "The new date must be after the current period start.",
+        "operationFailed": "Could not start the new period",
+        "unknown": "An unexpected error occurred."
       }
     },
     "Detail": {
@@ -1597,7 +1627,7 @@
         }
       },
       "buttons": {
-        "save": "Save",
+        "save": "Save changes",
         "create": "Create Budget",
         "cancel": "Cancel",
         "confirmChanges": "Confirm",
@@ -1751,7 +1781,7 @@
         }
       },
       "buttons": {
-        "save": "Save",
+        "save": "Save changes",
         "create": "Create Category",
         "cancel": "Cancel",
         "delete": "Delete category"
@@ -1893,7 +1923,7 @@
     "buttons": {
       "back": "Back",
       "next": "Next",
-      "confirm": "Confirm",
+      "confirm": "Go to Home",
       "saving": "Saving...",
       "skip": "Skip",
       "addAccount": "Add account",

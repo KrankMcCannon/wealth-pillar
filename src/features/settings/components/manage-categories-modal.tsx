@@ -40,11 +40,7 @@ export function ManageCategoriesModal({ isOpen, onClose }: Readonly<ManageCatego
   const usedSet = useMemo(() => new Set(usedCategoryKeys), [usedCategoryKeys]);
 
   return (
-    <ModalWrapper
-      isOpen={isOpen}
-      onOpenChange={onClose}
-      title={t('modalTitle')}
-    >
+    <ModalWrapper isOpen={isOpen} onOpenChange={onClose} title={t('modalTitle')}>
       <ModalBody className="flex flex-col gap-5 pb-4">
         <ModalSection title={t('customTitle')}>
           <div className={s.sectionCard}>

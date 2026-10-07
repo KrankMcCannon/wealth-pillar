@@ -17,6 +17,7 @@ export interface TransactionsLedgerProps {
   readonly onLoadMore: () => void;
   readonly onEditTransaction: (transaction: Transaction) => void;
   readonly onAddTransaction: () => void;
+  readonly onImportTransactions: () => void;
   readonly emptyTitle: string;
   readonly emptyDescription: string;
   readonly selectedUserId: string | undefined;

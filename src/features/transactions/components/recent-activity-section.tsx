@@ -29,7 +29,10 @@ export function RecentActivitySection({
         <h2 id="home-recent-heading" className={stitchHome.scanSectionTitle}>
           {t('recentActivityTitle')}
         </h2>
-        <Link href={withReturnTo('/transactions', '/home')} className={cn(stitchHome.viewAllLink, 'min-w-0')}>
+        <Link
+          href={withReturnTo('/transactions', '/home')}
+          className={cn(stitchHome.viewAllLink, 'min-w-0')}
+        >
           {t('recentActivityViewAll')}
         </Link>
       </div>

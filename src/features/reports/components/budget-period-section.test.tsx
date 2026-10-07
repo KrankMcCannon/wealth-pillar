@@ -9,8 +9,22 @@ vi.mock('next-intl', () => ({
 }));
 
 vi.mock('@/i18n/routing', () => ({
-  Link: ({ href, children, ...props }: { href: string; children: React.ReactNode }) => (
-    <a href={href} {...props}>
+  Link: ({
+    href,
+    children,
+    onClick,
+    ...props
+  }: React.AnchorHTMLAttributes<HTMLAnchorElement> & {
+    href: string;
+  }) => (
+    <a
+      href={href}
+      {...props}
+      onClick={(event) => {
+        event.preventDefault();
+        onClick?.(event);
+      }}
+    >
       {children}
     </a>
   ),

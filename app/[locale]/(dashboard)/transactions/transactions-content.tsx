@@ -113,6 +113,7 @@ export default function TransactionsContent({
         onLoadMore: loadMore,
         onEditTransaction: handleEditTransaction,
         onAddTransaction: () => openModal('transaction'),
+        onImportTransactions: () => openModal('import'),
         emptyTitle: t('empty.title'),
         emptyDescription: hasActiveFilters
           ? t('empty.noFilterResults')

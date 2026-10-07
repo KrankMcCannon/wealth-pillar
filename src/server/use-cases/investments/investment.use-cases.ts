@@ -40,6 +40,7 @@ export async function getInvestmentsOverviewUseCase(
       },
       assetAllocation: [],
       portfolioHistory: [],
+      marketDataUpdatedAt: null,
     };
   }
 
@@ -47,6 +48,16 @@ export async function getInvestmentsOverviewUseCase(
   const symbols = [...new Set(rows.map((inv) => inv.symbol.toUpperCase()))];
   const batch = await getBatchMarketDataUseCase(symbols);
   const seriesIndex = batchResultsToSeriesIndex(batch);
+  const freshnessTimes = batch
+    .map((item) => item.lastUpdated)
+    .filter((value): value is string => Boolean(value))
+    .map((value) => new Date(value).getTime())
+    .filter(Number.isFinite);
+
+  const marketDataUpdatedAt =
+    freshnessTimes.length === symbols.length
+      ? new Date(Math.min(...freshnessTimes)).toISOString()
+      : null;
 
   const portfolio = enrichPortfolioFromInvestments(rows, seriesIndex, {
     totalInvested: sqlTotals.totalInvested,
@@ -57,6 +68,7 @@ export async function getInvestmentsOverviewUseCase(
   return {
     ...portfolio,
     portfolioHistory,
+    marketDataUpdatedAt,
   };
 }
 

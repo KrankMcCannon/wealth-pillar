@@ -90,9 +90,7 @@ export function TransactionFormFields({
     [groupUsers]
   );
 
-  const userHint = shouldDisableUserField
-    ? t('fields.user.memberHelper')
-    : userFieldHelperText;
+  const userHint = shouldDisableUserField ? t('fields.user.memberHelper') : userFieldHelperText;
 
   return (
     <>

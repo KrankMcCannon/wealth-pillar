@@ -294,15 +294,17 @@ describe('foldBudgetCategorySpending', () => {
       'alice'
     );
     expect(spending).toEqual({ gym: 70, hair: 58, refund: -41 });
-    expect(foldBudgetSpent(
-      [
-        tx({ amount: 70, category: 'gym' }),
-        tx({ id: 'hair', amount: 58, category: 'hair' }),
-        tx({ id: 'refund', amount: 41, type: 'income', category: 'refund' }),
-      ],
-      [alicePayroll],
-      'alice'
-    )).toBe(87);
+    expect(
+      foldBudgetSpent(
+        [
+          tx({ amount: 70, category: 'gym' }),
+          tx({ id: 'hair', amount: 58, category: 'hair' }),
+          tx({ id: 'refund', amount: 41, type: 'income', category: 'refund' }),
+        ],
+        [alicePayroll],
+        'alice'
+      )
+    ).toBe(87);
   });
 });
 

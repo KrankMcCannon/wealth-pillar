@@ -133,7 +133,6 @@ export function DateField({
           aria-haspopup="dialog"
           aria-expanded={isOpen}
           aria-label={`${resolvedLabel}: ${displayText || t('placeholder')}`}
-          aria-invalid={error ? true : undefined}
           aria-describedby={error ? errorId : undefined}
           className={cn(
             'flex min-h-11 w-full items-center justify-between gap-2 rounded-xl border border-border/35 bg-muted/80 px-3 text-left text-sm font-medium transition-colors',
