@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { afterEach, beforeEach, describe, it, expect, vi } from 'vitest';
 import {
   buildPortfolioHistory,
   enrichPortfolioFromInvestments,
@@ -54,6 +54,28 @@ describe('enrichPortfolioFromInvestments', () => {
     expect(summary.totalReturnPercent).toBe(0);
   });
 
+  it('marks missing valuations and portfolio returns unavailable, without losing invested cost', () => {
+    const result = enrichPortfolioFromInvestments([row(), row({ symbol: 'MISSING' })], seriesIndex);
+    expect(result.investments[1]).toMatchObject({
+      currentPrice: null,
+      currentValue: null,
+      totalGain: null,
+    });
+    expect(result.summary).toMatchObject({
+      totalPaid: 2020,
+      totalCurrentValue: null,
+      totalReturn: null,
+      totalReturnPercent: null,
+    });
+  });
+  it('does not use a future quote as the acquisition value', () => {
+    const result = enrichPortfolioFromInvestments([row()], {
+      AAA: [{ date: '2024-02-01', close: 20 }],
+    });
+    expect(result.investments[0]?.initialValue).toBeNull();
+    expect(result.summary.totalInitialValue).toBeNull();
+  });
+
   it('uses precomputed SQL totals when provided', () => {
     const { summary } = enrichPortfolioFromInvestments([row()], seriesIndex, {
       totalInvested: 5000,
@@ -67,7 +89,13 @@ describe('enrichPortfolioFromInvestments', () => {
 });
 
 describe('buildPortfolioHistory', () => {
-  it('forward-fills prices within three calendar days', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2024-01-15T18:00:00Z'));
+  });
+  afterEach(() => vi.useRealTimers());
+
+  it('forward-fills prices across gaps', () => {
     const seriesIndex: SeriesIndex = {
       AAA: [
         { date: '2024-01-01', close: 10 },
@@ -83,6 +111,27 @@ describe('buildPortfolioHistory', () => {
     expect(day2?.value).toBe(20);
     expect(day3?.value).toBe(20);
     expect(day4?.value).toBe(28);
+  });
+
+  it('retains every holding over a long closure, seeded by a quote before purchase', () => {
+    const history = buildPortfolioHistory([row(), row({ symbol: 'BBB', shares_acquired: '3' })], {
+      AAA: [
+        { date: '2023-12-29', close: 10 },
+        { date: '2024-01-12', close: 12 },
+      ],
+      BBB: [{ date: '2024-01-01', close: 20 }],
+    });
+    expect(history.find((p) => p.date === '2024-01-10')?.value).toBe(80);
+    expect(history.find((p) => p.date === '2024-01-12')?.value).toBe(84);
+    expect(history.at(-1)?.value).toBe(84);
+  });
+  it('does not emit a partial total or look ahead before an owned asset has a quote', () => {
+    const history = buildPortfolioHistory([row(), row({ symbol: 'BBB' })], {
+      AAA: [{ date: '2024-01-01', close: 10 }],
+      BBB: [{ date: '2024-01-10', close: 20 }],
+    });
+    expect(history[0]).toEqual({ date: '2024-01-10', value: 60 });
+    expect(buildPortfolioHistory([row()], {})).toEqual([]);
   });
 
   it('returns empty history when there are no investments', () => {

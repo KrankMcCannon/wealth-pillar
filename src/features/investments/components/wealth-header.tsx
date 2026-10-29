@@ -7,9 +7,9 @@ import { formatCurrencyLocale } from '@/lib/utils/currency-formatter';
 import { cn } from '@/lib/utils';
 
 interface WealthHeaderProps {
-  totalValue: number;
-  trendAmount?: number;
-  trendPercentage?: number;
+  totalValue: number | null;
+  trendAmount?: number | null;
+  trendPercentage?: number | null;
   marketDataUpdatedAt: string | null;
 }
 
@@ -42,13 +42,15 @@ export function WealthHeader({
   const locale = useLocale();
   const t = useTranslations('Investments.PersonalTab');
 
-  const isPositive = trendAmount >= 0;
+  const hasReturn = totalValue != null && trendAmount != null && trendPercentage != null;
+  const isPositive = (trendAmount ?? 0) >= 0;
   const TrendIcon = isPositive ? TrendingUp : TrendingDown;
 
-  const totalFormatted = formatCurrencyLocale(totalValue, locale);
-  const returnFormatted = formatCurrencyLocale(Math.abs(trendAmount), locale);
+  const totalFormatted =
+    totalValue == null ? t('valuationUnavailable') : formatCurrencyLocale(totalValue, locale);
+  const returnFormatted = formatCurrencyLocale(Math.abs(trendAmount ?? 0), locale);
   const { main, rest } = splitCurrencyParts(totalFormatted);
-  const percentLabel = `${Math.abs(trendPercentage).toFixed(2)}%`;
+  const percentLabel = `${Math.abs(trendPercentage ?? 0).toFixed(2)}%`;
   const returnWithPercent = `${isPositive ? '+' : '-'}${returnFormatted} (${percentLabel})`;
   const freshness = formatMarketFreshness(marketDataUpdatedAt, locale);
 
@@ -58,7 +60,13 @@ export function WealthHeader({
         <div className={stitchInvestments.heroPrimaryColumn}>
           <span className={stitchInvestments.heroEyebrow}>{t('totalPortfolioValue')}</span>
           <div className={stitchInvestments.heroAmountRow}>
-            <span className={stitchInvestments.heroAmount}>{main}</span>
+            <span
+              className={
+                totalValue == null ? 'text-lg text-muted-foreground' : stitchInvestments.heroAmount
+              }
+            >
+              {main}
+            </span>
             {rest ? <span className={stitchInvestments.heroAmountCents}>{rest}</span> : null}
           </div>
         </div>
@@ -66,18 +74,22 @@ export function WealthHeader({
         <div className={stitchInvestments.heroReturnColumn}>
           <span className={stitchInvestments.heroEyebrow}>{t('totalReturn')}</span>
           <div className={stitchInvestments.heroReturnValueRow}>
-            <TrendIcon
-              className={cn('size-3.5 shrink-0', isPositive ? 'text-income' : 'text-expense')}
-              aria-hidden
-            />
+            {hasReturn ? (
+              <TrendIcon
+                className={cn('size-3.5 shrink-0', isPositive ? 'text-income' : 'text-expense')}
+                aria-hidden
+              />
+            ) : null}
             <span
               className={
-                isPositive
-                  ? stitchInvestments.heroReturnValue
-                  : stitchInvestments.heroReturnValueNegative
+                !hasReturn
+                  ? 'text-muted-foreground'
+                  : isPositive
+                    ? stitchInvestments.heroReturnValue
+                    : stitchInvestments.heroReturnValueNegative
               }
             >
-              {returnWithPercent}
+              {hasReturn ? returnWithPercent : t('valuationUnavailable')}
             </span>
           </div>
         </div>

@@ -545,7 +545,8 @@
       "totalPaidDescription": "Investito + tasse",
       "fallback": {
         "others": "Altro"
-      }
+      },
+      "valuationUnavailable": "Non disponibile"
     },
     "InvestmentList": {
       "title": "Le tue partecipazioni",
@@ -579,7 +580,9 @@
         "perPageLabel": "Per pagina",
         "perPageAriaLabel": "Investimenti per pagina",
         "goToPage": "Vai alla pagina {page}"
-      }
+      },
+      "quoteUnavailable": "Quotazione non disponibile",
+      "quoteAsOf": "Prezzo del {date}"
     },
     "HistoryChart": {
       "title": "Andamento storico",

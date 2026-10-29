@@ -41,12 +41,13 @@ function HoldingRow({
   });
   const paid = holding.totalPaid ?? holding.amount + (holding.tax_paid ?? 0);
   const hasQuote = (holding.currentPrice ?? 0) > 0 || (holding.currentValue ?? 0) > 0;
-  const displayValue = hasQuote ? (holding.currentValue ?? paid) : paid;
+  const displayValue = hasQuote ? holding.currentValue : null;
   const gain = holding.totalGain ?? 0;
   const gainPercent = paid > 0 ? (gain / paid) * 100 : 0;
   const showChange = hasQuote && holding.totalGain != null;
   const isUp = gain >= 0;
-  const valueLabel = formatCurrency(displayValue);
+  const valueLabel =
+    displayValue == null ? tList('quoteUnavailable') : formatCurrency(displayValue);
   const changeAmount = formatCurrency(Math.abs(gain));
   const changePercent = `${Math.abs(gainPercent).toLocaleString(locale, {
     maximumFractionDigits: 1,
@@ -95,9 +96,18 @@ function HoldingRow({
         </span>
       </span>
       <span className={stitchInvestments.holdingValueCol}>
-        <Amount type="balance" size="md" emphasis="strong">
-          {displayValue}
-        </Amount>
+        {displayValue == null ? (
+          <span className="text-sm text-muted-foreground">{tList('quoteUnavailable')}</span>
+        ) : (
+          <Amount type="balance" size="md" emphasis="strong">
+            {displayValue}
+          </Amount>
+        )}
+        {hasQuote && holding.priceDate ? (
+          <span className="text-xs text-muted-foreground">
+            {tList('quoteAsOf', { date: formatHoldingDate(holding.priceDate, locale) })}
+          </span>
+        ) : null}
         {showChange ? (
           <span
             className={cn(
