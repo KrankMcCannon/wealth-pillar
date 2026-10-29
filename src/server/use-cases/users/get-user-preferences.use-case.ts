@@ -3,8 +3,6 @@ import { cacheOptions } from '@/lib/cache/config';
 import { userPreferencesCacheKeys } from '@/lib/cache/keys';
 import { validateId } from '@/lib/utils/validation-utils';
 import { UserPreferencesRepository } from '@/server/repositories/user-preferences.repository';
-import { revalidateTag } from 'next/cache';
-import { CACHE_TAGS } from '@/lib/cache/config';
 
 const DEFAULT_PREFERENCES = {
   currency: 'EUR',
@@ -42,16 +40,4 @@ export async function getUserPreferencesUseCase(userId: string) {
   }
 
   return preferences;
-}
-export async function updateUserPreferencesUseCase(
-  userId: string,
-  updates: Partial<typeof DEFAULT_PREFERENCES>
-) {
-  validateId(userId, 'User ID');
-
-  const updated = await UserPreferencesRepository.update(userId, updates);
-
-  revalidateTag(CACHE_TAGS.USER_PREFERENCE(userId), 'max');
-
-  return updated;
 }

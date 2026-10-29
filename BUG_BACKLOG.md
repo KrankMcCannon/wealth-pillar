@@ -1,21 +1,17 @@
 # Wealth Pillar: backlog della Daily Review
 
 Fonte: [review del 23–29 ottobre 2026](chatgpt-conversation://6ada63ee-fa9c-83eb-8eb5-bdb886c77905).
-Il backlog originale contiene 21 segnalazioni. Quattordici sono corrette nel codice
-(o nella configurazione); ne restano 7 (4 P1 e 3 P2). Le segnalazioni ancora aperte
+Il backlog originale contiene 21 segnalazioni. Diciotto sono corrette nel codice
+(o nella configurazione); ne restano 3 (tutte P2). Le segnalazioni ancora aperte
 provengono dalla review statica e vanno riconfermate durante il rispettivo intervento.
 
 ## Segnalazioni aperte, in ordine di intervento
 
-| Ordine | Priorità | Segnalazione                                                                             |
-| -----: | :------: | ---------------------------------------------------------------------------------------- |
-|      1 |    P1    | Quotazioni mancanti interpretate come prezzo zero                                        |
-|      2 |    P1    | Investimenti esclusi dallo storico dopo tre giorni senza quotazioni                      |
-|      3 |    P1    | Preferenze utente salvate senza validazione adeguata                                     |
-|      4 |    P1    | Errori di caricamento della Dashboard trasformati in dati vuoti e memorizzabili in cache |
-|      5 |    P2    | Cambio lingua confermato prima del salvataggio effettivo                                 |
-|      6 |    P2    | Test E2E che possono passare senza verificare il comportamento previsto                  |
-|      7 |    P2    | Mancata invalidazione esplicita della Dashboard dopo modifiche alle ricorrenze           |
+| Ordine | Priorità | Segnalazione                                                                   |
+| -----: | :------: | ------------------------------------------------------------------------------ |
+|      1 |    P2    | Cambio lingua confermato prima del salvataggio effettivo                       |
+|      2 |    P2    | Test E2E che possono passare senza verificare il comportamento previsto        |
+|      3 |    P2    | Mancata invalidazione esplicita della Dashboard dopo modifiche alle ricorrenze |
 
 ## Correzioni già integrate e deployate
 
@@ -41,7 +37,7 @@ Le allocazioni storiche continuano a usare `budgets_snapshot`; la spesa nei Repo
 continua a seguire il ledger corrente, come previsto dal comportamento esistente.
 Le correzioni non richiedono migrazioni SQL o nuove variabili di ambiente.
 
-## Correzioni della PR corrente
+## Correzioni integrate in `c4a824b` (PR #35)
 
 - P1: eliminato il doppio conteggio degli snapshot di portafoglio dopo la persistenza.
 - P1: cambio email con verifica OTP, promozione a primaria in Clerk e salvataggio
@@ -53,5 +49,20 @@ Le correzioni non richiedono migrazioni SQL o nuove variabili di ambiente.
 - P1: Dashboard e pagina Budget condividono la lettura completa dei periodi attivi,
   senza dipendere dalla lista limitata dell’attività recente.
 
-Queste modifiche sono da integrare tramite PR. Il bootstrap della protezione è
-descritto in [.github/CI.md](.github/CI.md).
+## Correzioni della PR corrente
+
+- P1: quotazioni assenti espresse come valori non disponibili, senza perdite fittizie
+  o costi d’acquisto presentati come valore corrente; rendimenti aggregati non disponibili
+  finché manca una quotazione. Data del prezzo visibile sulle posizioni.
+- P1: ultimo prezzo noto mantenuto anche oltre tre giorni, inclusi prezzi precedenti
+  all’acquisto; nessun prezzo futuro o totale parziale usato per nuovi snapshot.
+- P1: unico aggiornamento delle preferenze, con whitelist, tipi, valori e timezone
+  validati prima della persistenza; ownership e timestamp non modificabili dal client.
+- P1: la Dashboard propaga errori di tutte le dipendenze, evitando risposte vuote
+  memorizzabili come riepiloghi finanziari validi.
+- CI: progetti unitari Node e DOM isolati, job paralleli, cache incrementali e un
+  unico check `Quality` che richiede il successo di tutti i controlli.
+
+Le correzioni non richiedono migrazioni SQL o nuove variabili di produzione.
+Gli snapshot storici già presenti restano conservati; non viene riscritto il database
+in produzione. Workflow e protezione sono descritti in [.github/CI.md](.github/CI.md).

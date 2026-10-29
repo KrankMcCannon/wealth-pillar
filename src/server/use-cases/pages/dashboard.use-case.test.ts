@@ -81,6 +81,21 @@ describe('getDashboardPageData', () => {
     vi.mocked(getActiveBudgetPeriodsForUsersUseCase).mockResolvedValue({ u1: null });
   });
 
+  it.each([
+    getGroupUsersByGroupIdDeduped,
+    getAccountsByGroupDeduped,
+    getTransactionsByGroupUseCase,
+    getBudgetsByGroupUseCase,
+    getSeriesByGroupUseCase,
+    getAllCategoriesDeduped,
+    getActiveBudgetPeriodsForUsersUseCase,
+  ])('propagates a failed dependency and recovers on the next request', async (dependency) => {
+    vi.mocked(dependency).mockRejectedValueOnce(new Error('Database unavailable'));
+    await expect(getDashboardPageData('g1', groupUsers[0])).rejects.toThrow('Database unavailable');
+    const recovered = await getDashboardPageData('g1', groupUsers[0]);
+    expect(recovered.accounts).toEqual(accounts);
+  });
+
   it('returns dashboard data without investments field', async () => {
     const result = await getDashboardPageData('g1', groupUsers[0]);
 

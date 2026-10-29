@@ -42,10 +42,10 @@ interface PersonalInvestmentTabProps {
     totalInvested: number;
     totalTaxPaid?: number;
     totalPaid?: number;
-    totalCurrentValue: number;
-    totalInitialValue?: number;
-    totalReturn: number;
-    totalReturnPercent: number;
+    totalCurrentValue: number | null;
+    totalInitialValue?: number | null;
+    totalReturn: number | null;
+    totalReturnPercent: number | null;
   };
   assetAllocation: AssetAllocationSlice[];
   portfolioHistory: { date: string; value: number }[];
