@@ -69,6 +69,22 @@ describe('buildPortfolioHistoryWithSnapshots', () => {
     ).toEqual(first);
   });
 
+  it('does not persist unknown valuations or expose a partial grouped snapshot', async () => {
+    const knownSnapshot = { user_id: 'user-1', snapshot_date: '2024-01-02', value: '24' };
+    vi.mocked(PortfolioSnapshotRepository.findByUserIds).mockResolvedValue([
+      knownSnapshot,
+    ] as never);
+    const result = await buildPortfolioHistoryWithSnapshots(
+      ['user-1', 'user-2'],
+      [row(), row({ id: 'missing', user_id: 'user-2', symbol: 'MISSING' })],
+      seriesIndex
+    );
+    expect(result).toEqual([]);
+    for (const [writes] of vi.mocked(PortfolioSnapshotRepository.upsertMany).mock.calls) {
+      expect(writes.every((snapshot) => snapshot.user_id === 'user-1')).toBe(true);
+    }
+  });
+
   it('matches full rebuild for a single user when snapshots are empty', async () => {
     vi.mocked(PortfolioSnapshotRepository.findByUserIds)
       .mockResolvedValueOnce([])
