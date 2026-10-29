@@ -545,7 +545,8 @@
       "totalPaidDescription": "Invested + taxes",
       "fallback": {
         "others": "Others"
-      }
+      },
+      "valuationUnavailable": "Unavailable"
     },
     "InvestmentList": {
       "title": "Your Holdings",
@@ -579,7 +580,9 @@
         "perPageLabel": "Per page",
         "perPageAriaLabel": "Investments per page",
         "goToPage": "Go to page {page}"
-      }
+      },
+      "quoteUnavailable": "Quote unavailable",
+      "quoteAsOf": "Price as of {date}"
     },
     "HistoryChart": {
       "title": "Historical Trend",
