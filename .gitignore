@@ -63,3 +63,5 @@ node_modules/
 /playwright/.cache/
 /playwright/.auth/
 /monocart-report
+# ESLint incremental cache
+.eslintcache

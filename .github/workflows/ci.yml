@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [master, 'codex/**']
+    branches: [master]
   pull_request:
     branches: [master]
   workflow_dispatch:
@@ -15,13 +15,53 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  quality:
-    name: Quality
+  checks:
+    name: Static checks
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/cache@v4
+        with:
+          path: |
+            .eslintcache
+            tsconfig.tsbuildinfo
+          key: ${{ runner.os }}-checks-${{ hashFiles('pnpm-lock.yaml', 'eslint.config.mjs', 'tsconfig.json') }}-${{ github.sha }}
+          restore-keys: ${{ runner.os }}-checks-${{ hashFiles('pnpm-lock.yaml', 'eslint.config.mjs', 'tsconfig.json') }}-
+      - run: pnpm exec eslint . --cache --cache-strategy content
+      - run: pnpm typecheck
+
+  unit:
+    name: Unit (${{ matrix.project }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [node, dom]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec vitest run --project '${{ matrix.project }}'
+
+  integration:
+    name: PostgreSQL integration
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
     services:
       postgres:
-        image: postgres:17
+        image: postgres:17-alpine
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: ${{ github.run_id }}-${{ github.run_attempt }}
@@ -29,7 +69,7 @@ jobs:
         ports: ['5432:5432']
         options: >-
           --health-cmd pg_isready
-          --health-interval 10s
+          --health-interval 5s
           --health-timeout 5s
           --health-retries 5
     steps:
@@ -40,15 +80,43 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm lint
-      - run: pnpm typecheck
-      - run: pnpm exec vitest run
       - run: pnpm test:integration
         env:
           DATABASE_URL: postgres://postgres:${{ github.run_id }}-${{ github.run_attempt }}@127.0.0.1:5432/wealth_pillar_test
+
+  build:
+    name: Production build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/cache@v4
+        with:
+          path: .next/cache
+          key: ${{ runner.os }}-next-${{ hashFiles('pnpm-lock.yaml', 'next.config.ts') }}-${{ github.sha }}
+          restore-keys: ${{ runner.os }}-next-${{ hashFiles('pnpm-lock.yaml', 'next.config.ts') }}-
       - run: pnpm build
         env:
-          # Synthetic credentials validate the build without access to production services.
+          # Synthetic credentials; this job has no production access or database service.
           DATABASE_URL: postgres://postgres:${{ github.run_id }}-${{ github.run_attempt }}@127.0.0.1:5432/wealth_pillar_test
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_Y2xlcmsuZXhhbXBsZS5jb20k
           CLERK_SECRET_KEY: sk_test_ci_build_not_a_real_key
+
+  quality:
+    name: Quality
+    if: ${{ always() }}
+    needs: [checks, unit, integration, build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Require every validation to pass
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          node -e 'process.exit(Object.values(JSON.parse(process.env.RESULTS)).every(job => job.result === "success") ? 0 : 1)'

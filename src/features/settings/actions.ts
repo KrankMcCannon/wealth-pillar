@@ -4,7 +4,7 @@ import { getCurrentUser } from '@/lib/auth/cached-auth';
 import { syncProfileWithClerkUseCase } from '@/server/use-cases/users/sync-profile-with-clerk.use-case';
 import { updateTag } from 'next/cache';
 import { CACHE_TAGS } from '@/lib/cache/config';
-import { updateUserPreferencesUseCase } from '@/server/use-cases/users/get-user-preferences.use-case';
+import { updateUserPreferencesUseCase } from '@/server/use-cases/users/update-user-preferences.use-case';
 import { createGroupInvitationUseCase } from '@/server/use-cases/groups/group-invitations.use-cases';
 import { updateGroupUseCase } from '@/server/use-cases/groups/groups.use-cases';
 import type { UserPreferences, GroupInvitation } from '@/lib/types';
@@ -106,10 +106,7 @@ export async function updateUserPreferencesAction(
       };
     }
 
-    const data = await updateUserPreferencesUseCase(
-      userId,
-      updates as Parameters<typeof updateUserPreferencesUseCase>[1]
-    );
+    const data = await updateUserPreferencesUseCase(userId, updates);
 
     return {
       data: data as unknown as UserPreferences,
