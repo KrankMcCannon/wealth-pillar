@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   invalidateBudgetPeriodCaches,
+  invalidateRecurringCaches,
   invalidateInvestmentCaches,
   invalidateTransactionCaches,
   invalidateTransactionUpdateCaches,
@@ -132,5 +133,19 @@ describe('invalidateBudgetPeriodCaches', () => {
     expect(tags).toContain('budget_period:p1');
 
     expect(revalidatePath).not.toHaveBeenCalled();
+  });
+});
+
+describe('recurring Dashboard invalidation', () => {
+  beforeEach(() => vi.clearAllMocks());
+  it('expires series and aggregate dependencies immediately, even without a resolved group', () => {
+    invalidateRecurringCaches({ seriesId: 'r1', userIds: ['u1'], groupId: 'g1' });
+    expect(updateTag).toHaveBeenCalledWith('recurring_series');
+    expect(updateTag).toHaveBeenCalledWith('group:g1:recurring');
+    expect(updateTag).toHaveBeenCalledWith('recurring:r1');
+    vi.clearAllMocks();
+    invalidateRecurringCaches({ userIds: ['u1'] });
+    expect(updateTag).toHaveBeenCalledWith('recurring_series');
+    expect(revalidateTag).not.toHaveBeenCalled();
   });
 });

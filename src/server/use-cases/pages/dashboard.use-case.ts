@@ -89,6 +89,8 @@ async function getCachedDashboardPageData(groupId: string): Promise<DashboardPag
   cacheTag(`group:${groupId}:budgets`);
   cacheTag(`group:${groupId}:accounts`);
   cacheTag(CACHE_TAGS.BUDGET_PERIODS);
+  cacheTag(CACHE_TAGS.RECURRING_SERIES);
+  cacheTag(`group:${groupId}:recurring`);
   cacheTag('categories');
 
   const groupUsers = await getGroupUsersByGroupIdDeduped(groupId);

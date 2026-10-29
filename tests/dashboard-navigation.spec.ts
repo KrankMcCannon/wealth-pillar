@@ -1,13 +1,8 @@
-import { test, expect } from '@playwright/test';
-import { setupClerkMocks } from './mocks/clerk-mock';
+import { test, expect } from './fixtures';
 
 test.describe('Dashboard navigation', () => {
-  test.beforeEach(async ({ page }) => {
-    await setupClerkMocks(page);
-  });
-
   test('keeps bottom navigation mounted while switching tabs', async ({ page }) => {
-    await page.goto('/home');
+    await page.goto('/it/home');
     await page.waitForLoadState('domcontentloaded');
 
     const bottomNav = page
@@ -26,8 +21,8 @@ test.describe('Dashboard navigation', () => {
     expect(stillConnected).toBe(true);
   });
 
-  test('shows route loading skeleton without full page reload', async ({ page }) => {
-    await page.goto('/home');
+  test('navigates to budgets with the persistent navigation', async ({ page }) => {
+    await page.goto('/it/home');
     await page.waitForLoadState('domcontentloaded');
 
     await page.getByRole('link', { name: /Budget|Budgets/i }).click();

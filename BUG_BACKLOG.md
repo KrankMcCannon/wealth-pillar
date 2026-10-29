@@ -1,17 +1,12 @@
 # Wealth Pillar: backlog della Daily Review
 
 Fonte: [review del 23–29 ottobre 2026](chatgpt-conversation://6ada63ee-fa9c-83eb-8eb5-bdb886c77905).
-Il backlog originale contiene 21 segnalazioni. Diciotto sono corrette nel codice
-(o nella configurazione); ne restano 3 (tutte P2). Le segnalazioni ancora aperte
-provengono dalla review statica e vanno riconfermate durante il rispettivo intervento.
+Il backlog originale contiene 21 segnalazioni, tutte corrette nel codice o nella
+configurazione. La segnalazione UI manuale aggiuntiva è anch’essa corretta.
 
-## Segnalazioni aperte, in ordine di intervento
+## Segnalazioni aperte
 
-| Ordine | Priorità | Segnalazione                                                                   |
-| -----: | :------: | ------------------------------------------------------------------------------ |
-|      1 |    P2    | Cambio lingua confermato prima del salvataggio effettivo                       |
-|      2 |    P2    | Test E2E che possono passare senza verificare il comportamento previsto        |
-|      3 |    P2    | Mancata invalidazione esplicita della Dashboard dopo modifiche alle ricorrenze |
+Nessuna delle 21 segnalazioni originali rimane aperta.
 
 ## Correzioni già integrate e deployate
 
@@ -49,7 +44,7 @@ Le correzioni non richiedono migrazioni SQL o nuove variabili di ambiente.
 - P1: Dashboard e pagina Budget condividono la lettura completa dei periodi attivi,
   senza dipendere dalla lista limitata dell’attività recente.
 
-## Correzioni della PR corrente
+## Correzioni integrate nella PR #44
 
 - P1: quotazioni assenti espresse come valori non disponibili, senza perdite fittizie
   o costi d’acquisto presentati come valore corrente; rendimenti aggregati non disponibili
@@ -66,3 +61,20 @@ Le correzioni non richiedono migrazioni SQL o nuove variabili di ambiente.
 Le correzioni non richiedono migrazioni SQL o nuove variabili di produzione.
 Gli snapshot storici già presenti restano conservati; non viene riscritto il database
 in produzione. Workflow e protezione sono descritti in [.github/CI.md](.github/CI.md).
+
+## Correzioni della PR corrente
+
+- P2: cambio lingua confermato e applicato solo dopo la risposta positiva del server;
+  in caso di errore la modale resta aperta e la lingua corrente non cambia.
+- P2: E2E con sessione Clerk reale, fixture PostgreSQL locali, controlli obbligatori e
+  verifica della persistenza dopo reload. Eliminati mock di autenticazione non validi,
+  attese fisse, test esterni d’esempio e skip condizionati alla presenza della UI.
+- P2: cache aggregata Dashboard collegata alle ricorrenze; le mutazioni scadono
+  immediatamente i tag, anche quando non è possibile risolvere il gruppo.
+- CI: selezione dei file di test tramite dipendenze Vitest e intervallo Git; fallback
+  completo per cambiamenti globali, eliminazioni e avvio manuale. Cache separate per
+  contenuto e runtime, con riepiloghi di hit e dimensione. Quality verifica anche
+  gli skip previsti e rifiuta fallimenti, annullamenti e skip inattesi.
+
+Nessuna migrazione o nuova variabile è richiesta in produzione. Le variabili E2E
+sono solo locali: [istruzioni](tests/README.md).

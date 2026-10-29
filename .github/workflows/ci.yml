@@ -15,6 +15,32 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  plan:
+    name: Select affected tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      unit: ${{ steps.selection.outputs.unit }}
+      has_unit: ${{ steps.selection.outputs.has_unit }}
+      integration: ${{ steps.selection.outputs.integration }}
+      has_integration: ${{ steps.selection.outputs.has_integration }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: node --test scripts/ci/*.test.mjs
+      - id: selection
+        run: node scripts/ci/plan-tests.mjs
+        env:
+          CI_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          CI_EVENT_NAME: ${{ github.event_name }}
+
   checks:
     name: Static checks
     runs-on: ubuntu-latest
@@ -27,24 +53,36 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - id: keys
+        run: node scripts/ci/cache-keys.mjs
       - uses: actions/cache@v4
+        id: eslint_cache
         with:
-          path: |
-            .eslintcache
-            tsconfig.tsbuildinfo
-          key: ${{ runner.os }}-checks-${{ hashFiles('pnpm-lock.yaml', 'eslint.config.mjs', 'tsconfig.json') }}-${{ github.sha }}
-          restore-keys: ${{ runner.os }}-checks-${{ hashFiles('pnpm-lock.yaml', 'eslint.config.mjs', 'tsconfig.json') }}-
+          path: .eslintcache
+          key: ${{ steps.keys.outputs.eslint_key }}
+          restore-keys: ${{ steps.keys.outputs.eslint_prefix }}
+      - uses: actions/cache@v4
+        id: types_cache
+        with:
+          path: tsconfig.tsbuildinfo
+          key: ${{ steps.keys.outputs.types_key }}
+          restore-keys: ${{ steps.keys.outputs.types_prefix }}
+      - run: node scripts/ci/cache-summary.mjs
+        env:
+          ESLINT_HIT: ${{ steps.eslint_cache.outputs.cache-hit }}
+          TYPES_HIT: ${{ steps.types_cache.outputs.cache-hit }}
       - run: pnpm exec eslint . --cache --cache-strategy content
       - run: pnpm typecheck
 
   unit:
+    needs: plan
+    if: ${{ needs.plan.outputs.has_unit == 'true' }}
     name: Unit (${{ matrix.project }})
     runs-on: ubuntu-latest
     timeout-minutes: 10
     strategy:
       fail-fast: false
-      matrix:
-        project: [node, dom]
+      matrix: ${{ fromJSON(needs.plan.outputs.unit) }}
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -53,9 +91,14 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec vitest run --project '${{ matrix.project }}'
+      - run: node scripts/ci/run-tests.mjs
+        env:
+          TEST_PROJECT: ${{ matrix.project }}
+          TEST_FILES: ${{ toJSON(matrix.files) }}
 
   integration:
+    needs: plan
+    if: ${{ needs.plan.outputs.has_integration == 'true' }}
     name: PostgreSQL integration
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -80,8 +123,9 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm test:integration
+      - run: node scripts/ci/run-tests.mjs
         env:
+          TEST_FILES: ${{ needs.plan.outputs.integration }}
           DATABASE_URL: postgres://postgres:${{ github.run_id }}-${{ github.run_attempt }}@127.0.0.1:5432/wealth_pillar_test
 
   build:
@@ -96,11 +140,17 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - id: keys
+        run: node scripts/ci/cache-keys.mjs
       - uses: actions/cache@v4
+        id: next_cache
         with:
           path: .next/cache
-          key: ${{ runner.os }}-next-${{ hashFiles('pnpm-lock.yaml', 'next.config.ts') }}-${{ github.sha }}
-          restore-keys: ${{ runner.os }}-next-${{ hashFiles('pnpm-lock.yaml', 'next.config.ts') }}-
+          key: ${{ steps.keys.outputs.next_key }}
+          restore-keys: ${{ steps.keys.outputs.next_prefix }}
+      - run: node scripts/ci/cache-summary.mjs
+        env:
+          NEXT_HIT: ${{ steps.next_cache.outputs.cache-hit }}
       - run: pnpm build
         env:
           # Synthetic credentials; this job has no production access or database service.
@@ -111,12 +161,14 @@ jobs:
   quality:
     name: Quality
     if: ${{ always() }}
-    needs: [checks, unit, integration, build]
+    needs: [plan, checks, unit, integration, build]
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
+      - uses: actions/checkout@v6
       - name: Require every validation to pass
         env:
           RESULTS: ${{ toJSON(needs) }}
-        run: |
-          node -e 'process.exit(Object.values(JSON.parse(process.env.RESULTS)).every(job => job.result === "success") ? 0 : 1)'
+          HAS_UNIT: ${{ needs.plan.outputs.has_unit }}
+          HAS_INTEGRATION: ${{ needs.plan.outputs.has_integration }}
+        run: node scripts/ci/quality.mjs

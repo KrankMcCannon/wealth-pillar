@@ -1,28 +1,55 @@
 # CI and master protection
 
-The `CI` workflow runs on pull requests to `master`, pushes to `master`, and manual
-runs. Feature-branch pushes do not duplicate PR runs. All checks still run for every
-PR, including documentation-only changes.
+The `CI` workflow runs on PRs to `master`, pushes to `master`, and manual runs.
+Feature-branch pushes do not duplicate PR runs. Static checks and build always run
+in parallel with test selection. Unit and integration runners start only when the
+planner selects files for them. A skipped integration job does not start PostgreSQL.
 
-The following jobs run independently in parallel:
+## Selecting affected tests
 
-- Static checks: content-based ESLint cache and incremental TypeScript checking.
-- Unit tests: Node and DOM projects on separate runners; only browser-dependent tests
-  create jsdom. Per-file isolation stays enabled. `pnpm test` still runs both projects.
-- PostgreSQL integration: a disposable PostgreSQL 17 Alpine service, available without
-  waiting for lint or unit tests. Tests keep their transaction/concurrency assertions
-  and serial fixture isolation.
-- Production build: persisted `.next/cache`; no PostgreSQL container is needed.
+`Select affected tests` uses the PR's base SHA or push's `before` SHA, with full Git
+history. It selects test **files** through Vitest's import graph (`list --changed`),
+including direct/transitive dependencies and changed tests themselves. It publishes
+selected files and the baseline in the run summary. The runner executes that exact
+list with normal per-file isolation and fails on an unexpected empty selection.
+The integration suite currently occupies one file, so any related change runs all
+of its cases; unrelated changes skip its database service entirely.
 
-Each job uses a frozen pnpm installation. Synthetic Clerk credentials keep CI independent
-of production data and secrets. The final `Quality` job runs even after failed or
-cancelled dependencies, and passes only when every required job succeeded. Branch
-protection continues to require that single GitHub Actions check.
+- Changes to dependencies, shared configuration, workflow/planner, test setup,
+  locales/assets/CSS/SQL or deleted/renamed files run the full suite.
+- Missing/invalid baselines and manual runs run the full suite.
+- Documentation-only changes select no unit/integration files; lint, types and build
+  still run. A source change with no importing tests is visible as an empty selection.
+- Planner and Quality logic have independent Node tests, including a real Git/Vitest
+  dependency fixture and cache invalidation checks. They run in the planner job.
 
-ESLint, TypeScript and Next caches are keyed by runner, dependency/config hashes and
-commit, with restore prefixes for earlier commits. They cache incremental work only;
-no test is skipped and no production output or credentials are reused. The local font
-files and pinned pnpm version keep builds reproducible.
+No test results are cached. All selected tests execute on every run. Use
+`workflow_dispatch` to request a full audit whenever needed. Browser E2E require
+local Clerk development credentials and a dedicated fixture DB; see [tests](../tests/README.md).
+
+## Incremental caches
+
+pnpm's content-addressed store is cached by the pinned Node runtime and lockfile.
+ESLint, TypeScript and Next caches are separate. Keys include Node version, OS,
+architecture, lockfile/package hashes, tool configuration and relevant **file content**.
+A documentation-only commit reuses the same key rather than allocating a new cache.
+Restore prefixes stay inside the same runtime/dependency/configuration scope.
+
+Every cache-enabled job records exact hit, compatible prefix hit or miss and restored
+size in its summary, before running validation. Cache hits never bypass lint, type
+checking or build. Only `.eslintcache`, `tsconfig.tsbuildinfo` and `.next/cache` are
+stored; no production output or credentials are reused. PR caches are scoped by
+GitHub to the PR merge ref; master push runs populate caches reusable by later PRs.
+GitHub automatically evicts unused caches; no unsafe cross-branch restore is used.
+
+## Why Quality runs last
+
+`Quality` is the required aggregate check, not another validation workload. Its few
+seconds of work must run **after** the parallel jobs so it can verify their results.
+Running it independently would let a green status appear while tests still run/fail.
+It accepts a skipped test job only when a successful planner explicitly selected no
+files for it; missing outputs, failed/cancelled checks and unexpected skips fail it.
+This retains the single existing branch-protection check without weakening it.
 
 `master-protection.json` records the branch protection configuration: pull requests
 and the GitHub Actions `Quality` check are required, including for administrators.
