@@ -1,55 +1,24 @@
-import { test, expect } from '@playwright/test';
-import { setupClerkMocks } from './mocks/clerk-mock';
+import { test, expect } from './fixtures';
 
-test.describe('Investments Page', () => {
-  test.beforeEach(async ({ page }) => {
-    await setupClerkMocks(page);
-  });
+test('switches investment tabs and updates their selected state and URL', async ({ page }) => {
+  await page.goto('/it/investments');
+  const sandbox = page.getByRole('tab', { name: 'Simulazione', exact: true });
+  await sandbox.click();
+  await expect(page).toHaveURL(/tab=sandbox/);
+  await expect(sandbox).toHaveAttribute('aria-selected', 'true');
+  const personal = page.getByRole('tab', { name: 'Investimenti', exact: true });
+  await personal.click();
+  await expect(personal).toHaveAttribute('aria-selected', 'true');
+  await expect(sandbox).toHaveAttribute('aria-selected', 'false');
+});
 
-  test('switches tabs and updates URL', async ({ page }) => {
-    await page.goto('/investments');
-    await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(2000);
-
-    const sandboxTab = page.getByRole('tab', { name: /Simulazione|Scenario/i });
-    if (await sandboxTab.isVisible({ timeout: 5000 })) {
-      await sandboxTab.click();
-      await page.waitForTimeout(500);
-      await expect(page).toHaveURL(/tab=sandbox/, { timeout: 5000 });
-    }
-
-    const personalTab = page.getByRole('tab', {
-      name: /Investimenti Personali|Personal Investments/i,
-    });
-    if (await personalTab.isVisible({ timeout: 5000 })) {
-      await personalTab.click();
-      await page.waitForTimeout(500);
-    }
-  });
-
-  test('shows investments FAB on load', async ({ page }) => {
-    await page.goto('/investments');
-    await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(2000);
-
-    const fab = page.getByTestId('investments-fab-add');
-    if (await fab.isVisible({ timeout: 5000 })) {
-      await expect(fab).toBeVisible();
-    }
-  });
-
-  test('shows holdings list or empty state on personal tab', async ({ page }) => {
-    await page.goto('/investments');
-    await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(2000);
-
-    const listHeading = page.getByRole('heading', {
-      name: /Holdings|Investimenti|Posizioni/i,
-    });
-    const emptyState = page.getByText(/No investments|Nessun investimento/i);
-
-    const hasList = await listHeading.isVisible({ timeout: 5000 }).catch(() => false);
-    const hasEmpty = await emptyState.isVisible({ timeout: 2000 }).catch(() => false);
-    expect(hasList || hasEmpty).toBeTruthy();
-  });
+test('shows the empty holdings state and opens the investment modal', async ({ page }) => {
+  await page.goto('/it/investments');
+  await expect(
+    page.getByRole('heading', { name: 'Le tue partecipazioni', exact: true })
+  ).toBeVisible();
+  await expect(page.getByRole('status')).toContainText('Nessun investimento');
+  await page.getByTestId('investments-fab-add').click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await expect(page).toHaveURL(/modal=investment/);
 });

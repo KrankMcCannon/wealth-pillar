@@ -1,25 +1,15 @@
-import { test, expect } from '@playwright/test';
-import { setupClerkMocks } from './mocks/clerk-mock';
+import { test, expect } from './fixtures';
 
 const mobileViewport = { width: 375, height: 812 };
 
 test.describe('entity modals (mobile)', () => {
   test.use({ viewport: mobileViewport });
 
-  test.beforeEach(async ({ page }) => {
-    await setupClerkMocks(page);
-  });
-
   test('transaction-create opens drawer with modal amount field', async ({ page }) => {
-    await page.goto('/transactions');
-    await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(2000);
+    await page.goto('/it/transactions');
 
     const fab = page.getByTestId('transactions-fab-add');
-    if (!(await fab.isVisible({ timeout: 5000 }))) {
-      test.skip();
-      return;
-    }
+    await expect(fab).toBeVisible();
 
     await fab.click();
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 });
@@ -31,15 +21,10 @@ test.describe('entity modals (mobile)', () => {
   });
 
   test('budget-create opens drawer with modal fields', async ({ page }) => {
-    await page.goto('/budgets');
-    await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(2000);
+    await page.goto('/it/budgets');
 
     const fab = page.getByRole('button', { name: /aggiungi budget|add budget/i });
-    if (!(await fab.isVisible({ timeout: 5000 }))) {
-      test.skip();
-      return;
-    }
+    await expect(fab).toBeVisible();
 
     await fab.click();
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 });
@@ -48,15 +33,10 @@ test.describe('entity modals (mobile)', () => {
   });
 
   test('budget-close-period opens drawer from budgets page', async ({ page }) => {
-    await page.goto('/budgets');
-    await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(2000);
+    await page.goto('/it/budgets');
 
     const periodActions = page.getByRole('button', { name: /azioni del periodo|period actions/i });
-    if (!(await periodActions.isVisible({ timeout: 5000 }))) {
-      test.skip();
-      return;
-    }
+    await expect(periodActions).toBeVisible();
 
     await periodActions.click();
     const closePeriodItem = page.getByRole('menuitem', { name: /chiudi periodo|close period/i });
@@ -69,15 +49,10 @@ test.describe('entity modals (mobile)', () => {
   test('budget-edit-closing-date opens drawer when latest closed period exists', async ({
     page,
   }) => {
-    await page.goto('/budgets');
-    await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(2000);
+    await page.goto('/it/budgets');
 
     const periodActions = page.getByRole('button', { name: /azioni del periodo|period actions/i });
-    if (!(await periodActions.isVisible({ timeout: 5000 }))) {
-      test.skip();
-      return;
-    }
+    await expect(periodActions).toBeVisible();
 
     await periodActions.click();
     const editClosingDateItem = page.getByRole('menuitem', {
@@ -90,15 +65,10 @@ test.describe('entity modals (mobile)', () => {
   });
 
   test('transaction-create drawer exposes drag handle', async ({ page }) => {
-    await page.goto('/transactions');
-    await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(2000);
+    await page.goto('/it/transactions');
 
     const fab = page.getByTestId('transactions-fab-add');
-    if (!(await fab.isVisible({ timeout: 5000 }))) {
-      test.skip();
-      return;
-    }
+    await expect(fab).toBeVisible();
 
     await fab.click();
     const dialog = page.getByRole('dialog');
@@ -110,12 +80,8 @@ test.describe('entity modals (mobile)', () => {
 test.describe('settings modals (mobile)', () => {
   test.use({ viewport: mobileViewport });
 
-  test.beforeEach(async ({ page }) => {
-    await setupClerkMocks(page);
-  });
-
   test('deep-link opens profile settings drawer with dual footer', async ({ page }) => {
-    await page.goto('/settings?modal=settings:profile');
+    await page.goto('/it/settings?modal=settings:profile');
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10000 });
     await expect(page.getByRole('button', { name: /annulla|cancel/i })).toBeVisible();
     await expect(page.getByRole('button', { name: /salva|save/i })).toBeVisible();
