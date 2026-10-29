@@ -79,12 +79,7 @@ export const createBudgetPeriodUseCase = async (
   if (!user) throw new Error('User not found');
   if (!user.group_id) throw new Error('User has no group');
 
-  const [liquidity, budgets] = await Promise.all([
-    loadPeriodLiquidityData(user.group_id, userId),
-    getBudgetsByUserUseCase(userId),
-  ]);
-
-  const { transactions, accounts } = liquidity;
+  const budgets = await getBudgetsByUserUseCase(userId);
 
   const newPeriod = await db.transaction(async (tx) => {
     const active = await BudgetPeriodsRepository.findActiveByUser(userId, tx);
@@ -106,6 +101,12 @@ export const createBudgetPeriodUseCase = async (
         throw new Error('Invalid budget period closing date');
       }
 
+      const { transactions, accounts } = await loadPeriodLiquidityData(
+        user.group_id,
+        userId,
+        periodToDateWindow({ ...active, end_date: dayBeforeStart }),
+        tx
+      );
       await snapshotAndDeactivateActive(
         active,
         dayBeforeStart,

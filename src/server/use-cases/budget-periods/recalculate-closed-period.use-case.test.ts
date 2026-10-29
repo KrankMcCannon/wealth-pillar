@@ -124,7 +124,10 @@ describe('recalculateClosedPeriodSnapshotUseCase', () => {
     const result = await recalculateClosedPeriodSnapshotUseCase('u1', 'closed-1');
 
     expect(result.spendable_spent).toBe(40);
-    expect(loadPeriodLiquidityData).toHaveBeenCalledWith('g1', 'u1');
+    expect(loadPeriodLiquidityData).toHaveBeenCalledWith('g1', 'u1', {
+      start: expect.any(Date),
+      end: expect.any(Date),
+    });
     expect(BudgetPeriodsRepository.update).toHaveBeenCalledWith(
       'closed-1',
       expect.objectContaining({

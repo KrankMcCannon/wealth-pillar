@@ -2,15 +2,16 @@ import { db } from '@/server/db/drizzle';
 import { accounts } from '@/server/db/schema';
 import { eq, sql } from 'drizzle-orm';
 import type { Account } from '@/lib/types';
+import { resolveDb, type DbExecutor } from './db-executor';
 
 export class AccountsRepository {
-  static async findById(id: string): Promise<Account | null> {
-    const rows = await db.select().from(accounts).where(eq(accounts.id, id));
+  static async findById(id: string, executor?: DbExecutor): Promise<Account | null> {
+    const rows = await resolveDb(executor).select().from(accounts).where(eq(accounts.id, id));
     return (rows[0] as unknown as Account) ?? null;
   }
 
-  static async findByGroup(groupId: string): Promise<Account[]> {
-    return db
+  static async findByGroup(groupId: string, executor?: DbExecutor): Promise<Account[]> {
+    return resolveDb(executor)
       .select()
       .from(accounts)
       .where(eq(accounts.group_id, groupId))
@@ -48,8 +49,8 @@ export class AccountsRepository {
     return rows[0] as unknown as Account;
   }
 
-  static async delete(id: string): Promise<Account> {
-    const rows = await db.delete(accounts).where(eq(accounts.id, id)).returning();
+  static async delete(id: string, executor?: DbExecutor): Promise<Account> {
+    const rows = await resolveDb(executor).delete(accounts).where(eq(accounts.id, id)).returning();
     return rows[0] as unknown as Account;
   }
 }

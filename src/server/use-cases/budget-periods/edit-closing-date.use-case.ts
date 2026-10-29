@@ -154,7 +154,16 @@ export async function editPeriodDatesUseCase(
     }
   }
 
-  const { transactions, accounts } = await loadPeriodLiquidityData(period.group_id, userId);
+  // Date edits may also recalculate either neighbor; load the entire affected interval.
+  const affected = [
+    { ...period, start_date: newStart, end_date: newEnd },
+    ...(previous && previousEnd ? [{ ...previous, end_date: previousEnd }] : []),
+    ...(next && nextStart ? [{ ...next, start_date: nextStart }] : []),
+  ].map((row) => periodToDateWindow(row));
+  const { transactions, accounts } = await loadPeriodLiquidityData(period.group_id, userId, {
+    start: new Date(Math.min(...affected.map((window) => window.start.getTime()))),
+    end: new Date(Math.max(...affected.map((window) => window.end.getTime()))),
+  });
 
   const thisRow: BudgetPeriod = {
     ...period,

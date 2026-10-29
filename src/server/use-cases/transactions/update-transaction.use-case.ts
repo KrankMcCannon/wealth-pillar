@@ -16,6 +16,9 @@ export async function updateTransactionUseCase(
 
   const existing = await TransactionsRepository.getById(id, scope);
   if (!existing) throw new Error('Transaction not found');
+  if (data.group_id !== undefined && data.group_id !== existing.group_id) {
+    throw new Error('Cannot move a transaction to another group');
+  }
 
   if (data.type === 'transfer' || existing.type === 'transfer') {
     const toAccountId = data.to_account_id ?? existing.to_account_id;
@@ -40,7 +43,6 @@ export async function updateTransactionUseCase(
   if (data.user_id !== undefined) updateData.user_id = data.user_id;
   if (data.account_id !== undefined) updateData.account_id = data.account_id;
   if (data.to_account_id !== undefined) updateData.to_account_id = data.to_account_id;
-  if (data.group_id !== undefined) updateData.group_id = data.group_id;
 
   const updated = await db.transaction(async (tx) => {
     const row = await TransactionsRepository.update(id, updateData, tx);

@@ -39,6 +39,15 @@ import { getTransactionByIdUseCase } from '@/server/use-cases/transactions/get-t
 import { updateTransactionUseCase } from '@/server/use-cases/transactions/update-transaction.use-case';
 import { deleteTransactionUseCase } from '@/server/use-cases/transactions/delete-transaction.use-case';
 import { canAccessUserData, isMember } from '@/lib/utils';
+import { AccountsRepository } from '@/server/repositories/accounts.repository';
+import { UsersRepository } from '@/server/repositories/users.repository';
+
+vi.mock('@/server/repositories/accounts.repository', () => ({
+  AccountsRepository: { findById: vi.fn() },
+}));
+vi.mock('@/server/repositories/users.repository', () => ({
+  UsersRepository: { findByIds: vi.fn() },
+}));
 
 // Factory helpers
 function createMockUser(overrides: Partial<User> = {}): User {
@@ -100,6 +109,97 @@ describe('transaction-actions', () => {
     vi.clearAllMocks();
     vi.mocked(canAccessUserData).mockReturnValue(true);
     vi.mocked(isMember).mockReturnValue(false);
+    vi.mocked(AccountsRepository.findById).mockResolvedValue({
+      id: 'account-1',
+      group_id: 'group-1',
+      user_ids: ['user-1'],
+    } as Awaited<ReturnType<typeof AccountsRepository.findById>>);
+    vi.mocked(UsersRepository.findByIds).mockImplementation(
+      async (ids) =>
+        ids.map((id) => ({ id, group_id: 'group-1' })) as Awaited<
+          ReturnType<typeof UsersRepository.findByIds>
+        >
+    );
+  });
+
+  describe('group and account authorization', () => {
+    beforeEach(() => {
+      vi.mocked(getCurrentUser).mockResolvedValue(createMockUser());
+      vi.mocked(getTransactionByIdUseCase).mockResolvedValue(createMockTransaction());
+    });
+
+    it('rejects creating a transaction in another group, even for an admin', async () => {
+      expect((await createTransactionAction(createMockInput({ group_id: 'foreign' }))).error).toBe(
+        'Permesso negato'
+      );
+      expect(createTransactionUseCase).not.toHaveBeenCalled();
+    });
+
+    it.each(['account_id', 'to_account_id'] as const)('rejects a foreign %s', async (field) => {
+      vi.mocked(AccountsRepository.findById).mockImplementation(
+        async (id) =>
+          ({
+            id,
+            group_id: id === 'foreign' ? 'other-group' : 'group-1',
+            user_ids: ['user-1'],
+          }) as Awaited<ReturnType<typeof AccountsRepository.findById>>
+      );
+      const result = await createTransactionAction(
+        createMockInput({ type: 'transfer', to_account_id: 'account-2', [field]: 'foreign' })
+      );
+      expect(result.error).toBe('Permesso negato');
+      expect(createTransactionUseCase).not.toHaveBeenCalled();
+    });
+
+    it('restricts admin reassignment to users in the authenticated group', async () => {
+      vi.mocked(UsersRepository.findByIds).mockResolvedValue([
+        { id: 'user-2', group_id: 'foreign' },
+      ] as Awaited<ReturnType<typeof UsersRepository.findByIds>>);
+      expect((await updateTransactionAction('tx-1', { user_id: 'user-2' })).error).toBe(
+        'Permesso negato'
+      );
+      expect(updateTransactionUseCase).not.toHaveBeenCalled();
+    });
+
+    it('rejects moving a transaction to another group', async () => {
+      expect((await updateTransactionAction('tx-1', { group_id: 'foreign' })).error).toBe(
+        'Permesso negato'
+      );
+      expect(updateTransactionUseCase).not.toHaveBeenCalled();
+    });
+
+    it('checks replacement accounts when updating', async () => {
+      vi.mocked(AccountsRepository.findById).mockResolvedValue(null);
+      expect((await updateTransactionAction('tx-1', { account_id: 'missing' })).error).toBe(
+        'Permesso negato'
+      );
+      expect(updateTransactionUseCase).not.toHaveBeenCalled();
+    });
+
+    it('does not let members use another member’s private account', async () => {
+      vi.mocked(getCurrentUser).mockResolvedValue(createMockUser({ role: 'member' }));
+      vi.mocked(AccountsRepository.findById).mockResolvedValue({
+        group_id: 'group-1',
+        user_ids: ['user-2'],
+      } as Awaited<ReturnType<typeof AccountsRepository.findById>>);
+      expect((await createTransactionAction(createMockInput())).error).toBe('Permesso negato');
+      expect(createTransactionUseCase).not.toHaveBeenCalled();
+    });
+
+    it('allows members to record transactions on their shared accounts', async () => {
+      vi.mocked(getCurrentUser).mockResolvedValue(createMockUser({ role: 'member' }));
+      vi.mocked(createTransactionUseCase).mockResolvedValue(createMockTransaction());
+      expect((await createTransactionAction(createMockInput())).error).toBeNull();
+    });
+
+    it('fails closed when the authenticated user has no group', async () => {
+      vi.mocked(getCurrentUser).mockResolvedValue(createMockUser({ group_id: null }));
+      expect((await updateTransactionAction('tx-1', { amount: 10 })).error).toBe(
+        'Gruppo non trovato'
+      );
+      expect((await deleteTransactionAction('tx-1')).error).toBe('Gruppo non trovato');
+      expect(getTransactionByIdUseCase).not.toHaveBeenCalled();
+    });
   });
 
   describe('createTransactionAction', () => {

@@ -32,19 +32,15 @@ export const closeBudgetPeriodUseCase = async (
   }
 
   const endDateStr = endDt.toISODate() as string;
+  const closingPeriod: BudgetPeriod = { ...period, end_date: endDateStr, is_active: false };
+  const window = periodToDateWindow(closingPeriod);
 
   const [liquidity, budgets] = await Promise.all([
-    loadPeriodLiquidityData(period.group_id, userId),
+    loadPeriodLiquidityData(period.group_id, userId, window),
     getBudgetsByUserUseCase(userId),
   ]);
   const { transactions, accounts } = liquidity;
 
-  const closingPeriod: BudgetPeriod = {
-    ...period,
-    end_date: endDateStr,
-    is_active: false,
-  };
-  const window = periodToDateWindow(closingPeriod);
   const amounts = computePeriodLiquidityAmounts(
     transactions,
     accounts,

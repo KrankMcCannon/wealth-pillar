@@ -8,10 +8,13 @@ import {
   validateRequiredString,
   validateNonEmptyArray,
 } from '@/lib/utils/validation-utils';
-import { invalidateAccountCaches } from '@/lib/utils/cache-utils';
-import { deleteTransactionsByAccountUseCase } from '@/server/use-cases/transactions/delete-transaction.use-case';
+import { invalidateAccountCaches, invalidateTransactionCaches } from '@/lib/utils/cache-utils';
+import { db } from '@/server/db/drizzle';
 import { TransactionsRepository } from '@/server/repositories/transactions.repository';
-import { sumAccountBalanceFromRows } from '@/server/use-cases/transactions/transaction-balance-delta.core';
+import {
+  computeBalanceDeltas,
+  sumAccountBalanceFromRows,
+} from '@/server/use-cases/transactions/transaction-balance-delta.core';
 import type { Account, AccountLiquidity } from '@/lib/types';
 import { defaultLiquidityForType } from '@/lib/utils/account-classification';
 
@@ -29,7 +32,6 @@ export interface UpdateAccountInput {
   type?: Account['type'];
   liquidity?: AccountLiquidity | null;
   user_ids?: string[];
-  group_id?: string;
 }
 
 function serializeAccountRow(account: Account): Account {
@@ -146,7 +148,12 @@ export const updateAccountUseCase = async (
 ): Promise<Account> => {
   validateId(accountId, 'Account ID');
 
-  const updatePayload: Parameters<typeof AccountsRepository.update>[1] = { ...data };
+  // Whitelist mutable fields, including for untyped Server Action payloads.
+  const updatePayload: Parameters<typeof AccountsRepository.update>[1] = {};
+  if (data.name !== undefined) updatePayload.name = data.name;
+  if (data.type !== undefined) updatePayload.type = data.type;
+  if (data.liquidity !== undefined) updatePayload.liquidity = data.liquidity;
+  if (data.user_ids !== undefined) updatePayload.user_ids = data.user_ids;
   if (data.type !== undefined && data.liquidity === undefined) {
     updatePayload.liquidity = defaultLiquidityForType(data.type);
   }
@@ -187,13 +194,34 @@ export const recalculateAccountBalanceUseCase = async (accountId: string): Promi
 export const deleteAccountUseCase = async (accountId: string): Promise<boolean> => {
   validateId(accountId, 'Account ID');
 
-  const account = await getAccountByIdUseCase(accountId);
+  const { account, removed } = await db.transaction(async (tx) => {
+    const account = await AccountsRepository.findById(accountId, tx);
+    if (!account) throw new Error('Account not found');
 
-  // Delete related transactions first
-  await deleteTransactionsByAccountUseCase(accountId);
+    // RETURNING gives the exact rows removed, so concurrent deletes cannot reverse them twice.
+    const removed = await TransactionsRepository.deleteByAccount(accountId, tx);
+    const deltas = new Map<string, number>();
+    for (const row of removed) {
+      for (const [id, delta] of computeBalanceDeltas(row, -1)) {
+        if (id !== accountId) deltas.set(id, (deltas.get(id) ?? 0) + delta);
+      }
+    }
+    for (const [id, delta] of [...deltas].sort(([a], [b]) => a.localeCompare(b))) {
+      await TransactionsRepository.updateAccountBalance(id, delta, tx);
+    }
+    if (!(await AccountsRepository.delete(accountId, tx))) throw new Error('Account not found');
+    return { account, removed };
+  });
 
-  // Delete the account
-  await AccountsRepository.delete(accountId);
+  for (const row of removed) {
+    invalidateTransactionCaches({
+      groupId: row.group_id ?? account.group_id,
+      accountId: row.account_id,
+      toAccountId: row.to_account_id,
+      userId: row.user_id,
+      transactionId: row.id,
+    });
+  }
 
   invalidateAccountCaches({
     accountId,

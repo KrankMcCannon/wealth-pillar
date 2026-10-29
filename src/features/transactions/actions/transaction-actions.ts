@@ -10,6 +10,7 @@ import { deleteTransactionUseCase } from '@/server/use-cases/transactions/delete
 import { getTransactionByIdUseCase } from '@/server/use-cases/transactions/get-transactions.use-case';
 import type { CreateTransactionInput } from '@/server/use-cases/transactions/types';
 import { AccessScope } from '@/lib/permissions/access-scope';
+import { FinancialResourcePolicy } from '@/server/permissions/financial-resource-policy';
 import { isMember } from '@/lib/utils';
 import type { User, Transaction } from '@/lib/types';
 import {
@@ -39,7 +40,12 @@ export async function createTransactionAction(
       return { data: null, error: parsed.error.issues[0]?.message ?? 'Invalid input' };
     }
 
-    const data = await createTransactionUseCase(parsed.data as CreateTransactionInput);
+    const policy = new FinancialResourcePolicy(currentUser as unknown as User);
+    await policy.assertTransaction(parsed.data);
+    const data = await createTransactionUseCase({
+      ...parsed.data,
+      group_id: policy.groupId,
+    } as CreateTransactionInput);
 
     return { data, error: null };
   } catch (error) {
@@ -67,12 +73,13 @@ export async function updateTransactionAction(
     }
 
     // Get existing transaction to verify ownership
-    const groupId = currentUser.group_id?.trim();
-    const repoScope = groupId ? { groupId } : undefined;
+    const policy = new FinancialResourcePolicy(currentUser as unknown as User);
+    const repoScope = { groupId: policy.groupId };
     const existingTransaction = await getTransactionByIdUseCase(id, repoScope);
     if (!existingTransaction) {
       return { data: null, error: 'Transazione non trovata' };
     }
+    policy.assertGroup(existingTransaction.group_id);
 
     // Verify transaction has a user_id
     if (!existingTransaction.user_id) {
@@ -101,6 +108,12 @@ export async function updateTransactionAction(
       return { data: null, error: parsed.error.issues[0]?.message ?? 'Invalid input' };
     }
 
+    const updates = parsed.data as Partial<CreateTransactionInput>;
+    await policy.assertTransaction({
+      ...existingTransaction,
+      ...updates,
+      group_id: updates.group_id ?? existingTransaction.group_id ?? null,
+    });
     const data = await updateTransactionUseCase(
       id,
       parsed.data as Partial<CreateTransactionInput>,
@@ -128,11 +141,12 @@ export async function getTransactionByIdAction(id: string): Promise<ServiceResul
       return { data: null, error: 'Non autenticato. Effettua il login per continuare.' };
     }
 
-    const groupId = currentUser.group_id?.trim();
-    const transaction = await getTransactionByIdUseCase(id, groupId ? { groupId } : undefined);
+    const policy = new FinancialResourcePolicy(currentUser as unknown as User);
+    const transaction = await getTransactionByIdUseCase(id, { groupId: policy.groupId });
     if (!transaction) {
       return { data: null, error: 'Transazione non trovata' };
     }
+    policy.assertGroup(transaction.group_id);
 
     if (
       transaction.user_id &&
@@ -203,12 +217,13 @@ export async function deleteTransactionAction(id: string): Promise<ServiceResult
     }
 
     // Get existing transaction to verify ownership
-    const groupId = currentUser.group_id?.trim();
-    const repoScope = groupId ? { groupId } : undefined;
+    const policy = new FinancialResourcePolicy(currentUser as unknown as User);
+    const repoScope = { groupId: policy.groupId };
     const existingTransaction = await getTransactionByIdUseCase(id, repoScope);
     if (!existingTransaction) {
       return { data: null, error: 'Transazione non trovata' };
     }
+    policy.assertGroup(existingTransaction.group_id);
 
     // Verify transaction has a user_id
     if (!existingTransaction.user_id) {

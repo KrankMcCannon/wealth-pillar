@@ -34,9 +34,8 @@ export async function recalculateClosedPeriodSnapshotUseCase(
     throw new RecalculateClosedPeriodError('periodNotFound');
   }
 
-  const { transactions, accounts } = await loadPeriodLiquidityData(period.group_id, userId);
-
   const window = periodToDateWindow(period);
+  const { transactions, accounts } = await loadPeriodLiquidityData(period.group_id, userId, window);
   const snapshot = parseBudgetsSnapshot(period.budgets_snapshot) ?? [];
   const amounts = computePeriodLiquidityAmounts(
     transactions,

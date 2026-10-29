@@ -175,7 +175,8 @@ export const CategorySelect = React.memo<CategorySelectProps>(
     };
 
     return (
-      <PopoverPrimitive.Root open={isOpen} onOpenChange={handleOpenChange}>
+      // A modal popover owns the scroll lock while portalled above the form drawer.
+      <PopoverPrimitive.Root modal open={isOpen} onOpenChange={handleOpenChange}>
         {/* Trigger */}
         <PopoverPrimitive.Trigger asChild>
           <button

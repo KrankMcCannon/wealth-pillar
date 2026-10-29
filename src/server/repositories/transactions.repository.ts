@@ -341,10 +341,11 @@ export class TransactionsRepository {
   /**
    * Delete all transactions for an account
    */
-  static async deleteByAccount(accountId: string) {
-    await db
+  static async deleteByAccount(accountId: string, executor?: DbExecutor) {
+    return resolveDb(executor)
       .delete(transactions)
-      .where(or(eq(transactions.account_id, accountId), eq(transactions.to_account_id, accountId)));
+      .where(or(eq(transactions.account_id, accountId), eq(transactions.to_account_id, accountId)))
+      .returning();
   }
 
   /**

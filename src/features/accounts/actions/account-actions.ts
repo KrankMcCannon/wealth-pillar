@@ -17,6 +17,7 @@ import type { ServiceResult } from '@/lib/types/service-result';
 import { Account, User } from '@/lib/types';
 import { AccessScope } from '@/lib/permissions/access-scope';
 import { defaultAccountUserId } from '@/features/accounts/utils/default-account-id';
+import { FinancialResourcePolicy } from '@/server/permissions/financial-resource-policy';
 
 export type { ServiceResult } from '@/lib/types/service-result';
 
@@ -43,19 +44,15 @@ export async function createAccountAction(
       return { data: null, error: t('errors.unauthenticated') };
     }
 
-    const scope = AccessScope.for(currentUser as unknown as User);
-    for (const userId of input.user_ids) {
-      if (!scope.canViewUser(userId)) {
-        return { data: null, error: t('errors.noPermissionCreate') };
-      }
-    }
-
     if (!input.name?.trim()) return { data: null, error: t('errors.nameRequired') };
     if (!input.type) return { data: null, error: t('errors.typeRequired') };
     if (!input.group_id) return { data: null, error: t('errors.groupRequired') };
     if (!input.user_ids?.length) return { data: null, error: t('errors.userRequired') };
 
-    const account = await createAccountUseCase(input);
+    const policy = new FinancialResourcePolicy(currentUser as unknown as User);
+    policy.assertGroup(input.group_id);
+    await policy.assertUsers(input.user_ids);
+    const account = await createAccountUseCase({ ...input, group_id: policy.groupId });
 
     const defaultUserId = defaultAccountUserId(isDefault, input.user_ids, currentUser.id);
     if (defaultUserId) await setUserDefaultAccountUseCase(defaultUserId, account.id);
@@ -112,6 +109,9 @@ export async function updateAccountAction(
       return { data: null, error: t('errors.nameEmpty') };
     if (input.user_ids?.length === 0) return { data: null, error: t('errors.userRequired') };
 
+    const policy = new FinancialResourcePolicy(currentUser as unknown as User);
+    if ('group_id' in input) policy.assertGroup(input.group_id);
+    if (input.user_ids) await policy.assertUsers(input.user_ids);
     const account = await updateAccountUseCase(accountId, input);
 
     const defaultUserId = defaultAccountUserId(
