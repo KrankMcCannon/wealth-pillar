@@ -1,12 +1,28 @@
 # CI and master protection
 
-The `CI` workflow publishes one status check, `Quality`, on pull requests to
-`master`, pushes to `master` and `codex/**`, and manual runs. It runs a frozen pnpm
-install, lint, type checking, unit tests, PostgreSQL integration tests and the
-production build. PostgreSQL 17 and synthetic Clerk keys keep CI independent of
-production data and secrets. pnpm is pinned in `package.json`. The existing UI
-fonts are included locally with their licenses to avoid network-dependent font
-loader failures in clean builds.
+The `CI` workflow runs on pull requests to `master`, pushes to `master`, and manual
+runs. Feature-branch pushes do not duplicate PR runs. All checks still run for every
+PR, including documentation-only changes.
+
+The following jobs run independently in parallel:
+
+- Static checks: content-based ESLint cache and incremental TypeScript checking.
+- Unit tests: Node and DOM projects on separate runners; only browser-dependent tests
+  create jsdom. Per-file isolation stays enabled. `pnpm test` still runs both projects.
+- PostgreSQL integration: a disposable PostgreSQL 17 Alpine service, available without
+  waiting for lint or unit tests. Tests keep their transaction/concurrency assertions
+  and serial fixture isolation.
+- Production build: persisted `.next/cache`; no PostgreSQL container is needed.
+
+Each job uses a frozen pnpm installation. Synthetic Clerk credentials keep CI independent
+of production data and secrets. The final `Quality` job runs even after failed or
+cancelled dependencies, and passes only when every required job succeeded. Branch
+protection continues to require that single GitHub Actions check.
+
+ESLint, TypeScript and Next caches are keyed by runner, dependency/config hashes and
+commit, with restore prefixes for earlier commits. They cache incremental work only;
+no test is skipped and no production output or credentials are reused. The local font
+files and pinned pnpm version keep builds reproducible.
 
 `master-protection.json` records the branch protection configuration: pull requests
 and the GitHub Actions `Quality` check are required, including for administrators.

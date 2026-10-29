@@ -1,7 +1,6 @@
 import { CACHE_TAGS } from '@/lib/cache/config';
 import type {
   Account,
-  Budget,
   BudgetPeriod,
   Category,
   RecurringTransactionSeries,
@@ -32,34 +31,6 @@ import { getBudgetPeriodTransactionsUseCase } from '../budgets/get-budget-period
 import { getSeriesByGroupUseCase } from '../recurring/recurring.use-cases';
 import { transactionInvolvesUser } from '@/server/ledger';
 import { getTransactionsByGroupUseCase } from '../transactions/get-transactions.use-case';
-
-/**
- * Check if an error is a request abort error (specific to Next.js/Supabase)
- */
-function isRequestAbortError(error: unknown): boolean {
-  if (error == null) return false;
-  const message =
-    typeof error === 'string'
-      ? error
-      : typeof error === 'object' && 'message' in error
-        ? String((error as { message?: string }).message)
-        : '';
-  return /abort/i.test(message);
-}
-
-/**
- * Helper to safely fetch data with error logging and fallback
- */
-async function safeFetch<T>(promise: Promise<T>, fallback: T, context: string): Promise<T> {
-  try {
-    return await promise;
-  } catch (e) {
-    if (!isRequestAbortError(e)) {
-      console.error(`[PageDataUseCase] ${context}:`, e);
-    }
-    return fallback;
-  }
-}
 
 export interface RecentActivityByScope {
   all: Transaction[];
@@ -120,35 +91,20 @@ async function getCachedDashboardPageData(groupId: string): Promise<DashboardPag
   cacheTag(CACHE_TAGS.BUDGET_PERIODS);
   cacheTag('categories');
 
-  let groupUsers: User[] = [];
-  try {
-    groupUsers = await getGroupUsersByGroupIdDeduped(groupId);
-  } catch (error) {
-    if (!isRequestAbortError(error)) {
-      console.error('[PageDataUseCase] Failed to fetch group users:', error);
-    }
-  }
+  const groupUsers = await getGroupUsersByGroupIdDeduped(groupId);
   const userIds = groupUsers.map((u) => u.id);
 
   const [accounts, transactionResult, budgets, recurringSeries, categories, periodMap] =
     await Promise.all([
-      safeFetch(getAccountsByGroupDeduped(groupId), [] as Account[], 'Failed to fetch accounts'),
-      safeFetch(
-        getTransactionsByGroupUseCase(groupId, {
-          startDate: dashboardTransactionStartDate(),
-          limit: DASHBOARD_TRANSACTIONS_LIMIT,
-          countTotal: false,
-        }),
-        { data: [] as Transaction[], total: 0, hasMore: false },
-        'Failed to fetch transactions'
-      ),
-      safeFetch(getBudgetsByGroupUseCase(groupId), [] as Budget[], 'Failed to fetch budgets'),
-      safeFetch(
-        getSeriesByGroupUseCase(groupId),
-        [] as RecurringTransactionSeries[],
-        'Failed to fetch recurring series'
-      ),
-      safeFetch(getAllCategoriesDeduped(), [] as Category[], 'Failed to fetch categories'),
+      getAccountsByGroupDeduped(groupId),
+      getTransactionsByGroupUseCase(groupId, {
+        startDate: dashboardTransactionStartDate(),
+        limit: DASHBOARD_TRANSACTIONS_LIMIT,
+        countTotal: false,
+      }),
+      getBudgetsByGroupUseCase(groupId),
+      getSeriesByGroupUseCase(groupId),
+      getAllCategoriesDeduped(),
       getActiveBudgetPeriodsForUsersUseCase(userIds),
     ]);
 
