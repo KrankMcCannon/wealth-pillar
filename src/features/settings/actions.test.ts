@@ -18,7 +18,7 @@ vi.mock('@/server/use-cases/users/user.use-cases', () => ({
   updateUserProfileUseCase: vi.fn(),
 }));
 
-vi.mock('@/server/use-cases/users/get-user-preferences.use-case', () => ({
+vi.mock('@/server/use-cases/users/update-user-preferences.use-case', () => ({
   updateUserPreferencesUseCase: vi.fn(),
 }));
 
@@ -29,7 +29,7 @@ vi.mock('@/server/use-cases/groups/group-invitations.use-cases', () => ({
 import { getCurrentUser } from '@/lib/auth/cached-auth';
 import { updateGroupUseCase } from '@/server/use-cases/groups/groups.use-cases';
 import { updateUserProfileUseCase } from '@/server/use-cases/users/user.use-cases';
-import { updateUserPreferencesUseCase } from '@/server/use-cases/users/get-user-preferences.use-case';
+import { updateUserPreferencesUseCase } from '@/server/use-cases/users/update-user-preferences.use-case';
 import { createGroupInvitationUseCase } from '@/server/use-cases/groups/group-invitations.use-cases';
 
 describe('updateGroupAction', () => {

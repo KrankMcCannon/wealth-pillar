@@ -2,6 +2,8 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } 
 import { setTimeout as delay } from 'node:timers/promises';
 import { sql } from 'drizzle-orm';
 import { db } from '@/server/db/drizzle';
+import { updateUserPreferencesUseCase } from '@/server/use-cases/users/update-user-preferences.use-case';
+import { UserPreferencesRepository } from '@/server/repositories/user-preferences.repository';
 import { AccountsRepository } from '@/server/repositories/accounts.repository';
 import { BudgetPeriodsRepository } from '@/server/repositories/budget-periods.repository';
 import { TransactionsRepository } from '@/server/repositories/transactions.repository';
@@ -34,6 +36,7 @@ import {
 } from '@/lib/utils/cache-utils';
 
 vi.mock('next/cache', () => ({
+  unstable_cache: <T>(fn: T) => fn,
   revalidateTag: vi.fn(),
   updateTag: vi.fn(),
   cacheLife: vi.fn(),
@@ -60,6 +63,13 @@ const a = '00000000-0000-4000-8000-000000000003';
 const b = '00000000-0000-4000-8000-000000000004';
 
 beforeAll(async () => {
+  await db.execute(sql`CREATE TABLE user_preferences (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(), user_id uuid NOT NULL,
+    currency varchar(3) NOT NULL DEFAULT 'EUR', language varchar(5) NOT NULL DEFAULT 'it-IT',
+    timezone varchar(50) NOT NULL DEFAULT 'Europe/Rome', notifications_push boolean NOT NULL DEFAULT true,
+    notifications_email boolean NOT NULL DEFAULT false, notifications_budget_alerts boolean NOT NULL DEFAULT true,
+    created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now()
+  )`);
   // Minimal production-shaped tables in the guarded, disposable local database.
   await db.execute(sql`CREATE TABLE accounts (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(), name text NOT NULL, type text NOT NULL,
@@ -86,7 +96,9 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await db.execute(sql`DROP TABLE IF EXISTS transactions, accounts, budget_periods CASCADE`);
+  await db.execute(
+    sql`DROP TABLE IF EXISTS transactions, accounts, budget_periods, user_preferences CASCADE`
+  );
   await db.execute(sql`DROP FUNCTION IF EXISTS fail_account_delete()`);
   await db.$client.end();
 });
@@ -95,7 +107,7 @@ beforeEach(async () => {
   vi.clearAllMocks();
   vi.stubEnv('CLERK_SECRET_KEY', 'local-integration-test-key');
   vi.mocked(getBudgetsByUserUseCase).mockResolvedValue([foodBudget()]);
-  await db.execute(sql`TRUNCATE accounts, transactions, budget_periods`);
+  await db.execute(sql`TRUNCATE accounts, transactions, budget_periods, user_preferences`);
   await AccountsRepository.create({
     id: a,
     name: 'A',
@@ -719,5 +731,30 @@ describe('complete period totals independently of report windows', () => {
       window
     );
     expect(summaries[0]).toMatchObject({ spendableSpent: 5001, remaining: 4999 });
+  });
+});
+
+describe('preferences persistence against PostgreSQL', () => {
+  it('lazily creates and updates only the validated preferences for the target user', async () => {
+    const saved = await updateUserPreferencesUseCase(userId, {
+      language: 'en',
+      currency: 'USD',
+      timezone: 'Europe/London',
+      notifications_push: false,
+    });
+    expect(saved).toMatchObject({
+      user_id: userId,
+      language: 'en-US',
+      currency: 'USD',
+      notifications_push: false,
+    });
+    expect(await UserPreferencesRepository.getByUserId(userId)).toMatchObject(saved);
+  });
+  it('does not create or reassign preferences from forged ownership input', async () => {
+    await expect(
+      updateUserPreferencesUseCase(userId, { user_id: b, currency: 'USD' })
+    ).rejects.toThrow();
+    expect(await UserPreferencesRepository.getByUserId(userId)).toBeNull();
+    expect(await UserPreferencesRepository.getByUserId(b)).toBeNull();
   });
 });

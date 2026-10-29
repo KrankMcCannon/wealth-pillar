@@ -99,6 +99,13 @@ describe('InvestmentsScreenList', () => {
     expect(screen.getByText(/11\.4%/)).toBeTruthy();
   });
 
+  it('labels missing quotes without substituting the purchase cost', () => {
+    render(<InvestmentsScreenList holdings={[sample[0]!]} />);
+    expect(screen.getByText('Investments.InvestmentList.quoteUnavailable')).toBeTruthy();
+    expect(screen.queryByText(/100,00/)).toBeNull();
+    expect(screen.queryByText(/%/)).toBeNull();
+  });
+
   it('opens the holding in the edit modal', async () => {
     const user = userEvent.setup();
     openModal.mockClear();

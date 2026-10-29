@@ -12,21 +12,22 @@ export interface EnrichedInvestment extends Omit<
   currency_rate: number;
   tax_paid: number;
   net_earn: number;
-  currentPrice: number;
-  currentValue: number;
-  initialValue: number;
+  priceDate: string | null;
+  currentPrice: number | null;
+  currentValue: number | null;
+  initialValue: number | null;
   totalPaid: number;
-  totalGain: number;
+  totalGain: number | null;
 }
 
 export interface PortfolioSummary {
   totalInvested: number;
   totalTaxPaid: number;
   totalPaid: number;
-  totalCurrentValue: number;
-  totalInitialValue: number;
-  totalReturn: number;
-  totalReturnPercent: number;
+  totalCurrentValue: number | null;
+  totalInitialValue: number | null;
+  totalReturn: number | null;
+  totalReturnPercent: number | null;
 }
 
 export interface AssetAllocationSlice {
@@ -57,8 +58,9 @@ export interface InvestmentListItem {
   tax_paid?: number;
   totalPaid?: number;
   net_earn?: number;
-  currentPrice?: number;
-  currentValue?: number;
-  totalGain?: number;
+  priceDate?: string | null;
+  currentPrice?: number | null;
+  currentValue?: number | null;
+  totalGain?: number | null;
   created_at: Date | string | null;
 }
