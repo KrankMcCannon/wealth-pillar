@@ -1,6 +1,13 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { EditProfileModal } from './edit-profile-modal';
+vi.mock('../hooks/use-verified-profile-email', () => ({
+  useVerifiedProfileEmail: () => ({
+    pendingEmail: null,
+    verifyEmail: vi.fn(),
+    resetVerification: vi.fn(),
+  }),
+}));
 
 vi.mock('next-intl', () => ({
   useTranslations: () => (key: string) => key,

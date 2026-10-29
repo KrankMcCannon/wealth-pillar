@@ -174,7 +174,13 @@
       "emailPlaceholder": "john.doe@example.com",
       "cancelButton": "Cancel",
       "savingButton": "Saving...",
-      "saveChangesButton": "Save Changes"
+      "saveChangesButton": "Save Changes",
+      "verifyAndSaveButton": "Verify and save",
+      "verificationCodeLabel": "Verification code",
+      "verificationCodeRequired": "Enter the code sent to your email",
+      "verificationSent": "Enter the code sent to {email}.",
+      "resendCodeButton": "Resend code",
+      "verificationFailed": "Unable to verify your email. Please try again."
     },
     "ManageGroup": {
       "validation": {

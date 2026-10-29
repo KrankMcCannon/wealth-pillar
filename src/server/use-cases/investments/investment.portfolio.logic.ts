@@ -280,13 +280,7 @@ export async function buildPortfolioHistoryWithSnapshots(
   }
 
   const allSnapshots = await PortfolioSnapshotRepository.findByUserIds(userIds);
-  const merged = mergeSnapshotsByDate([
-    ...allSnapshots,
-    ...snapshotsToPersist.map((snap) => ({
-      snapshot_date: snap.snapshot_date,
-      value: snap.value,
-    })),
-  ]);
+  const merged = mergeSnapshotsByDate(allSnapshots);
 
   if (merged.size === 0) {
     return buildPortfolioHistory(rows, seriesIndex);

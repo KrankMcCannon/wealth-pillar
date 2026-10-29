@@ -1,4 +1,5 @@
 import type { Account, Budget, BudgetPeriod, Transaction } from '@/lib/types';
+import { toDateString } from '@/lib/utils/date-utils';
 import { describe, expect, it } from 'vitest';
 import { calculatePeriodSummariesUseCase, resolveYtdBudgetStart } from './reports.use-cases';
 
@@ -354,10 +355,7 @@ describe('calculatePeriodSummariesUseCase', () => {
 
 describe('resolveYtdBudgetStart', () => {
   const now = new Date('2024-03-15');
-  const ymd = (d: Date | null) =>
-    d
-      ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-      : null;
+  const ymd = (d: Date | null) => (d ? toDateString(d) : null);
 
   it('returns the start of the period straddling 1 Jan of the current year', () => {
     const periods: BudgetPeriod[] = [

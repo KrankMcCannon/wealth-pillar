@@ -31,10 +31,10 @@ export function resolveEffectivePeriod(
 }
 
 function calendarMonthPeriod(now: Date): EffectivePeriod {
-  const start = DateTime.fromJSDate(new Date(now.getFullYear(), now.getMonth(), 1)).startOf('day');
-  const end = DateTime.fromJSDate(
-    new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59)
-  ).endOf('day');
+  // Keep calendar boundaries in the application's zone, including on UTC CI/servers.
+  const current = toDateTime(now)!;
+  const start = current.startOf('month');
+  const end = current.endOf('month');
   return { start, end, activePeriod: null, isSynthetic: true };
 }
 
