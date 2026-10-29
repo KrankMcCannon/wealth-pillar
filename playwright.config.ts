@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
+import { authFile, e2eBaseURL } from './tests/e2e-environment';
 
 /**
  * Read environment variables from file.
@@ -13,6 +14,7 @@ import { defineConfig, devices } from '@playwright/test';
  */
 export default defineConfig({
   testDir: './tests',
+  testIgnore: '**/integration/**',
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
@@ -43,7 +45,7 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('')`. */
-    baseURL: 'http://localhost:3000',
+    baseURL: e2eBaseURL,
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
@@ -54,48 +56,51 @@ export default defineConfig({
     // Global setup for Clerk authentication
     {
       name: 'setup',
+      teardown: 'cleanup',
       testMatch: /global\.setup\.ts/,
     },
 
+    { name: 'cleanup', testMatch: /global\.teardown\.ts/ },
+
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: { storageState: authFile, ...devices['Desktop Chrome'] },
       dependencies: ['setup'],
     },
 
     {
       name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
+      use: { storageState: authFile, ...devices['Desktop Firefox'] },
       dependencies: ['setup'],
     },
 
     {
       name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
+      use: { storageState: authFile, ...devices['Desktop Safari'] },
       dependencies: ['setup'],
     },
 
     /* Test against mobile viewports. */
     {
       name: 'Mobile Chrome',
-      use: { ...devices['Pixel 5'] },
+      use: { storageState: authFile, ...devices['Pixel 5'] },
       dependencies: ['setup'],
     },
     {
       name: 'Mobile Safari',
-      use: { ...devices['iPhone 12'] },
+      use: { storageState: authFile, ...devices['iPhone 12'] },
       dependencies: ['setup'],
     },
 
     /* Test against branded browsers. */
     // {
     //   name: 'Microsoft Edge',
-    //   use: { ...devices['Desktop Edge'], channel: 'msedge' },
+    //   use: { storageState: authFile, ...devices['Desktop Edge'], channel: 'msedge' },
     //   dependencies: ['setup'],
     // },
     // {
     //   name: 'Google Chrome',
-    //   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
+    //   use: { storageState: authFile, ...devices['Desktop Chrome'], channel: 'chrome' },
     //   dependencies: ['setup'],
     // },
   ],
@@ -103,9 +108,14 @@ export default defineConfig({
   /* Run your local dev server before starting the tests.
    */
   webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:3000',
-    reuseExistingServer: !process.env.CI,
+    command: 'pnpm build && pnpm exec next start --hostname localhost --port 3100',
+    wait: { stdout: /Ready in/ },
+    env: {
+      DATABASE_URL: process.env.DATABASE_URL || 'postgres://127.0.0.1/wealth_pillar_e2e',
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || '',
+      CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY || '',
+    },
+    reuseExistingServer: false,
     timeout: 180000,
   },
 });

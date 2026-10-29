@@ -39,6 +39,7 @@ import {
   getGroupUsersByGroupIdDeduped,
 } from '@/server/request-cache/services';
 import { getDashboardPageData } from './dashboard.use-case';
+import { cacheTag } from 'next/cache';
 
 const groupUsers = [
   {
@@ -99,6 +100,8 @@ describe('getDashboardPageData', () => {
   it('returns dashboard data without investments field', async () => {
     const result = await getDashboardPageData('g1', groupUsers[0]);
 
+    expect(cacheTag).toHaveBeenCalledWith('recurring_series');
+    expect(cacheTag).toHaveBeenCalledWith('group:g1:recurring');
     expect(result.accounts).toEqual(accounts);
     expect(result.recurringSeries).toEqual([]);
     expect(result.categories).toEqual([]);

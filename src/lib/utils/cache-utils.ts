@@ -211,7 +211,8 @@ export function invalidateRecurringCaches(opts: {
     tags.push(`group:${opts.groupId}:recurring`);
   }
 
-  invalidateTags(tags);
+  // Mutations must refresh dependent Dashboard summaries on the very next read.
+  for (const tag of new Set(tags)) updateTag(tag);
 }
 
 /**
