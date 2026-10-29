@@ -52,11 +52,16 @@ export type PrepareImportRowInput = {
   description: string;
   amount: number;
   type: ImportRowType;
-  import_hash: string;
-  causale?: string;
+  causale?: string | undefined;
 };
 
-export type PrepareImportRowResult = PrepareImportRowInput & {
+export type PreparedImportRowInput = PrepareImportRowInput & {
+  import_hash: string;
+  occurrence_index: number;
+  preparation_token: string;
+};
+
+export type PrepareImportRowResult = PreparedImportRowInput & {
   status: ImportRowStatus;
   suggestedCategory: string;
   suggestedRecurringSeriesId?: string;

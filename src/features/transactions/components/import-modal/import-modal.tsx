@@ -23,7 +23,6 @@ import {
 } from '@/hooks/use-required-user';
 import { useToast } from '@/hooks';
 import {
-  assignImportHashes,
   matchCategoryHint,
   parseImportFile,
   type ParseImportFileResult,
@@ -228,8 +227,7 @@ export default function ImportModal({ isOpen, onClose }: Readonly<ImportModalPro
         const userId = values[mappingUserField(group.productKey)];
         if (!accountId || accountId === '__exclude__' || !userId) continue;
 
-        const withHashes = await assignImportHashes(group.rows, accountId);
-        for (const row of withHashes) {
+        for (const row of group.rows) {
           if (row.amount <= 0) continue;
           userByRowId.set(row.rowId, userId);
           categoryHintByRowId.set(row.rowId, row.categoryHint);
@@ -240,7 +238,6 @@ export default function ImportModal({ isOpen, onClose }: Readonly<ImportModalPro
             description: row.description,
             amount: row.amount,
             type: row.type,
-            import_hash: row.import_hash,
             ...(row.rawSource.causale ? { causale: row.rawSource.causale } : {}),
           });
         }
@@ -306,6 +303,8 @@ export default function ImportModal({ isOpen, onClose }: Readonly<ImportModalPro
           amount: row.amount,
           type: row.type,
           import_hash: row.import_hash,
+          occurrence_index: row.occurrence_index,
+          preparation_token: row.preparation_token,
           category: row.category,
           user_id: row.user_id,
           ...(row.suggestedRecurringSeriesId

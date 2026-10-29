@@ -1,9 +1,13 @@
 'use server';
 
 import { getCurrentUser } from '@/lib/auth/cached-auth';
-import { assertCanActOnUser } from '@/features/permissions/assert-can-act-on-user';
 import type { ServiceResult } from '@/lib/types/service-result';
 import type { User } from '@/lib/types';
+import { FinancialResourcePolicy } from '@/server/permissions/financial-resource-policy';
+import {
+  prepareImportRowProofs,
+  verifyImportRowProof,
+} from '@/server/use-cases/transactions/import-row-proof';
 import type { BulkImportResult, PrepareImportRowResult } from '@/lib/import/types';
 import { prepareImportUseCase } from '@/server/use-cases/transactions/prepare-import.use-case';
 import { bulkCreateTransactionsUseCase } from '@/server/use-cases/transactions/bulk-create-transactions.use-case';
@@ -18,7 +22,6 @@ export async function prepareImportAction(input: {
     description: string;
     amount: number;
     type: 'income' | 'expense';
-    import_hash: string;
     causale?: string;
   }>;
 }): Promise<ServiceResult<PrepareImportRowResult[]>> {
@@ -37,21 +40,15 @@ export async function prepareImportAction(input: {
       return { data: null, error: 'Permesso negato' };
     }
 
-    const data = await prepareImportUseCase({
-      groupId: parsed.data.group_id,
-      rows: parsed.data.rows.map((row) => {
-        const base = {
-          rowId: row.rowId,
-          account_id: row.account_id,
-          date: row.date,
-          description: row.description,
-          amount: row.amount,
-          type: row.type,
-          import_hash: row.import_hash,
-        };
-        return row.causale ? { ...base, causale: row.causale } : base;
-      }),
+    const policy = new FinancialResourcePolicy(currentUser as unknown as User);
+    for (const accountId of new Set(parsed.data.rows.map((row) => row.account_id))) {
+      await policy.assertAccount(accountId);
+    }
+    const rows = await prepareImportRowProofs(parsed.data.rows, {
+      userId: currentUser.id,
+      groupId: policy.groupId,
     });
+    const data = await prepareImportUseCase({ groupId: policy.groupId, rows });
 
     return { data, error: null };
   } catch (error) {
@@ -72,6 +69,8 @@ export async function commitImportAction(input: {
     amount: number;
     type: 'income' | 'expense';
     import_hash: string;
+    occurrence_index: number;
+    preparation_token: string;
     category: string;
     user_id: string;
     recurring_series_id?: string;
@@ -92,9 +91,13 @@ export async function commitImportAction(input: {
       return { data: null, error: 'Permesso negato' };
     }
 
+    const policy = new FinancialResourcePolicy(currentUser as unknown as User);
     for (const row of parsed.data.rows) {
-      const gate = assertCanActOnUser(currentUser as unknown as User, row.user_id);
-      if (!gate.ok) return { data: null, error: gate.error };
+      await verifyImportRowProof(row, { userId: currentUser.id, groupId: policy.groupId });
+    }
+    await policy.assertUsers([...new Set(parsed.data.rows.map((row) => row.user_id))]);
+    for (const accountId of new Set(parsed.data.rows.map((row) => row.account_id))) {
+      await policy.assertAccount(accountId);
     }
 
     const data = await bulkCreateTransactionsUseCase(

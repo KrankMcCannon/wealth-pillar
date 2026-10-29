@@ -11,12 +11,11 @@ export async function deleteTransactionUseCase(
 ): Promise<{ id: string }> {
   validateId(id, 'Transaction ID');
 
-  const existing = await TransactionsRepository.getById(id, scope);
-  if (!existing) throw new Error('Transaction not found');
-
-  await db.transaction(async (tx) => {
-    await TransactionsRepository.delete(id, tx);
-    await applyTransactionBalanceAdjustments(existing, -1, tx);
+  const existing = await db.transaction(async (tx) => {
+    const removed = await TransactionsRepository.delete(id, tx, scope);
+    if (!removed) throw new Error('Transaction not found');
+    await applyTransactionBalanceAdjustments(removed, -1, tx);
+    return removed;
   });
 
   invalidateTransactionCaches({

@@ -192,6 +192,16 @@ describe('transaction-actions', () => {
       expect((await createTransactionAction(createMockInput())).error).toBeNull();
     });
 
+    it('carries member ownership scope into the actual update and deletion', async () => {
+      vi.mocked(getCurrentUser).mockResolvedValue(createMockUser({ role: 'member' }));
+      vi.mocked(updateTransactionUseCase).mockResolvedValue(createMockTransaction());
+      const scope = { groupId: 'group-1', userId: 'user-1' };
+      expect((await updateTransactionAction('tx-1', { amount: 20 })).error).toBeNull();
+      expect(updateTransactionUseCase).toHaveBeenCalledWith('tx-1', { amount: 20 }, scope);
+      expect((await deleteTransactionAction('tx-1')).error).toBeNull();
+      expect(deleteTransactionUseCase).toHaveBeenCalledWith('tx-1', scope);
+    });
+
     it('fails closed when the authenticated user has no group', async () => {
       vi.mocked(getCurrentUser).mockResolvedValue(createMockUser({ group_id: null }));
       expect((await updateTransactionAction('tx-1', { amount: 10 })).error).toBe(

@@ -74,7 +74,12 @@ export async function updateTransactionAction(
 
     // Get existing transaction to verify ownership
     const policy = new FinancialResourcePolicy(currentUser as unknown as User);
-    const repoScope = { groupId: policy.groupId };
+    const repoScope = {
+      groupId: policy.groupId,
+      ...(!AccessScope.for(currentUser as unknown as User).isAdmin
+        ? { userId: currentUser.id }
+        : {}),
+    };
     const existingTransaction = await getTransactionByIdUseCase(id, repoScope);
     if (!existingTransaction) {
       return { data: null, error: 'Transazione non trovata' };
@@ -218,7 +223,12 @@ export async function deleteTransactionAction(id: string): Promise<ServiceResult
 
     // Get existing transaction to verify ownership
     const policy = new FinancialResourcePolicy(currentUser as unknown as User);
-    const repoScope = { groupId: policy.groupId };
+    const repoScope = {
+      groupId: policy.groupId,
+      ...(!AccessScope.for(currentUser as unknown as User).isAdmin
+        ? { userId: currentUser.id }
+        : {}),
+    };
     const existingTransaction = await getTransactionByIdUseCase(id, repoScope);
     if (!existingTransaction) {
       return { data: null, error: 'Transazione non trovata' };

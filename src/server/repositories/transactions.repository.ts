@@ -35,6 +35,14 @@ export interface TransactionFilterOptions {
 export type InsertTransaction = typeof transactions.$inferInsert;
 export type UpdateTransaction = typeof transactions.$inferInsert;
 
+function transactionConditions(id: string, scope?: TransactionScope) {
+  return and(
+    eq(transactions.id, id),
+    scope?.groupId ? eq(transactions.group_id, scope.groupId) : undefined,
+    scope?.userId ? eq(transactions.user_id, scope.userId) : undefined
+  );
+}
+
 export class TransactionsRepository {
   /**
    * Get transactions by group with filtering
@@ -207,19 +215,27 @@ export class TransactionsRepository {
    */
   static async getById(id: string, scope?: TransactionScope, executor?: DbExecutor) {
     const dbConn = resolveDb(executor);
-    const conditions = [eq(transactions.id, id)];
-    if (scope?.groupId) {
-      conditions.push(eq(transactions.group_id, scope.groupId));
-    }
-    if (scope?.userId) {
-      conditions.push(eq(transactions.user_id, scope.userId));
-    }
     const [row] = await dbConn
       .select()
       .from(transactions)
-      .where(and(...conditions))
+      .where(transactionConditions(id, scope))
       .limit(1);
     return row || null;
+  }
+
+  /** Call inside the mutation transaction, before deriving the previous balance effect. */
+  static async getByIdForUpdate(
+    id: string,
+    scope: TransactionScope | undefined,
+    executor: DbExecutor
+  ) {
+    const [row] = await executor
+      .select()
+      .from(transactions)
+      .where(transactionConditions(id, scope))
+      .limit(1)
+      .for('update');
+    return row ?? null;
   }
 
   /**
@@ -242,6 +258,7 @@ export class TransactionsRepository {
       .values(data)
       .onConflictDoNothing({
         target: [transactions.account_id, transactions.import_hash],
+        where: sql`${transactions.import_hash} IS NOT NULL`,
       })
       .returning();
   }
@@ -325,9 +342,12 @@ export class TransactionsRepository {
   /**
    * Delete a transaction
    */
-  static async delete(id: string, executor?: DbExecutor) {
+  static async delete(id: string, executor?: DbExecutor, scope?: TransactionScope) {
     const dbConn = resolveDb(executor);
-    const [row] = await dbConn.delete(transactions).where(eq(transactions.id, id)).returning();
+    const [row] = await dbConn
+      .delete(transactions)
+      .where(transactionConditions(id, scope))
+      .returning();
     return row;
   }
 

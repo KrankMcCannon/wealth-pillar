@@ -5,13 +5,17 @@ import {
   normalizeImportDescription,
   suggestCategoryFromImportRow,
 } from '@/lib/import';
-import type { PrepareImportRowInput, PrepareImportRowResult } from '@/lib/import/types';
+import type {
+  PrepareImportRowInput,
+  PreparedImportRowInput,
+  PrepareImportRowResult,
+} from '@/lib/import/types';
 import { TransactionsRepository } from '@/server/repositories/transactions.repository';
 import { RecurringRepository } from '@/server/repositories/recurring.repository';
 
 export type PrepareImportInput = {
   groupId: string;
-  rows: PrepareImportRowInput[];
+  rows: PreparedImportRowInput[];
 };
 
 function dateRangeFromRows(rows: PrepareImportRowInput[]): { start: string; end: string } | null {
@@ -75,7 +79,7 @@ function findCategoryFromHistory(
 export async function prepareImportUseCase(
   input: PrepareImportInput
 ): Promise<PrepareImportRowResult[]> {
-  const rowsByAccount = new Map<string, PrepareImportRowInput[]>();
+  const rowsByAccount = new Map<string, PreparedImportRowInput[]>();
   for (const row of input.rows) {
     const bucket = rowsByAccount.get(row.account_id) ?? [];
     bucket.push(row);

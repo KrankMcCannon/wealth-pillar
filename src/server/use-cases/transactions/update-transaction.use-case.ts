@@ -4,7 +4,7 @@ import type { UpdateTransactionInput } from '@/server/use-cases/transactions/typ
 import type { Transaction } from '@/lib/types';
 import { serialize } from '@/lib/utils/serializer';
 import { invalidateTransactionUpdateCaches } from '@/lib/utils/cache-utils';
-import { applyTransactionBalanceAdjustments } from '@/server/use-cases/transactions/transaction-balance';
+import { applyTransactionBalanceUpdate } from '@/server/use-cases/transactions/transaction-balance';
 import type { TransactionScope } from '@/server/repositories/transactions.repository';
 
 export async function updateTransactionUseCase(
@@ -13,23 +13,6 @@ export async function updateTransactionUseCase(
   scope?: TransactionScope
 ): Promise<Transaction> {
   if (!id?.trim()) throw new Error('Transaction ID is required');
-
-  const existing = await TransactionsRepository.getById(id, scope);
-  if (!existing) throw new Error('Transaction not found');
-  if (data.group_id !== undefined && data.group_id !== existing.group_id) {
-    throw new Error('Cannot move a transaction to another group');
-  }
-
-  if (data.type === 'transfer' || existing.type === 'transfer') {
-    const toAccountId = data.to_account_id ?? existing.to_account_id;
-    const accountId = data.account_id ?? existing.account_id;
-    if ((data.type || existing.type) === 'transfer' && !toAccountId) {
-      throw new Error('Destination account is required for transfers');
-    }
-    if (toAccountId === accountId) {
-      throw new Error('Source and destination accounts must be different');
-    }
-  }
 
   const updateData: Parameters<typeof TransactionsRepository.update>[1] = {};
   if (data.description !== undefined) updateData.description = data.description.trim();
@@ -44,12 +27,29 @@ export async function updateTransactionUseCase(
   if (data.account_id !== undefined) updateData.account_id = data.account_id;
   if (data.to_account_id !== undefined) updateData.to_account_id = data.to_account_id;
 
-  const updated = await db.transaction(async (tx) => {
+  const { existing, updated } = await db.transaction(async (tx) => {
+    const existing = await TransactionsRepository.getByIdForUpdate(id, scope, tx);
+    if (!existing) throw new Error('Transaction not found');
+    if (data.group_id !== undefined && data.group_id !== existing.group_id) {
+      throw new Error('Cannot move a transaction to another group');
+    }
+
+    if (data.type === 'transfer' || existing.type === 'transfer') {
+      const toAccountId =
+        data.to_account_id !== undefined ? data.to_account_id : existing.to_account_id;
+      const accountId = data.account_id ?? existing.account_id;
+      if ((data.type || existing.type) === 'transfer' && !toAccountId) {
+        throw new Error('Destination account is required for transfers');
+      }
+      if (toAccountId === accountId) {
+        throw new Error('Source and destination accounts must be different');
+      }
+    }
+
     const row = await TransactionsRepository.update(id, updateData, tx);
     if (!row) throw new Error('Failed to update transaction');
-    await applyTransactionBalanceAdjustments(existing, -1, tx);
-    await applyTransactionBalanceAdjustments(row, 1, tx);
-    return row;
+    await applyTransactionBalanceUpdate(existing, row, tx);
+    return { existing, updated: row };
   });
 
   invalidateTransactionUpdateCaches(

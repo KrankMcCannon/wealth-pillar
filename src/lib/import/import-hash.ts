@@ -45,10 +45,13 @@ export async function computeImportHash(parts: {
 
 export async function assignImportHashes<
   T extends { description: string; date: string; type: ImportRowType; amount: number },
->(rows: T[], accountId: string): Promise<Array<T & { import_hash: string }>> {
+>(
+  rows: T[],
+  accountId: string
+): Promise<Array<T & { import_hash: string; occurrence_index: number }>> {
   const occurrenceByKey = new Map<string, number>();
 
-  const withHashes: Array<T & { import_hash: string }> = [];
+  const withHashes: Array<T & { import_hash: string; occurrence_index: number }> = [];
   for (const row of rows) {
     const key = buildImportHashPayload({
       accountId,
@@ -71,7 +74,7 @@ export async function assignImportHashes<
       occurrenceIndex: nextIndex,
     });
 
-    withHashes.push({ ...row, import_hash: importHash });
+    withHashes.push({ ...row, import_hash: importHash, occurrence_index: nextIndex });
   }
 
   return withHashes;

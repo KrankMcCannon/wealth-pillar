@@ -23,7 +23,6 @@ const importRowBaseSchema = z.object({
   description: z.string().min(1).max(500),
   amount: z.number().positive(),
   type: z.enum(['income', 'expense']),
-  import_hash: z.string().min(1),
   causale: z.string().optional(),
 });
 
@@ -37,6 +36,9 @@ export const commitImportSchema = z.object({
   rows: z
     .array(
       importRowBaseSchema.extend({
+        import_hash: z.string().regex(/^[a-f0-9]{64}$/),
+        occurrence_index: z.number().int().min(0).max(4999),
+        preparation_token: z.string().min(1).max(200),
         category: z.string().min(1),
         user_id: idSchema,
         recurring_series_id: idSchema.optional(),
