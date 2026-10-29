@@ -20,13 +20,9 @@ export interface ChartDataPoint {
 export interface BudgetChartProps {
   spent: number;
   chartData: ChartDataPoint[] | null;
-  periodInfo: {
-    startDate: string;
-    endDate: string | null;
-  } | null;
 }
 
-export function BudgetChart({ spent, chartData, periodInfo }: Readonly<BudgetChartProps>) {
+export function BudgetChart({ spent, chartData }: Readonly<BudgetChartProps>) {
   const t = useTranslations('Budgets.Chart');
   const locale = useLocale();
   const titleId = useId().replace(/:/g, '');
@@ -49,42 +45,31 @@ export function BudgetChart({ spent, chartData, periodInfo }: Readonly<BudgetCha
   const path = chartData ? generatePath(chartData) : '';
   const hasLine = Boolean(chartData && chartData.length > 0 && lastPoint);
 
-  const getPeriodDays = () => {
-    if (!periodInfo?.startDate) return 30;
-
-    const start = new Date(periodInfo.startDate);
-    const end = periodInfo.endDate ? new Date(periodInfo.endDate) : new Date();
-    const diffTime = Math.abs(end.getTime() - start.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return Math.max(diffDays, 1);
-  };
-
-  const periodDays = getPeriodDays();
-
   const visibleDayLabels = useMemo(() => {
-    if (!periodInfo?.startDate || !hasLine) return [];
+    if (!chartData || !hasLine) return [];
 
-    const totalDays = Math.min(periodDays, 30);
-    const slots: { index: number; dayOfMonth: number }[] = [];
+    const visible = chartData.filter((p) => !p.isFuture);
+    const totalVisible = visible.length;
+    if (totalVisible === 0) return [];
 
-    for (let index = 0; index < totalDays; index++) {
-      const startDate = new Date(periodInfo.startDate);
-      startDate.setHours(0, 0, 0, 0);
-      const currentDate = new Date(startDate);
-      currentDate.setDate(startDate.getDate() + index);
-      const dayOfMonth = currentDate.getDate();
+    const slots: { index: number; dayOfMonth: number; x: number }[] = [];
+
+    for (let index = 0; index < totalVisible; index++) {
+      const point = visible[index];
+      if (!point) continue;
+      const dayOfMonth = new Date(point.date).getDate();
       const showDay =
         index === 0 ||
-        index === totalDays - 1 ||
-        (totalDays > 7 && index % Math.ceil(totalDays / 5) === 0);
+        index === totalVisible - 1 ||
+        (totalVisible > 7 && index % Math.ceil(totalVisible / 5) === 0);
 
       if (showDay) {
-        slots.push({ index, dayOfMonth });
+        slots.push({ index, dayOfMonth, x: point.x });
       }
     }
 
     return slots;
-  }, [periodInfo, hasLine, periodDays]);
+  }, [chartData, hasLine]);
 
   return (
     <section aria-label={t('sectionAriaLabel')}>

@@ -1,6 +1,12 @@
 import { db } from '@/server/db/drizzle';
 import { transactions } from '@/server/db/schema';
 import { and, desc, eq, or, sql, count, inArray, ilike, lt } from 'drizzle-orm';
+import { resolveDb, type DbExecutor } from '@/server/repositories/db-executor';
+
+export interface TransactionScope {
+  groupId?: string;
+  userId?: string;
+}
 
 /** Exclusive lower bound for keyset pagination (same ordering as list: date desc, created_at desc, id desc). */
 export interface TransactionCursorAfter {
@@ -22,16 +28,31 @@ export interface TransactionFilterOptions {
   offset?: number;
   /** When set, fetches rows strictly after this cursor; do not pass offset together with this. */
   cursorAfter?: TransactionCursorAfter;
+  /** When false, skips COUNT(*) and uses limit+1 overflow for hasMore (keyset / infinite scroll). Default true. */
+  countTotal?: boolean;
 }
 
 export type InsertTransaction = typeof transactions.$inferInsert;
 export type UpdateTransaction = typeof transactions.$inferInsert;
 
+function transactionConditions(id: string, scope?: TransactionScope) {
+  return and(
+    eq(transactions.id, id),
+    scope?.groupId ? eq(transactions.group_id, scope.groupId) : undefined,
+    scope?.userId ? eq(transactions.user_id, scope.userId) : undefined
+  );
+}
+
 export class TransactionsRepository {
   /**
    * Get transactions by group with filtering
    */
-  static async getByGroup(groupId: string, options?: TransactionFilterOptions) {
+  static async getByGroup(
+    groupId: string,
+    options?: TransactionFilterOptions,
+    executor?: DbExecutor
+  ) {
+    const dbConn = resolveDb(executor);
     const filterConditions = [eq(transactions.group_id, groupId)];
 
     if (options?.startDate) {
@@ -81,31 +102,49 @@ export class TransactionsRepository {
 
     const listWhere = and(...dataConditions);
 
-    // Count for full filter set (not narrowed by cursor)
-    const countResult = await db
-      .select({ total: count() })
-      .from(transactions)
-      .where(and(...filterConditions));
-    const total = countResult[0]?.total ?? 0;
+    const countTotal = options?.countTotal !== false;
+    const pageLimit = options?.limit ?? 0;
+
+    let total = 0;
+    if (countTotal) {
+      const countResult = await dbConn
+        .select({ total: count() })
+        .from(transactions)
+        .where(and(...filterConditions));
+      total = countResult[0]?.total ?? 0;
+    }
+
+    const fetchLimit =
+      pageLimit > 0 && !countTotal ? pageLimit + 1 : pageLimit > 0 ? pageLimit : undefined;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let query: any = db
+    let query: any = dbConn
       .select()
       .from(transactions)
       .where(listWhere)
       .orderBy(desc(transactions.date), desc(transactions.created_at), desc(transactions.id));
 
-    if (options?.limit) {
-      query = query.limit(options.limit);
-      if (options.offset && !options.cursorAfter) {
+    if (fetchLimit) {
+      query = query.limit(fetchLimit);
+      if (countTotal && options?.offset && !options.cursorAfter) {
         query = query.offset(options.offset);
       }
     }
 
-    const data = await query;
+    const rawData = await query;
 
-    const offset = options?.offset ?? 0;
-    const hasMore = options?.limit ? offset + data.length < total : false;
+    let data = rawData;
+    let hasMore = false;
+
+    if (!countTotal && pageLimit > 0) {
+      hasMore = rawData.length > pageLimit;
+      if (hasMore) {
+        data = rawData.slice(0, pageLimit);
+      }
+    } else if (countTotal && pageLimit > 0) {
+      const offset = options?.offset ?? 0;
+      hasMore = offset + data.length < total;
+    }
 
     return {
       data,
@@ -131,33 +170,30 @@ export class TransactionsRepository {
     if (options?.category) {
       conditions.push(eq(transactions.category, options.category));
     }
+    if (options?.categoryKeys?.length) {
+      conditions.push(inArray(transactions.category, options.categoryKeys));
+    }
     if (options?.type) {
       conditions.push(eq(transactions.type, options.type));
     }
 
-    const baseQuery = db
+    const listWhere = and(...conditions);
+
+    let query = db
       .select()
       .from(transactions)
-      .where(and(...conditions));
-
-    const countResult2 = await db
-      .select({ total: count() })
-      .from(transactions)
-      .where(and(...conditions));
-    const total = countResult2[0]?.total ?? 0;
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let query: any = baseQuery.orderBy(desc(transactions.date), desc(transactions.created_at));
+      .where(listWhere)
+      .orderBy(desc(transactions.date), desc(transactions.created_at));
 
     if (options?.limit) {
-      query = query.limit(options.limit);
+      query = query.limit(options.limit) as typeof query;
     }
 
     const data = await query;
 
     return {
       data,
-      total,
+      total: data.length,
     };
   }
 
@@ -177,24 +213,124 @@ export class TransactionsRepository {
   /**
    * Get transaction by ID
    */
-  static async getById(id: string) {
-    const [row] = await db.select().from(transactions).where(eq(transactions.id, id)).limit(1);
+  static async getById(id: string, scope?: TransactionScope, executor?: DbExecutor) {
+    const dbConn = resolveDb(executor);
+    const [row] = await dbConn
+      .select()
+      .from(transactions)
+      .where(transactionConditions(id, scope))
+      .limit(1);
     return row || null;
+  }
+
+  /** Call inside the mutation transaction, before deriving the previous balance effect. */
+  static async getByIdForUpdate(
+    id: string,
+    scope: TransactionScope | undefined,
+    executor: DbExecutor
+  ) {
+    const [row] = await executor
+      .select()
+      .from(transactions)
+      .where(transactionConditions(id, scope))
+      .limit(1)
+      .for('update');
+    return row ?? null;
   }
 
   /**
    * Create a transaction
    */
-  static async create(data: InsertTransaction) {
-    const [row] = await db.insert(transactions).values(data).returning();
+  static async create(data: InsertTransaction, executor?: DbExecutor) {
+    const dbConn = resolveDb(executor);
+    const [row] = await dbConn.insert(transactions).values(data).returning();
     return row;
+  }
+
+  /**
+   * Bulk insert transactions; skips rows that conflict on (account_id, import_hash).
+   */
+  static async createMany(data: InsertTransaction[], executor?: DbExecutor) {
+    if (data.length === 0) return [];
+    const dbConn = resolveDb(executor);
+    return dbConn
+      .insert(transactions)
+      .values(data)
+      .onConflictDoNothing({
+        target: [transactions.account_id, transactions.import_hash],
+        where: sql`${transactions.import_hash} IS NOT NULL`,
+      })
+      .returning();
+  }
+
+  static async findByAccountDateRange(
+    accountId: string,
+    startDate: string,
+    endDate: string,
+    executor?: DbExecutor
+  ) {
+    const dbConn = resolveDb(executor);
+    return dbConn
+      .select()
+      .from(transactions)
+      .where(
+        and(
+          eq(transactions.account_id, accountId),
+          sql`${transactions.date} >= ${startDate}`,
+          sql`${transactions.date} <= ${endDate}`
+        )
+      );
+  }
+
+  static async findImportHashesForAccount(
+    accountId: string,
+    hashes: string[],
+    executor?: DbExecutor
+  ): Promise<string[]> {
+    if (hashes.length === 0) return [];
+    const dbConn = resolveDb(executor);
+    const rows = await dbConn
+      .select({ import_hash: transactions.import_hash })
+      .from(transactions)
+      .where(
+        and(eq(transactions.account_id, accountId), inArray(transactions.import_hash, hashes))
+      );
+    return rows
+      .map((row) => row.import_hash)
+      .filter((hash): hash is string => typeof hash === 'string' && hash.length > 0);
+  }
+
+  static async findManualDuplicatesForAccount(
+    accountId: string,
+    startDate: string,
+    endDate: string,
+    executor?: DbExecutor
+  ) {
+    const dbConn = resolveDb(executor);
+    return dbConn
+      .select({
+        date: transactions.date,
+        amount: transactions.amount,
+        type: transactions.type,
+        description: transactions.description,
+      })
+      .from(transactions)
+      .where(
+        and(
+          eq(transactions.account_id, accountId),
+          sql`${transactions.date} >= ${startDate}`,
+          sql`${transactions.date} <= ${endDate}`,
+          sql`${transactions.import_hash} IS NULL`
+        )
+      );
   }
 
   /**
    * Update a transaction
    */
-  static async update(id: string, data: Partial<UpdateTransaction>) {
-    const [row] = await db
+  static async update(id: string, data: Partial<UpdateTransaction>, executor?: DbExecutor) {
+    const dbConn = resolveDb(executor);
+    const [row] = await dbConn
       .update(transactions)
       // updated_at will be handled or we manually pass it here
       .set({ ...data, updated_at: new Date() })
@@ -206,8 +342,12 @@ export class TransactionsRepository {
   /**
    * Delete a transaction
    */
-  static async delete(id: string) {
-    const [row] = await db.delete(transactions).where(eq(transactions.id, id)).returning();
+  static async delete(id: string, executor?: DbExecutor, scope?: TransactionScope) {
+    const dbConn = resolveDb(executor);
+    const [row] = await dbConn
+      .delete(transactions)
+      .where(transactionConditions(id, scope))
+      .returning();
     return row;
   }
 
@@ -221,19 +361,33 @@ export class TransactionsRepository {
   /**
    * Delete all transactions for an account
    */
-  static async deleteByAccount(accountId: string) {
-    await db
+  static async deleteByAccount(accountId: string, executor?: DbExecutor) {
+    return resolveDb(executor)
       .delete(transactions)
-      .where(or(eq(transactions.account_id, accountId), eq(transactions.to_account_id, accountId)));
+      .where(or(eq(transactions.account_id, accountId), eq(transactions.to_account_id, accountId)))
+      .returning();
+  }
+
+  /**
+   * Distinct category keys referenced by transactions in a group
+   */
+  static async getUsedCategoryKeysByGroup(groupId: string): Promise<string[]> {
+    const rows = await db
+      .selectDistinct({ category: transactions.category })
+      .from(transactions)
+      .where(and(eq(transactions.group_id, groupId), sql`${transactions.category} IS NOT NULL`));
+
+    return rows
+      .map((row) => row.category)
+      .filter((key): key is string => typeof key === 'string' && key.length > 0);
   }
 
   /**
    * Apply balance delta to an account
    */
-  static async updateAccountBalance(accountId: string, deltaAmount: number) {
-    // Numeric types come as string from Drizzle normally but Postgres allows basic arithmetic
-    // deltaAmount is a number
-    await db.execute(
+  static async updateAccountBalance(accountId: string, deltaAmount: number, executor?: DbExecutor) {
+    const dbConn = resolveDb(executor);
+    await dbConn.execute(
       sql`UPDATE accounts SET balance = balance + ${deltaAmount} WHERE id = ${accountId}`
     );
   }

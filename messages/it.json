@@ -1,25 +1,22 @@
 {
   "Auth": {
-    "ssoCallback": {
-      "errorTitle": "Errore",
-      "errorSubtitle": "Si è verificato un problema",
+    "productIntro": {
+      "title": "Le finanze di casa, in un solo posto.",
+      "subtitle": "Sai quanto puoi spendere oggi e tieni conti, budget, riserva e investimenti nello stesso quadro.",
+      "trustNote": "Accesso personale e ruoli del gruppo mantengono chiara la prospettiva di ogni membro."
+    },
+    "error": {
+      "title": "Si è verificato un errore",
+      "subtitle": "Riprova o contatta il supporto",
+      "fallbackMessage": "Errore imprevisto durante l'autenticazione",
       "retry": "Riprova",
-      "backToLogin": "Torna al login",
-      "loadingTitle": "Verifica in corso",
-      "titleRedirecting": "Reindirizzamento",
-      "subtitleRedirecting": "Stiamo portandoti alla dashboard",
-      "checking": "Verifica account in corso...",
-      "submitting": "Configurazione account...",
-      "redirecting": "Reindirizzamento...",
-      "verifying": "Completamento autenticazione",
+      "backToSignIn": "Torna alla pagina di accesso"
+    },
+    "ssoCallback": {
       "orphanSupportMessage": "Si è verificato un errore. Contatta support@wealthpillar.com con il tuo indirizzo email.",
       "errorUserNotIdentified": "Impossibile identificare l'utente. Riprova.",
-      "errorVerifyUserFailed": "Errore verifica utente.",
-      "errorVerifyGeneric": "Errore verifica.",
       "errorOperationTimeout": "Operazione troppo lunga. Controlla la connessione e riprova.",
-      "errorUnexpected": "Errore imprevisto. Riprova.",
-      "errorWithRetry": "{error}. Riprova.",
-      "errorTransferFailed": "Errore trasferimento account."
+      "errorUnexpected": "Errore imprevisto. Riprova."
     }
   },
   "Onboarding": {
@@ -40,11 +37,6 @@
       },
       "registerOrphan": {
         "failed": "Registrazione non riuscita. Contatta il supporto."
-      },
-      "checkUser": {
-        "missingClerkId": "ID Clerk mancante.",
-        "timeout": "Errore temporaneo. Riprova tra poco.",
-        "verificationFailed": "Errore di verifica account. Riprova o torna al login."
       }
     }
   },
@@ -57,13 +49,11 @@
     "settings": "Impostazioni",
     "dashboard": "Dashboard",
     "profile": "Profilo",
+    "allTime": "Tutti i tempi",
+    "selectYear": "Seleziona {year}",
     "PageLoader": {
       "message": "Caricamento...",
       "submessage": "Attendere prego"
-    },
-    "Swipe": {
-      "closeAction": "Chiudi azione",
-      "rowSwipeHint": "Scorri la riga verso sinistra per le azioni rapide."
     }
   },
   "Settings": {
@@ -76,45 +66,34 @@
   "SettingsPage": {
     "loading": "Caricamento impostazioni..."
   },
-  "SettingsItem": {
-    "change": "Cambia"
-  },
   "SettingsContent": {
     "headerTitle": "Impostazioni",
     "currencyModalTitle": "Seleziona Valuta",
-    "currencyModalDescription": "Scegli la valuta predefinita per le tue transazioni",
     "languageModalTitle": "Seleziona Lingua",
-    "languageModalDescription": "Scegli la lingua dell'interfaccia",
-    "timezoneModalTitle": "Seleziona Fuso Orario",
-    "timezoneModalDescription": "Scegli il fuso orario per le date e gli orari"
+    "timezoneModalTitle": "Seleziona Fuso Orario"
   },
   "SettingsSections": {
     "Profile": {
       "title": "Profilo",
       "avatarAriaLabel": "Avatar di {name}",
-      "accountCount": "{count} {count, plural, one {Account} other {Account}}",
-      "transactionCount": "{count} {count, plural, one {Transazione} other {Transazioni}}",
-      "editButton": "Modifica",
-      "emailLabel": "Email",
-      "phoneLabel": "Telefono",
-      "phoneNotSpecified": "Non specificato",
-      "roleLabel": "Ruolo",
-      "roles": {
-        "developer": "Sviluppatore",
-        "admin": "Admin",
-        "member": "Membro"
-      }
+      "editButton": "Modifica profilo"
     },
     "Group": {
-      "title": "Gestione Gruppo",
-      "groupActionsTitle": "Inviti e abbonamento",
-      "membersTitle": "Membri del Gruppo",
-      "membersEmpty": "Nessun altro membro visibile in questo gruppo.",
-      "membersSubtitle": "{count} {count, plural, one {membro visibile} other {membri visibili}}",
-      "inviteMemberTitle": "Invita Membro",
-      "inviteMemberDescription": "Invia invito per unirsi al gruppo",
-      "subscriptionTitle": "Impostazioni Abbonamento",
-      "subscriptionDescription": "Gestisci fatturazione e abbonamento gruppo"
+      "title": "Famiglia e gruppi",
+      "manageGroupTitle": "Gestione gruppo",
+      "inviteMemberTitle": "Invita al gruppo"
+    },
+    "Categories": {
+      "title": "Categorie",
+      "manageTitle": "Gestisci categorie",
+      "modalTitle": "Categorie",
+      "customTitle": "Le tue categorie",
+      "systemTitle": "Categorie predefinite",
+      "addLabel": "Aggiungi categoria",
+      "inUseBadge": "In uso",
+      "inUseHint": "Usata da transazioni del gruppo: puoi modificarla, non eliminarla",
+      "emptyCustom": "Nessuna categoria personalizzata",
+      "emptySystem": "Nessuna categoria predefinita"
     },
     "Preferences": {
       "title": "Preferenze",
@@ -122,34 +101,18 @@
       "currencyFallback": "EUR - Euro",
       "languageLabel": "Lingua",
       "languageFallback": "Italiano",
-      "timezoneLabel": "Fuso Orario",
+      "timezoneLabel": "Fuso orario",
       "timezoneFallback": "Roma (GMT+1)",
-      "changeButton": "Cambia"
+      "darkModeLabel": "Modalità scura"
     },
-    "Notifications": {
-      "title": "Notifiche",
-      "pushLabel": "Notifiche Push",
-      "pushDescription": "Ricevi notifiche sulle transazioni",
-      "emailLabel": "Notifiche Email",
-      "emailDescription": "Ricevi rapporti settimanali",
-      "budgetAlertsLabel": "Avvisi Budget",
-      "budgetAlertsDescription": "Avvisa quando superi il budget"
-    },
-    "Security": {
-      "title": "Sicurezza",
-      "twoFactorLabel": "Autenticazione a Due Fattori",
-      "twoFactorDescription": "Aggiungi un secondo passaggio al login per proteggere l’account.",
-      "twoFactorUnavailableDescription": "Stiamo preparando questa funzione: potrai attivarla da qui a breve. Nel frattempo usa una password lunga e unica.",
-      "twoFactorBadge": "In arrivo",
-      "signOutLabel": "Esci dall'Account",
-      "signingOutLabel": "Disconnessione in corso...",
-      "signOutDescription": "Disconnetti dal tuo account",
-      "signingOutDescription": "Attendere prego"
-    },
-    "Account": {
-      "title": "Account",
-      "deleteLabel": "Elimina Account",
-      "deleteDescription": "Elimina permanentemente il tuo account"
+    "Support": {
+      "title": "Supporto",
+      "helpCenterLabel": "Centro assistenza",
+      "helpCenterHref": "https://support.example.com",
+      "legalLabel": "Note legali",
+      "legalHref": "https://example.com/legal",
+      "logoutLabel": "Esci",
+      "signingOutLabel": "Disconnessione in corso..."
     }
   },
   "SettingsModals": {
@@ -164,7 +127,7 @@
       },
       "currentBadge": "Attuale",
       "cancelButton": "Annulla",
-      "saveButton": "Salva",
+      "saveButton": "Salva preferenza",
       "savingButton": "Salvataggio..."
     },
     "InviteMember": {
@@ -179,10 +142,9 @@
         "errorTitle": "Errore",
         "errorDescription": "Si è verificato un errore durante l'invio dell'invito"
       },
-      "title": "Invita Membro",
-      "description": "Invia un invito per unirsi al gruppo",
-      "emailLabel": "Indirizzo email del nuovo membro",
-      "emailPlaceholder": "nuovo.membro@example.com",
+      "title": "Invita membro",
+      "emailLabel": "Email",
+      "emailPlaceholder": "Email",
       "noteLabel": "Nota:",
       "noteText": "Il nuovo membro riceverà un'email con un link di invito valido per 7 giorni. Potrà accettare l'invito creando un account o accedendo con un account esistente.",
       "cancelButton": "Annulla",
@@ -206,14 +168,44 @@
         "updateErrorDescription": "Si è verificato un errore durante l'aggiornamento"
       },
       "title": "Modifica Profilo",
-      "description": "Aggiorna il tuo nome e indirizzo email",
       "nameLabel": "Nome completo",
       "namePlaceholder": "Mario Rossi",
       "emailLabel": "Indirizzo email",
       "emailPlaceholder": "mario.rossi@example.com",
       "cancelButton": "Annulla",
       "savingButton": "Salvataggio...",
-      "saveChangesButton": "Salva Modifiche"
+      "saveChangesButton": "Salva Modifiche",
+      "verifyAndSaveButton": "Verifica e salva",
+      "verificationCodeLabel": "Codice di verifica",
+      "verificationCodeRequired": "Inserisci il codice ricevuto via email",
+      "verificationSent": "Inserisci il codice inviato a {email}.",
+      "resendCodeButton": "Invia di nuovo il codice",
+      "verificationFailed": "Impossibile verificare l’email. Riprova."
+    },
+    "ManageGroup": {
+      "validation": {
+        "nameRequired": "Il nome del gruppo è obbligatorio",
+        "nameMax": "Il nome deve essere massimo 100 caratteri"
+      },
+      "toast": {
+        "noChangesTitle": "Nessuna modifica",
+        "noChangesDescription": "Il nome del gruppo è già quello attuale",
+        "errorTitle": "Errore",
+        "updateFailedDescription": "Impossibile aggiornare il gruppo",
+        "updatedTitle": "Gruppo aggiornato",
+        "updatedDescription": "Il nome del gruppo è stato salvato"
+      },
+      "title": "Gestione gruppo",
+      "nameLabel": "Nome del gruppo",
+      "namePlaceholder": "Famiglia Rossi",
+      "membersTitle": "Membri",
+      "inviteButton": "Invita membro",
+      "cancelButton": "Annulla",
+      "saveButton": "Salva gruppo",
+      "roles": {
+        "admin": "Amministratore",
+        "member": "Membro"
+      }
     },
     "DeleteAccount": {
       "title": "Elimina Account",
@@ -395,6 +387,11 @@
     "retry": "Riprova",
     "home": "Torna alla home"
   },
+  "NotFound": {
+    "title": "Pagina non trovata",
+    "description": "Questo percorso non esiste oppure è stato spostato. Torna alla home per continuare.",
+    "home": "Torna alla home"
+  },
   "AccountsError": {
     "title": "Non siamo riusciti a caricare i tuoi conti",
     "description": "Qualcosa ha interrotto il caricamento, di solito è temporaneo. Controlla la connessione e tocca Riprova. Se continua, attendi un minuto e riprova: i dati restano al sicuro lato server.",
@@ -403,59 +400,108 @@
   },
   "ReportsContent": {
     "headerTitle": "Rapporti",
-    "skipToMain": "Vai al contenuto dei rapporti",
-    "sectionMemberTitle": "Dettaglio membro",
-    "sectionMemberSubtitle": "Scegli qualcuno per vedere lo stesso riepilogo sulle sue transazioni nell’intervallo sopra.",
-    "memberSectionExpand": "Apri dettaglio membro",
-    "memberSectionCollapse": "Chiudi dettaglio membro"
+    "incompleteData": "Alcuni movimenti non rientrano nel calcolo. I totali possono essere parziali.",
+    "insightsTitle": "Approfondimenti",
+    "insightsDescription": "Conti e periodi budget, quando ti serve più dettaglio."
   },
   "Reports": {
     "TimeFilter": {
       "ariaLabel": "Periodo del rapporto",
-      "monthly": "Mensile",
-      "weekly": "Settimanale",
-      "yearly": "Annuale",
-      "custom": "Personalizzato",
-      "customTitle": "Intervallo personalizzato",
+      "monthly": "Questo mese",
+      "weekly": "Questa settimana",
+      "ytd": "Quest’anno",
+      "yearly": "12 mesi",
+      "custom": "Altro",
+      "customTitle": "Scegli le date",
       "from": "Da",
       "to": "A",
-      "apply": "Applica"
+      "apply": "Mostra"
     },
     "Hero": {
-      "srHeading": "Riepilogo finanziario",
-      "netFlow": "Flusso netto",
-      "income": "Entrate",
-      "expense": "Uscite",
-      "noComparison": "Storico insufficiente per il confronto.",
+      "srHeading": "Riepilogo del periodo",
+      "netFlow": "Entrate meno uscite",
+      "incomeThisPeriod": "Entrate",
+      "expenseThisPeriod": "Uscite",
+      "splitAria": "Entrate {income}, uscite {expense}",
+      "noComparison": "Non c’è ancora un periodo precedente da confrontare.",
       "vsLastMonth": "rispetto al mese scorso",
       "vsLastWeek": "rispetto alla settimana scorsa",
       "vsLastYear": "rispetto all’anno scorso",
       "vsPreviousRange": "rispetto al periodo precedente"
     },
+    "Reserve": {
+      "title": "Riserva",
+      "savingsMeta": "Versamenti {deposits} · prelievi {withdrawals}",
+      "empty": "Nessun movimento da o verso la riserva in questo intervallo.",
+      "addTransfer": "Aggiungi un trasferimento",
+      "viewMoves": "{count, plural, one {Vedi # movimento} other {Vedi # movimenti}}",
+      "viewMovesAria": "Vedi i movimenti della riserva in questo intervallo, {count}"
+    },
     "TopExpenses": {
-      "title": "Spese principali",
-      "empty": "Nessuna uscita in questo intervallo."
+      "title": "Dove sono andate le uscite",
+      "empty": "Nessuna uscita in questo periodo.",
+      "percentOfExpenses": "{percent}%",
+      "incomeOffset": "Riduce il budget",
+      "remainingCategories": "{count, plural, one {# altra categoria} other {# altre categorie}}",
+      "remainingSpending": "Altre spese",
+      "openCategoryAria": "{name}, {amount}, {percent}% delle uscite"
     },
     "AccountBreakdown": {
-      "title": "Ripartizione conti",
-      "empty": "Nessun conto da mostrare.",
-      "percentOfWealth": "{percent}% del patrimonio",
+      "title": "Dove sta il denaro",
+      "empty": "Nessun saldo da mostrare.",
+      "periodNet": "Netto nel periodo",
+      "income": "Entrate",
+      "expense": "Uscite",
+      "balance": "Saldo",
+      "ofWealth": "Del patrimonio",
+      "percentOfWealth": "{percent}% del totale",
+      "liquidityAria": "Disponibile {spendable}, in riserva {reserve}",
       "types": {
         "checking": "Conto corrente",
         "savings": "Risparmio",
-        "payroll": "Stipendio",
+        "payroll": "Conto corrente",
         "cash": "Contante",
         "investments": "Investimenti",
         "other": "Altro"
       }
     },
-    "HistoricalBudget": {
-      "title": "Budget storico",
-      "empty": "Nessun periodo budget si sovrappone a questo intervallo.",
-      "startingBalance": "Saldo iniziale",
-      "closingBalance": "Saldo finale",
+    "BudgetPeriods": {
+      "title": "Spendibile nei periodi",
+      "empty": "Nessun periodo di budget in questo intervallo.",
       "badgeOnTrack": "In linea",
-      "badgeOverBudget": "Fuori budget"
+      "badgeOverBudget": "Fuori budget",
+      "openPeriodAria": "Apri il periodo {name}, {status} {remaining}",
+      "toggleUserPeriodsAria": "Mostra o nascondi i periodi di {name}"
+    },
+    "PeriodDetail": {
+      "metricsTitle": "Totali del periodo",
+      "snapshotUpToDate": "I totali coincidono con le transazioni.",
+      "snapshotOutOfDate": "I totali salvati non coincidono più con le transazioni di questo periodo.",
+      "savedColumn": "Salvato",
+      "liveColumn": "Attuale",
+      "spendLabel": "Spesa",
+      "budgetsTitle": "Budget del periodo",
+      "budgetsEmpty": "Nessun budget per questo periodo.",
+      "addBudget": "Aggiungi budget",
+      "viewTransactions": "Vedi transazioni",
+      "recalculate": "Ricalcola totali",
+      "recalculating": "Ricalcolo…",
+      "editDates": "Modifica date",
+      "editClosingDate": "Modifica data di chiusura",
+      "deleteAndReopen": "Elimina e riapri il precedente",
+      "deleteDisabled": "Puoi eliminare il periodo aperto solo se ne esiste uno precedente.",
+      "deleteConfirmTitleOpen": "Eliminare questo periodo aperto?",
+      "deleteConfirmMessageOpen": "Questo periodo aperto viene rimosso. Il periodo precedente torna attivo. Le transazioni restano nel registro.",
+      "toast": {
+        "recalculateSuccessTitle": "Totali aggiornati",
+        "recalculateSuccessDescription": "Gli importi salvati coincidono ora con le transazioni di questo periodo.",
+        "recalculateErrorTitle": "Impossibile ricalcolare",
+        "recalculateErrorDescription": "I totali salvati non sono stati modificati.",
+        "deleteSuccessTitle": "Periodo rimosso",
+        "deleteSuccessDescription": "Il periodo precedente è di nuovo attivo.",
+        "deleteErrorTitle": "Impossibile eliminare il periodo",
+        "deleteErrorDescription": "Il periodo non è stato modificato."
+      }
     }
   },
   "InvestmentsPage": {
@@ -463,7 +509,7 @@
     "loadError": "Impossibile caricare il portafoglio"
   },
   "HomePage": {
-    "loadError": "Impossibile caricare i dati della dashboard"
+    "loadError": "Qualcosa ha interrotto il caricamento della dashboard. Di solito è temporaneo: i tuoi dati restano al sicuro."
   },
   "InvestmentsContent": {
     "headerTitle": "Investimenti",
@@ -471,17 +517,22 @@
     "tabLoading": "Caricamento sezione…",
     "newInvestment": "Nuovo Investimento",
     "tabs": {
-      "personal": "Investimenti Personali",
-      "sandbox": "Simulazione scenari"
+      "personal": "Investimenti",
+      "sandbox": "Simulazione"
     }
   },
   "Investments": {
     "watchlist": "Watchlist",
     "emptyWatchlist": "Nessun titolo nella lista di controllo.",
     "PersonalTab": {
-      "totalPortfolioValue": "Valore Totale Portafoglio",
+      "totalPortfolioValue": "Valore del portafoglio",
+      "totalReturn": "Rendimento totale",
       "today": "Oggi",
-      "assetAllocation": "Ripartizione Asset",
+      "assetAllocation": "Ripartizione asset",
+      "marketDataFreshness": "Prezzi aggiornati {date} · dati non in tempo reale",
+      "marketDataFreshnessUnknown": "Prezzi di mercato non in tempo reale",
+      "analyticsTitle": "Analisi portafoglio",
+      "analyticsDescription": "Allocazione, andamento e confronto con un indice",
       "assetsLabel": "Asset",
       "allocationLabel": "Allocazione",
       "currentValueLabel": "Valore Attuale",
@@ -493,21 +544,23 @@
       "totalPaidLabel": "Totale Pagato",
       "totalPaidDescription": "Investito + tasse",
       "fallback": {
-        "equities": "Azioni",
-        "bonds": "Obbligazioni",
-        "cash": "Liquidità",
         "others": "Altro"
-      }
+      },
+      "valuationUnavailable": "Non disponibile"
     },
     "InvestmentList": {
-      "title": "Le Tue Partecipazioni",
+      "title": "Le tue partecipazioni",
       "recentActivity": "Attività Recente",
       "viewAll": "Vedi Tutti",
-      "shares": "{count} {count, plural, one {quota} other {quote}}",
+      "shares": "{shares} {count, plural, one {quota} other {quote}}",
       "paidLabel": "Pagato:",
       "bought": "Acquisto {symbol}",
+      "editAria": "Modifica {symbol}, {name}, {date}, {shares}, valore {value}",
+      "editAriaWithChange": "Modifica {symbol}, {name}, {date}, {shares}, valore {value}, {change}",
+      "changeUp": "in utile di {amount} ({percent})",
+      "changeDown": "in perdita di {amount} ({percent})",
       "empty": "Ancora nessuna posizione",
-      "emptyDescription": "Tocca Aggiungi nella barra in basso, poi Nuovo investimento. Su schermi grandi usa il menu + in alto a destra.",
+      "emptyDescription": "Aggiungi il tuo primo investimento con il pulsante +.",
       "columns": {
         "instrument": "Titolo",
         "shares": "Quote",
@@ -527,10 +580,12 @@
         "perPageLabel": "Per pagina",
         "perPageAriaLabel": "Investimenti per pagina",
         "goToPage": "Vai alla pagina {page}"
-      }
+      },
+      "quoteUnavailable": "Quotazione non disponibile",
+      "quoteAsOf": "Prezzo del {date}"
     },
     "HistoryChart": {
-      "title": "Andamento Storico",
+      "title": "Andamento storico",
       "description": "Valore effettivo del portafoglio nel tempo",
       "valueSeriesLabel": "Valore",
       "fallback": "Dati storici non sufficienti",
@@ -547,10 +602,13 @@
       "description": "Stima come potrebbe crescere un capitale nel tempo. Solo a titolo illustrativo, non è un consiglio finanziario.",
       "chartDataSummary": "Previsione dal {startYear} al {endYear}. Valore finale stimato {value}.",
       "fields": {
-        "initialAmount": "Importo Iniziale (€)",
-        "annualReturn": "Rendimento Annuo (%)",
-        "durationYears": "Durata (Anni)"
+        "initialAmount": "Importo iniziale (€)",
+        "annualReturn": "Rendimento annuo ipotetico (%)",
+        "annualReturnPlaceholder": "Es. 5",
+        "annualReturnHint": "Inserisci tu l'ipotesi di rendimento: Wealth Pillar non stima i rendimenti futuri.",
+        "durationYears": "Durata (anni)"
       },
+      "rateRequired": "Inserisci un rendimento ipotetico per vedere la simulazione.",
       "valueSeriesLabel": "Valore"
     },
     "ShareSelector": {
@@ -583,10 +641,6 @@
         "create": "Aggiungi investimento",
         "edit": "Modifica investimento"
       },
-      "description": {
-        "create": "Inserisci i dettagli del nuovo investimento",
-        "edit": "Aggiorna i dati di questa posizione"
-      },
       "sections": {
         "identity": "Titolo",
         "amounts": "Importi e quote",
@@ -609,7 +663,7 @@
         "tax": "0.00",
         "shares": "10"
       },
-      "saveButton": "Salva",
+      "saveButton": "Salva investimento",
       "cancelButton": "Annulla",
       "retryLoad": "Riprova",
       "toast": {
@@ -626,10 +680,27 @@
   },
   "TransactionsContent": {
     "headerTitle": "Transazioni",
-    "skipToMain": "Vai al contenuto transazioni",
     "tabs": {
       "transactions": "Transazioni",
       "recurrent": "Ricorrenti"
+    },
+    "tabsAria": "Transazioni e serie ricorrenti",
+    "Ledger": {
+      "canSpend": "Puoi spendere",
+      "asOf": "Al {date}",
+      "importTransactions": "Importa movimenti",
+      "typesAria": "Filtra per tipo",
+      "usersAria": "Filtra per membro",
+      "monthlyNet": "Netto / mese",
+      "monthlyEarn": "Entrate / mese",
+      "monthlySpend": "Uscite / mese",
+      "statusAria": "Stato serie",
+      "statusAll": "Tutti",
+      "statusActive": "Attivi",
+      "statusPaused": "In pausa",
+      "signIncome": "entrata",
+      "signExpense": "uscita",
+      "signTransfer": "trasferimento"
     },
     "empty": {
       "title": "Nessuna transazione",
@@ -637,6 +708,7 @@
       "noTransactionsYet": "Non ci sono ancora transazioni. Inizia aggiungendone una.",
       "noFilterResults": "Nessun risultato con i filtri applicati."
     },
+    "recurrentLoadError": "Impossibile caricare le transazioni ricorrenti.",
     "paginationError": "Impossibile caricare la pagina.",
     "paginationRetry": "Riprova",
     "allLoaded": "Tutte le transazioni caricate ({count})",
@@ -689,7 +761,8 @@
       "typeOptions": {
         "all": "Tutti",
         "income": "Entrate",
-        "expense": "Uscite"
+        "expense": "Uscite",
+        "transfer": "Trasferimenti"
       },
       "dateOptions": {
         "all": "Sempre",
@@ -716,19 +789,16 @@
       "FilterChips": {
         "toolbarAria": "Filtri transazioni",
         "userToolbarAria": "Filtra per membro del gruppo",
-        "userChipsScrollHint": "Scorri in orizzontale per altri membri",
         "filters": "Filtri",
+        "filtersActiveAria": "{count, plural, one {# filtro attivo} other {# filtri attivi}}",
+        "import": "Importa",
         "drawerTitle": "Filtri avanzati"
       },
       "customRange": {
-        "title": "Intervallo personalizzato",
         "from": "Dal {date}",
         "until": "Fino al {date}",
         "fromLabel": "Da",
-        "toLabel": "A",
-        "startDateAria": "Data inizio",
-        "endDateAria": "Data fine",
-        "apply": "Applica"
+        "toLabel": "A"
       },
       "category": {
         "searchPlaceholder": "Cerca categoria...",
@@ -776,6 +846,11 @@
     "Row": {
       "delete": "Elimina"
     },
+    "LoadMore": {
+      "cta": "Carica altre",
+      "loading": "Caricamento…",
+      "end": "Fine elenco"
+    },
     "Table": {
       "columns": {
         "date": "Data",
@@ -794,6 +869,7 @@
       },
       "actions": {
         "edit": "Modifica transazione",
+        "editAria": "Modifica transazione: {description}, {amount}",
         "delete": "Elimina transazione"
       },
       "pagination": {
@@ -805,6 +881,7 @@
         "next": "Pagina successiva",
         "last": "Ultima pagina",
         "loading": "Caricamento...",
+        "emptyCount": "0 transazioni",
         "perPageLabel": "Per pagina",
         "perPageAriaLabel": "Righe per pagina",
         "goToPage": "Vai alla pagina {page}"
@@ -819,15 +896,12 @@
         "dateRequired": "La data è obbligatoria",
         "userRequired": "L'utente è obbligatorio",
         "accountRequired": "Il conto è obbligatorio",
-        "destinationAccountInvalid": "Il conto di destinazione non può essere lo stesso del conto di origine"
+        "destinationAccountRequired": "Seleziona il conto di atterraggio",
+        "destinationAccountInvalid": "Il conto di atterraggio non può essere lo stesso del conto di origine"
       },
       "title": {
         "create": "Nuova transazione",
         "edit": "Modifica transazione"
-      },
-      "description": {
-        "create": "Aggiungi una nuova transazione",
-        "edit": "Aggiorna i dettagli della transazione"
       },
       "typeOptions": {
         "income": "Entrata",
@@ -849,8 +923,8 @@
           "placeholder": "Seleziona conto"
         },
         "destinationAccount": {
-          "label": "Conto destinazione",
-          "placeholder": "Seleziona conto destinazione"
+          "label": "Conto di atterraggio",
+          "placeholder": "Seleziona conto di atterraggio"
         },
         "category": {
           "label": "Categoria",
@@ -869,8 +943,8 @@
         }
       },
       "buttons": {
-        "create": "Crea",
-        "update": "Aggiorna",
+        "create": "Crea transazione",
+        "update": "Salva modifiche",
         "cancel": "Annulla",
         "delete": "Elimina transazione",
         "saveTransaction": "Salva transazione"
@@ -878,12 +952,69 @@
       "errors": {
         "notFound": "Transazione non trovata. Ricarica la pagina e riprova.",
         "unknown": "Qualcosa è andato storto. Riprova."
+      },
+      "toast": {
+        "errorTitle": "Errore",
+        "createdTitle": "Transazione creata",
+        "createdDescription": "Transazione aggiunta correttamente.",
+        "updatedTitle": "Transazione aggiornata",
+        "updatedDescription": "Modifiche salvate correttamente."
+      }
+    },
+    "ImportModal": {
+      "title": "Importa transazioni",
+      "upload": {
+        "title": "Scegli file",
+        "cta": "Seleziona estratto conto",
+        "hint": "Supportati: estratto Revolut, lista movimenti Credem, elenco spese"
+      },
+      "mapping": {
+        "fileLabel": "{file} · formato rilevato: {format}",
+        "user": "Assegna al membro",
+        "userForProduct": "Membro per {product}",
+        "accountForProduct": "Conto per {product}",
+        "excludeProduct": "Escludi questo prodotto",
+        "rowsCount": "{count} righe importabili · {excluded} escluse (in sospeso/non EUR)"
+      },
+      "preview": {
+        "summary": "{included} di {total} righe selezionate per l'import",
+        "includeRow": "Includi riga",
+        "typeIncome": "Entrata",
+        "typeExpense": "Uscita",
+        "internalTransfer": "Probabile giroconto interno",
+        "recurringMatch": "Corrisponde a ricorrente: {description}",
+        "category": "Categoria"
+      },
+      "result": {
+        "inserted": "{count} transazioni importate",
+        "skipped": "{count} righe saltate (duplicati o conflitti)"
+      },
+      "status": {
+        "new": "Nuova",
+        "duplicate": "Duplicato",
+        "possible-duplicate": "Possibile duplicato",
+        "excluded": "Esclusa"
+      },
+      "actions": {
+        "back": "Indietro",
+        "continue": "Continua",
+        "import": "Importa {count} righe",
+        "done": "Fine"
+      },
+      "errors": {
+        "parseFailed": "Impossibile leggere il file",
+        "prepareFailed": "Impossibile preparare l'import",
+        "commitFailed": "Import fallito",
+        "noRows": "Nessuna riga da importare per i conti selezionati",
+        "noRowsSelected": "Seleziona almeno una riga da importare",
+        "generic": "Riprova"
       }
     }
   },
   "Recurring": {
     "Section": {
       "title": "Transazioni Ricorrenti",
+      "viewAll": "Vedi tutto",
       "empty": {
         "title": "Nessuna serie ricorrente",
         "forUser": "Non ci sono serie ricorrenti per questo utente",
@@ -899,11 +1030,19 @@
         "expensesPerMonth": "Uscite/mese"
       },
       "summary": {
-        "totalMonthlyLabel": "Totale mensile"
+        "totalMonthlyLabel": "Totale mensile",
+        "netOutflowLabel": "Uscita netta",
+        "netInflowLabel": "Entrata netta",
+        "balancedLabel": "Pareggio"
       },
       "groups": {
         "upcoming": "In arrivo",
+        "later": "Più avanti",
         "upcomingEmpty": "Nessuna voce ricorrente in arrivo.",
+        "monthly": "Mensili",
+        "yearly": "Annuali",
+        "overdue": "Scadute",
+        "paused": "In pausa",
         "paid": "Già pagato questo mese",
         "paidEmpty": "Nessuna voce ricorrente pagata in questo periodo."
       },
@@ -959,7 +1098,8 @@
         "delete": "Elimina",
         "pauseAria": "Metti in pausa la serie ricorrente",
         "resumeAria": "Riprendi la serie ricorrente",
-        "deleteAria": "Elimina la serie ricorrente"
+        "deleteAria": "Elimina la serie ricorrente",
+        "editAria": "Modifica serie ricorrente: {description}, {amount}"
       }
     },
     "FormModal": {
@@ -979,17 +1119,14 @@
         "create": "Nuova Serie Ricorrente",
         "edit": "Modifica Serie Ricorrente"
       },
-      "description": {
-        "create": "Configura una nuova serie ricorrente",
-        "edit": "Aggiorna la serie ricorrente"
-      },
       "errors": {
         "notFound": "Serie ricorrente non trovata",
         "unknown": "Errore sconosciuto"
       },
       "typeOptions": {
         "expense": "Uscita",
-        "income": "Entrata"
+        "income": "Entrata",
+        "transfer": "Trasferimento"
       },
       "frequencyOptions": {
         "once": "Una tantum",
@@ -1022,8 +1159,7 @@
         },
         "dueDay": {
           "label": "Giorno addebito",
-          "placeholder": "1-31",
-          "helper": "Giorno del mese in cui viene registrata l'operazione (1 = primo giorno, 31 = ultimo giorno possibile)."
+          "placeholder": "1-31"
         },
         "startDate": {
           "label": "Data inizio"
@@ -1067,7 +1203,6 @@
       "back": "Torna indietro",
       "notifications": "Notifiche",
       "settings": "Impostazioni",
-      "userPicker": "Cambia visualizzazione utente",
       "moreMenu": "Altre azioni: notifiche, impostazioni e tema",
       "pageToolsMenu": "Strumenti pagina: portafoglio e simulazione scenari"
     },
@@ -1081,13 +1216,13 @@
     "ActionMenu": {
       "openMenuAria": "Apri menu azioni",
       "fabIntroAccounts": "Suggerimento: nella pagina Conti, «Nuovo conto» è in cima al menu per un accesso rapido. Apri la riga sotto per categoria, investimento e ricorrenti.",
-      "newTransaction": "Nuova Transazione",
-      "newBudget": "Nuovo Budget",
-      "newCategory": "Nuova Categoria",
+      "newTransaction": "Nuova transazione",
+      "newBudget": "Nuovo budget",
+      "newCategory": "Nuova categoria",
       "recurring": "Ricorrenti",
-      "newAccount": "Nuovo Account",
-      "newInvestment": "Nuovo Investimento",
-      "goToBudgets": "Vai ai Budget",
+      "newAccount": "Nuovo conto",
+      "newInvestment": "Nuovo investimento",
+      "goToBudgets": "Vai ai budget",
       "moreActions": "Categoria, investimento, ricorrente…",
       "showLessActions": "Nascondi le altre azioni",
       "fabIntro": "Sotto trovi le azioni più frequenti. Apri la riga evidenziata per categoria, investimento e pagamenti ricorrenti.",
@@ -1105,21 +1240,36 @@
   },
   "HomeContent": {
     "recurringAsideLabel": "Pagamenti ricorrenti in arrivo",
-    "skipToContent": "Vai a saldi, budget e ricorrenze",
-    "userPickerTitle": "Visualizza come",
-    "userPickerDescription": "Seleziona un utente per visualizzare i suoi dati finanziari",
-    "recentActivityTitle": "Attività recente",
-    "recentActivitySubtitle": "{count} ultime transazioni",
-    "recentActivityViewAll": "Vedi tutto",
-    "recentActivityEmpty": "Nessuna transazione recente"
+    "skipToContent": "Vai a disponibilità, budget e scadenze",
+    "spendableLabel": "Disponibile da spendere",
+    "spendableHint": "Conto corrente e contanti. I risparmi restano da parte.",
+    "reserveLabel": "Riserva",
+    "spendableViewAll": "Conti",
+    "budgetTitle": "Questo periodo",
+    "budgetViewAll": "Budget",
+    "budgetLeft": "Rimanente",
+    "budgetOverLabel": "Oltre il budget",
+    "spentOfConnector": "di",
+    "overOfConnector": "oltre",
+    "budgetEmpty": "Nessun budget in questo periodo.",
+    "budgetEmptyBody": "Imposta un limite per sapere quanto resta da spendere.",
+    "budgetSet": "Imposta un budget",
+    "upcomingTitle": "In scadenza",
+    "upcomingViewAll": "Vedi ricorrenze",
+    "upcomingEmpty": "Nessun pagamento ricorrente nei prossimi 7 giorni.",
+    "recentActivityTitle": "Ultime transazioni",
+    "recentActivitySubtitle": "{count, plural, one {# transazione} other {# transazioni}}",
+    "recentActivityViewAll": "Vedi transazioni",
+    "recentActivityEmpty": "Nessuna transazione recente."
   },
   "BottomNav": {
     "ariaNav": "Navigazione principale",
+    "skipToContent": "Vai al contenuto",
     "home": "Home",
     "transactions": "Transazioni",
     "budgets": "Budget",
     "investments": "Investimenti",
-    "reports": "Report",
+    "reports": "Rapporti",
     "add": "Aggiungi",
     "addFabTitleAccounts": "Aggiungi — in questa pagina «Nuovo conto» è la prima voce del menu"
   },
@@ -1133,14 +1283,15 @@
   },
   "Accounts": {
     "Home": {
-      "addAccount": "Aggiungi Account",
+      "addAccount": "Aggiungi conto",
       "totalBalanceLabel": "Saldo Totale",
-      "accountCount": "{count} {count, plural, one {Conto} other {Conti}}"
+      "spendableBalanceLabel": "Disponibilità",
+      "reserveBalanceLabel": "Risparmi e riserve",
+      "accountCount": "{count} {count, plural, one {conto} other {conti}}"
     },
     "Content": {
-      "headerTitle": "Conti Bancari",
+      "headerTitle": "Conti",
       "headerSubtitle": "{count} {count, plural, one {conto} other {conti}}",
-      "memberViewBanner": "Stai vedendo solo i conti a te associati. Saldi ed elenco riflettono la tua prospettiva: gli amministratori possono cambiare membro con il filtro sopra.",
       "sectionContextTitle": "Membro",
       "sectionContextSubtitle": "Scegli di quali saldi e conti vuoi la panoramica",
       "sectionBalanceTitle": "Saldi",
@@ -1149,6 +1300,8 @@
       "sectionListSubtitle": "Tocca una riga per modificare. Puoi eliminare un conto dalla schermata di modifica.",
       "addAccountCta": "Aggiungi conto",
       "totalBalanceLabel": "Saldo Totale",
+      "spendableBalanceLabel": "Disponibilità",
+      "reserveBalanceLabel": "Risparmi e riserve",
       "stats": {
         "total": "Totale",
         "positive": "Positivi",
@@ -1156,103 +1309,123 @@
       },
       "dialogs": {
         "delete": {
-          "title": "Elimina Account",
-          "message": "Sei sicuro di voler eliminare l'account \"{name}\"? Questa azione non può essere annullata.",
+          "title": "Elimina conto",
+          "message": "Sei sicuro di voler eliminare il conto \"{name}\"? Questa azione non può essere annullata.",
           "messageFallback": "Eliminare questo conto? L'operazione non può essere annullata.",
           "confirm": "Elimina",
           "cancel": "Annulla"
         }
+      },
+      "toast": {
+        "recalculateSuccessTitle": "Saldo aggiornato",
+        "recalculateSuccessDescription": "Il totale ora coincide con le transazioni.",
+        "recalculateErrorTitle": "Ricalcolo non riuscito",
+        "recalculateErrorDescription": "Impossibile ricalcolare il conto"
       }
     },
     "List": {
-      "header": "Tutti gli Account",
+      "header": "Tutti i conti",
       "empty": {
-        "title": "Nessun account trovato",
+        "title": "Nessun conto trovato",
         "description": "Aggiungi il tuo primo conto"
       }
     },
     "Card": {
       "ariaOpenAccount": "Apri conto {name}, saldo {balance}",
+      "ariaRecalculate": "Ricalcola il saldo di {name}",
       "debt": "DEBITO",
       "delete": "Elimina",
       "accountTypes": {
-        "payroll": "Conto Corrente",
-        "savings": "Conto Risparmio",
+        "payroll": "Conto corrente",
+        "savings": "Conto risparmio",
         "cash": "Contanti",
         "investments": "Investimenti"
+      },
+      "liquidity": {
+        "spendable": "Spendibile",
+        "reserve": "Riserva"
       }
     },
     "FormModal": {
       "validation": {
         "nameRequired": "Il nome è obbligatorio",
-        "userRequired": "L'utente è obbligatorio"
+        "userRequired": "Seleziona almeno un proprietario"
       },
       "title": {
-        "create": "Nuovo account",
-        "edit": "Modifica account"
-      },
-      "description": {
-        "create": "Aggiungi un nuovo account bancario o di cassa",
-        "edit": "Aggiorna i dettagli dell'account"
+        "create": "Nuovo conto",
+        "edit": "Modifica conto"
       },
       "accountTypes": {
-        "payroll": "Conto Corrente",
+        "payroll": "Conto corrente",
         "savings": "Risparmio",
         "cash": "Contanti",
         "investments": "Investimenti"
       },
       "fields": {
         "name": {
-          "label": "Nome Account",
+          "label": "Nome",
           "placeholder": "Es. Conto Principale"
         },
         "type": {
-          "label": "Tipo Account",
-          "placeholder": "Seleziona tipo"
+          "label": "Tipo",
+          "placeholder": "Seleziona tipo",
+          "descriptions": {
+            "payroll": "Conto principale dove arriva lo stipendio o la pensione",
+            "savings": "Conto dedicato al risparmio di lungo periodo",
+            "cash": "Contanti fisici o piccola cassa",
+            "investments": "Conto per investimenti e trading"
+          }
+        },
+        "liquidity": {
+          "label": "Liquidità",
+          "placeholder": "Seleziona liquidità",
+          "spendable": "Spendibile",
+          "reserve": "Riserva"
         },
         "owner": {
-          "label": "Proprietario",
-          "placeholder": "Seleziona proprietario",
+          "label": "Proprietari",
+          "placeholder": "Seleziona proprietari",
           "memberHelper": "I membri possono creare e modificare solo i propri dati"
         },
-        "isDefault": "Imposta come account predefinito per questo utente"
+        "isDefault": "Predefinito"
       },
       "buttons": {
-        "create": "Crea",
-        "update": "Aggiorna",
+        "create": "Crea conto",
+        "update": "Salva modifiche",
         "cancel": "Annulla",
         "delete": "Elimina conto"
       },
       "toast": {
         "errorTitle": "Errore",
-        "updatedTitle": "Account aggiornato",
+        "updatedTitle": "Conto aggiornato",
         "updatedDescription": "Modifiche salvate correttamente.",
-        "createdTitle": "Account creato",
-        "createdDescription": "Account aggiunto correttamente.",
+        "createdTitle": "Conto creato",
+        "createdDescription": "Conto aggiunto correttamente.",
         "deletedTitle": "Conto eliminato",
         "deletedDescription": "Il conto è stato rimosso.",
         "revertedHint": "I dati mostrati sono tornati allo stato precedente.",
         "optimisticCreateFailedHint": "La bozza è stata rimossa dalla lista."
       },
       "errors": {
-        "notFound": "Account non trovato",
+        "notFound": "Conto non trovato",
         "unknown": "Errore sconosciuto"
       }
     },
     "Actions": {
       "errors": {
         "unauthenticated": "Non autenticato. Effettua il login per continuare.",
-        "noPermissionCreate": "Non hai i permessi per creare un account per questo utente.",
-        "nameRequired": "Il nome account è obbligatorio.",
-        "typeRequired": "Il tipo account è obbligatorio.",
+        "noPermissionCreate": "Non hai i permessi per creare un conto per questo utente.",
+        "nameRequired": "Il nome del conto è obbligatorio.",
+        "typeRequired": "Il tipo di conto è obbligatorio.",
         "groupRequired": "Il gruppo è obbligatorio.",
         "userRequired": "Almeno un utente è richiesto.",
-        "createFailed": "Impossibile creare l'account",
-        "noPermissionUpdate": "Non hai i permessi per modificare questo account.",
-        "nameEmpty": "Il nome account non può essere vuoto.",
-        "updateFailed": "Impossibile aggiornare l'account",
-        "noPermissionDelete": "Non hai i permessi per eliminare questo account.",
-        "deleteFailed": "Impossibile eliminare l'account"
+        "createFailed": "Impossibile creare il conto",
+        "noPermissionUpdate": "Non hai i permessi per modificare questo conto.",
+        "nameEmpty": "Il nome del conto non può essere vuoto.",
+        "updateFailed": "Impossibile aggiornare il conto",
+        "noPermissionDelete": "Non hai i permessi per eliminare questo conto.",
+        "deleteFailed": "Impossibile eliminare il conto",
+        "recalculateFailed": "Impossibile ricalcolare il conto"
       }
     }
   },
@@ -1266,19 +1439,14 @@
       "spentPrefix": "Speso:",
       "totalPrefix": "Totale:",
       "availablePrefix": "Disponibile:",
+      "assignedPrefix": "Assegnato:",
+      "progressAria": "Budget di {name}, {percent} percento utilizzato",
       "exceededPrefix": "Sforamento:",
       "empty": {
         "title": "Nessun budget configurato",
         "description": "Crea dei budget per monitorare le tue spese e tenere sotto controllo le finanze familiari",
         "createButton": "Crea Budget"
       }
-    },
-    "Card": {
-      "ofPrefix": "su",
-      "spentPrefix": "Speso:",
-      "totalPrefix": "Totale:",
-      "remainingTitle": "DISPONIBILE",
-      "exceededTitle": "SFORAMENTO"
     },
     "PeriodManager": {
       "title": "Gestione Periodi Budget",
@@ -1314,29 +1482,42 @@
       },
       "noActivePeriodAlert": "Nessun periodo attivo. Inizia un nuovo periodo per tracciare le spese del budget.",
       "closePeriodSalaryHint": "Scegli come data di fine il giorno precedente all'accredito dello stipendio: così il periodo budget resta allineato al flusso di cassa e il nuovo periodo può iniziare dal giorno della busta paga.",
+      "editClosingDateHint": "Modifica la data di chiusura dell'ultimo periodo budget. La data di inizio del periodo attivo verrà aggiornata di conseguenza.",
+      "editDatesHint": "I periodi vicini restano consecutivi. I totali dei periodi modificati vengono ricalcolati.",
+      "noClosedPeriodAlert": "Nessun periodo chiuso disponibile da modificare.",
       "buttons": {
-        "closePeriod": "Chiudi periodo",
+        "closePeriod": "Chiudi ora",
+        "editClosingDate": "Modifica periodo precedente",
+        "autoRenewal": "Il prossimo periodo inizierà automaticamente il {date}.",
+        "saveClosingDate": "Salva data di chiusura",
+        "editDates": "Modifica date",
+        "saveDates": "Salva date",
         "startNewPeriod": "Inizia nuovo periodo",
         "cancel": "Annulla"
       }
     },
     "Page": {
       "title": "Budget",
-      "pageSubtitle": "Tieni sotto controllo i limiti di spesa mensili.",
-      "skipToMain": "Vai al contenuto budget",
       "sectionContextTitle": "Membro",
       "sectionContextSubtitle": "Scegli per chi visualizzare i budget del gruppo",
       "sectionDetailsTitle": "Budget e periodo",
       "sectionDetailsSubtitle": "Progressi, andamento e transazioni collegate",
       "hero": {
         "totalAvailable": "Totale disponibile da spendere",
-        "totalBudgeted": "Totale in budget",
-        "totalSpent": "Totale speso"
+        "totalSpent": "Totale speso",
+        "totalAssigned": "Assegnato",
+        "outOf": "su {total}",
+        "srHeading": "Riepilogo budget"
       },
       "closePeriod": "Chiudi periodo",
+      "editClosingDate": "Modifica ultima chiusura",
+      "startSalaryPeriod": "Nuovo ciclo",
+      "periodActionsAria": "Azioni del periodo",
+      "periodCloseSuccess": "Periodo chiuso.",
+      "salaryPeriodSuccess": "Nuovo periodo iniziato dalla data di accredito dello stipendio.",
       "fabAddBudget": "Aggiungi budget",
       "categoryCard": {
-        "ariaOpenEdit": "Modifica budget: {name}",
+        "ariaOpenDetail": "Apri dettagli budget: {name}",
         "badgeOnTrack": "In linea",
         "badgeFixed": "Fisso",
         "badgeOver": "Oltre il budget",
@@ -1345,7 +1526,8 @@
         "footerPaidInFull": "Saldato",
         "footerPercentUsed": "{percent}% usato",
         "footerLeft": "{amount} rimanenti",
-        "footerOver": "{amount} oltre"
+        "footerOver": "{amount} oltre",
+        "progressAria": "{name}, {percent} percento del budget utilizzato"
       },
       "today": "Oggi",
       "transactionCount": "{count} {count, plural, one {transazione} other {transazioni}}",
@@ -1361,55 +1543,42 @@
         "createButton": "Crea budget"
       }
     },
-    "SummaryPage": {
-      "title": "Riepilogo Budget",
-      "emptyState": "Seleziona un utente con budget attivi per visualizzare il riepilogo.",
-      "cards": {
-        "budget": "Budget",
-        "spent": "Speso",
-        "available": "Disponibile"
-      },
-      "activeList": {
-        "title": "Budget Attivi"
-      },
-      "transactions": {
-        "sectionTitle": "Transazioni Correlate",
-        "emptyTitle": "Nessuna transazione",
-        "emptyDescription": "Non ci sono transazioni collegate a questi budget nel periodo corrente."
+    "SalaryPeriod": {
+      "title": "Nuovo ciclo stipendio",
+      "description": "Inizia un nuovo periodo quando lo stipendio è stato realmente accreditato.",
+      "hint": "Conferma la data effettiva dell'accredito. Il periodo corrente verrà chiuso al giorno precedente e il nuovo periodo inizierà da questa data. Non avviene alcun rinnovo automatico.",
+      "dateLabel": "Data accredito stipendio",
+      "submit": "Inizia nuovo periodo",
+      "cancel": "Annulla",
+      "successTitle": "Nuovo ciclo iniziato",
+      "successDescription": "Il budget è ora allineato al nuovo accredito.",
+      "errors": {
+        "dateRequired": "Seleziona la data di accredito.",
+        "futureDate": "L'accredito non può avere una data futura.",
+        "afterCurrentStart": "La nuova data deve essere successiva all'inizio del periodo corrente.",
+        "operationFailed": "Impossibile iniziare il nuovo periodo",
+        "unknown": "Si è verificato un errore imprevisto."
       }
     },
-    "Selector": {
-      "title": "Budget",
-      "subtitle": "Seleziona per visualizzare i dettagli",
-      "placeholder": "Seleziona budget",
-      "ariaLabel": "Seleziona quale budget visualizzare"
-    },
-    "DisplayCard": {
-      "actions": {
-        "title": "Azioni Budget",
-        "ariaLabel": "Apri il menu azioni per questo budget",
-        "edit": "Modifica Budget",
-        "delete": "Elimina Budget"
-      },
-      "status": {
-        "active": "Budget attivo"
-      },
-      "period": {
-        "label": "Periodo",
-        "inProgress": "In corso"
-      },
+    "Detail": {
+      "editBudget": "Modifica budget",
+      "summaryAria": "Riepilogo budget",
+      "badgeOnTrack": "In linea",
+      "badgeFixed": "Fisso",
+      "badgeOver": "Oltre il budget",
+      "today": "Oggi",
       "metrics": {
-        "total": "Totale",
         "spent": "Speso",
-        "available": "Disponibile"
-      }
-    },
-    "Progress": {
-      "label": "Progresso Budget",
-      "status": {
-        "safe": "Budget sotto controllo",
-        "warning": "Attenzione, quasi esaurito",
-        "danger": "Budget superato"
+        "limit": "Limite",
+        "remaining": "Rimanente"
+      },
+      "progressAria": "Budget rimanente, {percent} percento utilizzato",
+      "categoriesTitle": "Categorie di spesa",
+      "transactions": {
+        "sectionTitle": "Transazioni del budget",
+        "emptyTitle": "Nessuna transazione",
+        "emptyDescription": "Nessuna transazione trovata per questo budget nel periodo",
+        "viewAll": "Vedi tutte"
       }
     },
     "Chart": {
@@ -1430,10 +1599,6 @@
       "title": {
         "create": "Nuovo Budget",
         "edit": "Modifica Budget"
-      },
-      "description": {
-        "create": "Crea un nuovo budget",
-        "edit": "Aggiorna i dettagli del budget"
       },
       "fields": {
         "user": {
@@ -1456,7 +1621,9 @@
           "placeholder": "es. Spese mensili"
         },
         "categories": {
-          "label": "Seleziona categorie",
+          "label": "Categorie",
+          "placeholder": "Seleziona categorie",
+          "selectedCount": "{count} selezionate",
           "searchPlaceholder": "Cerca categorie…",
           "selectAll": "Seleziona tutto",
           "clear": "Pulisci",
@@ -1470,10 +1637,10 @@
         }
       },
       "buttons": {
-        "save": "Salva",
+        "save": "Salva modifiche",
         "create": "Crea Budget",
         "cancel": "Annulla",
-        "confirmChanges": "Conferma",
+        "confirmChanges": "Salva modifiche",
         "deleteBudget": "Elimina"
       },
       "deleteDialogTitle": "Eliminare il budget?",
@@ -1507,6 +1674,9 @@
         "cannotReassignAsMember": "Non puoi assegnare il budget a un altro utente.",
         "noPermissionAssignUser": "Non hai i permessi per assegnare questo budget a questo utente.",
         "updateFailed": "Impossibile aggiornare il budget",
+        "notFound": "Budget non trovato",
+        "permissionDenied": "Permesso negato",
+        "loadFailed": "Impossibile caricare il budget",
         "noPermissionDelete": "Non hai i permessi per eliminare questo budget.",
         "deleteFailed": "Impossibile eliminare il budget"
       }
@@ -1519,8 +1689,8 @@
       },
       "deleteTitle": "Elimina periodo",
       "metrics": {
-        "spent": "Speso",
-        "saved": "Risparmiato"
+        "spent": "Speso (spendibile)",
+        "saved": "Accantonato (riserva)"
       },
       "topCategories": "Top Categorie"
     },
@@ -1535,8 +1705,8 @@
         "completed": "Concluso"
       },
       "metrics": {
-        "spent": "Speso",
-        "saved": "Risparmiato"
+        "spent": "Speso (spendibile)",
+        "saved": "Accantonato (riserva)"
       },
       "topCategories": "Principali Categorie"
     },
@@ -1563,6 +1733,19 @@
         "startFailed": "Impossibile avviare il periodo budget",
         "noPermissionClose": "Non hai i permessi per chiudere questo periodo.",
         "closeFailed": "Impossibile chiudere il periodo budget",
+        "noPermissionEditClosingDate": "Non hai i permessi per modificare la data di chiusura di questo periodo.",
+        "editFailed": "Impossibile modificare la data di chiusura",
+        "invalidDate": "Data non valida",
+        "periodNotFound": "Periodo non trovato",
+        "periodNotOpen": "Solo un periodo attivo e aperto può essere chiuso.",
+        "periodMustBeClosed": "Solo i periodi chiusi possono essere modificati",
+        "noActivePeriod": "Nessun periodo attivo trovato",
+        "notLatestPeriod": "Solo l'ultimo periodo chiuso può essere modificato",
+        "endBeforeStart": "La data di fine deve essere uguale o successiva alla data di inizio del periodo",
+        "futureActiveStart": "Il periodo successivo non può iniziare nel futuro",
+        "cannotEditActiveEnd": "Il periodo aperto non ha una data di chiusura.",
+        "neighborOutOfRange": "Questa data si sovrapporrebbe al periodo vicino.",
+        "noClosedPeriod": "Nessun periodo chiuso disponibile da modificare",
         "noPermissionDelete": "Non hai i permessi per eliminare questo periodo.",
         "deleteFailed": "Impossibile eliminare il periodo budget",
         "noPermissionViewOthers": "Non hai i permessi per visualizzare i periodi di altri utenti.",
@@ -1570,7 +1753,15 @@
         "noPermissionViewActiveOthers": "Non hai i permessi per visualizzare il periodo attivo di altri utenti.",
         "fetchActiveFailed": "Impossibile recuperare il periodo attivo",
         "permissionDenied": "Permesso negato",
-        "previewFailed": "Impossibile calcolare l'anteprima"
+        "previewFailed": "Impossibile calcolare l'anteprima",
+        "noPermissionRecalculate": "Non hai i permessi per ricalcolare questo periodo.",
+        "recalculateFailed": "Impossibile ricalcolare il periodo budget",
+        "syntheticPeriod": "Questo periodo non può essere modificato.",
+        "noPreviousPeriod": "Non c'è un periodo precedente da riaprire.",
+        "periodMustBeActive": "Puoi eliminare solo il periodo aperto.",
+        "rewindFailed": "Impossibile eliminare questo periodo e riaprire il precedente",
+        "budgetNotFound": "Budget non trovato in questo periodo.",
+        "periodBudgetFailed": "Impossibile aggiornare il budget di questo periodo"
       }
     }
   },
@@ -1587,15 +1778,10 @@
         "create": "Nuova Categoria",
         "edit": "Modifica Categoria"
       },
-      "description": {
-        "create": "Crea una nuova categoria personalizzata",
-        "edit": "Aggiorna i dettagli della categoria"
-      },
       "fields": {
         "label": {
           "label": "Nome",
-          "placeholder": "es. Spesa",
-          "helper": "Il codice interno (chiave) viene generato automaticamente dal nome; serve al sistema per collegare le transazioni."
+          "placeholder": "es. Spesa"
         },
         "icon": {
           "label": "Icona"
@@ -1606,16 +1792,21 @@
         }
       },
       "buttons": {
-        "save": "Salva",
+        "save": "Salva modifiche",
         "create": "Crea Categoria",
-        "cancel": "Annulla"
+        "cancel": "Annulla",
+        "delete": "Elimina categoria"
       },
+      "deleteDialogTitle": "Elimina categoria",
+      "deleteConfirm": "Eliminare questa categoria? L'azione non può essere annullata.",
       "toast": {
         "errorTitle": "Errore",
         "updatedTitle": "Categoria aggiornata",
         "updatedDescription": "Modifiche salvate correttamente.",
         "createdTitle": "Categoria creata",
         "createdDescription": "Categoria aggiunta correttamente.",
+        "deletedTitle": "Categoria eliminata",
+        "deletedDescription": "La categoria è stata rimossa.",
         "revertedHint": "I dati mostrati sono tornati allo stato precedente.",
         "optimisticCreateFailedHint": "La bozza è stata rimossa dalla lista."
       },
@@ -1640,7 +1831,9 @@
         "colorEmpty": "Il colore non può essere vuoto",
         "createFailed": "Impossibile creare la categoria",
         "updateFailed": "Impossibile aggiornare la categoria",
-        "deleteFailed": "Impossibile eliminare la categoria"
+        "deleteFailed": "Impossibile eliminare la categoria",
+        "systemImmutable": "Le categorie predefinite non possono essere modificate o eliminate",
+        "hasTransactions": "Questa categoria è usata da transazioni del gruppo e non può essere eliminata"
       }
     }
   },
@@ -1741,7 +1934,7 @@
     "buttons": {
       "back": "Indietro",
       "next": "Avanti",
-      "confirm": "Conferma",
+      "confirm": "Vai alla Home",
       "saving": "Salvataggio...",
       "skip": "Salta",
       "addAccount": "Aggiungi un conto",
@@ -1773,7 +1966,8 @@
       "empty": "Nessuna categoria trovata"
     },
     "MultiUser": {
-      "currentUser": "(Tu)"
+      "currentUser": "(Tu)",
+      "placeholder": "Seleziona utenti"
     },
     "Fields": {
       "User": {
@@ -1795,30 +1989,18 @@
     "DateField": {
       "label": "Data",
       "placeholder": "GG/MM/AAAA",
+      "today": "Oggi",
       "clearDateAria": "Cancella data",
-      "openCalendarSr": "Apri calendario"
+      "openCalendarSr": "Apri calendario",
+      "closeCalendar": "Chiudi calendario"
     },
     "DateDrawer": {
-      "drawerAriaLabel": "Selettore data",
       "drawerTitle": "Seleziona una data",
-      "presetsAria": "Scorciatoie data",
-      "presetsTitle": "Scorciatoie",
-      "presetAria": "{label}: {date}",
-      "presets": {
-        "today": "Oggi",
-        "yesterday": "Ieri",
-        "daysAgo7": "7 giorni fa",
-        "daysAgo30": "30 giorni fa",
-        "weekStart": "Inizio settimana",
-        "monthStart": "Inizio mese",
-        "yearStart": "Inizio anno"
-      },
       "monthHeader": {
         "previousMonth": "Mese precedente",
         "nextMonth": "Mese successivo",
-        "closeSelectors": "Chiudi selettori",
-        "close": "Chiudi",
-        "selectMonthAndYear": "Seleziona mese e anno"
+        "selectMonth": "Seleziona mese",
+        "selectYear": "Seleziona anno"
       },
       "dayCell": {
         "selectDate": "Seleziona {date}"

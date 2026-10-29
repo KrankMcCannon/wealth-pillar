@@ -5,7 +5,7 @@
  * Uses Next.js revalidateTag for on-demand cache invalidation.
  */
 
-import { revalidateTag } from 'next/cache';
+import { revalidateTag, updateTag } from 'next/cache';
 import { CACHE_TAGS } from '@/lib/cache/config';
 
 /**
@@ -16,6 +16,7 @@ export interface TransactionCacheInvalidationOptions {
   accountId: string;
   userId?: string | null | undefined;
   toAccountId?: string | null | undefined;
+  transactionId?: string | undefined;
 }
 
 /**
@@ -25,6 +26,11 @@ export interface BudgetCacheInvalidationOptions {
   budgetId?: string | undefined;
   userId: string;
   groupId?: string | undefined;
+}
+
+export interface InvestmentCacheInvalidationOptions {
+  groupId?: string | null | undefined;
+  userId: string;
 }
 
 /**
@@ -48,23 +54,43 @@ export interface UserCacheInvalidationOptions {
  * Used after creating, updating, or deleting transactions.
  */
 export function invalidateTransactionCaches(opts: TransactionCacheInvalidationOptions): void {
-  const tags: string[] = [
-    CACHE_TAGS.TRANSACTIONS,
+  const accountTags: string[] = [
     CACHE_TAGS.ACCOUNTS,
+    CACHE_TAGS.ACCOUNT(opts.accountId),
+    `group:${opts.groupId}:accounts`,
+  ];
+
+  if (opts.toAccountId) {
+    accountTags.push(CACHE_TAGS.ACCOUNT(opts.toAccountId));
+  }
+
+  // Balances are correctness-critical:
+  // the next read after a financial mutation must see the new value.
+  expireTags(accountTags);
+
+  const eventuallyConsistentTags: string[] = [
+    CACHE_TAGS.TRANSACTIONS,
     `account:${opts.accountId}:transactions`,
     `group:${opts.groupId}:transactions`,
     `group:${opts.groupId}:budgets`,
   ];
 
   if (opts.userId) {
-    tags.push(`user:${opts.userId}:transactions`, `user:${opts.userId}:budgets`);
+    eventuallyConsistentTags.push(
+      `user:${opts.userId}:transactions`,
+      `user:${opts.userId}:budgets`
+    );
   }
 
   if (opts.toAccountId) {
-    tags.push(`account:${opts.toAccountId}:transactions`);
+    eventuallyConsistentTags.push(`account:${opts.toAccountId}:transactions`);
   }
 
-  invalidateTags(tags);
+  if (opts.transactionId) {
+    eventuallyConsistentTags.push(`transaction:${opts.transactionId}`);
+  }
+
+  invalidateTags(eventuallyConsistentTags);
 }
 
 /**
@@ -82,6 +108,15 @@ export function invalidateBudgetCaches(opts: BudgetCacheInvalidationOptions): vo
     tags.push(`group:${opts.groupId}:budgets`);
   }
 
+  invalidateTags(tags);
+}
+
+/**
+ * Invalidates investments page caches after holdings mutations.
+ */
+export function invalidateInvestmentCaches(opts: InvestmentCacheInvalidationOptions): void {
+  const tags = [`user:${opts.userId}:investments`];
+  if (opts.groupId) tags.push(`group:${opts.groupId}:investments`);
   invalidateTags(tags);
 }
 
@@ -136,7 +171,7 @@ export function invalidateBudgetPeriodCaches(opts: {
     tags.push(CACHE_TAGS.BUDGET_PERIOD(opts.periodId));
   }
 
-  invalidateTags(tags);
+  expireTags(tags);
 }
 
 /**
@@ -158,6 +193,7 @@ export function invalidateCategoryCaches(opts: { categoryId?: string }): void {
 export function invalidateRecurringCaches(opts: {
   seriesId?: string | undefined;
   userIds?: string[] | undefined;
+  groupId?: string | undefined;
 }): void {
   const tags: string[] = [CACHE_TAGS.RECURRING_SERIES];
 
@@ -171,7 +207,12 @@ export function invalidateRecurringCaches(opts: {
     });
   }
 
-  invalidateTags(tags);
+  if (opts.groupId) {
+    tags.push(`group:${opts.groupId}:recurring`);
+  }
+
+  // Mutations must refresh dependent Dashboard summaries on the very next read.
+  for (const tag of new Set(tags)) updateTag(tag);
 }
 
 /**
@@ -184,6 +225,7 @@ export function invalidateTransactionUpdateCaches(
     accountId: string;
     toAccountId?: string | null | undefined;
     groupId: string | null;
+    id?: string | null | undefined;
   },
   update: {
     userId?: string | null | undefined;
@@ -192,28 +234,62 @@ export function invalidateTransactionUpdateCaches(
     groupId?: string | undefined;
   }
 ): void {
-  const tags: string[] = [CACHE_TAGS.TRANSACTIONS, CACHE_TAGS.ACCOUNTS];
+  const accountTags: string[] = [CACHE_TAGS.ACCOUNTS, CACHE_TAGS.ACCOUNT(existing.accountId)];
 
-  // User tags
-  if (existing.userId)
+  if (existing.toAccountId) {
+    accountTags.push(CACHE_TAGS.ACCOUNT(existing.toAccountId));
+  }
+
+  if (update.accountId && update.accountId !== existing.accountId) {
+    accountTags.push(CACHE_TAGS.ACCOUNT(update.accountId));
+  }
+
+  if (update.toAccountId && update.toAccountId !== existing.toAccountId) {
+    accountTags.push(CACHE_TAGS.ACCOUNT(update.toAccountId));
+  }
+
+  if (existing.groupId) {
+    accountTags.push(`group:${existing.groupId}:accounts`);
+  }
+
+  if (update.groupId && update.groupId !== existing.groupId) {
+    accountTags.push(`group:${update.groupId}:accounts`);
+  }
+
+  expireTags(accountTags);
+
+  const tags: string[] = [CACHE_TAGS.TRANSACTIONS];
+
+  if (existing.id) {
+    tags.push(`transaction:${existing.id}`);
+  }
+
+  if (existing.userId) {
     tags.push(`user:${existing.userId}:transactions`, `user:${existing.userId}:budgets`);
+  }
+
   if (update.userId && update.userId !== existing.userId) {
     tags.push(`user:${update.userId}:transactions`, `user:${update.userId}:budgets`);
   }
 
-  // Account tags
   tags.push(`account:${existing.accountId}:transactions`);
-  if (existing.toAccountId) tags.push(`account:${existing.toAccountId}:transactions`);
+
+  if (existing.toAccountId) {
+    tags.push(`account:${existing.toAccountId}:transactions`);
+  }
+
   if (update.accountId && update.accountId !== existing.accountId) {
     tags.push(`account:${update.accountId}:transactions`);
   }
+
   if (update.toAccountId && update.toAccountId !== existing.toAccountId) {
     tags.push(`account:${update.toAccountId}:transactions`);
   }
 
-  // Group tags
-  if (existing.groupId)
+  if (existing.groupId) {
     tags.push(`group:${existing.groupId}:transactions`, `group:${existing.groupId}:budgets`);
+  }
+
   if (update.groupId && update.groupId !== existing.groupId) {
     tags.push(`group:${update.groupId}:transactions`, `group:${update.groupId}:budgets`);
   }
@@ -221,9 +297,12 @@ export function invalidateTransactionUpdateCaches(
   invalidateTags(tags);
 }
 
-/**
- * Internal helper to invalidate multiple tags with 'max' strategy.
- */
+function expireTags(tags: string[]): void {
+  for (const tag of tags) {
+    updateTag(tag);
+  }
+}
+
 function invalidateTags(tags: string[]): void {
   for (const tag of tags) {
     revalidateTag(tag, 'max');

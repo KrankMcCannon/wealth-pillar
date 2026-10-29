@@ -1,24 +1,19 @@
 'use client';
 
 /**
- * useDashboardContent — logica condivisa per la Home dashboard (client).
+ * useDashboardContent — display-only; totals precomputed server-side.
  */
 import { useMemo, useCallback } from 'react';
-import { useUserFilter, usePermissions, useFilteredAccounts } from '@/hooks';
+import { useUserFilter, usePermissions } from '@/hooks';
 import { useModalState } from '@/lib/navigation/url-state';
-import { calculateDisplayedAccounts } from './dashboard-helpers';
-import { findSharedSavingsAccount } from '../constants';
-import type { Account, BudgetPeriod, User } from '@/lib/types';
-import type { RecurringTransactionSeries } from '@/lib';
-import { useRouter } from '@/i18n/routing';
+import type { RecurringTransactionSeries, Transaction, User } from '@/lib/types';
+import type { DashboardBalanceViewModel } from '@/server/use-cases/accounts/account.logic';
+import { useRecurringEditStore } from '@/features/recurring/stores/recurring-edit-store';
+import { useTransactionEditStore } from '@/features/transactions/stores/transaction-edit-store';
 
 export interface UseDashboardContentParams {
   currentUser: User;
-  groupUsers: User[];
-  accounts: Account[];
-  accountBalances: Record<string, number>;
-  budgetPeriods: Record<string, BudgetPeriod | null>;
-  recurringSeries: RecurringTransactionSeries[];
+  balanceViewModel: DashboardBalanceViewModel;
 }
 
 export interface UseDashboardContentReturn {
@@ -26,19 +21,16 @@ export interface UseDashboardContentReturn {
   selectedUserId: string | undefined;
   selectedGroupFilter: string;
   effectiveUserId: string;
-  displayedDefaultAccounts: Account[];
-  totalBalance: number;
-  handleCreateRecurringSeries: () => void;
-  handleOpenRecurringTab: () => void;
+  spendableBalance: number;
+  reserveBalance: number;
+  handleEditRecurringSeries: (series: RecurringTransactionSeries) => void;
+  handleEditTransaction: (transaction: Transaction) => void;
 }
 
 export function useDashboardContent({
   currentUser,
-  groupUsers,
-  accounts,
-  accountBalances,
+  balanceViewModel,
 }: UseDashboardContentParams): UseDashboardContentReturn {
-  const router = useRouter();
   const { selectedGroupFilter, selectedUserId } = useUserFilter();
   const { effectiveUserId, isMember } = usePermissions({
     currentUser,
@@ -46,56 +38,49 @@ export function useDashboardContent({
   });
 
   const { openModal } = useModalState();
+  const setRecurringEditSeed = useRecurringEditStore((state) => state.setSeed);
+  const setTransactionEditSeed = useTransactionEditStore((state) => state.setSeed);
 
-  const { filteredAccounts: userAccounts } = useFilteredAccounts({
-    accounts,
-    currentUser,
-    selectedUserId,
-  });
-
-  const displayedDefaultAccounts = useMemo(() => {
-    return calculateDisplayedAccounts(
-      accounts,
-      groupUsers,
-      accountBalances,
-      currentUser,
-      selectedUserId,
-      isMember
-    );
-  }, [selectedUserId, accounts, groupUsers, accountBalances, isMember, currentUser]);
-
-  const totalBalance = useMemo(() => {
-    let balance = 0;
-    if (selectedUserId) {
-      const userAccountIds = userAccounts.map((a) => a.id);
-      balance = userAccountIds.reduce(
-        (sum, accountId) => sum + (accountBalances[accountId] || 0),
-        0
-      );
-      const sharedSavings = findSharedSavingsAccount(accounts);
-      if (sharedSavings) balance += accountBalances[sharedSavings.id] || 0;
-    } else {
-      balance = Object.values(accountBalances).reduce((sum, bal) => sum + bal, 0);
+  const spendableBalance = useMemo(() => {
+    const balanceUserId = isMember ? currentUser.id : selectedUserId;
+    if (balanceUserId) {
+      return balanceViewModel.spendableByUserId[balanceUserId] ?? 0;
     }
-    return Math.round(balance * 100) / 100;
-  }, [selectedUserId, userAccounts, accounts, accountBalances]);
+    return balanceViewModel.spendableBalanceAll;
+  }, [isMember, currentUser.id, selectedUserId, balanceViewModel]);
 
-  const handleCreateRecurringSeries = useCallback(() => {
-    openModal('recurring');
-  }, [openModal]);
+  const reserveBalance = useMemo(() => {
+    const balanceUserId = isMember ? currentUser.id : selectedUserId;
+    if (balanceUserId) {
+      return balanceViewModel.reserveByUserId[balanceUserId] ?? 0;
+    }
+    return balanceViewModel.reserveBalanceAll;
+  }, [isMember, currentUser.id, selectedUserId, balanceViewModel]);
 
-  const handleOpenRecurringTab = useCallback(() => {
-    router.push('/transactions?tab=Recurrent');
-  }, [router]);
+  const handleEditRecurringSeries = useCallback(
+    (series: RecurringTransactionSeries) => {
+      setRecurringEditSeed(series);
+      openModal('recurring', series.id);
+    },
+    [openModal, setRecurringEditSeed]
+  );
+
+  const handleEditTransaction = useCallback(
+    (transaction: Transaction) => {
+      setTransactionEditSeed(transaction);
+      openModal('transaction', transaction.id);
+    },
+    [openModal, setTransactionEditSeed]
+  );
 
   return {
     isMember,
     selectedUserId,
     selectedGroupFilter,
     effectiveUserId,
-    displayedDefaultAccounts,
-    totalBalance,
-    handleCreateRecurringSeries,
-    handleOpenRecurringTab,
+    spendableBalance,
+    reserveBalance,
+    handleEditRecurringSeries,
+    handleEditTransaction,
   };
 }

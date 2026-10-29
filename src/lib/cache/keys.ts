@@ -92,7 +92,7 @@ export const transactionCacheKeys = {
    * Cache key for transactions by user
    * @param userId - User ID
    */
-  byUser: (userId: string) => ['transactions', 'user', userId] as const,
+  byUser: (userId: string, filter = '') => ['transactions', 'user', userId, filter] as const,
 
   /**
    * Cache key for transactions by account

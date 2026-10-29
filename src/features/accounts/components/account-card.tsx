@@ -3,12 +3,13 @@
 import { memo } from 'react';
 import { useTranslations } from 'next-intl';
 import { Building2 } from 'lucide-react';
-import { formatCurrency, truncateText, cn } from '@/lib/utils';
+import { formatCurrency, cn } from '@/lib/utils';
 import type { Account } from '@/lib/types';
 import { AccountTypeMap } from '@/lib/types';
+import { resolveAccountLiquidity } from '@/lib/utils/account-classification';
+import { Amount } from '@/components/ui/primitives/amount';
+import { PlainListRow } from '@/components/ui/layout/plain-list-row';
 import { RowCard } from '@/components/ui/layout/row-card';
-import { stitchAccounts, stitchHome } from '@/styles/home-design-foundation';
-import { cardStyles } from '@/components/cards/theme/card-styles';
 
 interface AccountCardProps {
   account: Account;
@@ -23,6 +24,14 @@ interface AccountCardProps {
   balancePresentation?: 'default' | 'dashboard';
 }
 
+function accountSubtitle(
+  account: Account,
+  liquidityLabel: string,
+  typeLabels: Partial<Record<keyof typeof AccountTypeMap, string>>
+) {
+  return `${typeLabels[account.type] || AccountTypeMap[account.type] || account.type} · ${liquidityLabel}`;
+}
+
 /**
  * AccountCard — tap sulla riga → modifica (eliminazione dalla modale di modifica).
  */
@@ -35,80 +44,66 @@ export const AccountCard = memo(function AccountCard({
 }: Readonly<AccountCardProps>) {
   const t = useTranslations('Accounts.Card');
   const isNegative = accountBalance < 0;
-
   const primaryValue = formatCurrency(Math.abs(accountBalance));
-  const secondaryValue = isNegative ? t('debt') : undefined;
-  const amountVariant = isNegative
-    ? 'destructive'
-    : balancePresentation === 'dashboard'
-      ? 'primary'
-      : 'success';
   const accountTypeLabels: Partial<Record<keyof typeof AccountTypeMap, string>> = {
     payroll: t('accountTypes.payroll'),
     savings: t('accountTypes.savings'),
     cash: t('accountTypes.cash'),
     investments: t('accountTypes.investments'),
   };
+  const liquidity = resolveAccountLiquidity(account);
+  const liquidityLabel = t(`liquidity.${liquidity}`);
+  const subtitle =
+    balancePresentation === 'dashboard'
+      ? accountSubtitle(account, liquidityLabel, accountTypeLabels)
+      : liquidityLabel;
+  const meta = isNegative ? `${subtitle} · ${t('debt')}` : subtitle;
 
-  const interactiveAriaLabel =
-    onClick !== undefined
-      ? t('ariaOpenAccount', { name: account.name, balance: primaryValue })
-      : undefined;
+  if (balancePresentation === 'dashboard') {
+    return (
+      <RowCard
+        icon={<Building2 className="h-3.5 w-3.5" />}
+        iconSize="xs"
+        iconColor="primary"
+        title={account.name}
+        subtitle={subtitle}
+        primaryValue={primaryValue}
+        secondaryValue={isNegative ? t('debt') : undefined}
+        amountVariant={isNegative ? 'destructive' : 'primary'}
+        variant="regular"
+        rightLayout="row"
+        onClick={onClick}
+        interactiveAriaLabel={
+          onClick !== undefined
+            ? t('ariaOpenAccount', { name: account.name, balance: primaryValue })
+            : undefined
+        }
+        compact
+        className={cn(
+          'min-w-[180px] shrink-0 px-3 !w-max !min-w-[8.75rem] py-0 sm:!min-w-[9rem]',
+          className
+        )}
+        testId={`account-card-${account.id}`}
+      />
+    );
+  }
 
   return (
-    <RowCard
-      icon={
-        <Building2
-          className={
-            balancePresentation === 'dashboard'
-              ? cardStyles.account.sliderIcon
-              : cardStyles.account.icon
-          }
-        />
-      }
-      iconSize={balancePresentation === 'dashboard' ? 'xs' : 'sm'}
-      {...(balancePresentation === 'default'
-        ? { iconClassName: stitchAccounts.accountListIconWrap }
-        : {})}
-      iconColor="primary"
-      title={balancePresentation === 'dashboard' ? account.name : truncateText(account.name, 20)}
-      subtitle={accountTypeLabels[account.type] || AccountTypeMap[account.type] || account.type}
-      primaryValue={primaryValue}
-      secondaryValue={secondaryValue}
-      amountVariant={amountVariant}
-      actions={undefined}
-      variant="regular"
-      rightLayout="row"
+    <PlainListRow
+      title={account.name}
+      meta={meta}
       onClick={onClick}
-      interactiveAriaLabel={interactiveAriaLabel}
-      compact={balancePresentation === 'dashboard'}
-      {...(balancePresentation === 'default'
-        ? {
-            titleClassName: stitchAccounts.accountListTitle,
-            subtitleClassName: stitchAccounts.accountListSubtitle,
-            valueClassName:
-              amountVariant === 'success'
-                ? stitchAccounts.accountListAmountSuccess
-                : amountVariant === 'destructive'
-                  ? stitchAccounts.accountListAmountNegative
-                  : stitchAccounts.accountListAmountPrimary,
-            ...(secondaryValue
-              ? {
-                  secondaryValueClassName: cn(
-                    stitchAccounts.accountListAmountSecondary,
-                    cardStyles.account.negativeLabel
-                  ),
-                }
-              : {}),
-          }
-        : {})}
-      className={cn(
-        balancePresentation === 'dashboard'
-          ? cn(cardStyles.account.container, cardStyles.account.sliderTight)
-          : cn(stitchHome.listRowInteractive, 'w-full'),
-        className
-      )}
+      ariaLabel={
+        onClick !== undefined
+          ? t('ariaOpenAccount', { name: account.name, balance: primaryValue })
+          : undefined
+      }
       testId={`account-card-${account.id}`}
-    />
+      className={className}
+    >
+      <Amount type={isNegative ? 'expense' : 'balance'} size="md" emphasis="strong">
+        {accountBalance}
+      </Amount>
+    </PlainListRow>
   );
 });

@@ -55,6 +55,7 @@ export interface MarketQuote {
 export interface MarketDataBatchResult {
   symbol: string;
   data: TimeSeriesEntry[];
+  lastUpdated: string | null;
 }
 
 // ============================================================================
@@ -137,24 +138,13 @@ export function buildSeriesIndex(
 export function getCloseForDate(
   points: ParsedSeriesPoint[] | undefined,
   targetDateKey?: string
-): number {
-  if (!points || points.length === 0) return 0;
-  if (!targetDateKey) return points.at(-1)?.close ?? 0;
-
-  let found = false;
-  let close = 0;
-
-  for (const point of points) {
-    if (point.date <= targetDateKey) {
-      close = point.close;
-      found = true;
-    } else {
-      break;
-    }
+): number | null {
+  let close: number | null = null;
+  for (const point of points ?? []) {
+    if (targetDateKey && point.date > targetDateKey) break;
+    if (Number.isFinite(point.close) && point.close > 0) close = point.close;
   }
-
-  if (found) return close;
-  return points[0]?.close ?? 0;
+  return close;
 }
 
 /**

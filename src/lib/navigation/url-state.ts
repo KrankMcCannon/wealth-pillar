@@ -8,14 +8,15 @@ export const MODAL_TYPES = [
   'category',
   'recurring',
   'account',
+  'import',
   'investment',
   'settings:profile',
   'settings:currency',
   'settings:language',
   'settings:timezone',
   'settings:invite',
-  'settings:subscription',
-  'settings:delete-account',
+  'settings:group',
+  'settings:categories',
 ] as const;
 
 export type ModalType = (typeof MODAL_TYPES)[number];
@@ -26,8 +27,8 @@ export const SETTINGS_MODAL_TYPES = [
   'settings:language',
   'settings:timezone',
   'settings:invite',
-  'settings:subscription',
-  'settings:delete-account',
+  'settings:group',
+  'settings:categories',
 ] as const;
 
 export type SettingsModalKind =
@@ -36,8 +37,8 @@ export type SettingsModalKind =
   | 'language'
   | 'timezone'
   | 'invite'
-  | 'subscription'
-  | 'delete-account';
+  | 'group'
+  | 'categories';
 
 export function isSettingsModalType(
   modal: string | null
@@ -71,7 +72,11 @@ export function useModalState() {
     isOpen: (type: ModalType) => modal === type,
     openModal: (type: ModalType, id?: string) => {
       setModal(type);
-      if (id) setEditId(id);
+      if (id) {
+        setEditId(id);
+      } else {
+        setEditId(null);
+      }
     },
     closeModal: () => {
       setModal(null);

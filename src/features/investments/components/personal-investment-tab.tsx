@@ -1,45 +1,55 @@
 'use client';
 
+import dynamic from 'next/dynamic';
+import { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { ChevronDown } from 'lucide-react';
 import { usePathname, useRouter } from '@/i18n/routing';
-import { useInvestmentHistory } from '@/features/investments/hooks/use-investment-history';
-import { InvestmentHistoryChart } from './investment-history-chart';
-import { BenchmarkChart } from './benchmark-chart';
-import { InvestmentList } from './investment-list';
-import { investmentsStyles } from '@/features/investments/theme/investments-styles';
+import { InvestmentsScreenList } from './investments-screen-list';
 import { WealthHeader } from './wealth-header';
-import { AssetAllocationCard } from './asset-allocation-card';
 import { useTranslations } from 'next-intl';
+import type { AssetAllocationSlice } from '@/server/use-cases/investments/investment.use-cases';
+import type { InvestmentListItem } from '@/server/use-cases/investments/investment.types';
+import { buildAllocationChartData } from '@/features/investments/utils/allocation-chart-data';
+import { stitchHome, stitchInvestments } from '@/styles/home-design-foundation';
+import { investmentsStyles } from '@/features/investments/theme/investments-styles';
 
-export interface Investment {
-  id: string;
-  name: string;
-  symbol: string;
-  amount: number;
-  shares_acquired: number;
-  currentPrice?: number;
-  currentValue?: number;
-  initialValue?: number;
-  currency: string;
-  tax_paid?: number;
-  totalPaid?: number;
-  totalCost?: number;
-  totalGain?: number;
-  net_earn?: number;
-  created_at: Date | string | null;
+function ChartSlotFallback() {
+  return (
+    <div className={stitchInvestments.chartCard}>
+      <div className={investmentsStyles.charts.fallback} aria-busy="true" />
+    </div>
+  );
 }
 
+const AssetAllocationCard = dynamic(
+  () => import('./asset-allocation-card').then((m) => m.AssetAllocationCard),
+  { ssr: false, loading: ChartSlotFallback }
+);
+const InvestmentHistoryChart = dynamic(
+  () => import('./investment-history-chart').then((m) => m.InvestmentHistoryChart),
+  { ssr: false, loading: ChartSlotFallback }
+);
+const BenchmarkChart = dynamic(() => import('./benchmark-chart').then((m) => m.BenchmarkChart), {
+  ssr: false,
+  loading: ChartSlotFallback,
+});
+
+export type Investment = InvestmentListItem;
+
 interface PersonalInvestmentTabProps {
-  investments: Investment[];
   summary: {
     totalInvested: number;
     totalTaxPaid?: number;
     totalPaid?: number;
-    totalCurrentValue: number;
-    totalInitialValue?: number;
-    totalReturn: number;
-    totalReturnPercent: number;
+    totalCurrentValue: number | null;
+    totalInitialValue?: number | null;
+    totalReturn: number | null;
+    totalReturnPercent: number | null;
   };
+  assetAllocation: AssetAllocationSlice[];
+  portfolioHistory: { date: string; value: number }[];
+  marketDataUpdatedAt: string | null;
   indexData?:
     | Array<{
         datetime?: string | undefined;
@@ -49,19 +59,24 @@ interface PersonalInvestmentTabProps {
       }>
     | undefined;
   currentIndex?: string | undefined;
+  holdings: InvestmentListItem[];
 }
 
 export function PersonalInvestmentTab({
-  investments,
   summary,
+  assetAllocation,
+  portfolioHistory,
+  marketDataUpdatedAt,
   indexData,
   currentIndex = 'IVV',
+  holdings,
 }: Readonly<PersonalInvestmentTabProps>) {
   const benchmarkAnchorId = 'benchmark-chart';
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const t = useTranslations('Investments');
+  const t = useTranslations('Investments.PersonalTab');
+  const [analyticsOpen, setAnalyticsOpen] = useState(false);
 
   const handleBenchmarkChange = (symbol: string) => {
     if (!symbol || symbol === currentIndex) return;
@@ -72,75 +87,58 @@ export function PersonalInvestmentTab({
     router.replace(`${pathname}?${qs}#${benchmarkAnchorId}`, { scroll: false });
   };
 
-  const calculatedHistory = useInvestmentHistory({
-    investments,
-    indexData,
-    summary,
-    currentIndex,
-  });
-
-  // Group by symbol to aggregate multiple holdings of the same asset
-  const groupedInvestments = investments.reduce(
-    (acc, inv) => {
-      const symbol = inv.symbol || 'OTHER';
-      if (!acc[symbol]) {
-        acc[symbol] = 0;
-      }
-      acc[symbol] += inv.currentValue || 0;
-      return acc;
-    },
-    {} as Record<string, number>
-  );
-
-  const sortedGroups = Object.entries(groupedInvestments)
-    .filter(([_, value]) => value > 0)
-    .map(([symbol, value]) => ({ name: symbol, value }))
-    .sort((a, b) => b.value - a.value);
-
-  const top4 = sortedGroups.slice(0, 4);
-  const others = sortedGroups.slice(4);
-  const othersTotal = others.reduce((sum, item) => sum + item.value, 0);
-
-  const allocationData = top4.map((item, index) => ({
-    ...item,
-    color: ['#8fb0ff', '#8fe2b4', '#9fb9ff', '#6b9fff'][index] as string,
-  }));
-
-  if (othersTotal > 0) {
-    allocationData.push({
-      name: t('fallback.others'),
-      value: othersTotal,
-      color: '#b8c5ff',
-    });
-  }
+  const allocationData = buildAllocationChartData(assetAllocation, t('fallback.others'));
+  const hasAnalytics =
+    allocationData.length > 0 || portfolioHistory.length > 0 || (indexData?.length ?? 0) > 0;
 
   return (
-    <div className={investmentsStyles.container}>
+    <>
       <WealthHeader
         totalValue={summary.totalCurrentValue}
         trendAmount={summary.totalReturn}
         trendPercentage={summary.totalReturnPercent}
-        currency="EUR"
+        marketDataUpdatedAt={marketDataUpdatedAt}
       />
 
-      {/* Bento Grid Layer 1 */}
-      <div className="grid grid-cols-1 gap-6">
-        <AssetAllocationCard data={allocationData} />
-      </div>
+      <InvestmentsScreenList holdings={holdings} />
 
-      {/* Charts section */}
-      <div className={investmentsStyles.charts.grid}>
-        <InvestmentHistoryChart data={calculatedHistory} />
+      {hasAnalytics ? (
+        <details
+          className={stitchHome.scanSection}
+          open={analyticsOpen}
+          onToggle={(event) => setAnalyticsOpen(event.currentTarget.open)}
+        >
+          <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40">
+            <span className="min-w-0">
+              <span className={stitchHome.scanSectionTitle}>{t('analyticsTitle')}</span>
+              <span className="mt-1 block text-sm leading-relaxed text-muted-foreground">
+                {t('analyticsDescription')}
+              </span>
+            </span>
+            <ChevronDown
+              className={`size-4 shrink-0 transition-transform ${
+                analyticsOpen ? 'rotate-180' : ''
+              }`}
+              aria-hidden
+            />
+          </summary>
 
-        <BenchmarkChart
-          indexData={indexData}
-          currentIndex={currentIndex}
-          onBenchmarkChange={handleBenchmarkChange}
-          anchorId={benchmarkAnchorId}
-        />
-      </div>
+          {analyticsOpen ? (
+            <div className="mt-4 flex min-w-0 flex-col gap-4">
+              {allocationData.length > 0 ? <AssetAllocationCard data={allocationData} /> : null}
 
-      <InvestmentList investments={investments} />
-    </div>
+              <InvestmentHistoryChart data={portfolioHistory} />
+
+              <BenchmarkChart
+                indexData={indexData}
+                currentIndex={currentIndex}
+                onBenchmarkChange={handleBenchmarkChange}
+                anchorId={benchmarkAnchorId}
+              />
+            </div>
+          ) : null}
+        </details>
+      ) : null}
+    </>
   );
 }

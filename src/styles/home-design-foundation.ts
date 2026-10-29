@@ -3,158 +3,261 @@
  * Reusable primitives to standardize the migration of dashboard-like pages.
  */
 
-/** Legacy light-mode card tokens (budget detail pages, mixed surfaces). */
-export const homeDesignFoundation = {
-  sectionCard:
-    'rounded-2xl border border-[#001456]/20 bg-[#f8f9ff] shadow-sm dark:border-[#8ba3ff]/30 dark:bg-[#1a2b6d]/20',
-  rowCard:
-    'rounded-xl border border-[#001456]/15 bg-white/80 dark:border-[#8ba3ff]/25 dark:bg-[#132050]/40',
-  actionButton:
-    'rounded-lg bg-[#001456] px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-[#1a2b6d]',
-  titleEyebrow:
-    'text-[11px] font-bold uppercase tracking-wide text-[#001456]/70 dark:text-[#b8c5ff]',
-  strongValue: 'text-sm font-semibold text-[#001456] dark:text-[#eef1ff]',
+/** Bottom padding for dashboard mains so content clears the fixed tab bar. */
+export const dashboardContentBottomPadding =
+  'pb-[max(7rem,calc(5.5rem+env(safe-area-inset-bottom)))]';
+
+/** Superfici solide — token-driven (Daylight), no decorative gradients. */
+export const stitchSurface = {
+  card: 'rounded-xl border border-border/25 bg-card',
+  cardLg: 'rounded-2xl border border-border/20 bg-card shadow-md',
+  modalFooter: 'mt-auto shrink-0 border-t border-foreground/10 bg-background',
+  primaryCta:
+    'flex min-h-[52px] w-full items-center justify-center gap-2.5 rounded-xl border border-primary/30 bg-primary px-5 py-3.5 text-base font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 active:scale-[0.99] disabled:pointer-events-none disabled:opacity-45 motion-reduce:transition-none motion-reduce:active:scale-100',
+  dangerButton:
+    'border border-expense/35 bg-expense/12 text-expense transition-colors hover:border-expense/50 hover:bg-expense/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-expense/35',
+} as const;
+
+/** Fixed page FAB — single source for home ActionMenu trigger and page-local add buttons. */
+export const stitchFab = {
+  pageAdd:
+    'fixed bottom-24 right-5 z-30 flex h-14 w-14 min-h-11 min-w-11 items-center justify-center rounded-2xl border-0 bg-foreground text-background shadow-lg transition-transform hover:scale-105 hover:bg-foreground/90 active:scale-95 motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/25',
+  pageAddIcon: 'size-7',
 } as const;
 
 /**
- * Dark “Stitch” home sections — use via `HomeSectionCard` / `stitchHome.*` class strings.
- * Centralizza hex ripetuti tra Balance, Budget, Recurring, Recent activity.
+ * Home sections — use via `HomeSectionCard` / `stitchHome.*` class strings.
+ * Semantic tokens from app/globals.css.
  */
 export const stitchHome = {
-  sectionCard:
-    'space-y-4 rounded-2xl border border-[#3359c5]/20 bg-[#0b1f4f]/90 p-4 shadow-[0_16px_36px_rgba(0,7,30,0.28)] sm:p-5',
-  sectionHeaderTitle: 'text-[#8fb0ff]',
-  sectionHeaderSubtitle: 'text-[#8fa2dd]',
+  sectionCard: 'space-y-3 rounded-2xl border border-border/20 bg-card p-3 shadow-sm sm:p-4',
+  sectionHeaderTitle: 'text-foreground',
+  sectionHeaderSubtitle: 'text-muted-foreground',
+  sectionEyebrow: 'text-xs font-medium text-muted-foreground',
+  balanceHero:
+    'font-display text-[30px] font-semibold tabular-nums leading-none tracking-[-0.02em] text-foreground',
+  balanceHeroNegative:
+    'font-display text-[30px] font-semibold tabular-nums leading-none tracking-[-0.02em] text-expense',
+  balanceLink:
+    'group flex items-center justify-between gap-3 rounded-xl px-1 py-1 transition-colors duration-300 motion-reduce:transition-none',
+  balanceLinkIcon:
+    'flex size-11 shrink-0 items-center justify-center rounded-2xl bg-muted ring-1 ring-border/35',
+  balanceLinkLabel: 'mb-1 text-xs font-medium text-muted-foreground',
+  balanceLinkArrow:
+    'h-8 w-8 shrink-0 text-primary transition-transform duration-300 group-hover:translate-x-0.5 motion-reduce:transition-none motion-reduce:group-hover:translate-x-0',
+  listRowInteractiveMinTouch:
+    'flex min-h-11 items-center justify-between gap-3 rounded-xl bg-muted/90 px-3 py-2 ring-1 ring-inset ring-border/40 transition-colors hover:bg-accent motion-reduce:transition-none',
+  viewAllLink:
+    'inline-flex min-h-11 min-w-11 items-center justify-center px-2 text-sm font-semibold text-muted-foreground hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35 focus-visible:rounded-md',
+  budgetRowAvatar:
+    'flex size-9 shrink-0 items-center justify-center rounded-full border border-border/30 bg-muted text-sm font-bold text-foreground',
+  fab: stitchFab.pageAdd,
   balanceSection:
-    'flex flex-col gap-3 overflow-hidden rounded-[30px] border border-[#3359c5]/20 bg-[#0b1f4f]/90 p-4 shadow-[0_16px_36px_rgba(0,7,30,0.28)] sm:gap-3.5 sm:p-5',
+    'flex flex-col gap-1 overflow-hidden rounded-2xl border border-border/20 bg-card px-4 py-3 shadow-sm',
   listRow:
-    'flex items-center justify-between gap-3 rounded-xl bg-[#11295f]/90 px-3 py-2.5 text-left shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)] transition-colors hover:bg-[#17336f]',
+    'flex items-center justify-between gap-3 rounded-xl bg-muted/90 px-3 py-2 text-left ring-1 ring-inset ring-border/40 transition-colors hover:bg-accent',
   listRowInteractive:
-    'flex items-center justify-between gap-3 rounded-xl bg-[#11295f]/90 px-3 py-2.5 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)] transition-colors hover:bg-[#17336f]',
+    'flex items-center justify-between gap-3 rounded-xl bg-muted/90 px-3 py-2 ring-1 ring-inset ring-border/40 transition-colors hover:bg-accent',
   emptyWell:
-    'rounded-xl bg-[#11295f]/60 px-4 py-6 text-center text-sm text-[#9fb0d7] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]',
-  rowTitle: 'truncate text-sm font-semibold text-[#e6ecff]',
-  rowMeta: 'truncate text-xs text-[#9fb0d7]',
-  amountIncome: 'text-[#8fe2b4]',
-  amountExpense: 'text-[#f0a6a6]',
+    'rounded-xl bg-muted/60 px-4 py-6 text-center text-sm text-muted-foreground ring-1 ring-inset ring-border/40',
+  rowTitle: 'truncate text-base font-semibold text-foreground',
+  rowMeta: 'truncate text-sm text-muted-foreground',
+  /** Home-density ledger rows — unstyled list, no card chrome. Do not reuse listRowInteractive. */
+  plainList: 'm-0 flex list-none flex-col p-0',
+  plainRow:
+    'flex min-h-12 w-full items-center justify-between gap-3 py-2.5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45',
+  plainRowTitle: 'block truncate text-base font-medium text-foreground',
+  plainRowMeta: 'block truncate text-sm text-muted-foreground',
+  amountIncome: 'text-income',
+  amountExpense: 'text-expense',
   budgetUserCard:
-    'w-full rounded-[20px] border border-[#5c77cc]/35 bg-[#183166] px-3.5 py-3 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] transition-colors hover:bg-[#1f3c75]',
-  budgetEyebrow: 'mb-2 text-[11px] font-semibold uppercase tracking-wide text-[#9fb9ff]',
+    'w-full rounded-[20px] border border-border/35 bg-accent px-3.5 py-3 text-left text-foreground transition-colors hover:border-border/55 hover:bg-accent/95',
+  budgetEyebrow: 'mb-2 text-xs font-medium text-muted-foreground',
   budgetUserAvatar:
-    'flex size-11 shrink-0 items-center justify-center rounded-full bg-[#2a447f] text-lg font-bold text-[#9eb6ff]',
-  budgetUserName: 'truncate text-lg font-semibold leading-tight text-[#9fb9ff]',
-  budgetPeriod: 'mt-0.5 truncate text-xs text-[#6f8dd5]',
-  budgetTotal: 'text-2xl font-semibold leading-none text-white',
-  budgetMetricLabel: 'text-[#aab9df]',
-  progressTrack: 'h-2 rounded-full bg-[#1a2b5f]',
+    'flex size-11 shrink-0 items-center justify-center rounded-full border border-border/30 bg-muted text-lg font-bold text-foreground',
+  budgetUserName: 'truncate text-lg font-semibold leading-tight text-foreground',
+  budgetPeriod: 'mt-0.5 truncate text-xs text-muted-foreground',
+  budgetTotal: 'text-2xl font-semibold leading-none text-foreground',
+  budgetMetricLabel: 'text-muted-foreground',
+  progressTrack: 'h-2 rounded-full bg-muted',
+  /** Heading + list. No card chrome — one number, one meta line. */
+  scanSection: 'flex flex-col gap-1.5',
+  scanSectionHeader: 'flex items-center justify-between gap-3',
+  scanSectionTitle: 'text-base font-semibold tracking-tight text-foreground',
 } as const;
 
-/** Shell dashboard mobile: sfondo pagina + chrome top/bottom (palette Stitch dark). */
+/** Group member scope — one anatomy for Home and ledger/accounts. */
+export const stitchPeopleChip = {
+  row: 'flex touch-pan-x items-stretch gap-1.5 overflow-x-auto overscroll-x-contain scroll-pl-1 pb-0.5 scrollbar-hide [-webkit-overflow-scrolling:touch]',
+  item: 'inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full border px-3 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/35 focus-visible:ring-offset-0 motion-reduce:transition-none',
+  itemActive: 'border-transparent bg-accent text-foreground ring-1 ring-inset ring-primary/35',
+  itemInactive: 'border-border/35 bg-muted/80 text-muted-foreground',
+  avatar:
+    'flex size-6 shrink-0 items-center justify-center rounded-full border border-border/35 bg-muted text-[10px] font-bold tabular-nums',
+  avatarActive: 'text-foreground',
+  avatarInactive: 'text-muted-foreground',
+  label: 'max-w-[5.5rem] truncate',
+} as const;
+
+/** Shell dashboard: opaque paper chrome so the page is not a sky wash. */
 export const stitchDashboardShell = {
-  pageBackground: 'bg-[#050818]',
+  pageBackground: 'bg-background',
   /** z-[48]: sopra toolbar sticky (z-30) e contenuti, sotto overlay dialog desktop (z-50) e drawer (z-150). */
   stickyHeader:
-    'fixed top-0 left-0 right-0 z-[48] backdrop-blur-xl border-b border-[#8ba3ff]/22 shadow-sm bg-[#0c1738]/88',
-  bottomBar:
-    'fixed bottom-0 left-0 right-0 z-[48] overflow-visible border-t border-[#8ba3ff]/22 bg-[#0c1738]/94 backdrop-blur-md',
+    'fixed top-0 left-0 right-0 z-[48] border-b border-border/22 bg-background shadow-sm',
+  bottomBar: 'fixed bottom-0 left-0 right-0 z-[48] border-t border-border/22 bg-background',
+  bottomBarPad: 'px-2 pt-1.5 pb-[calc(theme(spacing.1)+env(safe-area-inset-bottom))]',
+  bottomNav: 'mx-auto grid max-w-xl grid-cols-5 items-stretch',
+  bottomNavItem:
+    'group flex min-h-12 min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-1 py-1 text-muted-foreground transition-colors hover:text-foreground active:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35 motion-reduce:transition-none',
+  bottomNavIconWell:
+    'flex size-8 items-center justify-center rounded-full group-active:bg-accent group-active:ring-1 group-active:ring-inset group-active:ring-primary/35',
+  bottomNavIconWellActive: 'bg-accent ring-1 ring-inset ring-primary/35',
+  bottomNavIcon: 'size-5 shrink-0',
+  bottomNavLabel:
+    'max-w-full text-center text-[11px] font-medium leading-tight group-active:font-semibold group-active:text-foreground',
+  bottomNavLabelActive: 'font-semibold text-foreground',
+} as const;
+
+/** Capsule page tabs (Transazioni/Ricorrenti, Investimenti/Sandbox). */
+export const stitchPageTabs = {
+  wrap: 'px-2',
+  list: 'grid h-12 w-full min-w-0 max-w-full grid-cols-2 place-items-center gap-1 rounded-full border border-border/35 bg-card p-1 shadow-md',
+  trigger:
+    'inline-flex h-9 min-w-0 w-full items-center justify-center truncate rounded-full px-2 text-[13px] font-semibold tracking-wide text-muted-foreground shadow-none transition-all duration-200 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35 data-[state=active]:bg-accent data-[state=active]:text-foreground data-[state=active]:ring-1 data-[state=active]:ring-inset data-[state=active]:ring-primary/35 data-[state=active]:translate-y-0 motion-reduce:transition-none',
+  stickyBar:
+    'sticky z-30 w-full min-w-0 overflow-x-hidden border-b border-border/22 bg-background pb-2 pt-1',
+  stickyStack: 'flex flex-col gap-1.5 pt-1',
+  leading: 'px-4',
 } as const;
 
 /**
- * Pagina Budgets — hero, lista categorie, FAB (dark Stitch, layout mobile-first).
+ * Pagina Budgets — hero, lista categorie, FAB.
  */
 export const stitchBudgets = {
-  decorWrap: 'pointer-events-none fixed inset-0 -z-10 overflow-hidden',
-  decorBlobTL:
-    'absolute -left-[10%] -top-[10%] h-[50%] w-[50%] rounded-full bg-[#183166]/22 blur-[100px]',
-  decorBlobBR:
-    'absolute -bottom-[10%] -right-[10%] h-[55%] w-[55%] rounded-full bg-[#11295f]/28 blur-[120px]',
-  /** Spaziatura come Stitch (hero → CTA → lista). */
+  /** Spaziatura hero → lista. */
   mainStack: 'flex flex-col gap-5 pt-1',
-  /** Liquid glass: inset highlight come mock Stitch (adattato al dark). */
-  heroSection:
-    'relative overflow-hidden rounded-xl border border-white/[0.08] bg-[#0b1f4f]/75 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.14)] backdrop-blur-[24px]',
-  heroInner: 'relative z-[1] flex flex-col gap-4',
-  heroEyebrow: 'text-[11px] font-semibold uppercase tracking-wider text-[#9fb0d7]',
-  heroAmountRow: 'mt-0.5 flex items-baseline gap-1',
-  /** Importo hero: colore primary come Stitch `text-primary` sul numero principale. */
+  heroSection: `${stitchSurface.card} relative overflow-hidden p-4`,
+  heroInner: 'relative z-[1]',
+  heroTopRow: 'flex items-end justify-between gap-3',
+  heroPrimaryBlock: 'min-w-0 flex-1 flex flex-col gap-1',
+  heroEyebrow: 'text-xs font-medium text-muted-foreground',
+  heroAmountRow: 'mt-0.5 flex flex-wrap items-baseline gap-x-1 gap-y-0.5',
   heroAmount:
-    'text-[32px] font-semibold tabular-nums leading-none tracking-[-0.02em] text-[#8fb0ff]',
-  heroAmountCents: 'text-base font-medium text-[#9fb0d7]',
-  heroMetricsRow:
-    'flex w-full gap-8 border-t border-[#3359c5]/25 pt-4 [&>div]:min-w-0 [&>div]:flex-1',
-  heroMetricLabel: 'text-[11px] font-medium uppercase tracking-wide text-[#8fa2dd]',
-  heroMetricValue: 'mt-1 text-[17px] font-semibold leading-tight tabular-nums text-[#e6ecff]',
-  /** Striscia decorativa in basso come Stitch `from-primary via-tertiary`. */
-  heroGradientBar:
-    'pointer-events-none absolute bottom-0 left-0 z-0 h-[3px] w-full bg-gradient-to-r from-[#001456] via-[#005047] to-transparent opacity-30',
+    'font-display text-[28px] font-semibold tabular-nums leading-none tracking-[-0.02em] text-income',
+  heroAmountCents: 'text-sm font-medium tabular-nums text-income/80',
+  heroAmountBudget: 'text-sm font-medium tabular-nums text-primary',
+  heroSpentBlock:
+    'flex shrink-0 flex-col items-end gap-0.5 border-l border-border/25 pl-3 text-right',
+  heroSpentValue: 'text-[15px] font-semibold tabular-nums leading-tight text-expense',
+  heroMetricsRow: 'flex w-full gap-8 border-t border-border/25 pt-4 [&>div]:min-w-0 [&>div]:flex-1',
+  heroMetricLabel: 'text-[11px] font-medium uppercase tracking-wide text-muted-foreground',
+  heroMetricValue: 'mt-1 text-[17px] font-semibold leading-tight tabular-nums text-foreground',
+  heroStatMiniRow: 'mt-2',
+  periodHeader:
+    'flex items-center justify-between gap-2 rounded-xl border border-border/40 bg-card px-2 py-1.5',
+  periodHeaderDates:
+    'flex min-w-0 items-center gap-2 px-2 text-sm font-semibold tabular-nums tracking-tight text-foreground',
+  periodHeaderIcon: 'h-4 w-4 shrink-0 text-primary',
+  overflowTrigger:
+    'flex size-11 shrink-0 items-center justify-center rounded-lg border border-border/45 bg-secondary/40 text-foreground transition-colors hover:bg-secondary/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35 disabled:pointer-events-none disabled:opacity-45',
   closePeriodButton:
-    'flex w-full items-center justify-center gap-2 rounded-lg border-2 border-[#7c8aab]/55 bg-transparent px-6 py-3 text-sm font-medium tracking-wide text-[#c5cfe8] transition-all hover:bg-[#505f76]/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6b9fff]/35',
+    'flex w-full items-center justify-center gap-2 rounded-lg border-2 border-border/55 bg-transparent px-6 py-3 text-sm font-medium tracking-wide text-muted-foreground transition-all hover:bg-secondary/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35',
   listStack: 'flex flex-col gap-4',
   categoryCard:
-    'group relative flex w-full flex-col gap-3 rounded-xl border border-white/[0.08] bg-[#0b1f4f]/78 p-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-[24px] transition-transform duration-200 hover:scale-[1.01] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6b9fff]/45',
-  categoryCardSelected: 'ring-2 ring-[#6b9fff]/55 ring-offset-2 ring-offset-[#050818]',
-  categoryCardOver: 'border-red-400/25',
-  categoryCardOverGlow:
-    'pointer-events-none absolute right-0 top-0 z-0 h-32 w-32 rounded-bl-[100px] bg-red-500/[0.08]',
+    'group relative flex w-full flex-col gap-2 rounded-xl border border-border/25 bg-card px-3 py-3 text-left transition-colors hover:bg-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45',
+  categoryCardSelected: 'ring-2 ring-ring/55 ring-offset-2 ring-offset-background',
+  categoryCardOver: 'border-expense/35',
   categoryHeaderRow: 'relative z-[1] flex items-start justify-between gap-2',
   categoryTitleRow: 'flex min-w-0 items-center gap-2.5',
-  /** Icon 40px — cerchio primary-fixed / secondary / error come Stitch. */
+  /** Icon 40px — cerchio primary / warning (100%) / expense come Stitch. */
   iconWrapOnTrack:
-    'flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#8fb0ff]/35 bg-[#8fb0ff]/12 text-[#dde1ff]',
+    'flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-primary/35 bg-primary/12 text-primary',
   iconWrapFixed:
-    'flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#b7c8e1]/35 bg-[#505f76]/35 text-[#d3e4fe]',
+    'flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-warning/35 bg-warning/12 text-warning',
   iconWrapOver:
-    'flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-red-400/30 bg-red-500/15 text-red-300',
+    'flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-expense/35 bg-expense/15 text-expense',
   categoryTitle:
-    'truncate text-base font-semibold text-[#e6ecff] transition-colors group-hover:text-[#8fb0ff]',
+    'truncate text-base font-semibold text-foreground transition-colors group-hover:text-primary',
   /** Badge On Track: tertiary/teal come Stitch (non emerald). */
   badgeOnTrack:
-    'shrink-0 rounded-full border border-[#3cddc7]/28 bg-[#00211c]/55 px-2.5 py-1 text-[11px] font-medium text-[#62fae3]',
+    'shrink-0 rounded-full border border-teal-accent/28 bg-teal-accent/15 px-2.5 py-1 text-[11px] font-medium text-teal-accent',
   badgeFixed:
-    'shrink-0 rounded-full border border-[#c6c5d2]/25 bg-[#2a3145]/90 px-2.5 py-1 text-[11px] font-medium text-[#c6c5d2]',
+    'shrink-0 rounded-full border border-border/25 bg-muted/90 px-2.5 py-1 text-[11px] font-medium text-muted-foreground',
   badgeOver:
-    'shrink-0 rounded-full border border-red-400/35 bg-[#5c1a1a]/55 px-2.5 py-1 text-[11px] font-medium text-[#ffb4ab]',
+    'shrink-0 rounded-full border border-expense/35 bg-expense/15 px-2.5 py-1 text-[11px] font-medium text-expense',
   spentRow: 'relative z-[1] mt-2 flex flex-col gap-2',
   spentAmountRow: 'flex items-end justify-between gap-2',
-  spentStrong: 'text-2xl font-semibold tabular-nums tracking-tight text-[#e6ecff]',
-  spentLabel: 'text-sm font-normal text-[#9fb0d7]',
-  spentOf: 'text-sm tabular-nums text-[#8fa2dd]',
-  progressTrack: 'relative h-2 w-full overflow-hidden rounded-full bg-[#303545]',
-  progressFillPrimary: 'h-full min-h-[8px] rounded-full bg-[#001456]',
-  progressFillFixed: 'h-full min-h-[8px] rounded-full bg-[#505f76]',
-  progressFillOver: 'h-full min-h-[8px] rounded-full bg-[#ba1a1a]',
-  /** Marker limite budget quando si è oltre (come Stitch `left-[78%]`). */
-  progressLimitMarker: 'absolute top-0 z-[2] h-full w-0.5 bg-[#ffb4ab]',
+  spentStrong: 'text-xl font-semibold tabular-nums tracking-tight text-foreground',
+  spentLabel: 'text-sm font-normal text-muted-foreground',
+  spentOf: 'text-sm tabular-nums text-muted-foreground',
+  progressTrack: 'relative h-2 w-full overflow-hidden rounded-full bg-muted',
+  progressFillPrimary: 'h-full min-h-[8px] rounded-full bg-primary',
+  progressFillFixed: 'h-full min-h-[8px] rounded-full bg-warning',
+  progressFillOver: 'h-full min-h-[8px] rounded-full bg-expense',
+  progressLimitMarker: 'absolute top-0 z-[2] h-full w-0.5 bg-expense',
   footerRow: 'mt-1 flex items-start justify-between gap-2 text-[11px] leading-snug',
-  footerMuted: 'text-[#8fa2dd]',
-  footerAccent: 'font-medium text-[#8fb0ff]',
-  footerDanger: 'font-medium text-[#ffb4ab]',
-  fab: 'group fixed bottom-24 right-6 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-[#001456] text-white shadow-[0_8px_16px_-4px_rgba(0,20,86,0.45)] transition-transform duration-200 hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6b9fff]/45',
-  fabIcon: 'h-7 w-7 transition-transform duration-300 group-hover:rotate-90',
-  pageTitle: 'text-[32px] font-semibold tracking-tight text-[#e6ecff]',
-  pageSubtitle: 'text-base text-[#8fa2dd]',
+  footerMuted: 'text-muted-foreground',
+  footerAccent: 'font-medium text-primary',
+  footerDanger: 'font-medium text-expense',
   detailsSection: 'flex flex-col gap-4 pt-4',
 
   /** Grafico andamento spese. */
-  detailChartCard:
-    'relative rounded-xl border border-white/[0.08] bg-[#0b1f4f]/78 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-[24px]',
-  detailChartHeader: 'border-b border-[#3359c5]/25 px-4 pb-3 pt-4',
-  detailChartHeaderLabel: 'text-[11px] font-semibold uppercase tracking-wide text-[#9fb0d7]',
-  detailChartHeaderAmount: 'mt-1 text-2xl font-semibold tabular-nums tracking-tight text-[#e6ecff]',
-  detailChartEmpty: 'px-4 pb-4 pt-2 text-sm leading-relaxed text-[#9fb0d7]',
+  detailChartCard: `${stitchSurface.card} relative`,
+  detailChartHeader: 'border-b border-border/25 px-4 pb-3 pt-4',
+  detailChartHeaderLabel: 'text-[11px] font-semibold uppercase tracking-wide text-muted-foreground',
+  detailChartHeaderAmount:
+    'mt-1 text-2xl font-semibold tabular-nums tracking-tight text-foreground',
+  detailChartEmpty: 'px-4 pb-4 pt-2 text-sm leading-relaxed text-muted-foreground',
   /** Padding interno: griglia e linee non vanno a filo del bordo arrotondato. */
   detailChartSvgWrap: 'px-4 pb-1 pt-2',
   detailChartSvg: 'mx-auto block h-auto w-full max-h-[220px] overflow-visible',
   detailChartDayRow:
-    'flex justify-between gap-1 px-4 pb-4 pt-2 text-[10px] font-medium tabular-nums text-[#9fb0d7]/95',
+    'flex justify-between gap-1 px-4 pb-4 pt-2 text-[10px] font-medium tabular-nums text-muted-foreground/95',
 } as const;
 
-/** Colori SVG grafico budget (hex / rgba) — fuori da class Tailwind per attributi SVG. */
+/** Colori SVG grafico budget — token, non hex Stitch. */
 export const stitchBudgetsChartSvg = {
-  gridLine: 'rgba(143,176,255,0.14)',
-  lineStroke: '#8fb0ff',
-  areaFillClass: 'fill-[#8fb0ff]/[0.12]',
-  dotFill: '#8fb0ff',
+  gridLine: 'color-mix(in oklch, var(--color-primary) 14%, transparent)',
+  lineStroke: 'var(--color-primary)',
+  areaFillClass: 'fill-primary/12',
+  dotFill: 'var(--color-primary)',
+} as const;
+
+/**
+ * Pagina Investimenti — mobile-only, single column, no md/lg breakpoints.
+ */
+export const stitchInvestments = {
+  mainStack: 'flex flex-col gap-5 pt-1',
+  heroSection: stitchBudgets.heroSection,
+  heroInner: 'relative z-[1] flex gap-3',
+  heroPrimaryColumn: 'flex min-w-0 flex-1 flex-col justify-between gap-1',
+  heroReturnColumn:
+    'flex shrink-0 flex-col items-start justify-between gap-1 border-l border-border/25 pl-3 text-left',
+  heroEyebrow: 'text-xs font-medium text-muted-foreground',
+  heroAmountRow: 'flex flex-wrap items-baseline gap-x-1 gap-y-0.5',
+  heroAmount:
+    'font-display text-[28px] font-semibold tabular-nums leading-none tracking-[-0.02em] text-foreground',
+  heroAmountCents: 'text-sm font-medium tabular-nums text-primary/80',
+  heroReturnValueRow: 'flex items-center justify-start gap-1',
+  heroReturnValue: 'text-[15px] font-semibold tabular-nums leading-tight text-income',
+  heroReturnValueNegative: 'text-[15px] font-semibold tabular-nums leading-tight text-expense',
+  chartCard: stitchSurface.card,
+  chartCardHeader: 'border-b border-border/25 px-4 pb-3 pt-4',
+  chartCardTitle: 'text-[11px] font-semibold uppercase tracking-wide text-muted-foreground',
+  chartCardDescription: 'mt-1 text-sm text-muted-foreground',
+  chartCardContent: 'p-4',
+  emptyState: `${stitchSurface.card} p-6 text-center`,
+  emptyTitle: 'text-base font-medium text-foreground',
+  emptyDescription: 'mt-2 text-sm text-muted-foreground',
+  emptyActions: 'mt-6 flex flex-col gap-2',
+  emptyCtaPrimary: stitchSurface.primaryCta,
+  holdingRow:
+    'flex min-h-14 w-full items-start justify-between gap-3 py-3 text-left transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45',
+  holdingTicker: 'block text-base font-semibold tracking-tight text-foreground',
+  holdingMeta: 'mt-1 block text-sm tabular-nums text-muted-foreground',
+  holdingValueCol: 'flex shrink-0 flex-col items-end gap-0.5 pt-0.5',
+  holdingChange: 'inline-flex items-center gap-1 text-sm font-medium tabular-nums',
 } as const;
 
 /**
@@ -162,98 +265,126 @@ export const stitchBudgetsChartSvg = {
  */
 export const stitchTransactions = {
   chipBase:
-    'flex shrink-0 items-center justify-center rounded-full px-4 py-2 text-[12px] font-medium tracking-wide whitespace-nowrap transition-colors',
-  chipActive: 'bg-[#183166] text-[#e6ecff] shadow-[inset_0_0_0_1px_rgba(143,176,255,0.28)]',
-  chipInactive: 'border border-[#3359c5]/35 bg-[#11295f]/80 text-[#9fb0d7] hover:bg-[#17336f]',
-  filtersChipIcon: 'mr-1 inline h-4 w-4 shrink-0',
-  daySectionOuter: 'space-y-2',
-  dayHeaderRow: 'flex items-end justify-between px-1 pb-1',
-  dayTitle: 'text-sm font-medium text-[#8fa2dd]',
-  dayNet: 'text-[12px] font-medium tabular-nums',
-  dayNetPositive: 'text-[#8fe2b4]',
-  dayNetNegative: 'text-[#f0a6a6]',
-  dayNetNeutral: 'text-[#9fb0d7]',
-  dayCard:
-    'rounded-xl border border-[#3359c5]/25 bg-[#0b1f4f]/85 p-1 shadow-[0_4px_24px_rgba(0,7,30,0.35)]',
-  rowButton:
-    'flex w-full items-center gap-3 rounded-lg p-3 text-left transition-colors hover:bg-[#11295f]/90',
-  fab: 'fixed bottom-24 right-5 z-30 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#183166] text-white shadow-[0_8px_32px_rgba(0,20,86,0.45)] transition-transform hover:scale-105 active:scale-95',
+    'flex min-h-11 shrink-0 items-center justify-center rounded-full px-3 py-2 text-sm font-medium leading-none tracking-normal whitespace-nowrap transition-colors',
+  chipActive: 'bg-accent text-foreground ring-1 ring-inset ring-primary/35',
+  chipInactive: 'border border-border/35 bg-muted/80 text-muted-foreground hover:bg-accent',
+  filtersChipIcon: 'mr-1 inline h-3 w-3 shrink-0',
+  filterCountBadge:
+    'absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[11px] font-semibold tabular-nums leading-none text-primary-foreground',
+  /** Row list wrapper — layout only; surface lives on section card + individual rows. */
+  dayCard: 'flex flex-col gap-2',
+  emptyState: stitchInvestments.emptyState,
+  emptyTitle: stitchInvestments.emptyTitle,
+  emptyDescription: stitchInvestments.emptyDescription,
+  emptyActions: stitchInvestments.emptyActions,
+  emptyCtaPrimary: stitchInvestments.emptyCtaPrimary,
+  emptyCtaSecondary:
+    'flex min-h-11 w-full items-center justify-center rounded-xl border border-border/40 bg-muted/80 px-4 py-3 text-sm font-medium text-foreground transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35',
+  pageErrorBanner:
+    'rounded-xl border border-warning/35 bg-warning/10 px-3 py-2 text-sm text-foreground',
+  pageErrorRetry:
+    'ml-2 font-semibold underline text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35 rounded-sm',
+  paginationBar: 'flex items-center justify-between gap-3 border-t border-border/25 px-0 py-3.5',
+  dayHeaderRow: 'flex items-end justify-between gap-3 border-b border-foreground/10 px-1 pb-1',
+  dayHeaderTitle: 'text-base font-semibold leading-tight text-foreground',
+  dayHeaderStats: 'text-right',
+  dayHeaderTotalRow: 'flex items-baseline justify-end gap-1.5',
+  dayHeaderTotalLabel: 'text-sm font-medium text-muted-foreground',
+  dayHeaderTotalValue: 'text-base font-semibold tabular-nums leading-none text-foreground',
+  dayHeaderCount: 'mt-0.5 text-sm text-muted-foreground',
+  tabsStickyBar: stitchPageTabs.stickyBar,
+  stickyFilterStack: stitchPageTabs.stickyStack,
+  chipInset: stitchPageTabs.leading,
+  /** Wider than chip row (`px-4`) without going edge-to-edge. */
+  pageTabsWrap: stitchPageTabs.wrap,
   /** Padding orizzontale da `HomeDashboardMain` (px-4); qui solo gap verticale. */
   /** `pb` è solo su `HomeDashboardMain` (dashboardContentBottomPadding). */
   mainStack: 'flex flex-col gap-3 pb-0 pt-1',
   /** Toolbar tipo / filtri: bleed allineato al main dashboard (mx negativo = px-4). */
-  chipRow: 'flex gap-2 overflow-x-auto pb-0.5 scrollbar-hide -mx-4 px-4',
+  chipRow: 'flex gap-1 overflow-x-auto pb-0.5 scrollbar-hide -mx-4 px-4',
   /** Riga membri: scroll orizzontale con snap su mobile; wrap da `sm` per evitare overflow. */
-  chipRowUserWrap: 'min-w-0 space-y-1',
+  chipRowUserWrap: 'min-w-0',
   chipRowUserScroll:
-    'flex min-h-[44px] min-w-0 gap-2 overflow-x-auto overscroll-x-contain scroll-smooth pb-1 pt-0.5 [-webkit-overflow-scrolling:touch] scrollbar-hide snap-x snap-mandatory motion-reduce:scroll-auto motion-reduce:snap-none sm:flex-wrap sm:overflow-visible sm:pb-0.5',
+    'flex min-h-8 min-w-0 gap-1.5 overflow-x-auto overscroll-x-contain scroll-smooth pb-0.5 pt-0 [-webkit-overflow-scrolling:touch] scrollbar-hide snap-x snap-mandatory motion-reduce:scroll-auto motion-reduce:snap-none sm:flex-wrap sm:overflow-visible sm:pb-0.5',
   chipSnapItem: 'snap-start shrink-0',
-  chipScrollHint: 'px-1 text-[10px] font-medium leading-tight text-[#9fb0d7]/75 sm:hidden',
   /** Tab Transazioni / Ricorrenti — stessa lingua cromatica di stitchHome.sectionCard. */
-  tabsList:
-    'grid h-12 w-full grid-cols-2 place-items-center gap-1 rounded-full border border-[#3359c5]/35 bg-[#0b1f4f]/95 p-1 shadow-[0_14px_30px_rgba(0,7,30,0.3)]',
-  tabsTrigger:
-    'inline-flex h-9 w-full items-center justify-center rounded-full px-2 text-[13px] font-semibold tracking-wide text-[#9fb0d7] shadow-none transition-all duration-200 hover:text-[#e6ecff] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6b9fff]/35 data-[state=active]:bg-[#183166] data-[state=active]:text-[#e6ecff] data-[state=active]:shadow-[inset_0_0_0_1px_rgba(143,176,255,0.28)] data-[state=active]:translate-y-0 motion-reduce:transition-none',
+  tabsList: stitchPageTabs.list,
+  tabsTrigger: stitchPageTabs.trigger,
   listSkeleton: 'space-y-3',
 } as const;
 
+/** Grouped list inside dashboard section cards (home activity, recurring preview, transaction day groups). */
+export const stitchDashboardGroupedList = stitchTransactions.dayCard;
+
+/** Compact 3-up stat tiles (accounts breakdown, recurring monthly summary). */
+export const stitchStatMini = {
+  grid: 'grid grid-cols-3 gap-2 border-t border-border/25 pt-2.5',
+  item: 'flex min-w-0 flex-col gap-1 rounded-xl border px-2.5 py-2 text-left',
+  itemRow: 'flex min-w-0 items-center justify-between gap-2 rounded-xl border px-2.5 py-2',
+  itemPrimary: 'border-border/35 bg-muted/70',
+  itemSuccess: 'border-teal-accent/28 bg-teal-accent/15',
+  itemDestructive: 'border-expense/35 bg-expense/15',
+  header: 'flex min-w-0 items-center gap-1.5',
+  iconWrap:
+    'flex size-5 shrink-0 items-center justify-center rounded-full border border-border/35 bg-accent',
+  iconWrapSuccess:
+    'flex size-5 shrink-0 items-center justify-center rounded-full border border-teal-accent/35 bg-teal-accent/15',
+  iconWrapDestructive:
+    'flex size-5 shrink-0 items-center justify-center rounded-full border border-expense/35 bg-expense/15',
+  icon: 'h-2.5 w-2.5 text-primary',
+  iconSuccess: 'h-2.5 w-2.5 text-income',
+  iconDestructive: 'h-2.5 w-2.5 text-expense',
+  label:
+    'line-clamp-2 text-[10px] font-semibold uppercase leading-tight tracking-wide text-muted-foreground',
+  value: 'text-base font-semibold tabular-nums leading-tight text-foreground',
+  valuePrimary: 'text-base font-semibold tabular-nums leading-tight text-primary',
+  valueSuccess: 'text-base font-semibold tabular-nums leading-tight text-income',
+  valueDestructive: 'text-base font-semibold tabular-nums leading-tight text-expense',
+} as const;
+
 /**
- * Pagina Accounts (dark Stitch) — struttura come stitch/html/03-account-list, palette coerente con stitchHome.
+ * Tab Ricorrenti (Transazioni) — summary, gruppi, empty state, FAB wrapper.
  */
-export const stitchAccounts = {
-  /** Stack sotto header fissato; padding bottom allineato a home dashboard / bottom nav. */
-  mainStack:
-    'flex flex-col gap-7 px-4 py-4 pb-[max(7rem,calc(5.5rem+env(safe-area-inset-bottom)))]',
-  /** Contesto / selettore utente. */
-  surfaceQuiet:
-    'rounded-2xl border border-[#3359c5]/20 bg-[#0b1f4f]/60 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]',
-  /** Lista conti (enfasi). */
-  surfaceEmphasis:
-    'rounded-2xl border border-[#5c77cc]/30 bg-[#0b1f4f]/95 p-3 shadow-[0_16px_36px_rgba(0,7,30,0.32)]',
-  /** Hero “Total net worth” — liquid glass dark (come stitchBudgets.heroSection). */
-  heroNetWorthCard:
-    'relative overflow-hidden rounded-xl border border-white/[0.08] bg-[#0b1f4f]/75 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-[24px]',
-  heroNetWorthDecor:
-    'pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full bg-[#001456]/22 blur-2xl',
-  sectionEyebrow: 'text-[11px] font-semibold uppercase tracking-wider text-[#9fb0d7]',
-  sectionTitle: 'text-base font-semibold tracking-tight text-[#e6ecff]',
-  sectionSubtitle: 'text-sm text-[#8fa2dd]',
-  /** Righe skeleton lista — allineate a stitchHome.listRow. */
-  listRowSkeleton:
-    'flex items-center justify-between gap-3 rounded-xl bg-[#11295f]/90 px-3 py-3 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]',
-  listStack: 'flex flex-col gap-2',
-  /** Chip utente placeholder (scroll orizzontale). */
-  userChipRow: 'flex gap-2 overflow-hidden',
-  /** Banner vista membro (contesto). */
-  memberBanner:
-    'rounded-lg border border-[#3359c5]/30 bg-[#11295f]/60 px-3 py-2.5 text-sm leading-snug text-[#c5d4ff]',
-  /** Importo saldo totale (hero unico, senza card annidata). */
-  balanceAmount:
-    'text-[30px] font-semibold tabular-nums leading-none tracking-[-0.02em] text-[#8fb0ff]',
-  balanceAmountNegative:
-    'text-[30px] font-semibold tabular-nums leading-none tracking-[-0.02em] text-[#f0a6a6]',
-  /** Griglia statistiche sotto il saldo. */
-  statsGrid: 'mt-4 grid gap-2 border-t border-[#3359c5]/25 pt-4 grid-cols-3',
-  statItem:
-    'flex flex-col items-center justify-center gap-1 rounded-lg border px-2 py-2.5 text-center',
-  statItemPrimary: 'border-[#5c77cc]/35 bg-[#11295f]/70',
-  statItemSuccess: 'border-[#3cddc7]/28 bg-[#00211c]/45',
-  statItemDestructive: 'border-red-400/30 bg-[#5c1a1a]/35',
-  statLabel: 'text-[10px] font-semibold uppercase tracking-wide text-[#9fb0d7]',
-  statValue: 'text-sm font-bold tabular-nums text-[#e6ecff]',
-  statValueSuccess: 'text-sm font-bold tabular-nums text-[#8fe2b4]',
-  statValueDestructive: 'text-sm font-bold tabular-nums text-[#f0a6a6]',
-  accountListIconWrap: 'border border-[#3359c5]/35 bg-[#11295f]/85 !text-[#8fb0ff]',
-  accountListTitle: 'font-semibold text-[15px] leading-snug text-[#e6ecff]',
-  accountListSubtitle: 'mt-0.5 text-[11px] font-medium text-[#9fb0d7]',
-  accountListAmount: 'text-sm font-bold tabular-nums tracking-tight text-[#e6ecff]',
-  accountListAmountSuccess: 'text-sm font-bold tabular-nums tracking-tight text-[#8fe2b4]',
-  accountListAmountPrimary: 'text-sm font-bold tabular-nums tracking-tight text-[#8fb0ff]',
-  accountListAmountNegative: 'text-sm font-bold tabular-nums tracking-tight text-[#f0a6a6]',
-  accountListAmountSecondary: 'mt-0.5 text-[10px] font-semibold tabular-nums text-[#f0a6a6]',
-  /** CTA secondaria in testa lista (es. “Aggiungi conto”). */
-  outlineAction:
-    'border-[#3359c5]/40 bg-[#11295f]/50 text-[#e6ecff] hover:bg-[#17336f] hover:text-[#e6ecff]',
+export const stitchRecurring = {
+  relativeWrap: 'relative flex flex-col gap-4',
+  summaryCard: 'space-y-2 rounded-2xl border border-border/20 bg-card p-4 shadow-md',
+  summaryTopRow: 'flex flex-wrap items-start justify-between gap-x-3 gap-y-2',
+  summaryHeaderLeft: 'flex min-w-0 items-center gap-2',
+  summaryIconWrap:
+    'flex size-8 shrink-0 items-center justify-center rounded-full border border-border/35 bg-muted/85',
+  summaryIcon: 'h-3.5 w-3.5 text-primary',
+  summaryTitle: 'text-sm font-semibold tracking-tight text-foreground',
+  summarySubtitle: 'text-xs text-muted-foreground',
+  statMiniGrid: stitchStatMini.grid,
+  statMiniItem: stitchStatMini.item,
+  statMiniItemPrimary: stitchStatMini.itemPrimary,
+  statMiniItemSuccess: stitchStatMini.itemSuccess,
+  statMiniItemDestructive: stitchStatMini.itemDestructive,
+  statMiniHeader: stitchStatMini.header,
+  statMiniIconWrap: stitchStatMini.iconWrap,
+  statMiniIconWrapSuccess: stitchStatMini.iconWrapSuccess,
+  statMiniIconWrapDestructive: stitchStatMini.iconWrapDestructive,
+  statMiniIcon: stitchStatMini.icon,
+  statMiniIconSuccess: stitchStatMini.iconSuccess,
+  statMiniIconDestructive: stitchStatMini.iconDestructive,
+  statMiniLabel: stitchStatMini.label,
+  statMiniValue: stitchStatMini.value,
+  statMiniValuePrimary: stitchStatMini.valuePrimary,
+  statMiniValueSuccess: stitchStatMini.valueSuccess,
+  statMiniValueDestructive: stitchStatMini.valueDestructive,
+  groupSection: 'space-y-2',
+  groupLabel: stitchTransactions.dayHeaderTitle,
+  groupCard: stitchTransactions.dayCard,
+  listStack: stitchTransactions.dayCard,
+  emptyState: stitchTransactions.emptyState,
+  emptyTitle: stitchTransactions.emptyTitle,
+  emptyDescription: stitchTransactions.emptyDescription,
+  emptyActions: stitchTransactions.emptyActions,
+  emptyCtaPrimary: stitchTransactions.emptyCtaPrimary,
+  executeErrorBanner: stitchTransactions.pageErrorBanner,
+  footerDivider: 'mx-2 border-t border-border/25',
+  footer: 'px-4 py-1.5',
+  footerText: 'text-xs text-primary text-center',
 } as const;
 
 /**
@@ -262,56 +393,84 @@ export const stitchAccounts = {
 export const stitchReports = {
   /** No `-mx-4` bleed: negative margin can widen past the viewport, cause horizontal scroll on `body`, and break `fixed` header/bottom bar on iOS Safari. */
   stickyFilterBar:
-    'sticky z-30 w-full border-b border-[#3359c5]/25 bg-[#050818]/90 px-4 py-2 backdrop-blur-sm',
-  chipRow: 'flex gap-2 overflow-x-auto pb-1 scrollbar-hide',
-  sectionStack: 'flex flex-col gap-5 pt-1',
-  sectionTitle: 'text-lg font-semibold tracking-tight text-[#e6ecff]',
-  /** Hero bento — card principale flusso netto */
-  heroNetCard:
-    'relative col-span-1 overflow-hidden rounded-xl border border-white/[0.08] bg-[#0b1f4f]/75 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-[24px]',
-  heroNetDecor:
-    'pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-[#001456]/25 blur-2xl',
-  heroEyebrow: 'text-[11px] font-semibold uppercase tracking-wider text-[#9fb0d7]',
+    'sticky z-30 flex w-full flex-col gap-1.5 border-b border-border/25 bg-background px-4 py-1.5',
+  chipRow: 'flex gap-1 overflow-x-auto pb-0.5 scrollbar-hide',
+  sectionStack: 'flex flex-col gap-5 pt-0',
+  incompleteNotice:
+    'rounded-xl border border-warning/35 bg-warning/10 px-3 py-2 text-sm text-foreground',
+  sectionTitle: 'text-base font-semibold tracking-tight text-foreground',
+  /** Hero — same paper as home spendable. */
+  heroNetCard: stitchHome.balanceSection,
+  heroNetDecor: 'hidden',
+  heroEyebrow: 'text-xs font-medium text-muted-foreground',
   heroNetAmount:
-    'text-[30px] font-semibold tabular-nums leading-none tracking-[-0.02em] text-[#8fb0ff]',
+    'font-display text-[30px] font-semibold tabular-nums leading-none tracking-[-0.02em]',
   heroSmallCard:
-    'rounded-xl border border-white/[0.08] bg-[#0b1f4f]/78 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] backdrop-blur-[20px]',
-  heroSmallAmount: 'text-xl font-semibold tabular-nums text-[#e6ecff]',
-  trendRow: 'mt-1 flex items-center gap-1 text-[12px] font-medium',
-  trendPositive: 'text-[#62fae3]',
-  trendNegative: 'text-[#ffb4ab]',
-  /** Top expenses — contenitore lista */
-  rankingCard:
-    'rounded-xl border border-white/[0.08] bg-[#0b1f4f]/78 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] backdrop-blur-[20px]',
-  rankingRow: 'relative space-y-1.5',
+    'flex min-w-0 items-baseline justify-between gap-3 py-0.5 sm:flex-col sm:items-stretch sm:justify-start sm:py-0',
+  heroSmallAmount:
+    'shrink-0 text-right text-base font-semibold tabular-nums text-foreground sm:text-left sm:text-lg',
+  trendRow: 'mt-1 flex items-center gap-1 text-sm font-medium',
+  trendPositive: 'text-income',
+  trendNegative: 'text-expense',
+  rankingCard: `${stitchSurface.card} p-3`,
+  rankingRow: 'relative space-y-1 py-1',
+  rankingRowLink:
+    'relative block space-y-1 rounded-md px-0 py-1 text-left transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45',
   rankingRowHeader: 'flex items-end justify-between gap-2',
   rankingIconWrap:
-    'flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#11295f]/90 text-[#9fb0d7]',
-  rankingLabel: 'text-sm font-medium text-[#e6ecff]',
-  rankingAmount: 'text-sm font-semibold tabular-nums text-[#e6ecff]',
-  progressTrack: 'h-1.5 w-full overflow-hidden rounded-full bg-[#1a2b5f]',
-  progressFillPrimary: 'h-full rounded-full bg-[#001456]',
-  progressFillSecondary: 'h-full rounded-full bg-[#505f76]',
-  progressFillMuted: 'h-full rounded-full bg-[#5c77cc]/50',
+    'flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted/90 text-muted-foreground',
+  rankingChevron: 'h-4 w-4 shrink-0 text-muted-foreground',
+  rankingLabel: 'text-base font-medium text-foreground',
+  rankingAmount: 'text-base font-semibold tabular-nums text-foreground',
+  rankingMeta: 'text-sm tabular-nums text-muted-foreground',
+  savingsGrid: 'grid grid-cols-1 gap-2 sm:grid-cols-3',
+  snapshotGrid: 'grid grid-cols-2 gap-x-3 gap-y-1',
+  /** Period leftover rows — same anatomy as home list rows (title + meta, amount right). */
+  periodList: `${stitchHome.plainList} divide-y divide-border/40`,
+  periodRow: stitchHome.plainRow,
+  periodRowLink: `${stitchHome.plainRow} cursor-pointer transition-colors hover:bg-muted/40 motion-reduce:transition-none`,
+  periodStatus: 'text-sm text-muted-foreground',
+  periodCompareTable: 'mt-2 w-full border-collapse text-sm tabular-nums',
+  periodCompareHead: 'whitespace-nowrap pb-1 text-right text-xs font-medium text-muted-foreground',
+  periodCompareRowLabel: 'py-1 pr-3 text-left font-medium text-foreground',
+  periodCompareCell: 'whitespace-nowrap py-1 text-right text-muted-foreground',
+  periodCompareCellLive: 'whitespace-nowrap py-1 text-right font-semibold text-foreground',
+  periodCompareCellDrift: 'whitespace-nowrap py-1 text-right font-semibold text-warning',
+  periodActions: 'flex flex-col gap-3',
+  periodActionGroup:
+    'divide-y divide-border/40 overflow-hidden rounded-2xl bg-muted/90 ring-1 ring-inset ring-border/40',
+  periodActionRow:
+    'flex min-h-11 w-full items-center justify-between gap-3 px-3.5 py-2.5 text-left text-sm font-medium text-foreground transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/45',
+  periodActionDanger:
+    'flex min-h-11 w-full items-center justify-center rounded-2xl px-4 py-3 text-sm font-semibold',
+  periodDangerWrap: 'border-t border-border/25 pt-3',
+  periodUserGroup: 'group flex flex-col gap-1',
+  periodUserSummary:
+    'flex min-h-11 cursor-pointer list-none items-center gap-2 rounded-md text-left outline-none [&::-webkit-details-marker]:hidden focus-visible:ring-2 focus-visible:ring-ring/45',
+  periodUserChevron:
+    'ml-auto h-4 w-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180 motion-reduce:transition-none',
+  kpiPair: 'mt-2 text-sm text-muted-foreground',
+  progressTrack: 'h-1.5 w-full overflow-hidden rounded-full bg-muted',
+  progressFillPrimary: 'h-full rounded-full bg-primary',
+  progressFillSecondary: 'h-full rounded-full bg-secondary',
+  progressFillMuted: 'h-full rounded-full bg-border/50',
   /** Account breakdown */
   accountRow:
-    'flex items-center justify-between gap-3 rounded-xl border border-white/[0.08] bg-[#0b1f4f]/78 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] backdrop-blur-[20px]',
+    'flex items-center justify-between gap-3 rounded-xl border border-border/25 bg-card p-3',
+  accountCard: 'flex flex-col gap-3 rounded-xl border border-border/25 bg-card p-3',
+  accountMetricGrid: 'grid grid-cols-2 gap-x-3 gap-y-3',
+  accountMetricLabel: 'text-xs font-medium text-muted-foreground',
+  accountMetricValue: 'mt-0.5 text-base font-semibold tabular-nums leading-tight text-foreground',
   accountIconWrap:
-    'flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[#8fb0ff]/25 bg-[#8fb0ff]/12 text-[#dde1ff]',
+    'flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-primary/25 bg-primary/12 text-primary',
   accountIconWrapMuted:
-    'flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[#3359c5]/35 bg-[#11295f]/80 text-[#9fb0d7]',
-  accountMeta: 'text-[11px] text-[#9fb0d7]',
-  accountAmount: 'text-base font-semibold tabular-nums text-[#e6ecff]',
-  /** Historical budget card */
-  historyCard:
-    'flex flex-col gap-2 rounded-xl border border-white/[0.08] bg-[#0b1f4f]/78 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] backdrop-blur-[20px]',
-  historyHeaderRow: 'flex items-center justify-between gap-2 border-b border-[#3359c5]/25 pb-2',
-  historyMonthLabel: 'text-sm font-medium text-[#e6ecff]',
-  historyMetricsRow: 'flex items-start justify-between gap-3 pt-1',
-  historyMetricLabel: 'text-[11px] text-[#9fb0d7]',
-  historyMetricValue: 'text-base font-semibold tabular-nums text-[#e6ecff]',
-  emptyWell:
-    'rounded-xl bg-[#11295f]/60 px-4 py-6 text-center text-sm text-[#9fb0d7] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]',
+    'flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border/35 bg-muted/80 text-muted-foreground',
+  accountMeta: 'text-xs text-muted-foreground',
+  accountAmount: 'text-base font-semibold tabular-nums text-foreground',
+  /** Budget period card (reports) */
+  periodCard: 'flex flex-col gap-3 rounded-xl border border-border/25 bg-card p-3',
+  periodHeaderRow: 'flex items-center justify-between gap-2',
+  emptyWell: stitchHome.emptyWell,
 } as const;
 
 /**
@@ -320,12 +479,12 @@ export const stitchReports = {
 export const stitchTransactionPageSearch = {
   stack: 'min-w-0 shrink-0',
   wrap: 'relative w-full',
-  icon: 'pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9fb0d7] transition-colors',
-  iconActive: 'text-[#8fb0ff]',
+  icon: 'pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground transition-colors',
+  iconActive: 'text-primary',
   input:
-    'min-h-11 w-full rounded-2xl border border-[#3359c5]/35 bg-[#11295f]/85 py-2.5 pl-10 pr-10 text-sm font-medium text-[#e6ecff] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)] placeholder:text-[#9fb0d7]/55 transition-colors focus-visible:border-[#5c77cc]/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6b9fff]/25',
+    'min-h-11 w-full rounded-xl border border-border/35 bg-input py-2 pl-10 pr-10 text-sm font-medium text-foreground ring-1 ring-inset ring-border/40 placeholder:text-muted-foreground transition-colors outline-none focus-visible:border-border/45 focus-visible:outline-none focus-visible:ring-0',
   clear:
-    'absolute right-2.5 top-1/2 -translate-y-1/2 rounded-full p-1.5 text-[#9fb0d7] transition-colors hover:bg-white/10 hover:text-[#e6ecff] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6b9fff]/35',
+    'absolute right-2.5 top-1/2 -translate-y-1/2 rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35',
   clearIcon: 'h-4 w-4',
 } as const;
 
@@ -335,91 +494,61 @@ export const stitchTransactionPageSearch = {
 export const stitchTransactionFilterTriggers = {
   wrapper: 'relative inline-flex',
   buttonBase:
-    'inline-flex min-h-10 items-center gap-1.5 rounded-full px-3 py-2 text-[12px] font-medium tracking-wide whitespace-nowrap transition-colors active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6b9fff]/35',
-  buttonIdle: 'border border-[#3359c5]/35 bg-[#11295f]/80 text-[#9fb0d7] hover:bg-[#17336f]',
-  buttonOpen: 'bg-[#183166] text-[#e6ecff] shadow-[inset_0_0_0_1px_rgba(143,176,255,0.28)]',
+    'inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium tracking-wide whitespace-nowrap transition-colors active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35',
+  buttonIdle: 'border border-border/35 bg-muted/80 text-muted-foreground hover:bg-accent',
+  buttonOpen: 'bg-accent text-foreground ring-1 ring-inset ring-primary/35',
   buttonHasValue:
-    'inline-flex min-h-10 items-center rounded-full bg-[#183166] px-3 py-2 pr-8 text-[12px] font-medium tracking-wide text-[#e6ecff] shadow-[inset_0_0_0_1px_rgba(143,176,255,0.28)] transition-colors',
+    'inline-flex min-h-11 items-center rounded-full bg-accent px-3 py-2 pr-8 text-sm font-medium tracking-wide text-foreground ring-1 ring-inset ring-primary/35 transition-colors',
   clearButton:
-    'absolute right-1 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-[#e6ecff] transition-colors hover:bg-white/18 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6b9fff]/40',
+    'absolute right-1 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-accent/80 text-foreground transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40',
   clearIcon: 'h-3 w-3',
   chevron:
-    'h-3.5 w-3.5 shrink-0 text-[#9fb0d7] transition-transform duration-200 motion-reduce:transition-none',
-  chevronOpen: 'rotate-180 text-[#e6ecff]',
+    'h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform duration-200 motion-reduce:transition-none',
+  chevronOpen: 'rotate-180 text-foreground',
   /** Periodi rapidi nel drawer (All / Oggi / Mese / Altro) */
   quickPill:
-    'inline-flex min-h-10 shrink-0 items-center rounded-full border px-3 py-2 text-[12px] font-semibold tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6b9fff]/35',
-  quickPillIdle: 'border-[#3359c5]/35 bg-[#11295f]/80 text-[#9fb0d7] hover:bg-[#17336f]',
-  quickPillActive:
-    'border-transparent bg-[#183166] text-[#e6ecff] shadow-[inset_0_0_0_1px_rgba(143,176,255,0.28)]',
+    'inline-flex min-h-11 shrink-0 items-center rounded-full border px-3 py-2 text-sm font-semibold tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35',
+  quickPillIdle: 'border-border/35 bg-muted/80 text-muted-foreground hover:bg-accent',
+  quickPillActive: 'border-transparent bg-accent text-foreground ring-1 ring-inset ring-primary/35',
   filterDrawerClearAll:
-    'inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium whitespace-nowrap bg-red-500/15 text-red-200 transition-all duration-200 hover:bg-red-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/35 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100',
+    'self-start inline-flex min-h-11 items-center gap-1 rounded-full px-2 text-sm font-medium text-expense transition-colors hover:bg-expense/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-expense/35',
 } as const;
 
-import { stitchTransactionFormModal } from '@/components/form/form-modal-styles';
-
-export { stitchTransactionFormModal };
-
 /**
- * Modale creazione/modifica budget — stesso shell/footer/CTA di {@link stitchTransactionFormModal};
- * pannello categorie allineato a stitchBudgets (liquid glass, bordi #3359c5).
+ * Settings page — dark Stitch (aligned with stitchHome / stitchDashboardShell).
  */
-export const stitchBudgetFormModal = {
-  drawerSurface: stitchTransactionFormModal.drawerSurface,
-  handle: stitchTransactionFormModal.handle,
-  drawerHeaderShell: stitchTransactionFormModal.drawerHeaderShell,
-  headerTitle: stitchTransactionFormModal.headerTitle,
-  headerClose: stitchTransactionFormModal.headerClose,
-  formColumn: stitchTransactionFormModal.formColumn,
-  scrollBody: stitchTransactionFormModal.scrollBody,
-  fieldStack: stitchTransactionFormModal.fieldStack,
-  errorBanner: stitchTransactionFormModal.errorBanner,
-  fieldError: stitchTransactionFormModal.fieldError,
-  stickyFooter: stitchTransactionFormModal.stickyFooter,
-  footerActionsStack: stitchTransactionFormModal.footerActionsStack,
-  primaryCta: stitchTransactionFormModal.primaryCta,
-  deleteButton: stitchTransactionFormModal.deleteButton,
-  noteShell: stitchTransactionFormModal.noteShell,
-  noteLabel: stitchTransactionFormModal.noteLabel,
-  noteInput: stitchTransactionFormModal.noteInput,
-  amountSection: stitchTransactionFormModal.amountSection,
-  amountEyebrow: stitchTransactionFormModal.amountEyebrow,
-  amountRow: stitchTransactionFormModal.amountRow,
-  amountCurrency: stitchTransactionFormModal.amountCurrency,
-  amountInput: stitchTransactionFormModal.amountInput,
-  amountTrack: stitchTransactionFormModal.amountTrack,
-  amountTrackFill: stitchTransactionFormModal.amountTrackFill,
-  gridTwoCol: 'grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-3',
-  /** Pannello categorie: stesso “glass card” della nota / campi Stitch. */
-  categoryShell: stitchTransactionFormModal.noteShell,
-  categoryToolbar: 'flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4',
-  categorySearchWrap: 'relative min-w-0 flex-1',
-  categorySearchIcon:
-    'pointer-events-none absolute left-3 top-1/2 z-[1] h-4 w-4 -translate-y-1/2 text-[#9fb0d7]/65',
-  categorySearchInput:
-    'h-11 w-full rounded-xl border border-[#3359c5]/35 bg-[#0b1f4f]/90 pl-10 pr-3 text-sm text-[#e6ecff] placeholder:text-[#9fb0d7]/45 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)] transition-colors focus-visible:border-[#5c77cc]/55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5c77cc]/25',
-  categoryQuickActions: 'flex shrink-0 items-center gap-2 sm:pt-0',
-  categoryQuickBtn:
-    'rounded-lg border border-[#3359c5]/30 bg-[#0b1f4f]/50 px-3 py-2 text-[12px] font-semibold text-[#c5cfe8] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)] transition-colors hover:border-[#5c77cc]/45 hover:bg-[#11295f]/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5c77cc]/35 disabled:pointer-events-none disabled:opacity-35',
-  /** Sezione categorie incluse: chip “pill” come la griglia (coerenza visiva), wrap senza scroll orizzontale. */
-  selectedSection:
-    'rounded-xl border border-[#6b9fff]/20 bg-[linear-gradient(180deg,rgba(26,52,120,0.35)_0%,rgba(7,21,54,0.65)_100%)] p-3 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]',
-  selectedSectionTitle:
-    'mb-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#b8c5ff]',
-  selectedPillList: 'list-none flex flex-wrap gap-2 p-0 m-0',
-  /** Allineata a `categoryChip` in stato selezionato; chiusura con X. */
-  selectedPill:
-    'inline-flex max-w-full min-h-[40px] min-w-0 items-center gap-2 rounded-xl border border-[#6b9fff]/50 bg-[#1a3478]/90 py-1.5 pl-3 pr-1 text-sm font-medium text-[#e6ecff] shadow-[0_0_0_1px_rgba(107,159,255,0.18)] ring-1 ring-[#6b9fff]/22',
-  selectedPillLabel: 'min-w-0 flex-1 truncate text-left leading-snug',
-  selectedPillRemove:
-    'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[#c5d8ff]/90 transition-colors hover:bg-white/[0.12] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8fb0ff]/45 disabled:pointer-events-none disabled:opacity-35',
-  categoryChipGrid: 'flex flex-wrap gap-2',
-  categoryChip:
-    'inline-flex min-h-[44px] max-w-full items-center gap-2 rounded-xl border border-white/[0.08] bg-[#0b1f4f]/50 px-3 py-2 text-left text-sm font-medium text-[#e6ecff] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)] transition-all hover:border-[#3359c5]/40 hover:bg-[#11295f]/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5c77cc]/35 disabled:pointer-events-none disabled:opacity-45 active:scale-[0.98] motion-reduce:active:scale-100',
-  categoryChipSelected:
-    'border-[#6b9fff]/50 bg-[#1a3478]/85 shadow-[0_0_0_1px_rgba(107,159,255,0.2)] ring-1 ring-[#6b9fff]/25',
-  categoryChipLabel: 'min-w-0 flex-1 truncate',
-  categoryChipCheck: 'h-4 w-4 shrink-0 text-[#9ec0ff]',
-  categoryColorDot: 'h-2.5 w-2.5 shrink-0 rounded-full',
-  categoryEmpty: 'w-full py-8 text-center text-sm text-[#9fb0d7]',
+export const stitchSettings = {
+  pageMain: 'flex flex-col gap-5',
+  sectionEyebrow: 'px-0.5 text-xs font-medium text-muted-foreground',
+  sectionCard: `${stitchSurface.card} overflow-hidden`,
+  formCard: `${stitchSurface.card} overflow-hidden divide-y divide-border/25`,
+  modalFormBody: '[-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
+  row: 'flex min-h-12 w-full items-center justify-between gap-3 px-3 py-2.5 text-left transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45',
+  rowDivider: 'border-b border-border/25',
+  rowLeft: 'flex min-w-0 flex-1 items-center gap-2.5',
+  rowIconWrap:
+    'flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/12 text-primary',
+  rowIcon: 'size-4 shrink-0 text-primary',
+  rowLabel: 'truncate text-base font-medium text-foreground',
+  rowValue: 'shrink-0 text-sm text-muted-foreground',
+  rowChevron: 'size-4 shrink-0 text-muted-foreground',
+  profileCard: 'flex flex-row items-center gap-3 rounded-xl border border-border/25 bg-card p-3',
+  profileAvatar:
+    'flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted text-sm font-bold text-primary',
+  profileInfo: 'min-w-0 flex-1',
+  profileName: 'truncate text-base font-semibold tracking-tight text-foreground',
+  profileEmail: 'mt-0.5 truncate text-sm text-muted-foreground',
+  editButton: stitchHome.viewAllLink,
+  darkModeTrack:
+    'flex h-6 w-11 shrink-0 items-center rounded-full bg-muted p-0.5 transition-colors',
+  darkModeTrackOn: 'bg-accent',
+  darkModeKnob: 'size-4 rounded-full bg-background shadow-sm transition-transform duration-200',
+  darkModeKnobOn: 'translate-x-5',
+  logoutButton: `mt-1 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold ${stitchSurface.dangerButton} disabled:pointer-events-none disabled:opacity-50`,
+  emptyHint: 'px-3 py-2.5 text-sm text-muted-foreground',
+  memberRow: 'flex min-h-12 items-center justify-between gap-3 px-3 py-2.5',
+  memberAvatar:
+    'flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-[10px] font-bold tabular-nums text-primary',
+  memberName: 'truncate text-base font-medium text-foreground',
+  memberRole: 'shrink-0 text-base text-muted-foreground',
 } as const;

@@ -1,22 +1,21 @@
-'use client';
-
 import React from 'react';
 import { SignIn } from '@clerk/nextjs';
-import { useLocale } from 'next-intl';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { clerkAppearance } from '@/features/auth/theme/clerk-appearance';
 import { AuthPageWrapper } from '@/features/auth';
-import { authSsoCallbackPath } from '@/lib/auth/post-auth-paths';
+import { CLERK_SIGN_UP_URL } from '@/lib/auth/clerk-config';
 import type { AppLocale } from '@/i18n/routing';
 
-export default function SignInPage(): React.JSX.Element {
-  const locale = useLocale() as AppLocale;
+export default async function SignInPage(): Promise<React.JSX.Element> {
+  const locale = (await getLocale()) as AppLocale;
+  const t = await getTranslations('Auth.productIntro');
 
   return (
-    <AuthPageWrapper>
+    <AuthPageWrapper title={t('title')} subtitle={t('subtitle')} trustNote={t('trustNote')}>
       <SignIn
         appearance={clerkAppearance}
-        signUpUrl="/sign-up"
-        forceRedirectUrl={authSsoCallbackPath(locale)}
+        signUpUrl={CLERK_SIGN_UP_URL}
+        forceRedirectUrl={`/${locale}/home`}
       />
     </AuthPageWrapper>
   );

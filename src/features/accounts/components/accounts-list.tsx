@@ -1,34 +1,29 @@
 /**
- * AccountsList — lista conti (UI Stitch: righe flush dentro la card padre).
+ * AccountsList — Home-density rows grouped by account type.
  */
 
 'use client';
 
-import { CreditCard } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import type { Account } from '@/lib';
 import { AccountCard } from './account-card';
-import { EmptyState } from '@/components/shared';
-import { cn } from '@/lib/utils';
-import { SkeletonBox } from '@/components/ui/primitives/skeleton-box';
-import { stitchAccounts, stitchHome } from '@/styles/home-design-foundation';
+import { Skeleton } from '@/components/ui/skeleton';
+import {
+  stitchHome,
+  stitchRecurring,
+  stitchSurface,
+  stitchTransactions,
+} from '@/styles/home-design-foundation';
+import { groupAccountsByType } from '../utils/group-accounts-by-type';
 
 function AccountCardSkeletonRow() {
   return (
-    <div
-      className={cn(
-        stitchHome.listRowInteractive,
-        'flex w-full items-center justify-between gap-3'
-      )}
-    >
-      <div className="flex min-w-0 flex-1 items-center gap-3">
-        <SkeletonBox height="h-9" width="w-9" variant="light" className="shrink-0 rounded-xl" />
-        <div className="min-w-0 flex-1 space-y-1.5">
-          <SkeletonBox height="h-4" width="w-[55%]" variant="light" />
-          <SkeletonBox height="h-3" width="w-20" variant="light" />
-        </div>
+    <div className={stitchHome.plainRow}>
+      <div className="min-w-0 flex-1 flex flex-col gap-1.5">
+        <Skeleton className="h-4 w-[55%]" />
+        <Skeleton className="h-3 w-20" />
       </div>
-      <SkeletonBox height="h-4" width="w-16" variant="medium" className="shrink-0" />
+      <Skeleton className="h-4 w-16 shrink-0" />
     </div>
   );
 }
@@ -37,59 +32,77 @@ interface AccountsListProps {
   accounts: Account[];
   accountBalances: Record<string, number>;
   onAccountClick?: (account: Account) => void;
+  onAddAccount?: () => void;
   isLoading?: boolean;
-  hideListHeading?: boolean;
 }
 
 export const AccountsList = ({
   accounts,
   accountBalances,
   onAccountClick,
+  onAddAccount,
   isLoading = false,
-  hideListHeading = false,
 }: Readonly<AccountsListProps>) => {
   const t = useTranslations('Accounts.List');
+  const tContent = useTranslations('Accounts.Content');
+  const tCard = useTranslations('Accounts.Card');
   const isInitialLoading = isLoading && (!accounts || accounts.length === 0);
 
   if (isInitialLoading) {
     return (
-      <div className="divide-y divide-[#3359c5]/25">
-        {!hideListHeading ? (
-          <h2 className={cn(stitchAccounts.sectionTitle, 'pb-3')}>{t('header')}</h2>
-        ) : null}
+      <ul className={stitchHome.plainList}>
         {['skeleton-1', 'skeleton-2', 'skeleton-3'].map((id) => (
-          <AccountCardSkeletonRow key={id} />
+          <li key={id}>
+            <AccountCardSkeletonRow />
+          </li>
         ))}
-      </div>
+      </ul>
     );
   }
 
   if (accounts.length === 0) {
     return (
-      <div className={stitchHome.emptyWell}>
-        <EmptyState
-          icon={CreditCard}
-          title={t('empty.title')}
-          description={t('empty.description')}
-        />
+      <div className={stitchRecurring.emptyState} role="status" aria-live="polite">
+        <p className={stitchRecurring.emptyTitle}>{t('empty.title')}</p>
+        <p className={stitchRecurring.emptyDescription}>{t('empty.description')}</p>
+        {onAddAccount ? (
+          <div className={stitchRecurring.emptyActions}>
+            <button type="button" onClick={onAddAccount} className={stitchSurface.primaryCta}>
+              {tContent('addAccountCta')}
+            </button>
+          </div>
+        ) : null}
       </div>
     );
   }
 
+  const groups = groupAccountsByType(accounts);
+
   return (
-    <div className="divide-y divide-[#3359c5]/25">
-      {!hideListHeading ? (
-        <h2 className={cn(stitchAccounts.sectionTitle, 'pb-3')}>{t('header')}</h2>
-      ) : null}
-      {accounts.map((account) => {
-        const accountBalance = accountBalances[account.id] || 0;
+    <div className="flex flex-col gap-4">
+      {groups.map((group) => {
+        const headingId = `accounts-type-${group.type}`;
         return (
-          <AccountCard
-            key={account.id}
-            account={account}
-            accountBalance={accountBalance}
-            onClick={onAccountClick ? () => onAccountClick(account) : undefined}
-          />
+          <section key={group.type} className="flex flex-col gap-1.5" aria-labelledby={headingId}>
+            <h2 id={headingId} className={stitchTransactions.dayHeaderTitle}>
+              {tCard(`accountTypes.${group.type}`)}
+            </h2>
+            <ul className={stitchHome.plainList}>
+              {group.accounts.map((account) => {
+                const accountBalance = accountBalances[account.id] ?? 0;
+
+                return (
+                  <li key={account.id}>
+                    <AccountCard
+                      account={account}
+                      accountBalance={accountBalance}
+                      onClick={onAccountClick ? () => onAccountClick(account) : undefined}
+                    />
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
         );
       })}
     </div>

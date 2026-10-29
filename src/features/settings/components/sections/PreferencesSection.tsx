@@ -1,16 +1,30 @@
-import { SectionHeader } from '@/components/layout';
-import { ListContainer, PageSection, SettingsItem } from '@/components/ui/layout';
-import { usePreferenceOptions } from '../preference-select-modal';
-import { CreditCard, Globe, Settings } from 'lucide-react';
+'use client';
+
+import { CreditCard, Globe, Moon, Languages } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
-import { UserPreferences } from '@/lib/types';
+import { useTheme } from 'next-themes';
+import { stitchHome, stitchSettings as s } from '@/styles/home-design-foundation';
+import { useMounted } from '@/hooks';
+import { usePreferenceOptions } from '@/features/settings/utils/preference-options';
 import { getLanguagePreferenceForLocale } from '@/features/settings/utils/language-preference';
+import type { UserPreferences } from '@/lib/types';
+import { cn } from '@/lib/utils';
+import { SettingsRow } from './settings-row';
 
 interface PreferencesSectionProps {
   preferences: UserPreferences | null;
   onOpenCurrency: () => void;
   onOpenLanguage: () => void;
   onOpenTimezone: () => void;
+}
+
+function resolveOptionLabel(
+  value: string | undefined,
+  options: { value: string; label: string }[],
+  fallback: string
+): string {
+  if (!value) return fallback;
+  return options.find((opt) => opt.value === value)?.label ?? value;
 }
 
 export function PreferencesSection({
@@ -21,68 +35,63 @@ export function PreferencesSection({
 }: Readonly<PreferencesSectionProps>) {
   const t = useTranslations('SettingsSections.Preferences');
   const locale = useLocale();
+  const { theme, setTheme, resolvedTheme } = useTheme();
+  const mounted = useMounted();
   const { currencyOptions, languageOptions, timezoneOptions } = usePreferenceOptions();
   const currentLanguage = getLanguagePreferenceForLocale(locale, preferences?.language);
 
+  const isDark = mounted && (resolvedTheme ?? theme) === 'dark';
+
+  const currencyLabel = resolveOptionLabel(
+    preferences?.currency,
+    currencyOptions,
+    preferences?.currency ?? t('currencyFallback')
+  );
+
+  const languageLabel = resolveOptionLabel(currentLanguage, languageOptions, t('languageFallback'));
+
+  const timezoneLabel = resolveOptionLabel(
+    preferences?.timezone,
+    timezoneOptions,
+    preferences?.timezone ?? t('timezoneFallback')
+  );
+
   return (
-    <PageSection>
-      <SectionHeader title={t('title')} icon={Settings} iconClassName="text-primary" />
-      <PageSection variant="card" padding="sm">
-        <ListContainer divided className="divide-primary/20 space-y-0">
-          <SettingsItem
-            icon={<CreditCard className="h-4 w-4 text-primary" />}
-            label={t('currencyLabel')}
-            value={
-              preferences?.currency
-                ? currencyOptions.find((opt) => opt.value === preferences.currency)?.label ||
-                  preferences.currency
-                : t('currencyFallback')
-            }
-            actionType="button"
-            buttonLabel={t('changeButton')}
-            onPress={onOpenCurrency}
-          />
-
-          <SettingsItem
-            icon={<Globe className="h-4 w-4 text-primary" />}
-            label={t('languageLabel')}
-            value={(() => {
-              if (!currentLanguage) return t('languageFallback');
-
-              const option = languageOptions.find((opt) => opt.value === currentLanguage);
-              if (!option) return currentLanguage;
-
-              return (
-                <div className="flex items-center gap-2">
-                  {option.icon && (
-                    <div className="w-5 h-5 rounded-full overflow-hidden border border-border">
-                      {option.icon}
-                    </div>
-                  )}
-                  <span>{option.label}</span>
-                </div>
-              );
-            })()}
-            actionType="button"
-            buttonLabel={t('changeButton')}
-            onPress={onOpenLanguage}
-          />
-
-          <SettingsItem
-            icon={<Globe className="h-4 w-4 text-primary" />}
-            label={t('timezoneLabel')}
-            value={
-              preferences?.timezone
-                ? timezoneOptions.find((opt) => opt.value === preferences.timezone)?.label ||
-                  preferences.timezone
-                : t('timezoneFallback')
-            }
-            actionType="button"
-            buttonLabel={t('changeButton')}
-            onPress={onOpenTimezone}
-          />
-        </ListContainer>
-      </PageSection>
-    </PageSection>
+    <section className={stitchHome.scanSection}>
+      <h3 className={s.sectionEyebrow}>{t('title')}</h3>
+      <div className={s.sectionCard}>
+        <SettingsRow
+          icon={<CreditCard className={s.rowIcon} aria-hidden />}
+          label={t('currencyLabel')}
+          value={currencyLabel}
+          onClick={onOpenCurrency}
+        />
+        <SettingsRow
+          icon={<Languages className={s.rowIcon} aria-hidden />}
+          label={t('languageLabel')}
+          value={languageLabel}
+          onClick={onOpenLanguage}
+        />
+        <SettingsRow
+          icon={<Globe className={s.rowIcon} aria-hidden />}
+          label={t('timezoneLabel')}
+          value={timezoneLabel}
+          onClick={onOpenTimezone}
+        />
+        <SettingsRow
+          icon={<Moon className={s.rowIcon} aria-hidden />}
+          label={t('darkModeLabel')}
+          onClick={() => setTheme(isDark ? 'light' : 'dark')}
+          showChevron={false}
+          divider={false}
+          pressed={isDark}
+          trailing={
+            <div className={cn(s.darkModeTrack, isDark && s.darkModeTrackOn)} aria-hidden>
+              <div className={cn(s.darkModeKnob, isDark && s.darkModeKnobOn)} />
+            </div>
+          }
+        />
+      </div>
+    </section>
   );
 }

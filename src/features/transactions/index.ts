@@ -16,13 +16,12 @@ export {
   type TransactionDayListProps,
 } from './components/transaction-day-list';
 
-export { TransactionPagination } from './components/transaction-pagination';
-
 // Filter Components
 export { TransactionFilters } from './components/transaction-filters';
 export { defaultFiltersState, hasActiveFilters } from './components/transaction-filters';
 export { TransactionFilterChips } from './components/transaction-filter-chips';
 export { TransactionsScreenList } from './components/transactions-screen-list';
+export { RecurrentTabPanel } from './components/recurrent-tab-panel';
 
 // Filter Logic & Types
 export {
@@ -56,15 +55,10 @@ export {
 // ====================================
 // Theme
 // ====================================
-export {
-  getAmountStyles,
-  getDayTotalStyles,
-  getIconStyles,
-  getTransactionTypeStyles,
-  transactionStyles,
-} from '@/styles/system';
+export { transactionStyles } from './theme/transaction-styles';
 export {
   createTransactionAction,
   updateTransactionAction,
   deleteTransactionAction,
+  loadMoreTransactionsAction,
 } from './actions/transaction-actions';

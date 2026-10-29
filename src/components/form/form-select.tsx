@@ -3,11 +3,11 @@
 import * as React from 'react';
 import * as SelectPrimitive from '@radix-ui/react-select';
 import { cn } from '@/lib';
-import { Layers, Search, ChevronRight } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { Select, SelectContent, SelectItem, SelectValue } from '../ui';
-import { formStyles } from './theme/form-styles';
-import { stitchTransactionFormModal } from '@/styles/home-design-foundation';
+import { Select, SelectContent, SelectItem, SelectValue } from '../ui/select';
+import { formModalStyles as s } from './form-modal-styles';
+import { ModalSearchInput } from './modal-fields/modal-search-input';
 
 export interface SelectOption {
   value: string;
@@ -24,10 +24,14 @@ export interface FormSelectProps {
   disabled?: boolean;
   className?: string;
   renderIcon?: (option: SelectOption) => React.ReactNode;
-  /** Small uppercase caption above the selected value */
+  /** Label on the left of the grouped row */
   captionLabel?: string;
-  /** Leading icon inside the circular slot (defaults to a neutral glyph) */
-  leadingIcon?: React.ReactNode;
+  /** Search UI. Defaults to on when there are 6+ options. */
+  searchable?: boolean | undefined;
+}
+
+export function isSelectSearchable(optionCount: number, searchable?: boolean | undefined): boolean {
+  return searchable ?? optionCount >= 6;
 }
 
 export function FormSelect({
@@ -39,12 +43,13 @@ export function FormSelect({
   className,
   renderIcon,
   captionLabel,
-  leadingIcon,
+  searchable,
 }: Readonly<FormSelectProps>) {
   const t = useTranslations('Forms.Select');
   const [searchValue, setSearchValue] = React.useState('');
   const resolvedPlaceholder = placeholder ?? t('placeholder');
   const selectedOption = options.find((o) => o.value === value);
+  const showSearch = isSelectSearchable(options.length, searchable);
 
   const filteredOptions = React.useMemo(() => {
     if (!searchValue) return options;
@@ -65,71 +70,61 @@ export function FormSelect({
 
   return (
     <Select
-      value={value}
-      onValueChange={onValueChange}
+      {...(value ? { value } : {})}
+      onValueChange={(next) => {
+        if (!next) return;
+        onValueChange(next);
+      }}
       disabled={disabled}
       onOpenChange={handleOpenChange}
     >
       <SelectPrimitive.Trigger
         type="button"
         disabled={disabled}
-        className={cn(stitchTransactionFormModal.selectorTrigger, className)}
+        className={cn(s.selectorTrigger, className)}
       >
-        <div className="flex min-w-0 flex-1 items-center gap-3">
-          <div className={stitchTransactionFormModal.selectorIconWrap}>
-            {leadingIcon ?? <Layers className="h-5 w-5 text-[#b8c5ff]/80" aria-hidden />}
-          </div>
-          <div className="min-w-0 flex-1 text-left">
-            {captionLabel ? (
-              <p className={stitchTransactionFormModal.selectorLabel}>{captionLabel}</p>
-            ) : null}
-            <span
-              aria-hidden
-              className={
-                selectedOption
-                  ? stitchTransactionFormModal.selectorValue
-                  : stitchTransactionFormModal.selectorValueMuted
-              }
-            >
-              {selectedOption?.label ?? resolvedPlaceholder}
-            </span>
-            <span className="sr-only">
-              <SelectValue placeholder={resolvedPlaceholder} />
-            </span>
-          </div>
+        <div className="flex min-w-0 flex-1 items-center justify-between gap-4">
+          {captionLabel ? <p className={s.selectorLabel}>{captionLabel}</p> : null}
+          <span aria-hidden className={selectedOption ? s.selectorValue : s.selectorValueMuted}>
+            {selectedOption?.label ?? resolvedPlaceholder}
+          </span>
+          <span className="sr-only">
+            <SelectValue placeholder={resolvedPlaceholder} />
+          </span>
         </div>
-        <ChevronRight className={stitchTransactionFormModal.selectorChevron} aria-hidden />
+        <ChevronRight className={s.selectorChevron} aria-hidden />
       </SelectPrimitive.Trigger>
-      <SelectContent className={formStyles.select.content}>
-        <div className={formStyles.select.searchWrap}>
-          <div className={formStyles.select.searchFieldWrap}>
-            <Search className={formStyles.select.searchIcon} />
-            <input
-              type="text"
-              placeholder={t('searchPlaceholder')}
+      <SelectContent className={cn('bg-popover text-popover-foreground', s.select.content)}>
+        {showSearch ? (
+          <div
+            className={s.select.searchWrap}
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <ModalSearchInput
               value={searchValue}
-              onChange={(e) => setSearchValue(e.target.value)}
+              onChange={setSearchValue}
+              placeholder={t('searchPlaceholder')}
+              aria-label={t('searchPlaceholder')}
               onKeyDown={(e) => {
                 e.stopPropagation();
               }}
-              onClick={(e) => e.stopPropagation()}
-              onMouseDown={(e) => e.stopPropagation()}
-              className={formStyles.select.searchInput}
             />
           </div>
-        </div>
+        ) : null}
 
-        <div className={formStyles.select.optionsWrap}>
+        <div className={s.select.optionsWrap}>
           {filteredOptions.length === 0 ? (
-            <div className={formStyles.select.empty}>{t('empty')}</div>
+            <div className={s.select.empty}>{t('empty')}</div>
           ) : (
             filteredOptions.map((option) => (
               <SelectItem
                 key={option.value}
                 value={option.value}
                 disabled={option.disabled ?? false}
+                className={s.select.item}
               >
-                <div className={formStyles.select.optionRow}>
+                <div className={s.select.optionRow}>
                   {renderIcon?.(option)}
                   {option.icon && <span>{option.icon}</span>}
                   <span>{option.label}</span>

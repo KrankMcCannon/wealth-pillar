@@ -5,6 +5,7 @@ import { userCacheKeys } from '@/lib/cache/keys';
 import { revalidateTag } from 'next/cache';
 import { serialize } from '@/lib/utils/serializer';
 import { isValidEmail } from '@/lib/utils/validation-utils';
+import { initialsFromName } from '@/lib/utils/string-formatter';
 import type { Database } from '@/lib/types/database.types';
 
 type User = Database['public']['Tables']['users']['Row'];
@@ -28,6 +29,57 @@ export async function getUserByClerkIdUseCase(clerkId: string): Promise<User | n
   );
   const user = await getCachedUser();
   return user ? (serialize(user) as unknown as User) : null;
+}
+
+/**
+ * Idempotent identity stub for Clerk user.created webhook (group_id remains null until onboarding).
+ */
+export async function ensureClerkIdentityStubUseCase(params: {
+  clerkId: string;
+  email: string;
+  name: string;
+}): Promise<User | null> {
+  const clerkId = params.clerkId.trim();
+  const email = params.email.trim().toLowerCase();
+  const name = params.name.trim() || email;
+
+  if (!clerkId || !email) {
+    return null;
+  }
+
+  const existing = await UsersRepository.findByClerkId(clerkId);
+  if (existing) {
+    return serialize(existing) as unknown as User;
+  }
+
+  const emailOwner = await UsersRepository.findByEmail(email);
+  if (emailOwner) {
+    console.warn('[ensureClerkIdentityStub] Email already registered for another user', {
+      clerkId,
+      email,
+    });
+    return null;
+  }
+
+  const user = await UsersRepository.create({
+    id: crypto.randomUUID(),
+    clerk_id: clerkId,
+    email,
+    name,
+    avatar: initialsFromName(name),
+    theme_color: '#6366F1',
+    role: 'member',
+  });
+
+  if (!user) {
+    return null;
+  }
+
+  revalidateTag(CACHE_TAGS.USERS, 'max');
+  revalidateTag(CACHE_TAGS.USER(user.id), 'max');
+  revalidateTag(CACHE_TAGS.USER_BY_CLERK(clerkId), 'max');
+
+  return serialize(user) as unknown as User;
 }
 
 export async function createUserUseCase(data: UserInsert): Promise<User> {

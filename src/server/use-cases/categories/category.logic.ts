@@ -1,5 +1,8 @@
 import type { Category } from '@/lib/types';
 import { CATEGORY_COLOR_PALETTE, DEFAULT_CATEGORY_COLOR } from '@/features/categories/constants';
+import { isSystemCategory } from '@/features/categories/utils/category-helpers';
+
+export { isSystemCategory };
 
 /**
  * Finds a category by ID, key, or label

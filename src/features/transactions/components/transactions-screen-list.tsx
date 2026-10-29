@@ -1,28 +1,23 @@
 'use client';
 
-import { memo, useMemo, useEffect, useRef } from 'react';
-import { Plus } from 'lucide-react';
+import { memo, useMemo, useRef } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { cn } from '@/lib/utils';
 import type { Transaction, Category } from '@/lib/types';
 import { stitchTransactions } from '@/styles/home-design-foundation';
-import { transactionStyles } from '@/styles/system';
+import { TransactionDayGroupSkeleton } from '@/components/ui/primitives/skeletons';
+import { useInfiniteScrollSentinel } from '@/hooks/use-infinite-scroll-sentinel';
 import { groupByDay } from '../utils/group-by-day';
-import { TransactionPagination } from './transaction-pagination';
 import { TransactionDayList } from './transaction-day-list';
-import type { PageSizeOption } from '../hooks/use-paginated-transactions';
+import { Button, Spinner } from '@/components/ui';
 
 export interface TransactionsScreenListProps {
   transactions: Transaction[];
-  totalFilteredCount: number;
-  accountNames: Record<string, string>;
   categories: Category[];
-  currentPage: number;
-  totalPages: number;
-  pageSize: number;
-  isChangingPage: boolean;
-  onPageChange: (page: number) => void;
-  onPageSizeChange?: (size: PageSizeOption) => void;
+  hasMore: boolean;
+  isLoadingMore: boolean;
+  isNavigatingFilters?: boolean;
+  onLoadMore: () => void;
   onEditTransaction: (transaction: Transaction) => void;
   onAddTransaction?: () => void;
   onClearFilters?: () => void;
@@ -32,41 +27,21 @@ export interface TransactionsScreenListProps {
 }
 
 function ListSkeleton() {
-  const s = transactionStyles.skeletons;
   return (
     <div className={stitchTransactions.listSkeleton} aria-busy="true">
-      {[1, 2].map((i) => (
-        <div key={i} className={stitchTransactions.daySectionOuter}>
-          <div className={s.dayGroupTitle} />
-          <div className={cn(stitchTransactions.dayCard, 'space-y-2 p-2')}>
-            {[1, 2].map((j) => (
-              <div key={j} className={cn(s.cardRow, 'p-2 animate-pulse')}>
-                <div className={s.cardIcon} />
-                <div className="flex-1 space-y-2 pt-1">
-                  <div className={s.cardLinePrimary} />
-                  <div className={s.cardLineSecondary} />
-                </div>
-                <div className={s.cardAmountLine} />
-              </div>
-            ))}
-          </div>
-        </div>
-      ))}
+      <TransactionDayGroupSkeleton />
+      <TransactionDayGroupSkeleton />
     </div>
   );
 }
 
 function TransactionsScreenListInner({
   transactions,
-  totalFilteredCount,
-  accountNames: _accountNames,
   categories,
-  currentPage,
-  totalPages,
-  pageSize,
-  isChangingPage,
-  onPageChange,
-  onPageSizeChange,
+  hasMore,
+  isLoadingMore,
+  isNavigatingFilters = false,
+  onLoadMore,
   onEditTransaction,
   onAddTransaction,
   onClearFilters,
@@ -75,40 +50,45 @@ function TransactionsScreenListInner({
   className,
 }: TransactionsScreenListProps) {
   const t = useTranslations('Transactions.Table');
+  const tLoadMore = useTranslations('Transactions.LoadMore');
   const locale = useLocale();
 
   const dayGroups = useMemo(() => groupByDay(transactions, locale), [transactions, locale]);
-  const isEmpty = transactions.length === 0 && !isChangingPage;
-  const showPagination = totalPages > 1 || totalFilteredCount > 0;
 
-  const sectionRef = useRef<HTMLDivElement>(null);
-  const prevIsChangingPage = useRef(false);
-  useEffect(() => {
-    if (prevIsChangingPage.current && !isChangingPage) {
-      sectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-    prevIsChangingPage.current = isChangingPage;
-  }, [isChangingPage]);
+  const isEmpty = transactions.length === 0 && !isNavigatingFilters;
+  const showLoadMore = hasMore && transactions.length > 0;
+
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  useInfiniteScrollSentinel(sentinelRef, {
+    enabled: showLoadMore,
+    hasMore,
+    isLoading: isLoadingMore,
+    onLoadMore,
+  });
 
   return (
-    <div ref={sectionRef} className={cn('relative', className)}>
-      <div className={cn('transition-opacity duration-200', isChangingPage && 'opacity-50')}>
-        {isChangingPage ? (
+    <div className={cn('relative', className)}>
+      <div
+        className={cn(
+          'flex flex-col gap-4 transition-opacity duration-200',
+          isNavigatingFilters && 'opacity-50'
+        )}
+      >
+        {isNavigatingFilters ? (
           <ListSkeleton />
         ) : isEmpty ? (
-          <div className={cn(stitchTransactions.dayCard, 'p-6')} role="status" aria-live="polite">
-            <p className="text-center text-base font-medium text-[#e6ecff]">
-              {emptyTitle ?? t('empty.title')}
-            </p>
-            <p className="mt-2 text-center text-sm text-[#9fb0d7]">
+          <div className={stitchTransactions.emptyState} role="status" aria-live="polite">
+            <p className={stitchTransactions.emptyTitle}>{emptyTitle ?? t('empty.title')}</p>
+            <p className={stitchTransactions.emptyDescription}>
               {emptyDescription ?? t('empty.description')}
             </p>
-            <div className="mt-6 flex flex-col gap-2">
+            <div className={stitchTransactions.emptyActions}>
               {onClearFilters && (
                 <button
                   type="button"
                   onClick={onClearFilters}
-                  className="rounded-xl border border-[#3359c5]/40 bg-[#11295f]/80 px-4 py-3 text-sm font-medium text-[#e6ecff]"
+                  className={stitchTransactions.emptyCtaSecondary}
                 >
                   {t('empty.clearFilters')}
                 </button>
@@ -117,7 +97,7 @@ function TransactionsScreenListInner({
                 <button
                   type="button"
                   onClick={onAddTransaction}
-                  className="rounded-xl bg-[#183166] px-4 py-3 text-sm font-semibold text-white"
+                  className={stitchTransactions.emptyCtaPrimary}
                 >
                   {t('empty.addCta')}
                 </button>
@@ -133,38 +113,40 @@ function TransactionsScreenListInner({
               total: group.net,
               count: group.transactions.length,
             }))}
-            accountNames={_accountNames}
             categories={categories}
-            className="space-y-5"
+            className="flex flex-col gap-5"
             onEditTransaction={onEditTransaction}
           />
         )}
 
-        {showPagination && (
-          <TransactionPagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            totalItems={totalFilteredCount}
-            pageSize={pageSize}
-            isLoading={isChangingPage}
-            onPageChange={onPageChange}
-            {...(onPageSizeChange !== undefined ? { onPageSizeChange } : {})}
-            className="mt-6 pt-2"
-          />
-        )}
-      </div>
+        {showLoadMore && !isNavigatingFilters ? (
+          <div className="flex flex-col items-center gap-3 pt-2">
+            <div ref={sentinelRef} className="h-px w-full" aria-hidden />
+            <Button
+              type="button"
+              variant="outline"
+              className="min-h-11 w-full max-w-sm"
+              disabled={isLoadingMore}
+              onClick={onLoadMore}
+            >
+              {isLoadingMore ? (
+                <>
+                  <Spinner data-icon="inline-start" />
+                  {tLoadMore('loading')}
+                </>
+              ) : (
+                tLoadMore('cta')
+              )}
+            </Button>
+          </div>
+        ) : null}
 
-      {onAddTransaction && (
-        <button
-          type="button"
-          data-testid="transactions-fab-add"
-          onClick={onAddTransaction}
-          className={stitchTransactions.fab}
-          aria-label={t('empty.addCta')}
-        >
-          <Plus className="h-7 w-7" aria-hidden />
-        </button>
-      )}
+        {!hasMore && transactions.length > 0 && !isNavigatingFilters ? (
+          <p className="py-4 text-center text-sm text-muted-foreground" role="status">
+            {tLoadMore('end')}
+          </p>
+        ) : null}
+      </div>
     </div>
   );
 }

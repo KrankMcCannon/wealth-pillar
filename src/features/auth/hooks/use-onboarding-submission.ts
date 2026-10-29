@@ -38,8 +38,7 @@ export type OnboardingSubmitResult =
   | { ok: false; error: string; categories: Category[]; isOrphanMessage?: boolean };
 
 /**
- * Logica condivisa tra `/auth/sso-callback` (se usato) e `/onboarding`:
- * completa onboarding, invalida cache client e naviga alla home.
+ * Completa onboarding, invalida cache client e naviga alla home.
  */
 export function useOnboardingSubmission(): {
   submit: (payload: OnboardingPayload) => Promise<OnboardingSubmitResult>;
@@ -91,9 +90,9 @@ export function useOnboardingSubmission(): {
             categories: categoriesResult.data || [],
           };
         }
-        const deleteResult = await deleteClerkUserAction(userId, locale);
+        const deleteResult = await deleteClerkUserAction(locale);
         if (deleteResult.error) {
-          await registerOrphanUserAction(userId, locale);
+          await registerOrphanUserAction(locale);
           const categoriesResult = await getAllCategoriesAction();
           return {
             ok: false,
@@ -112,9 +111,9 @@ export function useOnboardingSubmission(): {
 
       if (result.error) {
         if (result.errorCode !== 'already_configured') {
-          const deleteResult = await deleteClerkUserAction(userId, locale);
+          const deleteResult = await deleteClerkUserAction(locale);
           if (deleteResult.error) {
-            await registerOrphanUserAction(userId, locale);
+            await registerOrphanUserAction(locale);
             const categoriesResult = await getAllCategoriesAction();
             return {
               ok: false,

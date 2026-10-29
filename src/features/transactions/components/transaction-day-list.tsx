@@ -8,7 +8,6 @@
  * // Basic usage in Transactions page
  * <TransactionDayList
  *   groupedTransactions={dayTotals}
- *   accountNames={accountNames}
  *   categories={categories}
  *   onEditTransaction={handleEdit}
  * />
@@ -17,7 +16,6 @@
  * // With header in Budgets page
  * <TransactionDayList
  *   groupedTransactions={groupedTransactions}
- *   accountNames={accountNames}
  *   categories={categories}
  *   sectionTitle="Transazioni Budget"
  *   sectionSubtitle="01/12/2024 - 31/12/2024"
@@ -29,35 +27,18 @@
 
 'use client';
 
-import { useRef } from 'react';
-import { useVirtualizer } from '@/lib/react-virtual';
 import { SectionHeader } from '@/components/layout';
 import { EmptyState } from '@/components/shared';
-import { Button } from '@/components/ui';
+import { Link } from '@/i18n/routing';
 import { Transaction, Category } from '@/lib';
 import { GroupedTransactionCard } from './grouped-transaction-card';
-import { transactionStyles } from '@/styles/system';
+import { transactionStyles } from '@/features/transactions/theme/transaction-styles';
+import { stitchHome, stitchTransactions } from '@/styles/home-design-foundation';
+import { Skeleton } from '@/components/ui/skeleton';
+import { TransactionDayGroupSkeleton } from '@/components/ui/primitives/skeletons';
 import { formatCurrency, cn } from '@/lib/utils';
 import { FileText, type LucideIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-
-/**
- * Minimum number of day groups before switching to the virtualised list.
- * Raised to 30 so the non-virtualised path covers the typical first-page
- * load (~50 transactions spread over a few weeks).  When the user scrolls
- * past this threshold the virtualiser takes over without a visible jump
- * because parentRef is always attached to the scroll container.
- */
-const VIRTUALIZE_THRESHOLD = 30;
-
-/** Approximate height (px): day header + card + transaction rows */
-function estimateGroupHeight(group: GroupedTransaction): number {
-  const header = 52;
-  const cardPadding = 16;
-  const rowHeight = 64;
-  const count = group.transactions?.length ?? 0;
-  return header + cardPadding + count * rowHeight;
-}
 
 /**
  * Grouped transaction structure
@@ -87,8 +68,6 @@ export interface GroupedTransaction {
 export interface TransactionDayListProps {
   /** Array of transactions grouped by day */
   groupedTransactions: GroupedTransaction[];
-  /** Map of account IDs to account names for display */
-  accountNames: Record<string, string>;
   /** Categories for displaying labels and icons */
   categories: Category[];
 
@@ -109,10 +88,12 @@ export interface TransactionDayListProps {
   emptyDescription?: string;
 
   // View all button (for budget page)
-  /** Whether to show the "View All" button */
+  /** Whether to show the "View All" control */
   showViewAll?: boolean;
-  /** Label for view all button */
+  /** Label for view all */
   viewAllLabel?: string;
+  /** Prefetchable ledger URL (preferred over onViewAll) */
+  viewAllHref?: string;
   /** Callback when "View All" is clicked */
   onViewAll?: () => void;
 
@@ -120,9 +101,6 @@ export interface TransactionDayListProps {
   /** Variant for transaction cards */
   variant?: 'regular' | 'recurrent';
 
-  // Style customization
-  /** Whether totals are always negative (expenses only, like budgets) */
-  expensesOnly?: boolean;
   /** Custom container className */
   className?: string;
 
@@ -133,7 +111,6 @@ export interface TransactionDayListProps {
 
 export function TransactionDayList({
   groupedTransactions,
-  accountNames,
   categories,
   sectionTitle,
   sectionSubtitle,
@@ -143,62 +120,39 @@ export function TransactionDayList({
   emptyDescription,
   showViewAll = false,
   viewAllLabel,
+  viewAllHref,
   onViewAll,
   variant = 'regular',
-  expensesOnly = false,
   className,
   onEditTransaction,
 }: Readonly<TransactionDayListProps>) {
   const t = useTranslations('Transactions.DayList');
-  // parentRef is always attached so it is ready when useVirtual flips to true
-  const parentRef = useRef<HTMLDivElement>(null);
   const hasTransactions = groupedTransactions.length > 0;
-  const useVirtual = hasTransactions && groupedTransactions.length > VIRTUALIZE_THRESHOLD;
   const resolvedEmptyTitle = emptyTitle ?? t('empty.title');
   const resolvedEmptyDescription = emptyDescription ?? t('empty.description');
   const resolvedViewAllLabel = viewAllLabel ?? t('viewAll');
 
   const DayHeadingTag = sectionTitle ? 'h4' : 'h3';
 
-  const rowVirtualizer = useVirtualizer({
-    count: useVirtual ? groupedTransactions.length : 0,
-    getScrollElement: () => parentRef.current,
-    estimateSize: (index) => estimateGroupHeight(groupedTransactions[index]!),
-    overscan: 3,
-    // Dynamic measurement corrects imprecise estimates after items mount
-    measureElement: (el) => el?.getBoundingClientRect().height ?? 0,
-  });
-
   const headerClassName = cn(transactionStyles.dayList.sectionHeader, sectionHeaderClassName);
 
   const renderGroup = (group: GroupedTransaction) => {
-    const count = group.count ?? group.transactions.length;
     const total = group.total;
     return (
       <section key={group.date}>
-        <div className={transactionStyles.dayGroup.header}>
-          <DayHeadingTag className={transactionStyles.dayGroup.title}>
+        <div className={stitchTransactions.dayHeaderRow}>
+          <DayHeadingTag className={stitchTransactions.dayHeaderTitle}>
             {group.formattedDate ?? group.date}
           </DayHeadingTag>
-          <div className={transactionStyles.dayGroup.stats}>
-            <div className={transactionStyles.dayGroup.statsTotal}>
-              <span className={transactionStyles.dayGroup.statsTotalLabel}>{t('totalLabel')}</span>
-              <span
-                className={`${transactionStyles.dayGroup.statsTotalValue} ${
-                  expensesOnly || total < 0
-                    ? transactionStyles.dayGroup.statsTotalValueNegative
-                    : transactionStyles.dayGroup.statsTotalValuePositive
-                }`}
-              >
-                {formatCurrency(Math.abs(total))}
-              </span>
-            </div>
-            <div className={transactionStyles.dayGroup.statsCount}>{t('count', { count })}</div>
-          </div>
+          <p className={stitchTransactions.dayHeaderTotalRow} data-testid="day-group-total">
+            <span className={stitchTransactions.dayHeaderTotalValue}>
+              {total >= 0 ? '+' : '−'}
+              {formatCurrency(Math.abs(total))}
+            </span>
+          </p>
         </div>
         <GroupedTransactionCard
           transactions={group.transactions}
-          accountNames={accountNames}
           categories={categories}
           variant={variant}
           onEditTransaction={onEditTransaction}
@@ -219,48 +173,9 @@ export function TransactionDayList({
         />
       )}
 
-      {/* Transactions List — parentRef is always set so the virtualiser has
-          correct dimensions the moment useVirtual becomes true. */}
-      <div
-        ref={parentRef}
-        className={cn(
-          transactionStyles.dayList.container,
-          useVirtual && 'overflow-auto max-h-[65vh] min-h-[320px]'
-        )}
-      >
+      <div className={transactionStyles.dayList.container}>
         {hasTransactions ? (
-          useVirtual ? (
-            <div
-              style={{
-                height: `${rowVirtualizer.getTotalSize()}px`,
-                width: '100%',
-                position: 'relative',
-              }}
-            >
-              {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-                const group = groupedTransactions[virtualRow.index];
-                if (!group) return null;
-                return (
-                  <div
-                    key={group.date}
-                    ref={rowVirtualizer.measureElement}
-                    data-index={virtualRow.index}
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: '100%',
-                      transform: `translateY(${virtualRow.start}px)`,
-                    }}
-                  >
-                    {renderGroup(group)}
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            groupedTransactions.map((group) => renderGroup(group))
-          )
+          groupedTransactions.map((group) => renderGroup(group))
         ) : (
           <EmptyState
             icon={emptyIcon}
@@ -271,19 +186,25 @@ export function TransactionDayList({
       </div>
 
       {/* View All Button */}
-      {showViewAll && hasTransactions && onViewAll && (
+      {showViewAll && hasTransactions && (viewAllHref || onViewAll) ? (
         <div className={transactionStyles.dayList.viewAllWrap}>
-          <Button
-            variant="ghost"
-            size="sm"
-            className={transactionStyles.dayList.viewAllButton}
-            onClick={onViewAll}
-          >
-            <span className={transactionStyles.dayList.viewAllLabel}>{resolvedViewAllLabel}</span>
-            <span className={transactionStyles.dayList.viewAllArrow}>→</span>
-          </Button>
+          {viewAllHref ? (
+            <Link href={viewAllHref} prefetch className={stitchHome.viewAllLink}>
+              {resolvedViewAllLabel}
+              <span className="ml-1" aria-hidden>
+                →
+              </span>
+            </Link>
+          ) : (
+            <button type="button" onClick={onViewAll} className={stitchHome.viewAllLink}>
+              {resolvedViewAllLabel}
+              <span className="ml-1" aria-hidden>
+                →
+              </span>
+            </button>
+          )}
         </div>
-      )}
+      ) : null}
     </section>
   );
 }
@@ -293,57 +214,20 @@ interface TransactionDayListSkeletonProps {
   readonly showHeader?: boolean;
 }
 
-// Stable keys for skeleton items
-const SKELETON_GROUP_KEYS = [
-  'skeleton-group-a',
-  'skeleton-group-b',
-  'skeleton-group-c',
-  'skeleton-group-d',
-  'skeleton-group-e',
-];
-const SKELETON_TX_KEYS = ['skeleton-tx-1', 'skeleton-tx-2'];
-
-/**
- * Skeleton loader for TransactionDayList
- */
 export function TransactionDayListSkeleton({
   itemCount = 3,
   showHeader = false,
 }: TransactionDayListSkeletonProps) {
   return (
-    <section className={transactionStyles.dayList.skeleton.container}>
-      {showHeader && (
-        <div className={transactionStyles.dayList.skeleton.header}>
-          <div className={transactionStyles.dayList.skeleton.headerTitle} />
-          <div className={transactionStyles.dayList.skeleton.headerSubtitle} />
+    <section className="flex flex-col gap-6 px-4 py-2" aria-busy="true">
+      {showHeader ? (
+        <div className="flex flex-col gap-2">
+          <Skeleton className="h-5 w-40" />
+          <Skeleton className="h-3 w-56" />
         </div>
-      )}
-
-      {SKELETON_GROUP_KEYS.slice(0, itemCount).map((groupKey) => (
-        <div key={groupKey} className={transactionStyles.dayList.skeleton.group}>
-          {/* Day header skeleton */}
-          <div className={transactionStyles.dayList.skeleton.groupHeader}>
-            <div className={transactionStyles.dayList.skeleton.groupTitle} />
-            <div className={transactionStyles.dayList.skeleton.groupTotal}>
-              <div className={transactionStyles.dayList.skeleton.groupTotalLine} />
-              <div className={transactionStyles.dayList.skeleton.groupTotalSub} />
-            </div>
-          </div>
-
-          {/* Transaction cards skeleton */}
-          <div className={transactionStyles.dayList.skeleton.card}>
-            {SKELETON_TX_KEYS.map((txKey) => (
-              <div key={`${groupKey}-${txKey}`} className={transactionStyles.dayList.skeleton.row}>
-                <div className={transactionStyles.dayList.skeleton.rowIcon} />
-                <div className={transactionStyles.dayList.skeleton.rowBody}>
-                  <div className={transactionStyles.dayList.skeleton.rowTitle} />
-                  <div className={transactionStyles.dayList.skeleton.rowSubtitle} />
-                </div>
-                <div className={transactionStyles.dayList.skeleton.rowAmount} />
-              </div>
-            ))}
-          </div>
-        </div>
+      ) : null}
+      {Array.from({ length: itemCount }, (_, index) => (
+        <TransactionDayGroupSkeleton key={`day-group-skeleton-${index}`} />
       ))}
     </section>
   );

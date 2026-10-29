@@ -5,27 +5,38 @@ import { useTranslations } from 'next-intl';
 import { Users } from 'lucide-react';
 import { useUserFilter } from '@/hooks';
 import { User } from '@/lib/types';
-import { userSelectorStyles } from './theme/user-selector-styles';
+import { initialsFromName } from '@/lib/utils/string-formatter';
+import { cn } from '@/lib/utils';
+import { stitchPeopleChip } from '@/styles/home-design-foundation';
+import type { CSSProperties } from 'react';
 
-function getInitials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return '?';
-  if (parts.length === 1) {
-    const w = parts[0] ?? '';
-    const slice = w.slice(0, 2);
-    return slice.length > 0 ? slice.toUpperCase() : '?';
-  }
-  const first = parts[0] ?? '';
-  const last = parts[parts.length - 1] ?? '';
-  const a = first.charAt(0);
-  const b = last.charAt(0);
-  if (!a && !b) return '?';
-  return `${a}${b}`.toUpperCase();
-}
+const userSelectorStyles = {
+  container: 'border-0 bg-transparent px-0 pb-0 pt-0 backdrop-blur-none',
+  heading: 'mb-2 text-xs font-medium text-muted-foreground',
+  list: stitchPeopleChip.row,
+  listStyle: {
+    scrollbarWidth: 'thin',
+  } satisfies CSSProperties,
+  item: {
+    base: stitchPeopleChip.item,
+    active: stitchPeopleChip.itemActive,
+    inactive: stitchPeopleChip.itemInactive,
+  },
+  avatar: {
+    base: stitchPeopleChip.avatar,
+    active: stitchPeopleChip.avatarActive,
+    inactive: stitchPeopleChip.avatarInactive,
+    allIcon: 'size-3.5 text-foreground',
+  },
+  initials: 'leading-none',
+  label: stitchPeopleChip.label,
+} as const;
+
+const displayInitials = (name: string) =>
+  initialsFromName(name, { emptyFallback: '?', singleWord: 'two' });
 
 interface UserSelectorProps {
   className?: string;
-  isLoading?: boolean;
   currentUser: User;
   users: User[];
   /** Optional: Controlled value (if provided, useUserFilter is ignored) */
@@ -42,7 +53,6 @@ interface UserSelectorProps {
 const UserSelector = memo(
   ({
     className = '',
-    isLoading = false,
     currentUser,
     users,
     value,
@@ -52,13 +62,10 @@ const UserSelector = memo(
   }: UserSelectorProps) => {
     const headingId = useId();
     const t = useTranslations('UserSelector');
-    // Read from props instead of stores
     const { selectedGroupFilter, setSelectedGroupFilter } = useUserFilter();
 
-    // Determine current selection: Controlled (value) > Uncontrolled (store)
     const currentSelection = value ?? selectedGroupFilter;
 
-    // Memoized user list with "All Members" option
     const membersList = useMemo(() => {
       const list: Array<{ id: string; name: string; isSpecial: boolean }> = users.map((user) => ({
         id: user.id,
@@ -76,10 +83,8 @@ const UserSelector = memo(
       return list;
     }, [users, showAllOption, t]);
 
-    // Memoized click handler
     const handleMemberClick = useCallback(
       (memberId: string) => {
-        // If controlled, call onChange
         if (onChange) {
           if (memberId !== value) {
             onChange(memberId);
@@ -87,7 +92,6 @@ const UserSelector = memo(
           return;
         }
 
-        // Default: use store
         if (memberId !== selectedGroupFilter) {
           setSelectedGroupFilter(memberId);
         }
@@ -95,49 +99,28 @@ const UserSelector = memo(
       [selectedGroupFilter, setSelectedGroupFilter, onChange, value]
     );
 
-    // Early return for non-admin users
     if (currentUser.role !== 'admin' && currentUser.role !== 'superadmin') {
       return null;
     }
 
-    // Hide if only 1 user in group
     if (users.length === 1) {
       return null;
     }
 
-    // Loading state
-    if (isLoading) {
-      return (
-        <section
-          className={`${userSelectorStyles.loading.container} ${className}`}
-          aria-label={t('contextLabel')}
-          aria-busy="true"
-        >
-          <div className={userSelectorStyles.loading.heading} aria-hidden />
-          <div className={userSelectorStyles.loading.list}>
-            {[1, 2, 3].map((i) => (
-              <div key={i} className={userSelectorStyles.loading.item}>
-                <div className={userSelectorStyles.loading.avatar} />
-                <div className={userSelectorStyles.loading.text} />
-              </div>
-            ))}
-          </div>
-        </section>
-      );
-    }
-
     return (
-      <section
-        className={`${userSelectorStyles.container} ${className}`}
-        aria-label={hideTitle ? t('contextLabel') : undefined}
-        aria-labelledby={hideTitle ? undefined : headingId}
-      >
+      <section className={`${userSelectorStyles.container} ${className}`}>
         {!hideTitle ? (
           <h2 id={headingId} className={userSelectorStyles.heading}>
             {t('contextLabel')}
           </h2>
         ) : null}
-        <div className={userSelectorStyles.list} style={userSelectorStyles.listStyle}>
+        <div
+          role="radiogroup"
+          aria-label={hideTitle ? t('contextLabel') : undefined}
+          aria-labelledby={hideTitle ? undefined : headingId}
+          className={userSelectorStyles.list}
+          style={userSelectorStyles.listStyle}
+        >
           {membersList.map((member) => {
             const isSelected = currentSelection === member.id;
             const isAll = member.id === 'all';
@@ -146,26 +129,30 @@ const UserSelector = memo(
               <button
                 key={member.id}
                 type="button"
+                role="radio"
                 onClick={() => handleMemberClick(member.id)}
-                className={`${userSelectorStyles.item.base} ${
+                className={cn(
+                  userSelectorStyles.item.base,
                   isSelected ? userSelectorStyles.item.active : userSelectorStyles.item.inactive
-                }`}
-                disabled={isLoading}
-                aria-pressed={isSelected}
+                )}
+                aria-checked={isSelected}
                 aria-label={t('selectUserAria', { name: member.name })}
               >
                 <div
-                  className={`${userSelectorStyles.avatar.base} ${
+                  className={cn(
+                    userSelectorStyles.avatar.base,
                     isSelected
                       ? userSelectorStyles.avatar.active
                       : userSelectorStyles.avatar.inactive
-                  }`}
+                  )}
                   aria-hidden
                 >
                   {isAll ? (
                     <Users className={userSelectorStyles.avatar.allIcon} strokeWidth={2} />
                   ) : (
-                    <span className={userSelectorStyles.initials}>{getInitials(member.name)}</span>
+                    <span className={userSelectorStyles.initials}>
+                      {displayInitials(member.name)}
+                    </span>
                   )}
                 </div>
 
@@ -174,22 +161,6 @@ const UserSelector = memo(
             );
           })}
         </div>
-
-        {membersList.length > 3 && (
-          <div className={userSelectorStyles.dots.container}>
-            {membersList.map((member) => (
-              <div
-                key={`dot-${member.id}`}
-                className={`${userSelectorStyles.dots.base} ${
-                  member.id === currentSelection
-                    ? userSelectorStyles.dots.active
-                    : userSelectorStyles.dots.inactive
-                }`}
-                aria-hidden
-              />
-            ))}
-          </div>
-        )}
       </section>
     );
   }

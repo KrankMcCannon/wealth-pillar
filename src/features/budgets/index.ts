@@ -2,17 +2,11 @@
  * Budgets Feature - Public API
  */
 
-// Components
-export { BudgetCard } from './components/budget-card';
-// Components
-export { BudgetPeriodInfo } from './components/budget-period-info';
-export { BudgetPeriodCard } from './components/budget-period-card';
 export { BudgetSection } from './components/budget-section';
 export {
   BudgetCardSkeleton,
   BudgetListSkeleton,
   BudgetDetailsSkeleton,
-  TransactionListSkeleton,
   BudgetPageSkeleton,
 } from './components/budget-skeletons';
 
@@ -20,9 +14,15 @@ export {
 export {
   startPeriodAction,
   closePeriodAction,
+  editClosingDateAction,
   deletePeriodAction,
   getUserPeriodsAction,
   getActivePeriodAction,
+  getLatestClosedPeriodAction,
+  recalculateClosedPeriodAction,
+  rewindClosedPeriodAction,
+  upsertClosedPeriodBudgetAction,
+  deleteClosedPeriodBudgetAction,
   getPeriodPreviewAction,
 } from './actions/budget-period-actions';
 
@@ -33,9 +33,7 @@ export {
   getBudgetByIdAction,
 } from './actions/budget-actions';
 
-// ====================================
 // Hooks
-// ====================================
 export {
   useBudgetsContent,
   type UseBudgetsContentProps,

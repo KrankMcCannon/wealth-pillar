@@ -4,7 +4,9 @@ import * as React from 'react';
 import * as CheckboxPrimitive from '@radix-ui/react-checkbox';
 import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { checkboxComponentStyles } from './theme/checkbox-component-styles';
+
+const checkboxRootClassName =
+  'peer size-4 shrink-0 rounded-sm border border-border shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:border-primary data-[state=checked]:text-primary-foreground';
 
 const Checkbox = React.forwardRef<
   React.ElementRef<typeof CheckboxPrimitive.Root>,
@@ -13,14 +15,14 @@ const Checkbox = React.forwardRef<
   <CheckboxPrimitive.Root
     ref={ref}
     data-slot="checkbox"
-    className={cn(checkboxComponentStyles.root, className)}
+    className={cn(checkboxRootClassName, className)}
     {...props}
   >
     <CheckboxPrimitive.Indicator
       data-slot="checkbox-indicator"
-      className={cn(checkboxComponentStyles.indicator)}
+      className="flex items-center justify-center text-current"
     >
-      <Check className={checkboxComponentStyles.icon} />
+      <Check className="size-3" />
     </CheckboxPrimitive.Indicator>
   </CheckboxPrimitive.Root>
 ));

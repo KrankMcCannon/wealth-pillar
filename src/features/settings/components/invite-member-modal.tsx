@@ -3,14 +3,13 @@
 import { useMemo } from 'react';
 import { z } from 'zod';
 import { useTranslations } from 'next-intl';
-import { Loader2, Mail } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Mail } from 'lucide-react';
 import { EntityFormModal } from '@/components/form';
+import { ModalTextField } from '@/components/form/modal-fields';
+import { ModalFooterActions } from '@/components/ui/modal-footer-actions';
 import { toast } from '@/hooks/use-toast';
 import { sendGroupInvitationAction } from '@/features/settings';
-import { settingsStyles } from '@/features/settings/theme';
-import { FormField } from '@/components/form';
-import { Input } from '@/components/ui';
+import { stitchSettings as s } from '@/styles/home-design-foundation';
 
 const createInviteMemberSchema = (t: ReturnType<typeof useTranslations>) =>
   z.object({
@@ -53,41 +52,21 @@ export function InviteMemberModal({
       isOpen={isOpen}
       onClose={onClose}
       title={t('title')}
-      description={t('description')}
       schema={inviteMemberSchema}
       defaultValues={defaultValues}
       resetValues={defaultValues}
       repositionInputs={false}
-      formClassName={settingsStyles.modals.form}
+      bodyClassName={s.modalFormBody}
       footer={(form) => (
-        <>
-          <Button
-            variant="outline"
-            onClick={onClose}
-            disabled={form.formState.isSubmitting}
-            className={settingsStyles.modals.actionsButton}
-            type="button"
-          >
-            {t('cancelButton')}
-          </Button>
-          <Button
-            type="submit"
-            disabled={form.formState.isSubmitting}
-            className={settingsStyles.modals.actionsButton}
-          >
-            {form.formState.isSubmitting ? (
-              <>
-                <Loader2 className={settingsStyles.modals.loadingIcon} />
-                {t('sendingButton')}
-              </>
-            ) : (
-              <>
-                <Mail className={settingsStyles.modals.iconSmall} />
-                {t('sendButton')}
-              </>
-            )}
-          </Button>
-        </>
+        <ModalFooterActions
+          variant="dual"
+          cancelLabel={t('cancelButton')}
+          submitLabel={t('sendButton')}
+          onCancel={onClose}
+          submitType="submit"
+          isSubmitting={form.formState.isSubmitting}
+          submitIcon={<Mail className="h-4 w-4 shrink-0" aria-hidden />}
+        />
       )}
       onSubmit={async (data) => {
         const { error } = await sendGroupInvitationAction(groupId, currentUserId, data.email);
@@ -112,30 +91,18 @@ export function InviteMemberModal({
       }}
     >
       {(form) => (
-        <>
-          <FormField
+        <div className={s.sectionCard}>
+          <ModalTextField
+            control={form.control}
+            name="email"
+            layout="plain"
             label={t('emailLabel')}
-            htmlFor="email"
-            error={form.formState.errors.email?.message}
-          >
-            <Input
-              id="email"
-              type="email"
-              placeholder={t('emailPlaceholder')}
-              disabled={form.formState.isSubmitting}
-              autoComplete="email"
-              className={settingsStyles.modals.field.input}
-              {...form.register('email')}
-            />
-          </FormField>
-
-          <div className={settingsStyles.modals.invite.infoBox}>
-            <p className={settingsStyles.modals.invite.infoText}>
-              <strong className={settingsStyles.modals.invite.infoStrong}>{t('noteLabel')}</strong>{' '}
-              {t('noteText')}
-            </p>
-          </div>
-        </>
+            type="email"
+            placeholder={t('emailPlaceholder')}
+            autoComplete="email"
+            disabled={form.formState.isSubmitting}
+          />
+        </div>
       )}
     </EntityFormModal>
   );

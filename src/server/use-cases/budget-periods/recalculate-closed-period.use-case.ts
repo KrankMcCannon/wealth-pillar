@@ -1,0 +1,72 @@
+import type { BudgetPeriod } from '@/lib/types';
+import { BudgetPeriodsRepository } from '@/server/repositories/budget-periods.repository';
+import {
+  computePeriodLiquidityAmounts,
+  periodToDateWindow,
+  snapshotFieldsFromAmounts,
+} from './period-amounts.logic';
+import { loadPeriodLiquidityData } from './load-period-liquidity-data';
+import { isSyntheticBudgetPeriodId } from './synthetic-active-period.logic';
+import { categoryKeysFromBudgets, parseBudgetsSnapshot } from './period-budgets.logic';
+import { revalidateTag } from 'next/cache';
+import { CACHE_TAGS } from '@/lib/cache/config';
+import { invalidateBudgetPeriodCaches } from '@/lib/utils/cache-utils';
+import { withBudgetPeriodTransaction } from './budget-period-transaction';
+
+export class RecalculateClosedPeriodError extends Error {
+  constructor(public readonly code: string) {
+    super(code);
+    this.name = 'RecalculateClosedPeriodError';
+  }
+}
+
+export async function recalculateClosedPeriodSnapshotUseCase(
+  userId: string,
+  periodId: string
+): Promise<BudgetPeriod> {
+  // Recompute spendable_spent with envelope budget legs (split + savings).
+  // Pre-refactor snapshots were expense-only until this runs.
+  if (isSyntheticBudgetPeriodId(periodId)) {
+    throw new RecalculateClosedPeriodError('syntheticPeriod');
+  }
+
+  const { period, updated } = await withBudgetPeriodTransaction(userId, async (tx) => {
+    const period = await BudgetPeriodsRepository.findById(periodId, tx);
+    if (!period || period.user_id !== userId) {
+      throw new RecalculateClosedPeriodError('periodNotFound');
+    }
+
+    const window = periodToDateWindow(period);
+    const { transactions, accounts } = await loadPeriodLiquidityData(
+      period.group_id,
+      userId,
+      window,
+      tx
+    );
+    const snapshot = parseBudgetsSnapshot(period.budgets_snapshot) ?? [];
+    const amounts = computePeriodLiquidityAmounts(
+      transactions,
+      accounts,
+      window,
+      userId,
+      categoryKeysFromBudgets(snapshot),
+      snapshot
+    );
+    const updated = await BudgetPeriodsRepository.update(
+      periodId,
+      snapshotFieldsFromAmounts(amounts),
+      tx
+    );
+    return { period, updated };
+  });
+
+  revalidateTag(CACHE_TAGS.USER_PREFERENCE(userId), 'max');
+  invalidateBudgetPeriodCaches({ userId, periodId });
+  if (period.group_id) {
+    revalidateTag(`group:${period.group_id}:budgets`, 'max');
+    revalidateTag(`group:${period.group_id}:transactions`, 'max');
+    revalidateTag(`group:${period.group_id}:accounts`, 'max');
+  }
+
+  return updated;
+}

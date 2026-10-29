@@ -4,8 +4,9 @@ import { useEffect, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { usePathname } from '@/i18n/routing';
 import { Link } from '@/i18n/routing';
-import { Button } from '@/components/ui';
-import { cn } from '@/lib/utils';
+import { HomeDashboardMain } from '@/components/layout';
+import { RouteEmptyState } from '@/components/shared/route-empty-state';
+import { stitchSurface, stitchTransactions } from '@/styles/home-design-foundation';
 
 const ROUTE_ERROR_NAMESPACE: Record<string, string> = {
   accounts: 'AccountsError',
@@ -40,25 +41,15 @@ export default function LocaleError({
   }, [error, namespace]);
 
   return (
-    <div
-      className={cn(
-        'flex min-h-[50vh] flex-col items-center justify-center gap-5 px-4 py-10',
-        'bg-background text-foreground'
-      )}
-      role="alert"
-    >
-      <h1 className="text-center text-lg font-semibold text-primary">{t('title')}</h1>
-      <p className="max-w-md text-center text-sm leading-relaxed text-muted-foreground wrap-break-word">
-        {t('description')}
-      </p>
-      <div className="flex flex-col gap-3 sm:flex-row">
-        <Button onClick={() => reset()} size="default">
+    <HomeDashboardMain id="main-locale-error">
+      <RouteEmptyState title={t('title')} description={t('description')}>
+        <button type="button" onClick={() => reset()} className={stitchSurface.primaryCta}>
           {t('retry')}
-        </Button>
-        <Button variant="outline" asChild size="default">
-          <Link href="/">{t('home')}</Link>
-        </Button>
-      </div>
-    </div>
+        </button>
+        <Link href="/" className={stitchTransactions.emptyCtaSecondary}>
+          {t('home')}
+        </Link>
+      </RouteEmptyState>
+    </HomeDashboardMain>
   );
 }

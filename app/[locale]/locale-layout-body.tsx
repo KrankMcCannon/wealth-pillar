@@ -1,37 +1,43 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { ClerkProvider } from '@clerk/nextjs';
 import { hasLocale, NextIntlClientProvider } from 'next-intl';
 import { getMessages, setRequestLocale } from 'next-intl/server';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { notFound } from 'next/navigation';
-import { Toaster } from '@/components/ui';
+import { connection } from 'next/server';
+import { Toaster } from '@/components/ui/sonner';
 import { ThemeProvider } from '@/components/theme-provider';
 import { routing } from '@/i18n/routing';
 import { getCurrentUser, getGroupUsers } from '@/lib/auth/cached-auth';
 import { withTimeout } from '@/lib/utils/with-timeout';
+import { AccessScope } from '@/lib/permissions/access-scope';
+import { getSelectableUsers } from '@/lib/utils/permissions';
 import {
   getAccountsByGroupDeduped,
   getAllCategoriesDeduped,
 } from '@/server/request-cache/services';
+import { getUsedCategoryKeysByGroupUseCase } from '@/server/use-cases/transactions/get-transactions.use-case';
 import { ModalProvider } from '@/providers/modal-provider';
 import { ReferenceDataInitializer } from '@/providers/reference-data-initializer';
 import { UserProvider } from '@/providers/user-provider';
+import type { User } from '@/lib/types';
 
 export function LocaleLayoutHtmlFallback({ className }: { className: string }): React.JSX.Element {
   return (
     <html lang="it" data-scroll-behavior="smooth" suppressHydrationWarning>
       <body
-        className={`${className} antialiased min-h-screen bg-card text-primary`}
+        className={`${className} antialiased min-h-screen bg-background text-foreground`}
         suppressHydrationWarning
       >
-        <div className="min-h-screen bg-card" aria-hidden />
+        <div className="min-h-screen bg-background" aria-hidden />
       </body>
     </html>
   );
 }
 
 /**
- * Resolves locale params + i18n + session + reference data inside the parent Suspense boundary.
+ * Resolves locale params + i18n inside the parent Suspense boundary.
+ * Clerk waits on `connection()` in a nested hole so html/theme can paint first.
  */
 export async function LocaleLayoutBody({
   children,
@@ -50,65 +56,110 @@ export async function LocaleLayoutBody({
 
   setRequestLocale(locale);
   const messages = await getMessages();
-  const currentUser = await getCurrentUser();
-
-  let appContent: React.ReactNode = children;
-
-  if (currentUser) {
-    if (currentUser.group_id) {
-      type GroupUsers = Awaited<ReturnType<typeof getGroupUsers>>;
-      type GroupAccounts = Awaited<ReturnType<typeof getAccountsByGroupDeduped>>;
-      type AllCategories = Awaited<ReturnType<typeof getAllCategoriesDeduped>>;
-
-      const [groupUsers, accounts, categories] = await Promise.all([
-        withTimeout(getGroupUsers(), 1500, [currentUser] as GroupUsers),
-        withTimeout(getAccountsByGroupDeduped(currentUser.group_id), 1500, [] as GroupAccounts),
-        withTimeout(getAllCategoriesDeduped(), 1200, [] as AllCategories),
-      ]);
-
-      appContent = (
-        <UserProvider currentUser={currentUser} groupUsers={groupUsers}>
-          <ReferenceDataInitializer
-            data={{
-              accounts: accounts || [],
-              categories: categories || [],
-            }}
-          >
-            <ModalProvider>{children}</ModalProvider>
-          </ReferenceDataInitializer>
-        </UserProvider>
-      );
-    } else {
-      appContent = (
-        <UserProvider currentUser={currentUser} groupUsers={[currentUser]}>
-          {children}
-        </UserProvider>
-      );
-    }
-  }
 
   return (
     <html lang={locale} data-scroll-behavior="smooth" suppressHydrationWarning>
       <body
-        className={`${className} antialiased min-h-screen bg-card text-primary`}
+        className={`${className} antialiased min-h-screen bg-background text-foreground`}
         suppressHydrationWarning
       >
-        <ClerkProvider telemetry={false}>
-          <NextIntlClientProvider messages={messages}>
-            <NuqsAdapter>
-              <ThemeProvider
-                attribute="class"
-                defaultTheme="dark"
-                enableSystem={false}
-                disableTransitionOnChange
-              >
-                {appContent}
-                <Toaster />
-              </ThemeProvider>
-            </NuqsAdapter>
-          </NextIntlClientProvider>
-        </ClerkProvider>
+        <NextIntlClientProvider messages={messages}>
+          <NuqsAdapter>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="light"
+              enableSystem={false}
+              storageKey="wp-theme"
+              disableTransitionOnChange
+            >
+              <Suspense fallback={<div className="min-h-screen bg-background" aria-hidden />}>
+                <ClerkRuntime>{children}</ClerkRuntime>
+              </Suspense>
+              <Toaster />
+            </ThemeProvider>
+          </NuqsAdapter>
+        </NextIntlClientProvider>
       </body>
     </html>
+  );
+}
+
+async function ClerkRuntime({ children }: { children: React.ReactNode }) {
+  // ClerkProvider reads `new Date()` (keyless drift). cacheComponents requires
+  // request data first: https://nextjs.org/docs/messages/next-prerender-current-time
+  await connection();
+
+  return (
+    <ClerkProvider telemetry={false}>
+      <Suspense fallback={children}>
+        <UserSessionGate>{children}</UserSessionGate>
+      </Suspense>
+    </ClerkProvider>
+  );
+}
+
+async function UserSessionGate({ children }: { children: React.ReactNode }) {
+  const currentUser = await getCurrentUser();
+
+  if (!currentUser) {
+    return children;
+  }
+
+  const allGroupUsers = currentUser.group_id
+    ? await withTimeout(getGroupUsers(), 1500, [currentUser])
+    : [currentUser];
+  const groupUsers = getSelectableUsers(currentUser, allGroupUsers);
+
+  const session = (
+    <UserProvider currentUser={currentUser} groupUsers={groupUsers}>
+      <ModalProvider>{children}</ModalProvider>
+    </UserProvider>
+  );
+
+  if (!currentUser.group_id) {
+    return session;
+  }
+
+  return (
+    <UserProvider currentUser={currentUser} groupUsers={groupUsers}>
+      <Suspense fallback={<ModalProvider>{children}</ModalProvider>}>
+        <ReferenceDataGate groupId={currentUser.group_id} currentUser={currentUser}>
+          <ModalProvider>{children}</ModalProvider>
+        </ReferenceDataGate>
+      </Suspense>
+    </UserProvider>
+  );
+}
+
+async function ReferenceDataGate({
+  groupId,
+  currentUser,
+  children,
+}: {
+  groupId: string;
+  currentUser: User;
+  children: React.ReactNode;
+}) {
+  type GroupAccounts = Awaited<ReturnType<typeof getAccountsByGroupDeduped>>;
+  type AllCategories = Awaited<ReturnType<typeof getAllCategoriesDeduped>>;
+
+  const [accounts, categories, usedCategoryKeys] = await Promise.all([
+    withTimeout(getAccountsByGroupDeduped(groupId), 1500, [] as GroupAccounts),
+    withTimeout(getAllCategoriesDeduped(), 1200, [] as AllCategories),
+    withTimeout(getUsedCategoryKeysByGroupUseCase(groupId), 1500, [] as string[]),
+  ]);
+
+  const scopedAccounts = AccessScope.for(currentUser).filterShared(accounts || []);
+
+  return (
+    <ReferenceDataInitializer
+      data={{
+        accounts: scopedAccounts,
+        categories: categories || [],
+        usedCategoryKeys: usedCategoryKeys || [],
+      }}
+    >
+      {children}
+    </ReferenceDataInitializer>
   );
 }

@@ -1,43 +1,135 @@
 'use client';
 
-import { Home, UtensilsCrossed, Car, Tag } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { Link } from '@/i18n/routing';
 import { cn } from '@/lib/utils';
-import { stitchReports } from '@/styles/home-design-foundation';
+import { roundMoney } from '@/lib/utils/money';
+import { stitchHome, stitchReports } from '@/styles/home-design-foundation';
+import { getBudgetProgressbarProps } from '@/features/budgets/components/budget-progress-bar';
 import { useFormatCurrency } from '@/features/reports/hooks/use-format-currency';
+import type { ReportsTopExpenseRow } from '@/server/use-cases/reports/report.logic';
 
-export interface TopExpenseRow {
-  id: string;
-  name: string;
-  total: number;
-}
+export type TopExpenseRow = ReportsTopExpenseRow;
+
+/** Named rows on mobile; the rest folds into a remaining summary. Server still returns the full top 8. */
+const RANKING_VISIBLE = 3;
 
 interface TopExpensesRankingProps {
   items: TopExpenseRow[];
+  periodExpenses: number;
+  hrefForCategory?: (categoryKey: string) => string;
 }
 
-function iconForName(name: string) {
-  const n = name.toLowerCase();
-  if (n.includes('housing') || n.includes('casa') || n.includes('affitto')) return Home;
-  if (n.includes('food') || n.includes('cibo') || n.includes('ristor')) return UtensilsCrossed;
-  if (n.includes('transport') || n.includes('trasport') || n.includes('auto')) return Car;
-  return Tag;
+function spendSharePercent(total: number, periodExpenses: number): number {
+  if (periodExpenses <= 0) return 0;
+  return Math.round((total / periodExpenses) * 100);
 }
 
-export function TopExpensesRanking({ items }: TopExpensesRankingProps) {
+function RankingRowBody({
+  row,
+  periodExpenses,
+  formatMoney,
+  percentLabel,
+  showChevron,
+}: {
+  row: TopExpenseRow;
+  periodExpenses: number;
+  formatMoney: (n: number) => string;
+  percentLabel: string;
+  showChevron: boolean;
+}) {
+  const isCredit = row.total < 0;
+  const pct = spendSharePercent(Math.abs(row.total), periodExpenses);
+  const barLabel = percentLabel ? `${row.name}, ${percentLabel}` : row.name;
+
+  return (
+    <>
+      <div className={stitchReports.rankingRowHeader}>
+        <span className="flex min-w-0 items-center gap-2">
+          <span
+            className={cn(
+              'size-2.5 shrink-0 rounded-full',
+              row.key === 'remaining' ? 'bg-muted-foreground' : 'bg-primary'
+            )}
+            style={
+              row.key !== 'remaining' && row.color ? { backgroundColor: row.color } : undefined
+            }
+            aria-hidden
+          />
+          <span
+            className={cn(
+              stitchReports.rankingLabel,
+              'truncate',
+              row.key === 'remaining' && 'text-muted-foreground'
+            )}
+          >
+            {row.name}
+          </span>
+        </span>
+        <span className="flex shrink-0 items-center gap-1">
+          <span
+            className={cn(
+              stitchReports.rankingAmount,
+              isCredit ? stitchHome.amountIncome : 'text-expense'
+            )}
+          >
+            {formatMoney(row.total)}
+          </span>
+          {showChevron ? (
+            <ChevronRight className={stitchReports.rankingChevron} aria-hidden />
+          ) : null}
+        </span>
+      </div>
+      {isCredit ? (
+        <p className={stitchReports.rankingMeta}>{percentLabel}</p>
+      ) : (
+        <>
+          <div
+            className={cn(stitchReports.progressTrack, 'h-2')}
+            {...getBudgetProgressbarProps({ percent: pct, label: barLabel })}
+          >
+            <div
+              className={cn('h-full min-h-2 rounded-full', stitchReports.progressFillPrimary)}
+              style={{ width: `${Math.min(100, pct)}%` }}
+            />
+          </div>
+          <p className={stitchReports.rankingMeta}>{percentLabel}</p>
+        </>
+      )}
+    </>
+  );
+}
+
+export function TopExpensesRanking({
+  items,
+  periodExpenses,
+  hrefForCategory,
+}: TopExpensesRankingProps) {
   const t = useTranslations('Reports.TopExpenses');
   const { format: formatMoney } = useFormatCurrency();
-  const max = items.length ? Math.max(...items.map((i) => i.total), 1) : 1;
-  const fills = [
-    stitchReports.progressFillPrimary,
-    stitchReports.progressFillSecondary,
-    stitchReports.progressFillMuted,
-  ];
+  const outflowTotal = roundMoney(
+    items.filter((row) => row.total > 0).reduce((sum, row) => sum + row.total, 0)
+  );
+  const hasCredits = items.some((row) => row.total < 0);
+  const shareBase = hasCredits && outflowTotal > 0 ? outflowTotal : periodExpenses;
+  const visible = items.slice(0, RANKING_VISIBLE);
+  const foldedItems = items.slice(RANKING_VISIBLE);
+  const folded = roundMoney(foldedItems.reduce((sum, row) => sum + row.total, 0));
+  const leftover = roundMoney(periodExpenses - items.reduce((sum, row) => sum + row.total, 0));
+  const remainingTotal = roundMoney(folded + leftover);
+  const showEmpty = items.length === 0 || periodExpenses <= 0;
+  const showRemaining = !showEmpty && remainingTotal > 0;
+  const remainingCount = items.length - RANKING_VISIBLE;
+  const remainingLabel =
+    remainingCount > 0
+      ? t('remainingCategories', { count: remainingCount })
+      : t('remainingSpending');
 
-  if (items.length === 0) {
+  if (showEmpty) {
     return (
-      <section aria-labelledby="reports-top-expenses-heading">
-        <h3 id="reports-top-expenses-heading" className={cn(stitchReports.sectionTitle, 'mb-3')}>
+      <section aria-labelledby="reports-top-expenses-heading" className={stitchHome.scanSection}>
+        <h3 id="reports-top-expenses-heading" className={stitchHome.scanSectionTitle}>
           {t('title')}
         </h3>
         <div className={stitchReports.emptyWell}>{t('empty')}</div>
@@ -46,34 +138,57 @@ export function TopExpensesRanking({ items }: TopExpensesRankingProps) {
   }
 
   return (
-    <section aria-labelledby="reports-top-expenses-heading">
-      <h3 id="reports-top-expenses-heading" className={cn(stitchReports.sectionTitle, 'mb-3')}>
+    <section aria-labelledby="reports-top-expenses-heading" className={stitchHome.scanSection}>
+      <h3 id="reports-top-expenses-heading" className={stitchHome.scanSectionTitle}>
         {t('title')}
       </h3>
-      <div className={cn(stitchReports.rankingCard, 'space-y-4')}>
-        {items.map((row, idx) => {
-          const Icon = iconForName(row.name);
-          const pct = Math.round((row.total / max) * 100);
+      <div className="flex flex-col">
+        {visible.map((row) => {
+          const href = hrefForCategory?.(row.key);
+          const percent = spendSharePercent(Math.abs(row.total), shareBase);
+          const percentLabel =
+            row.total < 0 ? t('incomeOffset') : t('percentOfExpenses', { percent });
+          const body = (
+            <RankingRowBody
+              row={row}
+              periodExpenses={shareBase}
+              formatMoney={formatMoney}
+              percentLabel={percentLabel}
+              showChevron={Boolean(href)}
+            />
+          );
+          if (href) {
+            return (
+              <Link key={row.id} href={href} className={stitchReports.rankingRowLink}>
+                {body}
+              </Link>
+            );
+          }
           return (
             <div key={row.id} className={stitchReports.rankingRow}>
-              <div className={stitchReports.rankingRowHeader}>
-                <div className="flex min-w-0 items-center gap-2">
-                  <div className={stitchReports.rankingIconWrap}>
-                    <Icon className="h-4 w-4" aria-hidden />
-                  </div>
-                  <span className={cn(stitchReports.rankingLabel, 'truncate')}>{row.name}</span>
-                </div>
-                <span className={stitchReports.rankingAmount}>{formatMoney(row.total)}</span>
-              </div>
-              <div className={stitchReports.progressTrack}>
-                <div
-                  className={cn('h-full min-h-[6px] rounded-full', fills[idx % fills.length])}
-                  style={{ width: `${pct}%` }}
-                />
-              </div>
+              {body}
             </div>
           );
         })}
+        {showRemaining ? (
+          <div className={stitchReports.rankingRow} data-testid="reports-remaining-categories">
+            <RankingRowBody
+              row={{
+                id: 'remaining',
+                key: 'remaining',
+                name: remainingLabel,
+                total: remainingTotal,
+                color: '',
+              }}
+              periodExpenses={shareBase}
+              formatMoney={formatMoney}
+              percentLabel={t('percentOfExpenses', {
+                percent: spendSharePercent(remainingTotal, shareBase),
+              })}
+              showChevron={false}
+            />
+          </div>
+        ) : null}
       </div>
     </section>
   );

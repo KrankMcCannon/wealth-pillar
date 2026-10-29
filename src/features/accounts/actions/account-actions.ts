@@ -1,12 +1,13 @@
 'use server';
 
-import { revalidateAccountRelatedPaths } from '@/lib/cache/revalidation-paths';
 import { getTranslations } from 'next-intl/server';
+import { runAuthorizedMutation } from '@/lib/server-action/run-authorized-mutation';
 import { getCurrentUser } from '@/lib/auth/cached-auth';
 import {
   createAccountUseCase,
   updateAccountUseCase,
   deleteAccountUseCase,
+  recalculateAccountBalanceUseCase,
   getAccountByIdUseCase,
   type CreateAccountInput,
   type UpdateAccountInput,
@@ -14,7 +15,9 @@ import {
 import { setUserDefaultAccountUseCase } from '@/server/use-cases/users/user.use-cases';
 import type { ServiceResult } from '@/lib/types/service-result';
 import { Account, User } from '@/lib/types';
-import { canAccessUserData } from '@/lib/utils/permissions';
+import { AccessScope } from '@/lib/permissions/access-scope';
+import { defaultAccountUserId } from '@/features/accounts/utils/default-account-id';
+import { FinancialResourcePolicy } from '@/server/permissions/financial-resource-policy';
 
 export type { ServiceResult } from '@/lib/types/service-result';
 
@@ -41,25 +44,18 @@ export async function createAccountAction(
       return { data: null, error: t('errors.unauthenticated') };
     }
 
-    for (const userId of input.user_ids) {
-      if (!canAccessUserData(currentUser as unknown as User, userId)) {
-        return { data: null, error: t('errors.noPermissionCreate') };
-      }
-    }
-
     if (!input.name?.trim()) return { data: null, error: t('errors.nameRequired') };
     if (!input.type) return { data: null, error: t('errors.typeRequired') };
     if (!input.group_id) return { data: null, error: t('errors.groupRequired') };
     if (!input.user_ids?.length) return { data: null, error: t('errors.userRequired') };
 
-    const account = await createAccountUseCase(input);
+    const policy = new FinancialResourcePolicy(currentUser as unknown as User);
+    policy.assertGroup(input.group_id);
+    await policy.assertUsers(input.user_ids);
+    const account = await createAccountUseCase({ ...input, group_id: policy.groupId });
 
-    if (isDefault && input.user_ids.length === 1) {
-      const uid = input.user_ids[0];
-      if (uid) await setUserDefaultAccountUseCase(uid, account.id);
-    }
-
-    revalidateAccountRelatedPaths();
+    const defaultUserId = defaultAccountUserId(isDefault, input.user_ids, currentUser.id);
+    if (defaultUserId) await setUserDefaultAccountUseCase(defaultUserId, account.id);
 
     return { data: account, error: null };
   } catch (error) {
@@ -96,23 +92,34 @@ export async function updateAccountAction(
       return { data: null, error: t('errors.noPermissionUpdate') };
     }
 
+    const scope = AccessScope.for(currentUser as unknown as User);
+    if (!scope.canViewShared(existingAccount)) {
+      return { data: null, error: t('errors.noPermissionUpdate') };
+    }
+
+    if (input.user_ids) {
+      for (const userId of input.user_ids) {
+        if (!scope.canViewUser(userId)) {
+          return { data: null, error: t('errors.noPermissionUpdate') };
+        }
+      }
+    }
+
     if (input.name !== undefined && input.name.trim() === '')
       return { data: null, error: t('errors.nameEmpty') };
     if (input.user_ids?.length === 0) return { data: null, error: t('errors.userRequired') };
 
+    const policy = new FinancialResourcePolicy(currentUser as unknown as User);
+    if ('group_id' in input) policy.assertGroup(input.group_id);
+    if (input.user_ids) await policy.assertUsers(input.user_ids);
     const account = await updateAccountUseCase(accountId, input);
 
-    if (
-      input.user_ids?.length === 1 ||
-      (!input.user_ids && existingAccount.user_ids.length === 1)
-    ) {
-      const userId = input.user_ids?.[0] ?? existingAccount.user_ids[0];
-      if (userId != null && isDefault) {
-        await setUserDefaultAccountUseCase(userId, accountId);
-      }
-    }
-
-    revalidateAccountRelatedPaths();
+    const defaultUserId = defaultAccountUserId(
+      isDefault,
+      input.user_ids ?? existingAccount.user_ids,
+      currentUser.id
+    );
+    if (defaultUserId) await setUserDefaultAccountUseCase(defaultUserId, accountId);
 
     return { data: account, error: null };
   } catch (error) {
@@ -133,32 +140,49 @@ export async function deleteAccountAction(
   accountId: string,
   locale?: string
 ): Promise<ServiceResult<boolean>> {
-  let t: Awaited<ReturnType<typeof getTranslations>> | null = null;
-  try {
-    t = await getAccountsActionTranslator(locale);
-    const currentUser = await getCurrentUser();
-    if (!currentUser) {
-      return { data: null, error: t('errors.unauthenticated') };
-    }
+  const t = await getAccountsActionTranslator(locale);
+  return runAuthorizedMutation({
+    unauthenticatedError: t('errors.unauthenticated'),
+    authorize: async (currentUser) => {
+      const existingAccount = await getAccountByIdUseCase(accountId);
+      if (currentUser.group_id !== existingAccount.group_id) {
+        return { data: null, error: t('errors.noPermissionDelete') };
+      }
+      if (!AccessScope.for(currentUser).canViewShared(existingAccount)) {
+        return { data: null, error: t('errors.noPermissionDelete') };
+      }
+      return null;
+    },
+    mutate: async () => {
+      await deleteAccountUseCase(accountId);
+      return true;
+    },
+    formatError: (error) => (error instanceof Error ? error.message : t('errors.deleteFailed')),
+  });
+}
 
-    const existingAccount = await getAccountByIdUseCase(accountId);
-
-    if (currentUser.group_id !== existingAccount.group_id) {
-      return { data: null, error: t('errors.noPermissionDelete') };
-    }
-
-    await deleteAccountUseCase(accountId);
-
-    revalidateAccountRelatedPaths();
-
-    return { data: true, error: null };
-  } catch (error) {
-    return {
-      data: null,
-      error:
-        error instanceof Error
-          ? error.message
-          : (t?.('errors.deleteFailed') ?? 'Failed to delete account'),
-    };
-  }
+/**
+ * Rebuilds the stored account balance from all related transactions.
+ */
+export async function recalculateAccountBalanceAction(
+  accountId: string,
+  locale?: string
+): Promise<ServiceResult<Account>> {
+  const t = await getAccountsActionTranslator(locale);
+  return runAuthorizedMutation({
+    unauthenticatedError: t('errors.unauthenticated'),
+    authorize: async (currentUser) => {
+      const existingAccount = await getAccountByIdUseCase(accountId);
+      if (currentUser.group_id !== existingAccount.group_id) {
+        return { data: null, error: t('errors.noPermissionUpdate') };
+      }
+      if (!AccessScope.for(currentUser).canViewShared(existingAccount)) {
+        return { data: null, error: t('errors.noPermissionUpdate') };
+      }
+      return null;
+    },
+    mutate: async () => recalculateAccountBalanceUseCase(accountId),
+    formatError: (error) =>
+      error instanceof Error ? error.message : t('errors.recalculateFailed'),
+  });
 }

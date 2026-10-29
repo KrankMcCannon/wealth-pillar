@@ -24,6 +24,7 @@ import {
   Zap,
 } from 'lucide-react';
 import type { Category } from '@/lib/types';
+import { iconMapping } from '@/lib/icons';
 import { findCategory } from '@/server/use-cases/categories/category.logic';
 
 const KEY_MAP: Record<string, LucideIcon> = {
@@ -41,6 +42,7 @@ const KEY_MAP: Record<string, LucideIcon> = {
   spesa: ShoppingCart,
   food: ShoppingCart,
   supermercato: ShoppingCart,
+  cibo: UtensilsCrossed,
   salute: HeartPulse,
   health: HeartPulse,
   medicina: HeartPulse,
@@ -84,24 +86,34 @@ const KEY_MAP: Record<string, LucideIcon> = {
 };
 
 function normalizeKey(key: string): string {
-  return key.trim().toLowerCase();
+  return key.trim().toLowerCase().replaceAll(' ', '_');
+}
+
+function iconFromCanonicalMap(key: string): LucideIcon | undefined {
+  if (!key) return undefined;
+  const Icon = iconMapping[normalizeKey(key)];
+  return Icon as LucideIcon | undefined;
 }
 
 /**
- * Icona Lucide per la categoria del budget (chiave / label), fallback su cerchio.
+ * Icona Lucide per la categoria del budget (chiave / label).
+ * Preferisce `iconMapping` (stesse chiavi delle categorie di sistema).
  */
 export function getBudgetCategoryLucideIcon(
   categoryIdentifier: string,
   categories: Category[]
 ): LucideIcon {
   const cat = findCategory(categories, categoryIdentifier);
-  const rawKey = cat?.key ?? categoryIdentifier;
-  const nk = normalizeKey(rawKey);
-  if (KEY_MAP[nk]) {
-    return KEY_MAP[nk];
-  }
+  const mapped =
+    iconFromCanonicalMap(cat?.key ?? '') ??
+    iconFromCanonicalMap(cat?.icon ?? '') ??
+    iconFromCanonicalMap(categoryIdentifier);
+  if (mapped) return mapped;
 
-  const label = (cat?.label ?? '').toLowerCase();
+  const nk = normalizeKey(cat?.key ?? categoryIdentifier);
+  if (KEY_MAP[nk]) return KEY_MAP[nk];
+
+  const label = (cat?.label ?? categoryIdentifier).toLowerCase();
   if (label.includes('casa') || label.includes('affitto') || label.includes('mutuo')) return Home;
   if (
     label.includes('trasport') ||
@@ -110,6 +122,15 @@ export function getBudgetCategoryLucideIcon(
     label.includes('carburante')
   ) {
     return Car;
+  }
+  if (label.includes('parrucch') || label.includes('hair') || label.includes('taglio')) {
+    return iconFromCanonicalMap('parrucchiere') ?? KEY_MAP.svago ?? Sparkles;
+  }
+  if (label.includes('asporto') || label.includes('takeaway') || label.includes('take-away')) {
+    return iconFromCanonicalMap('cibo_asporto') ?? UtensilsCrossed;
+  }
+  if (label.includes('cibo') || label.includes('fuori') || label.includes('ristor')) {
+    return iconFromCanonicalMap('cibo_fuori') ?? UtensilsCrossed;
   }
   if (
     label.includes('aliment') ||
@@ -135,9 +156,6 @@ export function getBudgetCategoryLucideIcon(
   }
   if (label.includes('finanz') || label.includes('banca') || label.includes('invest')) {
     return Landmark;
-  }
-  if (label.includes('ristor') || label.includes('bar ') || label.includes('takeaway')) {
-    return UtensilsCrossed;
   }
   if (label.includes('viagg') || label.includes('vacanz')) return Plane;
   if (label.includes('vestit') || label.includes('abbigliamento')) return Shirt;

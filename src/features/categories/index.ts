@@ -25,3 +25,4 @@ export {
 } from './actions/category-actions';
 
 export { default as CategoryFormModal } from './components/category-form-modal';
+export { isSystemCategory } from './utils/category-helpers';

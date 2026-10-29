@@ -4,13 +4,14 @@ import { useCallback, useMemo, useState } from 'react';
 import { addMonths, format, isValid, startOfYear, subMonths } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { calendarDrawerStyles } from '@/lib/styles/calendar-drawer.styles';
-import { MonthGrid, MonthHeader, QuickPresets, WeekdayLabels } from './primitives/date-drawer';
+import { MonthGrid, MonthHeader, WeekdayLabels } from './primitives/date-drawer';
 
 export interface CalendarPanelProps {
   value: string;
   onChange: (date: string) => void;
   onClose: () => void;
   className?: string | undefined;
+  compact?: boolean | undefined;
 }
 
 export function CalendarPanel({
@@ -18,6 +19,7 @@ export function CalendarPanel({
   onChange,
   onClose,
   className,
+  compact = false,
 }: Readonly<CalendarPanelProps>) {
   const selectedDate = useMemo(
     () => (value && isValid(new Date(value)) ? new Date(value) : undefined),
@@ -46,29 +48,27 @@ export function CalendarPanel({
     [onChange, onClose]
   );
 
-  const handlePresetSelect = useCallback(
-    (date: Date) => {
-      setCurrentMonth(date);
-      handleDateSelect(date);
-    },
-    [handleDateSelect]
-  );
-
   return (
-    <div className={cn(calendarDrawerStyles.panel.container, className)}>
+    <div
+      className={cn(
+        compact ? 'flex min-h-0 flex-none flex-col' : calendarDrawerStyles.panel.container,
+        className
+      )}
+    >
       <MonthHeader
         currentMonth={currentMonth}
         onPrevious={handlePrevious}
         onNext={handleNext}
         onMonthChange={handleMonthYearChange}
+        {...(compact ? { className: 'px-3 py-2' } : {})}
       />
-      <WeekdayLabels highlightWeekends />
+      <WeekdayLabels highlightWeekends {...(compact ? { className: 'px-3' } : {})} />
       <MonthGrid
         currentMonth={currentMonth}
         selectedDate={selectedDate}
         onDateSelect={handleDateSelect}
+        {...(compact ? { className: 'px-3 pb-3' } : {})}
       />
-      <QuickPresets selectedDate={selectedDate} onSelect={handlePresetSelect} />
     </div>
   );
 }

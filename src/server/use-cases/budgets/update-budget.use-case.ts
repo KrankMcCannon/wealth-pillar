@@ -1,3 +1,4 @@
+import { after } from 'next/server';
 import { BudgetsRepository, type UpdateBudget } from '@/server/repositories/budgets.repository';
 import type { UpdateBudgetInput } from './types';
 import type { Budget } from '@/lib/types';
@@ -42,15 +43,16 @@ export async function updateBudgetUseCase(id: string, data: UpdateBudgetInput): 
 
   const updatedBudget = await BudgetsRepository.update(id, updateData);
 
-  invalidateBudgetCaches({
-    budgetId: id,
-    userId: existing.user_id,
-    groupId: existing.group_id || undefined,
+  after(() => {
+    invalidateBudgetCaches({
+      budgetId: id,
+      userId: existing.user_id,
+      groupId: existing.group_id || undefined,
+    });
+    if (data.user_id && data.user_id !== existing.user_id) {
+      invalidateBudgetCaches({ userId: data.user_id });
+    }
   });
-
-  if (data.user_id && data.user_id !== existing.user_id) {
-    invalidateBudgetCaches({ userId: data.user_id });
-  }
 
   return updatedBudget;
 }

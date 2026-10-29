@@ -1,85 +1,77 @@
 'use client';
 
-import { useMemo } from 'react';
 import { Link } from '@/i18n/routing';
 import { useLocale, useTranslations } from 'next-intl';
-import { CategoryBadge } from '@/components/ui';
-import { SectionHeader } from '@/components/layout';
-import { HomeSectionCard, MoneyText } from '@/components/home';
-import { EmptyState } from '@/components/shared';
+import { Amount } from '@/components/ui/primitives/amount';
+import { PlainListRow } from '@/components/ui/layout/plain-list-row';
 import { formatDateSmart, toDateTime } from '@/lib/utils/date-utils';
+import { withReturnTo } from '@/lib/navigation/return-to';
 import type { Transaction, Category } from '@/lib/types';
 import { stitchHome } from '@/styles/home-design-foundation';
+import { cn } from '@/lib/utils';
 
 interface RecentActivitySectionProps {
   transactions: Transaction[];
   categories: Category[];
+  onEditTransaction: (transaction: Transaction) => void;
 }
 
-export function RecentActivitySection({ transactions, categories }: RecentActivitySectionProps) {
+export function RecentActivitySection({
+  transactions,
+  onEditTransaction,
+}: RecentActivitySectionProps) {
   const t = useTranslations('HomeContent');
   const locale = useLocale();
 
-  const categoryByKey = useMemo(() => {
-    const map = new Map<string, Category>();
-    for (const c of categories) {
-      map.set(c.key, c);
-    }
-    return map;
-  }, [categories]);
-
   return (
-    <HomeSectionCard aria-label={t('recentActivityTitle')}>
-      <SectionHeader
-        title={t('recentActivityTitle')}
-        actions={
-          transactions.length > 0 ? (
-            <Link
-              href="/transactions"
-              className="text-xs font-semibold text-[#8fb0ff] hover:underline"
-            >
-              {t('recentActivityViewAll')}
-            </Link>
-          ) : undefined
-        }
-        className="pb-1"
-        titleClassName={stitchHome.sectionHeaderTitle}
-        subtitleClassName={stitchHome.sectionHeaderSubtitle}
-      />
+    <section aria-labelledby="home-recent-heading" className={stitchHome.scanSection}>
+      <div className={stitchHome.scanSectionHeader}>
+        <h2 id="home-recent-heading" className={stitchHome.scanSectionTitle}>
+          {t('recentActivityTitle')}
+        </h2>
+        <Link
+          href={withReturnTo('/transactions', '/home')}
+          className={cn(stitchHome.viewAllLink, 'min-w-0')}
+        >
+          {t('recentActivityViewAll')}
+        </Link>
+      </div>
 
       {transactions.length === 0 ? (
-        <EmptyState variant="dashboard" title={t('recentActivityEmpty')} />
+        <p className="text-sm text-muted-foreground">{t('recentActivityEmpty')}</p>
       ) : (
-        <div className="flex flex-col gap-2">
+        <ul className={stitchHome.plainList}>
           {transactions.map((tx) => {
-            const cat = categoryByKey.get(tx.category);
             const txDate = toDateTime(tx.date);
             const dateLabel = txDate?.isValid
               ? formatDateSmart(txDate.toISODate() || '', locale)
-              : null;
-            const timeLabel = txDate?.isValid ? txDate.setLocale(locale).toFormat('HH:mm') : null;
-            const meta = [cat?.label ?? tx.category, dateLabel, timeLabel]
-              .filter(Boolean)
-              .join(' • ');
+              : undefined;
             return (
-              <Link key={tx.id} href="/transactions" className={stitchHome.listRowInteractive}>
-                <div className="flex min-w-0 items-center gap-3">
-                  <CategoryBadge categoryKey={tx.category} color={cat?.color ?? ''} size="md" />
-                  <div className="min-w-0">
-                    <p className={stitchHome.rowTitle}>{tx.description}</p>
-                    <p className={stitchHome.rowMeta}>{meta}</p>
-                  </div>
-                </div>
-                <MoneyText
-                  value={tx.type === 'income' ? Math.abs(tx.amount) : -Math.abs(tx.amount)}
-                  variant={tx.type === 'income' ? 'home-income' : 'home-expense'}
-                  signed
-                />
-              </Link>
+              <li key={tx.id}>
+                <PlainListRow
+                  title={tx.description}
+                  {...(dateLabel ? { meta: dateLabel } : {})}
+                  onClick={() => onEditTransaction(tx)}
+                >
+                  <Amount
+                    type={
+                      tx.type === 'income'
+                        ? 'income'
+                        : tx.type === 'expense'
+                          ? 'expense'
+                          : 'neutral'
+                    }
+                    size="md"
+                    emphasis="strong"
+                  >
+                    {tx.type === 'expense' ? -Math.abs(tx.amount) : Math.abs(tx.amount)}
+                  </Amount>
+                </PlainListRow>
+              </li>
             );
           })}
-        </div>
+        </ul>
       )}
-    </HomeSectionCard>
+    </section>
   );
 }

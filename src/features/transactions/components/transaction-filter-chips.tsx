@@ -9,14 +9,20 @@ import type {
   TransactionFiltersState,
   TransactionTypeFilter,
 } from '@/server/use-cases/transactions/transaction.logic';
-import { Input } from '@/components/ui';
-import { FilterChip, FilterChipRow, FilterDrawer } from '@/components/ui/filters';
+import { Input, Skeleton } from '@/components/ui';
+import { FilterChip, FilterDrawer } from '@/components/ui/filters';
 import { cn } from '@/lib/utils';
 import { stitchTransactionPageSearch, stitchTransactions } from '@/styles/home-design-foundation';
+import { transactionStyles } from '@/features/transactions/theme/transaction-styles';
+import { getAdvancedFiltersCount } from './filters/filter-helpers';
+import { UserFilterChipRow } from './user-filter-chip-row';
 
 const TransactionFiltersLazy = dynamic(
   () => import('./transaction-filters').then((mod) => mod.TransactionFilters),
-  { ssr: false, loading: () => <div className="p-6 text-center text-sm text-[#9fb0d7]">…</div> }
+  {
+    ssr: false,
+    loading: () => <Skeleton className="h-10 w-full rounded-2xl bg-muted/60" aria-hidden />,
+  }
 );
 
 export interface TransactionFilterChipsProps {
@@ -48,7 +54,6 @@ export function TransactionFilterChips({
 }: TransactionFilterChipsProps) {
   const t = useTranslations('Transactions.Filters');
   const tChips = useTranslations('Transactions.Filters.FilterChips');
-  const tUsers = useTranslations('UserSelector');
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
 
@@ -70,11 +75,16 @@ export function TransactionFilterChips({
     onFiltersChange({ ...filters, searchQuery: '' });
   }, [filters, onFiltersChange]);
 
-  const types: { key: TransactionTypeFilter; labelKey: 'all' | 'income' | 'expense' }[] = [
+  const types: {
+    key: TransactionTypeFilter;
+    labelKey: 'all' | 'income' | 'expense' | 'transfer';
+  }[] = [
     { key: 'all', labelKey: 'all' },
     { key: 'income', labelKey: 'income' },
     { key: 'expense', labelKey: 'expense' },
+    { key: 'transfer', labelKey: 'transfer' },
   ];
+  const advancedCount = getAdvancedFiltersCount(filters);
   const showUserChips =
     (currentUser?.role === 'admin' || currentUser?.role === 'superadmin') &&
     (groupUsers?.length ?? 0) > 1 &&
@@ -119,57 +129,56 @@ export function TransactionFilterChips({
       </div>
 
       {showUserChips ? (
-        <div className={cn(stitchTransactions.chipRowUserWrap, '-mx-4 px-4')}>
-          <div
-            className={stitchTransactions.chipRowUserScroll}
-            role="toolbar"
-            aria-label={tChips('userToolbarAria')}
-          >
-            <FilterChip
-              label={tUsers('all')}
-              active={(selectedUserId ?? 'all') === 'all'}
-              onClick={() => onUserFilterChange?.('all')}
-              className={stitchTransactions.chipSnapItem}
-            />
-            {groupUsers?.map((user) => (
-              <FilterChip
-                key={user.id}
-                label={user.name ?? 'User'}
-                active={selectedUserId === user.id}
-                onClick={() => onUserFilterChange?.(user.id)}
-                className={stitchTransactions.chipSnapItem}
-              />
-            ))}
-          </div>
-          <p className={stitchTransactions.chipScrollHint}>{tChips('userChipsScrollHint')}</p>
-        </div>
+        <UserFilterChipRow
+          groupUsers={groupUsers ?? []}
+          selectedUserId={selectedUserId}
+          onUserFilterChange={onUserFilterChange}
+        />
       ) : null}
 
-      <FilterChipRow aria-label={tChips('toolbarAria')}>
+      <div
+        className={cn(stitchTransactions.chipRow, 'flex-wrap')}
+        role="toolbar"
+        aria-label={tChips('toolbarAria')}
+      >
         {types.map(({ key, labelKey }) => (
           <FilterChip
             key={key}
             label={t(`typeOptions.${labelKey}`)}
             active={filters.type === key}
             onClick={() => setType(key)}
+            className={stitchTransactions.chipSnapItem}
           />
         ))}
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
           onClick={() => setAdvancedOpen(true)}
-          className={cn(stitchTransactions.chipBase, stitchTransactions.chipInactive)}
+          className={cn(
+            stitchTransactions.chipBase,
+            'inline-flex items-center gap-1.5',
+            advancedCount > 0 ? stitchTransactions.chipActive : stitchTransactions.chipInactive
+          )}
+          aria-pressed={advancedCount > 0}
+          aria-label={
+            advancedCount > 0
+              ? tChips('filtersActiveAria', { count: advancedCount })
+              : tChips('filters')
+          }
         >
           <SlidersHorizontal className={stitchTransactions.filtersChipIcon} aria-hidden />
           {tChips('filters')}
         </button>
-      </FilterChipRow>
+      </div>
 
       <FilterDrawer
         open={advancedOpen}
         onOpenChange={setAdvancedOpen}
         title={tChips('drawerTitle')}
       >
-        <div className="overflow-y-auto px-2 pb-4">
+        <div className={transactionStyles.filters.drawer.body}>
           <TransactionFiltersLazy
             filters={filters}
             onFiltersChange={onFiltersChange}

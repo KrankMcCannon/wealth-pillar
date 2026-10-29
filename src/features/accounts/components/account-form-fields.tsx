@@ -1,27 +1,30 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import type { UseFormReturn } from 'react-hook-form';
 import { useTranslations } from 'next-intl';
-import { Landmark } from 'lucide-react';
-import type { Account, User } from '@/lib/types';
-import { cn } from '@/lib/utils';
-import { FormSelect } from '@/components/form';
-import { UserField } from '@/components/ui/fields';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui';
-import { stitchTransactionFormModal } from '@/styles/home-design-foundation';
+import type { User, AccountLiquidity, AccountType } from '@/lib/types';
+import { defaultLiquidityForType } from '@/lib/utils/account-classification';
+import {
+  ModalCheckboxField,
+  ModalMultiSelectField,
+  ModalRadioField,
+  ModalTextField,
+  formModalStyles as s,
+} from '@/components/form';
 
 export type AccountFormData = {
   name: string;
-  type: 'payroll' | 'cash' | 'investments' | 'savings';
-  user_id: string;
-  isDefault?: boolean | undefined;
+  type: AccountType;
+  liquidity: AccountLiquidity;
+  user_ids: string[];
+  isDefault: boolean;
 };
 
 interface AccountFormFieldsProps {
   form: UseFormReturn<AccountFormData>;
   groupUsers: User[];
+  currentUserId: string;
   shouldDisableUserField: boolean;
   isSubmitting: boolean;
 }
@@ -29,82 +32,95 @@ interface AccountFormFieldsProps {
 export function AccountFormFields({
   form,
   groupUsers,
+  currentUserId,
   shouldDisableUserField,
   isSubmitting,
 }: AccountFormFieldsProps) {
   const t = useTranslations('Accounts.FormModal');
-  const s = stitchTransactionFormModal;
-  const {
-    register,
-    setValue,
-    watch,
-    formState: { errors },
-  } = form;
+  const { control, setValue, watch } = form;
 
-  const watchedUserId = watch('user_id');
-  const watchedIsDefault = watch('isDefault');
   const watchedType = watch('type');
 
+  const prevTypeRef = useRef(watchedType);
+  useEffect(() => {
+    if (prevTypeRef.current !== watchedType) {
+      setValue('liquidity', defaultLiquidityForType(watchedType));
+      prevTypeRef.current = watchedType;
+    }
+  }, [watchedType, setValue]);
+
   const accountTypes = [
-    { value: 'payroll', label: t('accountTypes.payroll') },
-    { value: 'cash', label: t('accountTypes.cash') },
-    { value: 'investments', label: t('accountTypes.investments') },
-    { value: 'savings', label: t('accountTypes.savings') },
-  ];
+    {
+      value: 'payroll',
+      label: t('accountTypes.payroll'),
+      description: t('fields.type.descriptions.payroll'),
+    },
+    {
+      value: 'cash',
+      label: t('accountTypes.cash'),
+      description: t('fields.type.descriptions.cash'),
+    },
+    {
+      value: 'investments',
+      label: t('accountTypes.investments'),
+      description: t('fields.type.descriptions.investments'),
+    },
+    {
+      value: 'savings',
+      label: t('accountTypes.savings'),
+      description: t('fields.type.descriptions.savings'),
+    },
+  ] as const;
+
+  const liquidityOptions = [
+    { value: 'spendable', label: t('fields.liquidity.spendable') },
+    { value: 'reserve', label: t('fields.liquidity.reserve') },
+  ] as const;
 
   return (
     <div className={s.fieldStack}>
-      <div className={s.noteShell}>
-        <label htmlFor="account-name" className={s.noteLabel}>
-          {t('fields.name.label')}
-        </label>
-        <Input
-          id="account-name"
-          {...register('name')}
-          placeholder={t('fields.name.placeholder')}
-          disabled={isSubmitting}
-          className={s.noteInput}
-          autoComplete="off"
-        />
-        {errors.name ? <p className={cn(s.fieldError, 'mt-2')}>{errors.name.message}</p> : null}
-      </div>
-
-      <div className="space-y-1">
-        <FormSelect
-          value={watchedType}
-          onValueChange={(val) => setValue('type', val as Account['type'])}
-          options={accountTypes}
-          placeholder={t('fields.type.placeholder')}
-          disabled={isSubmitting}
-          captionLabel={t('fields.type.label')}
-          leadingIcon={<Landmark className="h-5 w-5 text-[#b8c5ff]" aria-hidden />}
-        />
-        {errors.type?.message ? <p className={s.fieldError}>{errors.type.message}</p> : null}
-      </div>
-
-      <UserField
-        value={watchedUserId}
-        onChange={(val) => setValue('user_id', val)}
-        error={errors.user_id?.message}
-        users={groupUsers}
-        label={t('fields.owner.label')}
-        placeholder={t('fields.owner.placeholder')}
-        disabled={shouldDisableUserField || isSubmitting}
-        helperText={shouldDisableUserField ? t('fields.owner.memberHelper') : undefined}
-        required
+      <ModalTextField
+        control={control}
+        name="name"
+        label={t('fields.name.label')}
+        placeholder={t('fields.name.placeholder')}
+        disabled={isSubmitting}
       />
 
-      <div className={cn(s.noteShell, 'flex flex-row items-center gap-3 py-3')}>
-        <Checkbox
-          id="isDefault"
-          checked={watchedIsDefault ?? false}
-          onCheckedChange={(checked) => setValue('isDefault', checked as boolean)}
-          disabled={isSubmitting}
-        />
-        <Label htmlFor="isDefault" className="text-sm font-medium leading-snug text-[#e6ecff]">
-          {t('fields.isDefault')}
-        </Label>
-      </div>
+      <ModalRadioField
+        control={control}
+        name="type"
+        label={t('fields.type.label')}
+        options={accountTypes}
+        variant="cards"
+        disabled={isSubmitting}
+      />
+
+      <ModalRadioField
+        control={control}
+        name="liquidity"
+        label={t('fields.liquidity.label')}
+        options={liquidityOptions}
+        disabled={isSubmitting}
+      />
+
+      <ModalMultiSelectField
+        control={control}
+        name="user_ids"
+        label={t('fields.owner.label')}
+        options={groupUsers.map((u) => ({ value: u.id, label: u.name ?? '' }))}
+        shape="rows"
+        users={groupUsers}
+        currentUserId={currentUserId}
+        disabled={shouldDisableUserField || isSubmitting}
+      />
+
+      <ModalCheckboxField
+        control={control}
+        name="isDefault"
+        label={t('fields.isDefault')}
+        disabled={isSubmitting}
+      />
     </div>
   );
 }

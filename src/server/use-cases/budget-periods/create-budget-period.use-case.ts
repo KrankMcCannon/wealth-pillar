@@ -1,11 +1,19 @@
-import type { BudgetPeriod, BudgetPeriodJSON } from '@/lib/types';
-import type { Json } from '@/lib/types/database.types';
-import { parseBudgetPeriodsFromJson } from '@/lib/utils/budget-period-json';
-import { toDateTime, todayDateString } from '@/lib/utils/date-utils';
+import type { Account, Budget, BudgetPeriod, Transaction } from '@/lib/types';
+import { toDateTime } from '@/lib/utils/date-utils';
+import { withBudgetPeriodTransaction } from './budget-period-transaction';
+import type { DbExecutor } from '@/server/repositories/db-executor';
 import { UsersRepository } from '@/server/repositories/users.repository';
+import { BudgetPeriodsRepository } from '@/server/repositories/budget-periods.repository';
 import { invalidateBudgetPeriodCaches } from '@/lib/utils/cache-utils';
-import { jsonToBudgetPeriod } from './get-budget-periods-by-user.use-case';
 import { DateTime } from 'luxon';
+import {
+  computePeriodLiquidityAmounts,
+  periodToDateWindow,
+  snapshotFieldsFromAmounts,
+} from './period-amounts.logic';
+import { loadPeriodLiquidityData } from './load-period-liquidity-data';
+import { getBudgetsByUserUseCase } from '../budgets/get-budgets.use-case';
+import { categoryKeysFromBudgets, toBudgetsSnapshot } from './period-budgets.logic';
 
 const validateNewPeriod = (userId: string, startDate: string | Date): DateTime => {
   if (!userId) throw new Error('User ID is required');
@@ -14,34 +22,51 @@ const validateNewPeriod = (userId: string, startDate: string | Date): DateTime =
   const startDt = toDateTime(startDate);
   if (!startDt) throw new Error('Invalid start date format');
 
-  return startDt;
+  const today = DateTime.now().startOf('day');
+
+  if (startDt.startOf('day') > today) {
+    throw new Error('Budget period cannot start in the future');
+  }
+
+  return startDt.startOf('day');
 };
 
-const prepareNewPeriodList = (
-  currentPeriods: BudgetPeriodJSON[],
-  startDt: DateTime
-): { updatedPeriods: BudgetPeriodJSON[]; newPeriod: BudgetPeriodJSON } => {
-  const dayBeforeStart = startDt.minus({ days: 1 }).toISODate() as string;
-
-  const updatedPeriods = currentPeriods.map((p) => ({
-    ...p,
+async function snapshotAndDeactivateActive(
+  active: BudgetPeriod,
+  endDate: string,
+  transactions: Transaction[],
+  accounts: Account[],
+  budgets: Budget[],
+  executor: DbExecutor
+): Promise<void> {
+  const closedPeriod: BudgetPeriod = {
+    ...active,
+    end_date: endDate,
     is_active: false,
-    end_date: p.is_active && !p.end_date ? dayBeforeStart : p.end_date,
-  }));
-
-  const newPeriod: BudgetPeriodJSON = {
-    id: crypto.randomUUID(),
-    start_date: startDt.toISODate() as string,
-    end_date: null,
-    is_active: true,
-    created_at: todayDateString(),
-    updated_at: todayDateString(),
   };
 
-  updatedPeriods.push(newPeriod);
+  const window = periodToDateWindow(closedPeriod);
 
-  return { updatedPeriods, newPeriod };
-};
+  const amounts = computePeriodLiquidityAmounts(
+    transactions,
+    accounts,
+    window,
+    active.user_id,
+    categoryKeysFromBudgets(budgets),
+    budgets
+  );
+
+  await BudgetPeriodsRepository.update(
+    active.id,
+    {
+      is_active: false,
+      end_date: endDate,
+      ...snapshotFieldsFromAmounts(amounts),
+      budgets_snapshot: toBudgetsSnapshot(budgets),
+    },
+    executor
+  );
+}
 
 export const createBudgetPeriodUseCase = async (
   userId: string,
@@ -50,16 +75,63 @@ export const createBudgetPeriodUseCase = async (
   const startDt = validateNewPeriod(userId, startDate);
 
   const user = await UsersRepository.findById(userId);
+
   if (!user) throw new Error('User not found');
+  if (!user.group_id) throw new Error('User has no group');
 
-  const periods = parseBudgetPeriodsFromJson(user.budget_periods as Json);
-  const { updatedPeriods, newPeriod } = prepareNewPeriodList(periods, startDt);
+  const budgets = await getBudgetsByUserUseCase(userId);
 
-  await UsersRepository.update(userId, {
-    budget_periods: updatedPeriods as unknown as Json,
+  const newPeriod = await withBudgetPeriodTransaction(userId, async (tx) => {
+    const active = await BudgetPeriodsRepository.findActiveByUser(userId, tx);
+
+    if (active) {
+      const activeStart = toDateTime(active.start_date);
+
+      if (!activeStart) {
+        throw new Error('Current budget period has an invalid start date');
+      }
+
+      if (startDt <= activeStart.startOf('day')) {
+        throw new Error('New budget period must start after the current period');
+      }
+
+      const dayBeforeStart = startDt.minus({ days: 1 }).toISODate();
+
+      if (!dayBeforeStart) {
+        throw new Error('Invalid budget period closing date');
+      }
+
+      const { transactions, accounts } = await loadPeriodLiquidityData(
+        user.group_id,
+        userId,
+        periodToDateWindow({ ...active, end_date: dayBeforeStart }),
+        tx
+      );
+      await snapshotAndDeactivateActive(
+        active,
+        dayBeforeStart,
+        transactions,
+        accounts,
+        budgets,
+        tx
+      );
+    }
+
+    return BudgetPeriodsRepository.create(
+      {
+        user_id: userId,
+        group_id: user.group_id,
+        start_date: startDt.toISODate() as string,
+        end_date: null,
+        is_active: true,
+        created_at: new Date(),
+        updated_at: new Date(),
+      },
+      tx
+    );
   });
 
   invalidateBudgetPeriodCaches({ userId });
 
-  return jsonToBudgetPeriod(newPeriod, userId);
+  return newPeriod;
 };

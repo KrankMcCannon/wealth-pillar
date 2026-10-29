@@ -1,27 +1,43 @@
 'use client';
 
-import { useEffect, useMemo, useCallback, useRef, useState } from 'react';
-import { useWatch, type UseFormReturn, type UseFormSetError } from 'react-hook-form';
+import { useEffect, useMemo, useCallback, useRef } from 'react';
+import { useWatch, type UseFormReturn } from 'react-hook-form';
 import { z } from 'zod';
 import { useTranslations } from 'next-intl';
-import { useTransactionSubmit } from '../hooks/use-transaction-submit';
-import { EntityFormModal, EntityFormFooter } from '@/components/form';
 import {
-  usePermissions,
-  useRequiredCurrentUser,
-  useRequiredGroupUsers,
-  useRequiredGroupId,
-  useToast,
-} from '@/hooks';
-import { useAccounts, useCategories } from '@/stores/reference-data-store';
-import { useUserFilter } from '@/hooks/state/use-user-filter';
+  EntityFormModal,
+  EntityFormFooter,
+  useEntityFormPermissions,
+  useEntityFormRowReset,
+  useEntityFormSubmit,
+} from '@/components/form';
+import { useAccounts, useCategories, useReferenceDataStore } from '@/stores/reference-data-store';
 import {
+  createTransactionAction,
   deleteTransactionAction,
   getTransactionByIdAction,
+  updateTransactionAction,
 } from '@/features/transactions/actions/transaction-actions';
-import { useRouter } from '@/i18n/routing';
-import { stitchTransactionFormModal } from '@/styles/home-design-foundation';
-import type { Account, Category, User } from '@/lib/types';
+import { getDefaultAccountIdForUser } from '@/features/accounts/utils/default-account-id';
+import { useToast } from '@/hooks';
+import { getTempId } from '@/lib/utils/temp-id';
+import type { Account, Category, Transaction, User } from '@/lib/types';
+import { useTransactionEditStore } from '../stores/transaction-edit-store';
+import {
+  buildOptimisticTransaction,
+  buildOptimisticTransactionFromOriginal,
+  useOptimisticTransactionStore,
+} from '../stores/optimistic-transactions';
+import {
+  applyBalanceSnapshotToStore,
+  patchStoreBalancesForEdit,
+  patchStoreBalancesFromTransaction,
+  snapshotAffectedBalances,
+  type AccountBalanceSnapshot,
+} from '../utils/transaction-balance-delta';
+import { mapTransactionToFormData } from '../utils/transaction-form-data';
+import { buildTransactionPayload } from '../utils/build-transaction-payload';
+import { getTransferDestinationAccounts } from '../utils/transfer-destinations';
 import { TransactionFormFields, type TransactionFormData } from './transaction-form-fields';
 
 const createTransactionSchema = (t: ReturnType<typeof useTranslations>) =>
@@ -41,19 +57,14 @@ const createTransactionSchema = (t: ReturnType<typeof useTranslations>) =>
       account_id: z.string().min(1, t('validation.accountRequired')),
       to_account_id: z.string().optional(),
     })
-    .refine(
-      (data) => {
-        if (data.type === 'transfer') {
-          if (!data.to_account_id) return false;
-          if (data.to_account_id === data.account_id) return false;
-        }
-        return true;
-      },
-      {
-        message: t('validation.destinationAccountInvalid'),
-        path: ['to_account_id'],
-      }
-    );
+    .refine((data) => data.type !== 'transfer' || Boolean(data.to_account_id), {
+      message: t('validation.destinationAccountRequired'),
+      path: ['to_account_id'],
+    })
+    .refine((data) => data.type !== 'transfer' || data.to_account_id !== data.account_id, {
+      message: t('validation.destinationAccountInvalid'),
+      path: ['to_account_id'],
+    });
 
 interface TransactionFormModalProps {
   isOpen: boolean;
@@ -61,12 +72,9 @@ interface TransactionFormModalProps {
   editId?: string | null;
 }
 
-const s = stitchTransactionFormModal;
-
 function TransactionFormModalBody({
   form,
   isEditMode,
-  isOpen,
   groupUsers,
   categories,
   accounts,
@@ -76,7 +84,6 @@ function TransactionFormModalBody({
 }: Readonly<{
   form: UseFormReturn<TransactionFormData>;
   isEditMode: boolean;
-  isOpen: boolean;
   groupUsers: User[];
   categories: Category[];
   accounts: Account[];
@@ -84,70 +91,72 @@ function TransactionFormModalBody({
   userFieldHelperText?: string | undefined;
   isSubmitting: boolean;
 }>) {
-  const { control, setValue } = form;
+  const { control, setValue, clearErrors } = form;
   const watchedUserId = useWatch({ control, name: 'user_id' });
   const watchedAccountId = useWatch({ control, name: 'account_id' });
+  const watchedType = useWatch({ control, name: 'type' });
+  const watchedToAccountId = useWatch({ control, name: 'to_account_id' });
 
   const filteredAccounts = useMemo(() => {
     if (!watchedUserId) return accounts;
     return accounts.filter((acc) => acc.user_ids.includes(watchedUserId));
   }, [accounts, watchedUserId]);
 
-  const destinationAccounts = filteredAccounts.filter((acc) => acc.id !== watchedAccountId);
-
+  const destinationAccounts = useMemo(
+    () => getTransferDestinationAccounts(accounts, watchedAccountId),
+    [accounts, watchedAccountId]
+  );
   const previousUserIdRef = useRef<string | null>(null);
 
-  const getDefaultAccountId = useCallback(
-    (userId: string): string => {
-      if (!userId) return accounts.length > 0 ? (accounts[0]?.id ?? '') : '';
-
-      const user = groupUsers.find((u) => u.id === userId);
-      if (user?.default_account_id) {
-        const defaultAccount = accounts.find(
-          (acc) => acc.id === user.default_account_id && acc.user_ids.includes(userId)
-        );
-        if (defaultAccount) return defaultAccount.id;
-      }
-
-      const userAccounts = accounts.filter((acc) => acc.user_ids.includes(userId));
-      if (userAccounts.length > 0) return userAccounts[0]?.id ?? '';
-      return accounts.length > 0 ? (accounts[0]?.id ?? '') : '';
-    },
-    [accounts, groupUsers]
-  );
-
   useEffect(() => {
-    if (!isOpen) {
-      previousUserIdRef.current = null;
-    }
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (!isEditMode && watchedUserId) {
-      const accountIsValid =
-        !!watchedAccountId && filteredAccounts.some((acc) => acc.id === watchedAccountId);
-      const previousUserId = previousUserIdRef.current;
-
-      if (accountIsValid && (!previousUserId || previousUserId === watchedUserId)) {
-        previousUserIdRef.current = watchedUserId;
-        return;
-      }
-
-      if (!accountIsValid || (previousUserId && previousUserId !== watchedUserId)) {
-        const newAccountId = getDefaultAccountId(watchedUserId);
-        setValue('account_id', newAccountId);
+    if (watchedType !== 'transfer') {
+      if (watchedToAccountId) {
         setValue('to_account_id', '');
+        clearErrors('to_account_id');
       }
-
-      previousUserIdRef.current = watchedUserId;
+      return;
     }
+
+    if (!watchedToAccountId) return;
+
+    const destinationIsValid = destinationAccounts.some((acc) => acc.id === watchedToAccountId);
+    if (!destinationIsValid) {
+      setValue('to_account_id', '');
+    }
+  }, [
+    watchedType,
+    watchedToAccountId,
+    watchedAccountId,
+    destinationAccounts,
+    setValue,
+    clearErrors,
+  ]);
+
+  useEffect(() => {
+    if (isEditMode || !watchedUserId) return;
+
+    const accountIsValid =
+      !!watchedAccountId && filteredAccounts.some((acc) => acc.id === watchedAccountId);
+    const previousUserId = previousUserIdRef.current;
+
+    if (accountIsValid && (!previousUserId || previousUserId === watchedUserId)) {
+      previousUserIdRef.current = watchedUserId;
+      return;
+    }
+
+    if (!accountIsValid || (previousUserId && previousUserId !== watchedUserId)) {
+      setValue('account_id', getDefaultAccountIdForUser(watchedUserId, accounts, groupUsers));
+    }
+
+    previousUserIdRef.current = watchedUserId;
   }, [
     isEditMode,
     watchedUserId,
     watchedAccountId,
     filteredAccounts,
+    accounts,
+    groupUsers,
     setValue,
-    getDefaultAccountId,
   ]);
 
   return (
@@ -167,26 +176,44 @@ function TransactionFormModalBody({
 function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionFormModalProps>) {
   const t = useTranslations('Transactions.FormModal');
   const tPage = useTranslations('TransactionsContent');
-  const currentUser = useRequiredCurrentUser();
-  const groupUsers = useRequiredGroupUsers();
+  const { groupUsers, groupId, shouldDisableUserField, defaultFormUserId, userFieldHelperText } =
+    useEntityFormPermissions();
   const accounts = useAccounts();
   const categories = useCategories();
-  const groupId = useRequiredGroupId();
-  const { selectedUserId } = useUserFilter();
-  const router = useRouter();
+  const storeAccounts = useReferenceDataStore((state) => state.accounts);
+  const updateAccount = useReferenceDataStore((state) => state.updateAccount);
   const { toast } = useToast();
-  const [isLoadingRow, setIsLoadingRow] = useState(false);
-  const [resetValues, setResetValues] = useState<TransactionFormData | undefined>(undefined);
-  const previousUserIdRef = useRef<string | null>(null);
+  const seedTransaction = useTransactionEditStore((state) => state.seed);
+  const clearSeed = useTransactionEditStore((state) => state.clearSeed);
+  const addOptimistic = useOptimisticTransactionStore((state) => state.addOptimistic);
+  const commitOptimistic = useOptimisticTransactionStore((state) => state.commitOptimistic);
+  const rollbackOptimistic = useOptimisticTransactionStore((state) => state.rollbackOptimistic);
+  const applyUpdateOptimisticStore = useOptimisticTransactionStore(
+    (state) => state.applyUpdateOptimistic
+  );
+  const commitUpdateOptimisticStore = useOptimisticTransactionStore(
+    (state) => state.commitUpdateOptimistic
+  );
+  const rollbackUpdateOptimisticStore = useOptimisticTransactionStore(
+    (state) => state.rollbackUpdateOptimistic
+  );
+  const applyDeleteOptimisticStore = useOptimisticTransactionStore(
+    (state) => state.applyDeleteOptimistic
+  );
+  const commitDeleteOptimisticStore = useOptimisticTransactionStore(
+    (state) => state.commitDeleteOptimistic
+  );
+  const rollbackDeleteOptimisticStore = useOptimisticTransactionStore(
+    (state) => state.rollbackDeleteOptimistic
+  );
 
-  const isEditMode = !!editId;
+  const handleClose = useCallback(() => {
+    clearSeed();
+    onClose();
+  }, [clearSeed, onClose]);
+
+  const isEditMode = Boolean(editId);
   const title = isEditMode ? t('title.edit') : t('title.create');
-
-  const { shouldDisableUserField, defaultFormUserId, userFieldHelperText } = usePermissions({
-    currentUser,
-    selectedUserId,
-  });
-
   const transactionSchema = useMemo(() => createTransactionSchema(t), [t]);
 
   const createDefaults = useMemo(
@@ -203,98 +230,173 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
     [defaultFormUserId]
   );
 
-  const getDefaultAccountId = useCallback(
-    (userId: string): string => {
-      if (!userId) return accounts.length > 0 ? (accounts[0]?.id ?? '') : '';
-
-      const user = groupUsers.find((u) => u.id === userId);
-      if (user?.default_account_id) {
-        const defaultAccount = accounts.find(
-          (acc) => acc.id === user.default_account_id && acc.user_ids.includes(userId)
-        );
-        if (defaultAccount) return defaultAccount.id;
-      }
-
-      const userAccounts = accounts.filter((acc) => acc.user_ids.includes(userId));
-      if (userAccounts.length > 0) return userAccounts[0]?.id ?? '';
-      return accounts.length > 0 ? (accounts[0]?.id ?? '') : '';
-    },
-    [accounts, groupUsers]
+  const createValues = useMemo(
+    (): TransactionFormData => ({
+      ...createDefaults,
+      account_id: getDefaultAccountIdForUser(defaultFormUserId, accounts, groupUsers),
+    }),
+    [createDefaults, defaultFormUserId, accounts, groupUsers]
   );
 
-  useEffect(() => {
-    if (!isOpen) return;
+  const handleLoadError = useCallback(() => {
+    toast({
+      title: tPage('errors.title'),
+      description: t('errors.notFound'),
+      variant: 'destructive',
+    });
+    handleClose();
+  }, [handleClose, t, tPage, toast]);
 
-    let cancelled = false;
+  const loadEditValues = useCallback(async (id: string, signal: AbortSignal) => {
+    const result = await getTransactionByIdAction(id);
+    if (signal.aborted) return null;
+    if (result.error || !result.data) return null;
+    return mapTransactionToFormData(result.data);
+  }, []);
 
-    const run = async () => {
-      if (!editId) {
-        setIsLoadingRow(false);
-        const accountId = getDefaultAccountId(defaultFormUserId);
-        setResetValues({
-          ...createDefaults,
-          account_id: accountId,
-        });
-        previousUserIdRef.current = defaultFormUserId;
-        return;
+  const getOptimisticEditValues = useCallback(
+    (id: string) => {
+      if (seedTransaction?.id === id) {
+        return mapTransactionToFormData(seedTransaction);
       }
+      const overlay = useOptimisticTransactionStore.getState();
+      const optimistic = overlay.updated[id]?.transaction;
+      return optimistic ? mapTransactionToFormData(optimistic) : undefined;
+    },
+    [seedTransaction]
+  );
 
-      setIsLoadingRow(true);
-      const result = await getTransactionByIdAction(editId);
-      if (cancelled) return;
-      setIsLoadingRow(false);
+  const { resetValues, isReady, isLoading } = useEntityFormRowReset({
+    editId,
+    createValues,
+    loadEditValues,
+    getOptimisticEditValues,
+    onLoadError: handleLoadError,
+  });
 
-      const transaction = result.data;
-      if (!transaction) return;
+  const buildPayload = useCallback(
+    (data: TransactionFormData) => buildTransactionPayload(data, groupId),
+    [groupId]
+  );
 
-      const dateStr =
-        typeof transaction.date === 'string'
-          ? transaction.date.split('T')[0]
-          : transaction.date.toISOString().split('T')[0];
+  const getSuccessToast = useCallback(
+    (edit: boolean) =>
+      edit
+        ? { title: t('toast.updatedTitle'), description: t('toast.updatedDescription') }
+        : { title: t('toast.createdTitle'), description: t('toast.createdDescription') },
+    [t]
+  );
 
-      setResetValues({
-        description: transaction.description,
-        amount: transaction.amount.toString(),
-        type: transaction.type,
-        category: transaction.category,
-        date: dateStr as string,
-        user_id: transaction.user_id || '',
-        account_id: transaction.account_id,
-        to_account_id: transaction.to_account_id || '',
-      });
-      previousUserIdRef.current = transaction.user_id || '';
-    };
+  type CreateMutationHandle = {
+    kind: 'create';
+    tempId: string;
+    balanceSnapshot: AccountBalanceSnapshot;
+  };
+  type UpdateMutationHandle = {
+    kind: 'update';
+    editId: string;
+    balanceSnapshot: AccountBalanceSnapshot;
+  };
+  type TransactionMutationHandle = CreateMutationHandle | UpdateMutationHandle | null;
 
-    run().catch(() => undefined);
-
-    return () => {
-      cancelled = true;
-    };
-  }, [isOpen, editId, createDefaults, defaultFormUserId, getDefaultAccountId]);
-
-  const setErrorRef = useRef<UseFormSetError<TransactionFormData> | null>(null);
-
-  const { handleSubmit: submitHandler } = useTransactionSubmit({
+  const handleSubmit = useEntityFormSubmit<
+    TransactionFormData,
+    ReturnType<typeof buildPayload>,
+    Transaction,
+    TransactionMutationHandle
+  >({
     isEditMode,
     editId,
-    groupId,
-    onClose,
-    setError: (name, error) => {
-      setErrorRef.current?.(name, error);
+    onClose: handleClose,
+    buildPayload,
+    createAction: (payload) => createTransactionAction(payload),
+    updateAction: (id, payload) => updateTransactionAction(id, payload),
+    applyCreateOptimistic: (payload) => {
+      const tempId = getTempId('temp-tx');
+      const optimistic = buildOptimisticTransaction(payload, tempId);
+      addOptimistic(optimistic, tempId);
+      const balanceSnapshot = snapshotAffectedBalances(storeAccounts, {
+        transaction: optimistic,
+        multiplier: 1,
+      });
+      patchStoreBalancesFromTransaction(storeAccounts, updateAccount, optimistic, 1);
+      return { kind: 'create', tempId, balanceSnapshot };
     },
-    messages: {
-      notFound: t('errors.notFound'),
-      unknownError: t('errors.unknown'),
+    commitCreate: (handle, result) => {
+      if (!handle || handle.kind !== 'create') return;
+      commitOptimistic(handle.tempId, result);
     },
+    rollbackCreate: (handle, _error) => {
+      if (!handle || handle.kind !== 'create') return;
+      rollbackOptimistic(handle.tempId);
+      applyBalanceSnapshotToStore(handle.balanceSnapshot, updateAccount);
+    },
+    applyUpdateOptimistic: (id, payload) => {
+      const overlay = useOptimisticTransactionStore.getState();
+      const original =
+        seedTransaction?.id === id
+          ? seedTransaction
+          : (overlay.updated[id]?.original ?? overlay.updated[id]?.transaction ?? null);
+      const optimistic = original
+        ? buildOptimisticTransactionFromOriginal(original, payload)
+        : { ...buildOptimisticTransaction(payload, id), id };
+      applyUpdateOptimisticStore(id, optimistic, original ?? optimistic);
+      const balanceSnapshot = original
+        ? snapshotAffectedBalances(
+            storeAccounts,
+            { transaction: original, multiplier: -1 },
+            { transaction: optimistic, multiplier: 1 }
+          )
+        : {};
+      if (original) {
+        patchStoreBalancesForEdit(storeAccounts, updateAccount, original, optimistic);
+      }
+      return { kind: 'update' as const, editId: id, balanceSnapshot };
+    },
+    commitUpdate: (handle, result) => {
+      if (!handle || handle.kind !== 'update') return;
+      commitUpdateOptimisticStore(handle.editId, result);
+    },
+    rollbackUpdate: (handle, _error) => {
+      if (!handle || handle.kind !== 'update') return;
+      rollbackUpdateOptimisticStore(handle.editId);
+      applyBalanceSnapshotToStore(handle.balanceSnapshot, updateAccount);
+    },
+    getSuccessToast,
+    errorToast: { title: t('toast.errorTitle') },
+    unknownErrorMessage: t('errors.unknown'),
   });
 
   const deleteDialogDescription =
-    resetValues?.description?.trim() || tPage('dialogs.deleteTransaction.fallbackDescription');
+    resetValues?.description.trim() || tPage('dialogs.deleteTransaction.fallbackDescription');
 
   const handleDelete = useCallback(async () => {
     if (!editId) return;
+    const overlay = useOptimisticTransactionStore.getState();
+    const original =
+      seedTransaction?.id === editId
+        ? seedTransaction
+        : (overlay.updated[editId]?.transaction ?? overlay.updated[editId]?.original);
+    if (!original) {
+      toast({
+        title: tPage('errors.title'),
+        description: t('errors.notFound'),
+        variant: 'destructive',
+      });
+      throw new Error(t('errors.notFound'));
+    }
+
+    const balanceSnapshot = snapshotAffectedBalances(storeAccounts, {
+      transaction: original,
+      multiplier: -1,
+    });
+    applyDeleteOptimisticStore(editId, original);
+    patchStoreBalancesFromTransaction(storeAccounts, updateAccount, original, -1);
+
     const result = await deleteTransactionAction(editId);
     if (result.error) {
+      rollbackDeleteOptimisticStore(editId);
+      applyBalanceSnapshotToStore(balanceSnapshot, updateAccount);
       toast({
         title: tPage('errors.title'),
         description: `${tPage('errors.deleteTransactionFailed')} ${tPage('errors.retryHint')}`,
@@ -302,23 +404,30 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
       });
       throw new Error(result.error);
     }
-    onClose();
-    router.refresh();
-  }, [editId, onClose, router, tPage, toast]);
+    commitDeleteOptimisticStore(editId);
+  }, [
+    applyDeleteOptimisticStore,
+    commitDeleteOptimisticStore,
+    editId,
+    rollbackDeleteOptimisticStore,
+    seedTransaction,
+    storeAccounts,
+    t,
+    tPage,
+    toast,
+    updateAccount,
+  ]);
 
   return (
     <EntityFormModal<TransactionFormData>
+      key={`${editId ?? 'create'}-${isReady ? 'ready' : 'pending'}`}
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={handleClose}
       title={title}
       schema={transactionSchema}
       defaultValues={createDefaults}
-      resetValues={resetValues ?? createDefaults}
-      repositionInputs={false}
-      isLoading={Boolean(editId) && isLoadingRow}
-      formClassName={s.formColumn}
-      bodyClassName={s.scrollBody}
-      footerClassName={s.stickyFooter}
+      resetValues={resetValues ?? createValues}
+      isLoading={!isReady || isLoading}
       {...(isEditMode && editId
         ? {
             deletion: {
@@ -330,45 +439,33 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
               confirmText: tPage('dialogs.deleteTransaction.confirm'),
               cancelText: tPage('dialogs.cancel'),
               onDelete: handleDelete,
+              testId: 'transaction-form-delete',
             },
           }
         : {})}
-      onSubmit={async (data) => {
-        await submitHandler(data);
-      }}
-      footer={(_, isSubmitting, { openDeleteDialog }) => (
+      onSubmit={handleSubmit}
+      footer={(_, isSubmitting) => (
         <EntityFormFooter
-          isEditMode={isEditMode}
           isSubmitting={isSubmitting}
           submitLabel={isEditMode ? t('buttons.saveTransaction') : t('buttons.create')}
-          deleteLabel={t('buttons.delete')}
-          deleteTestId="transaction-form-delete"
-          {...(openDeleteDialog ? { onDelete: openDeleteDialog } : {})}
+          onCancel={handleClose}
         />
       )}
     >
       {(form) => {
-        setErrorRef.current = form.setError;
+        if (!isReady || !resetValues) return null;
 
         return (
-          <>
-            {form.formState.errors.root ? (
-              <div className={s.errorBanner} role="alert">
-                {form.formState.errors.root.message}
-              </div>
-            ) : null}
-            <TransactionFormModalBody
-              form={form}
-              isEditMode={isEditMode}
-              isOpen={isOpen}
-              groupUsers={groupUsers}
-              categories={categories}
-              accounts={accounts}
-              shouldDisableUserField={shouldDisableUserField}
-              userFieldHelperText={userFieldHelperText}
-              isSubmitting={form.formState.isSubmitting}
-            />
-          </>
+          <TransactionFormModalBody
+            form={form}
+            isEditMode={isEditMode}
+            groupUsers={groupUsers}
+            categories={categories}
+            accounts={accounts}
+            shouldDisableUserField={shouldDisableUserField}
+            userFieldHelperText={userFieldHelperText}
+            isSubmitting={form.formState.isSubmitting}
+          />
         );
       }}
     </EntityFormModal>

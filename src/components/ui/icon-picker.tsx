@@ -49,7 +49,7 @@ export function IconPicker({ value, onChange, className }: Readonly<IconPickerPr
   };
 
   return (
-    <div className={cn('space-y-2', className)}>
+    <div className={cn('flex flex-col gap-2', className)}>
       <Button {...triggerProps} type="button" onClick={() => setIsOpen(true)}>
         <SelectedIcon className={styles.triggerIcon} aria-hidden="true" />
         <span className={styles.triggerText}>{value || t('triggerDefaultText')}</span>
@@ -58,10 +58,12 @@ export function IconPicker({ value, onChange, className }: Readonly<IconPickerPr
         isOpen={isOpen}
         onOpenChange={setIsOpen}
         title={t('selectorTitle')}
+        nested
+        repositionInputs
         className="flex max-h-[70vh] flex-col p-0"
       >
-        <div className={cn(styles.dialogWrapper, 'min-h-[420px]')}>
-          <IconPickerContent value={value} recent={recent} onSelect={handleIconSelect} isMobile />
+        <div className={cn(styles.dialogWrapper, 'min-h-[360px]')}>
+          <IconPickerContent value={value} recent={recent} onSelect={handleIconSelect} />
         </div>
       </ModalWrapper>
     </div>

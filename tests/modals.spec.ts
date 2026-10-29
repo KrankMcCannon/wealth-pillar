@@ -1,10 +1,89 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
+
+const mobileViewport = { width: 375, height: 812 };
+
+test.describe('entity modals (mobile)', () => {
+  test.use({ viewport: mobileViewport });
+
+  test('transaction-create opens drawer with modal amount field', async ({ page }) => {
+    await page.goto('/it/transactions');
+
+    const fab = page.getByTestId('transactions-fab-add');
+    await expect(fab).toBeVisible();
+
+    await fab.click();
+    await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('text=Nuova transazione')).toBeVisible();
+    await expect(page.locator('input[placeholder="0,00"]').first()).toBeVisible();
+    await expect(page.getByRole('radiogroup', { name: /Tipo|Type/i })).toBeVisible();
+    await expect(page.getByRole('radio', { name: /Uscita|Expense/i })).toBeChecked();
+    await expect(page.getByRole('button', { name: /annulla|cancel/i })).toBeVisible();
+  });
+
+  test('budget-create opens drawer with modal fields', async ({ page }) => {
+    await page.goto('/it/budgets');
+
+    const fab = page.getByRole('button', { name: /aggiungi budget|add budget/i });
+    await expect(fab).toBeVisible();
+
+    await fab.click();
+    await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('text=Nuovo Budget')).toBeVisible();
+    await expect(page.locator('input[placeholder="0,00"]').first()).toBeVisible();
+  });
+
+  test('budget-close-period opens drawer from budgets page', async ({ page }) => {
+    await page.goto('/it/budgets');
+
+    const periodActions = page.getByRole('button', { name: /azioni del periodo|period actions/i });
+    await expect(periodActions).toBeVisible();
+
+    await periodActions.click();
+    const closePeriodItem = page.getByRole('menuitem', { name: /chiudi periodo|close period/i });
+    await expect(closePeriodItem).toBeVisible({ timeout: 5000 });
+    await closePeriodItem.click();
+    await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('[data-vaul-drawer]')).toBeVisible();
+  });
+
+  test('budget-edit-closing-date opens drawer when latest closed period exists', async ({
+    page,
+  }) => {
+    await page.goto('/it/budgets');
+
+    const periodActions = page.getByRole('button', { name: /azioni del periodo|period actions/i });
+    await expect(periodActions).toBeVisible();
+
+    await periodActions.click();
+    const editClosingDateItem = page.getByRole('menuitem', {
+      name: /modifica ultima chiusura|adjust last closing date/i,
+    });
+    await expect(editClosingDateItem).toBeVisible({ timeout: 5000 });
+    await editClosingDateItem.click();
+    await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('[data-vaul-drawer]')).toBeVisible();
+  });
+
+  test('transaction-create drawer exposes drag handle', async ({ page }) => {
+    await page.goto('/it/transactions');
+
+    const fab = page.getByTestId('transactions-fab-add');
+    await expect(fab).toBeVisible();
+
+    await fab.click();
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('[data-vaul-drawer]')).toBeVisible();
+  });
+});
 
 test.describe('settings modals (mobile)', () => {
-  test.use({ viewport: { width: 375, height: 812 } });
+  test.use({ viewport: mobileViewport });
 
-  test('deep-link opens profile settings drawer', async ({ page }) => {
-    await page.goto('/settings?modal=settings:profile');
-    await expect(page.getByRole('dialog')).toBeVisible();
+  test('deep-link opens profile settings drawer with dual footer', async ({ page }) => {
+    await page.goto('/it/settings?modal=settings:profile');
+    await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('button', { name: /annulla|cancel/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /salva|save/i })).toBeVisible();
   });
 });

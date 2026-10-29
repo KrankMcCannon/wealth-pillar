@@ -1,215 +1,86 @@
-import { test, expect } from '@playwright/test';
-import { setupClerkMocks, createMockUser } from './mocks/clerk-mock';
+import { randomUUID } from 'node:crypto';
+import { test, expect } from './fixtures';
 
-/**
- * E2E Tests for Transaction Flows
- *
- * Uses Clerk mocks to bypass authentication - no actual Clerk auth required.
- */
-
-test.describe('Transaction Flows', () => {
-  test.beforeEach(async ({ page }) => {
-    await setupClerkMocks(page);
-  });
-
-  test.describe('Transaction List Visualization', () => {
-    test('should display the transactions page with header and navigation', async ({ page }) => {
-      await page.goto('/transactions');
-      await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(2000);
-
-      const hasTransazioni = await page.locator('text=Transazioni').first().isVisible();
-      const hasContent = await page.locator('main').isVisible();
-
-      expect(hasTransazioni || hasContent).toBeTruthy();
-    });
-
-    test('should switch between Transactions and Recurring tabs', async ({ page }) => {
-      await page.goto('/transactions');
-      await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(2000);
-
-      const recurringTab = page.locator('text=Ricorrenti');
-      if (await recurringTab.isVisible({ timeout: 5000 })) {
-        await recurringTab.click();
-        await page.waitForTimeout(500);
-      }
-    });
-  });
-
-  test.describe('Add Transaction', () => {
-    test('should open the new transaction modal', async ({ page }) => {
-      await page.goto('/transactions');
-      await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(2000);
-
-      const fab = page.getByTestId('transactions-fab-add');
-      if (await fab.isVisible({ timeout: 5000 })) {
-        await fab.click();
-        await expect(page.locator('text=Nuova transazione')).toBeVisible({ timeout: 5000 });
-        return;
-      }
-
-      const actionMenuTrigger = page.locator('#header-action-menu-trigger');
-      if (await actionMenuTrigger.isVisible({ timeout: 3000 })) {
-        await actionMenuTrigger.click();
-        const newItem = page.locator('text=Nuova Transazione');
-        await expect(newItem).toBeVisible();
-        await newItem.click();
-        await expect(page.locator('text=Nuova transazione')).toBeVisible({ timeout: 5000 });
-      }
-    });
-
-    test('should show validation errors when submitting empty form', async ({ page }) => {
-      await page.goto('/transactions');
-      await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(2000);
-
-      const fab = page.getByTestId('transactions-fab-add');
-      if (await fab.isVisible({ timeout: 5000 })) {
-        await fab.click();
-        await expect(page.locator('text=Nuova transazione')).toBeVisible({ timeout: 5000 });
-
-        const submitButton = page.locator('button:has-text("Crea")');
-        if (await submitButton.isVisible()) {
-          await submitButton.click();
-          await expect(
-            page.locator('text=La descrizione deve contenere almeno 2 caratteri')
-          ).toBeVisible({ timeout: 5000 });
-        }
-      }
-    });
-
-    test('should create a new transaction successfully', async ({ page }) => {
-      await page.goto('/transactions');
-      await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(2000);
-
-      const fab = page.getByTestId('transactions-fab-add');
-      if (await fab.isVisible({ timeout: 5000 })) {
-        await fab.click();
-        await expect(page.locator('text=Nuova transazione')).toBeVisible({ timeout: 5000 });
-
-        await page
-          .locator("input[placeholder='Es. Spesa supermercato']")
-          .fill('Test E2E Transaction');
-        await page.locator('input[placeholder="0,00"]').fill('100');
-
-        await page.locator('button:has-text("Crea")').click();
-        await expect(page.locator('text=Nuova transazione')).not.toBeVisible({ timeout: 5000 });
-      }
-    });
-  });
-
-  test.describe('Update Transaction', () => {
-    test('should open edit modal when clicking on a transaction', async ({ page }) => {
-      await page.goto('/transactions');
-      await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(2000);
-
-      const transactionItem = page.locator('[data-testid="transaction-row"]').first();
-      if (await transactionItem.isVisible({ timeout: 5000 })) {
-        await transactionItem.click();
-        await expect(page.locator('text=Modifica transazione')).toBeVisible({ timeout: 5000 });
-      }
-    });
-
-    test('should update a transaction successfully', async ({ page }) => {
-      await page.goto('/transactions');
-      await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(2000);
-
-      const transactionItem = page.locator('[data-testid="transaction-row"]').first();
-      if (await transactionItem.isVisible({ timeout: 5000 })) {
-        await transactionItem.click();
-        await expect(page.locator('text=Modifica transazione')).toBeVisible({ timeout: 5000 });
-
-        const descriptionInput = page.locator("input[placeholder='Es. Spesa supermercato']");
-        await descriptionInput.clear();
-        await descriptionInput.fill('Updated E2E Transaction');
-
-        await page.locator('button:has-text("Salva transazione")').click();
-        await expect(page.locator('text=Modifica transazione')).not.toBeVisible({ timeout: 5000 });
-      }
-    });
-  });
-
-  test.describe('Delete Transaction', () => {
-    test('should show confirmation dialog when deleting a transaction', async ({ page }) => {
-      await page.goto('/transactions');
-      await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(2000);
-
-      const transactionItem = page.locator('[data-testid="transaction-row"]').first();
-      if (await transactionItem.isVisible({ timeout: 5000 })) {
-        await transactionItem.click();
-        await expect(page.locator('text=Modifica transazione')).toBeVisible({ timeout: 5000 });
-
-        await page.getByTestId('transaction-form-delete').click();
-        await expect(page.getByRole('heading', { name: 'Elimina transazione' })).toBeVisible({
-          timeout: 5000,
-        });
-      }
-    });
-
-    test('should cancel deletion when clicking Annulla', async ({ page }) => {
-      await page.goto('/transactions');
-      await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(2000);
-
-      const transactionItem = page.locator('[data-testid="transaction-row"]').first();
-      if (await transactionItem.isVisible({ timeout: 5000 })) {
-        await transactionItem.click();
-        await page.getByTestId('transaction-form-delete').click();
-        await expect(page.getByRole('heading', { name: 'Elimina transazione' })).toBeVisible({
-          timeout: 5000,
-        });
-
-        await page.locator('button:has-text("Annulla")').click();
-        await expect(page.getByRole('heading', { name: 'Elimina transazione' })).not.toBeVisible({
-          timeout: 3000,
-        });
-      }
-    });
-
-    test('should delete transaction when confirming', async ({ page }) => {
-      await page.goto('/transactions');
-      await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(2000);
-
-      const transactionItem = page.locator('[data-testid="transaction-row"]').first();
-      if (await transactionItem.isVisible({ timeout: 5000 })) {
-        await transactionItem.click();
-        await page.getByTestId('transaction-form-delete').click();
-        await expect(page.getByRole('heading', { name: 'Elimina transazione' })).toBeVisible({
-          timeout: 5000,
-        });
-
-        await page.locator('[role="dialog"] button:has-text("Elimina transazione")').click();
-        await expect(page.getByRole('heading', { name: 'Elimina transazione' })).not.toBeVisible({
-          timeout: 5000,
-        });
-      }
-    });
-  });
+test('shows the seeded ledger and loads another page', async ({ page }) => {
+  await page.goto('/it/transactions');
+  await expect(page.getByTestId('transactions-fab-add')).toBeVisible();
+  const rows = page.locator('[data-testid^="transaction-row-"]');
+  await expect(rows.first()).toBeVisible();
+  const before = await rows.count();
+  await page.getByRole('button', { name: /altre|more/i }).click();
+  await expect.poll(() => rows.count()).toBeGreaterThan(before);
 });
 
-test.describe('Transaction Flows with Custom User', () => {
-  test.beforeEach(async ({ page }) => {
-    const customUser = createMockUser({
-      id: 'custom_user_123',
-      email: 'custom@example.com',
-      firstName: 'Custom',
-      lastName: 'Test User',
-    });
-    await setupClerkMocks(page, customUser);
-  });
+test('switches recurring tabs and opens the recurring creation form', async ({ page }) => {
+  await page.goto('/it/transactions');
+  await page.getByRole('tab', { name: 'Ricorrenti' }).click();
+  await expect(page).toHaveURL(/tab=Recurrent/);
+  await expect(page.getByText('E2E Recurring', { exact: true })).toBeVisible();
+  await expect(page.locator('button:has(svg.lucide-play)')).toHaveCount(0);
+  await page.getByTestId('recurring-fab-add').click();
+  await expect(page).toHaveURL(/modal=recurring/);
+  await expect(page.getByRole('dialog')).toBeVisible();
+});
 
-  test('should access transactions with custom mock user', async ({ page }) => {
-    await page.goto('/transactions');
-    await page.waitForLoadState('domcontentloaded');
+test('deep-links to the recurring tab with real seeded content', async ({ page }) => {
+  await page.goto('/it/transactions?tab=Recurrent');
+  await expect(page.getByRole('tab', { name: 'Ricorrenti' })).toHaveAttribute(
+    'aria-selected',
+    'true'
+  );
+  await expect(page.getByText('E2E Recurring', { exact: true })).toBeVisible();
+});
 
-    const main = page.locator('main');
-    await expect(main).toBeVisible({ timeout: 10000 });
-  });
+test('requires valid input in the transaction form', async ({ page }) => {
+  await page.goto('/it/transactions');
+  await page.getByTestId('transactions-fab-add').click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog.getByRole('radiogroup', { name: 'Tipo' })).toBeVisible();
+  await dialog.getByRole('button', { name: 'Crea transazione', exact: true }).click();
+  await expect(dialog.getByText('La descrizione deve contenere almeno 2 caratteri')).toBeVisible();
+});
+
+test('creates a transaction and keeps it after a reload', async ({ page }) => {
+  const description = `E2E Created ${randomUUID()}`;
+  await page.goto('/it/transactions');
+  await page.getByTestId('transactions-fab-add').click();
+  const dialog = page.getByRole('dialog');
+  await dialog.getByLabel('Descrizione', { exact: true }).fill(description);
+  await dialog.locator('input[placeholder="0,00"]').fill('10');
+  await dialog.getByRole('combobox', { name: 'Seleziona categoria' }).click();
+  await page.getByRole('option', { name: 'E2E Food', exact: true }).click();
+  await dialog.getByRole('button', { name: 'Crea transazione', exact: true }).click();
+  await expect(dialog).toBeHidden();
+  await page.reload();
+  await expect(page.getByText(description, { exact: true })).toBeVisible();
+});
+
+test('updates its own transaction, cancels deletion and then deletes it persistently', async ({
+  page,
+  transaction,
+}) => {
+  await page.goto('/it/transactions');
+  const row = page.getByTestId(`transaction-row-${transaction.id}`);
+  await expect(row).toBeVisible();
+  await row.click();
+  const updated = `${transaction.description} Updated`;
+  const dialog = page.getByRole('dialog');
+  await dialog.getByLabel('Descrizione', { exact: true }).fill(updated);
+  await dialog.getByRole('button', { name: 'Salva transazione', exact: true }).click();
+  await expect(dialog).toBeHidden();
+  await page.reload();
+  await expect(page.getByText(updated, { exact: true })).toBeVisible();
+  await row.click();
+  await page.getByTestId('transaction-form-delete').click();
+  const confirmation = page
+    .getByRole('dialog')
+    .filter({ has: page.getByRole('heading', { name: 'Elimina transazione', exact: true }) });
+  await expect(confirmation).toBeVisible();
+  await confirmation.getByRole('button', { name: 'Annulla', exact: true }).click();
+  await expect(confirmation).toBeHidden();
+  await page.getByTestId('transaction-form-delete').click();
+  await confirmation.getByRole('button', { name: 'Elimina transazione', exact: true }).click();
+  await expect(confirmation).toBeHidden();
+  await page.reload();
+  await expect(row).toHaveCount(0);
 });

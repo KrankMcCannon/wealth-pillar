@@ -8,7 +8,8 @@
  */
 
 import { getCurrentUser } from '@/lib/auth/cached-auth';
-import { canAccessUserData, isMember } from '@/lib/utils/permissions';
+import { AccessScope } from '@/lib/permissions/access-scope';
+import { isMember } from '@/lib/utils/permissions';
 import { RecurringTransactionSeries, User } from '@/lib/types';
 import {
   createSeriesUseCase,
@@ -17,7 +18,6 @@ import {
   updateSeriesUseCase,
 } from '@/server/use-cases/recurring/recurring.use-cases';
 import { serialize } from '@/lib/utils/serializer';
-import { devWarn } from '@/lib/utils/dev-log';
 import type { ServiceResult } from '@/lib/types/service-result';
 
 /**
@@ -26,7 +26,7 @@ import type { ServiceResult } from '@/lib/types/service-result';
 export interface CreateRecurringSeriesInput {
   description: string;
   amount: number;
-  type: 'income' | 'expense';
+  type: 'income' | 'expense' | 'transfer';
   category: string;
   frequency: 'once' | 'weekly' | 'biweekly' | 'monthly' | 'yearly';
   user_ids: string[]; // Array of user IDs who can access this series
@@ -43,7 +43,7 @@ export interface UpdateRecurringSeriesInput {
   id: string;
   description?: string;
   amount?: number;
-  type?: 'income' | 'expense';
+  type?: 'income' | 'expense' | 'transfer';
   category?: string;
   frequency?: 'once' | 'weekly' | 'biweekly' | 'monthly' | 'yearly';
   user_ids?: string[]; // Array of user IDs who can access this series
@@ -80,9 +80,9 @@ function validateCreatePermissions(currentUser: User, userIds: string[]): string
     }
   }
 
-  // Admins can create for anyone, but verify all target users exist and are accessible
+  const scope = AccessScope.for(currentUser);
   for (const userId of userIds) {
-    if (!canAccessUserData(currentUser, userId)) {
+    if (!scope.canViewUser(userId)) {
       return 'Non hai i permessi per accedere ai dati di uno o più utenti selezionati';
     }
   }
@@ -154,8 +154,9 @@ function validateNewUserAssignments(currentUser: User, newUserIds: string[]): st
     }
   } else {
     // Admins can assign to anyone they have access to
+    const scope = AccessScope.for(currentUser);
     for (const userId of newUserIds) {
-      if (!canAccessUserData(currentUser, userId)) {
+      if (!scope.canViewUser(userId)) {
         return 'Non hai i permessi per uno o più utenti selezionati';
       }
     }
@@ -170,21 +171,44 @@ function validateUpdatePermission(
   newUserIds?: string[]
 ): string | null {
   // 1. Verify access to existing series
-  const user = currentUser as unknown as User;
-  const hasAccess = isMember(user)
-    ? oldSeries.user_ids.includes(currentUser.id)
-    : oldSeries.user_ids.some((userId: string) => canAccessUserData(user, userId));
-
-  if (!hasAccess) {
+  if (!AccessScope.for(currentUser).canViewShared(oldSeries)) {
     return 'Non hai i permessi per modificare questa serie ricorrente';
   }
 
   // 2. If changing user_ids, validate new assignment permissions
   if (newUserIds) {
-    return validateNewUserAssignments(user, newUserIds);
+    return validateNewUserAssignments(currentUser, newUserIds);
   }
 
   return null;
+}
+
+function buildUpdatePayload(input: UpdateRecurringSeriesInput): {
+  payload: Partial<UpdateRecurringSeriesInput> & { updated_at?: string };
+  error?: string;
+} {
+  const updatePayload: Partial<UpdateRecurringSeriesInput> & { updated_at?: string } = {};
+
+  if (input.description !== undefined) updatePayload.description = input.description.trim();
+  if (input.amount !== undefined) {
+    if (input.amount <= 0) return { payload: {}, error: "L'importo deve essere maggiore di zero" };
+    updatePayload.amount = input.amount;
+  }
+  if (input.type !== undefined) updatePayload.type = input.type;
+  if (input.category !== undefined) updatePayload.category = input.category;
+  if (input.frequency !== undefined) updatePayload.frequency = input.frequency;
+  if (input.account_id !== undefined) updatePayload.account_id = input.account_id;
+  if (input.start_date !== undefined)
+    updatePayload.start_date = new Date(input.start_date).toISOString();
+  if (input.end_date !== undefined)
+    updatePayload.end_date = input.end_date ? new Date(input.end_date).toISOString() : null;
+  if (input.due_day !== undefined) updatePayload.due_day = input.due_day;
+  if (input.is_active !== undefined) updatePayload.is_active = input.is_active;
+  if (input.user_ids !== undefined) updatePayload.user_ids = input.user_ids;
+
+  updatePayload.updated_at = new Date().toISOString();
+
+  return { payload: updatePayload };
 }
 
 /**
@@ -222,36 +246,6 @@ export async function updateRecurringSeriesAction(
       input.user_ids
     );
     if (permError) return { data: null, error: permError };
-
-    // Helper: Build update payload
-    function buildUpdatePayload(input: UpdateRecurringSeriesInput): {
-      payload: Partial<UpdateRecurringSeriesInput> & { updated_at?: string };
-      error?: string;
-    } {
-      const updatePayload: Partial<UpdateRecurringSeriesInput> & { updated_at?: string } = {};
-
-      if (input.description !== undefined) updatePayload.description = input.description.trim();
-      if (input.amount !== undefined) {
-        if (input.amount <= 0)
-          return { payload: {}, error: "L'importo deve essere maggiore di zero" };
-        updatePayload.amount = input.amount;
-      }
-      if (input.type !== undefined) updatePayload.type = input.type;
-      if (input.category !== undefined) updatePayload.category = input.category;
-      if (input.frequency !== undefined) updatePayload.frequency = input.frequency;
-      if (input.account_id !== undefined) updatePayload.account_id = input.account_id;
-      if (input.start_date !== undefined)
-        updatePayload.start_date = new Date(input.start_date).toISOString();
-      if (input.end_date !== undefined)
-        updatePayload.end_date = input.end_date ? new Date(input.end_date).toISOString() : null;
-      if (input.due_day !== undefined) updatePayload.due_day = input.due_day;
-      if (input.is_active !== undefined) updatePayload.is_active = input.is_active;
-      if (input.user_ids !== undefined) updatePayload.user_ids = input.user_ids;
-
-      updatePayload.updated_at = new Date().toISOString();
-
-      return { payload: updatePayload };
-    }
 
     // Build update data
     const { payload, error: payloadError } = buildUpdatePayload(input);
@@ -292,13 +286,20 @@ export async function deleteRecurringSeriesAction(
       return { data: null, error: 'ID serie obbligatorio' };
     }
 
-    // Authentication check (cached per request)
     const currentUser = await getCurrentUser();
     if (!currentUser) {
       return { data: null, error: 'Non autenticato. Effettua il login per continuare.' };
     }
 
-    // First get the series
+    const series = await getSeriesByIdUseCase(seriesId);
+    if (!series) {
+      return { data: null, error: 'Serie ricorrente non trovata' };
+    }
+
+    if (!AccessScope.for(currentUser as unknown as User).canViewShared(series)) {
+      return { data: null, error: 'Permesso negato' };
+    }
+
     await deleteSeriesUseCase(seriesId);
 
     return { data: { success: true }, error: null };
@@ -332,10 +333,7 @@ export async function getRecurringSeriesByIdAction(
       return { data: null, error: 'Serie non trovata' };
     }
 
-    const canAccess = series.user_ids.some((uid) =>
-      canAccessUserData(currentUser as unknown as User, uid)
-    );
-    if (!canAccess) {
+    if (!AccessScope.for(currentUser as unknown as User).canViewShared(series)) {
       return { data: null, error: 'Permesso negato' };
     }
 
@@ -353,23 +351,4 @@ export async function toggleRecurringSeriesActiveAction(
   isActive: boolean
 ): Promise<ServiceResult<RecurringTransactionSeries>> {
   return updateRecurringSeriesAction({ id: seriesId, is_active: isActive });
-}
-
-/**
- * Execute a recurring series - create a transaction from it
- * This increments total_executions and updates due_day.
- *
- * @returns The created transaction ID or error
- */
-export async function executeRecurringSeriesAction(
-  seriesId: string
-): Promise<ServiceResult<{ transactionId: string }>> {
-  devWarn('Series execution not implemented yet for series:', seriesId);
-  // const today = new Date();
-  // Per ora ritorniamo un messaggio informativo
-  return {
-    data: null,
-    error:
-      'Funzione temporaneamente disabilitata. La creazione automatica delle transazioni sarà abilitata in seguito.',
-  };
 }

@@ -8,6 +8,7 @@ export interface Database {
           id: string;
           name: string;
           type: string;
+          liquidity: string | null;
           user_ids: string[];
           group_id: string;
           balance: number;
@@ -18,6 +19,7 @@ export interface Database {
           id?: string;
           name: string;
           type: string;
+          liquidity?: string | null;
           user_ids?: string[];
           group_id: string;
           created_at?: string | null;
@@ -27,6 +29,7 @@ export interface Database {
           id?: string;
           name?: string;
           type?: string;
+          liquidity?: string | null;
           user_ids?: string[];
           group_id?: string;
           balance?: number;
@@ -347,6 +350,53 @@ export interface Database {
           updated_at?: string;
         };
       };
+      budget_periods: {
+        Row: {
+          id: string;
+          user_id: string;
+          group_id: string | null;
+          start_date: string;
+          end_date: string | null;
+          is_active: boolean | null;
+          spendable_spent: number | null;
+          reserve_saved: number | null;
+          category_spending: Json | null;
+          snapshot_at: string | null;
+          budgets_snapshot: Json | null;
+          created_at: string | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          group_id?: string | null;
+          start_date: string;
+          end_date?: string | null;
+          is_active?: boolean | null;
+          spendable_spent?: number | null;
+          reserve_saved?: number | null;
+          category_spending?: Json | null;
+          snapshot_at?: string | null;
+          budgets_snapshot?: Json | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          group_id?: string | null;
+          start_date?: string;
+          end_date?: string | null;
+          is_active?: boolean | null;
+          spendable_spent?: number | null;
+          reserve_saved?: number | null;
+          category_spending?: Json | null;
+          snapshot_at?: string | null;
+          budgets_snapshot?: Json | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+      };
       users: {
         Row: {
           id: string;
@@ -358,7 +408,6 @@ export interface Database {
           budget_start_date: number | null;
           group_id: string | null;
           role: string | null;
-          budget_periods: Json | null;
           default_account_id: string | null;
           created_at: string | null;
           updated_at: string | null;
@@ -373,7 +422,6 @@ export interface Database {
           budget_start_date?: number | null;
           group_id?: string | null;
           role?: string | null;
-          budget_periods?: Json | null;
           default_account_id?: string | null;
           created_at?: string | null;
           updated_at?: string | null;
@@ -388,7 +436,6 @@ export interface Database {
           budget_start_date?: number | null;
           group_id?: string | null;
           role?: string | null;
-          budget_periods?: Json | null;
           default_account_id?: string | null;
           created_at?: string | null;
           updated_at?: string | null;

@@ -57,10 +57,6 @@ const eslintConfig = [
       'no-var': 'error',
       'no-console': ['warn', { allow: ['warn', 'error'] }],
       eqeqeq: ['error', 'always', { null: 'ignore' }],
-
-      // React Hooks (already configured by next/core-web-vitals)
-      'react-hooks/rules-of-hooks': 'error',
-      'react-hooks/exhaustive-deps': 'warn',
     },
   },
 

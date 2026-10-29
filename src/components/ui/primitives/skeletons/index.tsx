@@ -14,7 +14,12 @@ export {
   FullTransactionsPageSkeleton,
 } from './transaction-skeletons';
 
-export { BalanceSectionSkeleton, BudgetSectionSkeleton } from './dashboard-skeletons';
+export {
+  BalanceSectionSkeleton,
+  BudgetSectionSkeleton,
+  HomePageSectionsSkeleton,
+  RecentActivitySectionSkeleton,
+} from './dashboard-skeletons';
 
 export {
   BudgetCardSkeleton,
@@ -23,15 +28,8 @@ export {
   BudgetPageSkeleton,
 } from './budget-skeletons';
 
-export {
-  SettingsHeaderSkeleton as HeaderSkeleton,
-  SettingsHeaderSkeleton,
-  ProfileSectionSkeleton as SectionSkeleton,
-  ProfileSectionSkeleton,
-  GroupManagementSectionSkeleton,
-  PreferencesSectionSkeleton,
-  SettingsPageSkeleton,
-} from './settings-skeletons';
+export { SettingsPageSkeleton } from './settings-skeletons';
 
+export { AccountsPageSkeleton } from './accounts-skeletons';
 export { InvestmentsSkeleton } from './investments-skeleton';
 export { ReportsSkeleton } from './reports-skeleton';

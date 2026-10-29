@@ -1,18 +1,31 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { z } from 'zod';
 import { useLocale, useTranslations } from 'next-intl';
 import type { Category } from '@/lib';
 import { getTempId } from '@/lib/utils/temp-id';
 import { getDefaultColor, isValidColor } from '@/server/use-cases/categories/category.logic';
 import { categoryStyles } from '../theme/category-styles';
-import { createCategoryAction, updateCategoryAction } from '@/features/categories';
-import { EntityFormModal } from '@/components/form/entity-form-modal';
-import { FormActions } from '@/components/form';
-import { useRequiredGroupId } from '@/hooks';
-import { useCategories, useReferenceDataStore } from '@/stores/reference-data-store';
+import {
+  createCategoryAction,
+  updateCategoryAction,
+  deleteCategoryAction,
+} from '@/features/categories';
+import { isSystemCategory } from '@/features/categories/utils/category-helpers';
+import {
+  EntityFormModal,
+  EntityFormFooter,
+  useEntityFormRowReset,
+  useEntityFormSubmit,
+} from '@/components/form';
 import { toast } from '@/hooks/use-toast';
+import { useRequiredGroupId } from '@/hooks';
+import {
+  useCategories,
+  useUsedCategoryKeys,
+  useReferenceDataStore,
+} from '@/stores/reference-data-store';
 import { CategoryFormFields, type CategoryFormData } from './category-form-fields';
 
 interface CategoryFormModalProps {
@@ -27,13 +40,20 @@ function CategoryFormModal({ isOpen, onClose, editId }: Readonly<CategoryFormMod
   const groupId = useRequiredGroupId();
 
   const storeCategories = useCategories();
+  const usedCategoryKeys = useUsedCategoryKeys();
   const addCategory = useReferenceDataStore((state) => state.addCategory);
   const updateCategory = useReferenceDataStore((state) => state.updateCategory);
   const removeCategory = useReferenceDataStore((state) => state.removeCategory);
 
-  const isEditMode = !!editId;
+  const isEditMode = Boolean(editId);
+  const editingCategory = useMemo(
+    () => (editId ? storeCategories.find((cat) => cat.id === editId) : undefined),
+    [editId, storeCategories]
+  );
+  const isCustomCategory = editingCategory ? !isSystemCategory(editingCategory) : true;
+  const isCategoryInUse = editingCategory ? usedCategoryKeys.includes(editingCategory.key) : false;
+  const canDelete = isEditMode && isCustomCategory && !isCategoryInUse;
   const title = isEditMode ? t('title.edit') : t('title.create');
-  const description = isEditMode ? t('description.edit') : t('description.create');
 
   const categorySchema = useMemo(
     () =>
@@ -52,8 +72,8 @@ function CategoryFormModal({ isOpen, onClose, editId }: Readonly<CategoryFormMod
     [t]
   );
 
-  const createDefaults: CategoryFormData = useMemo(
-    () => ({
+  const createDefaults = useMemo(
+    (): CategoryFormData => ({
       label: '',
       key: '',
       icon: '',
@@ -62,138 +82,212 @@ function CategoryFormModal({ isOpen, onClose, editId }: Readonly<CategoryFormMod
     []
   );
 
-  const resetValues = useMemo((): CategoryFormData => {
-    if (isEditMode && editId) {
-      const category = storeCategories.find((cat) => cat.id === editId);
-      if (category) {
-        return {
-          label: category.label,
-          key: category.key,
-          icon: category.icon,
-          color: category.color,
-        };
-      }
-    }
-    return createDefaults;
-  }, [isEditMode, editId, storeCategories, createDefaults]);
+  const getEditValuesSync = useCallback(
+    (id: string): CategoryFormData | undefined => {
+      const category = storeCategories.find((cat) => cat.id === id);
+      if (!category) return undefined;
+      return {
+        label: category.label,
+        key: category.key,
+        icon: category.icon,
+        color: category.color,
+      };
+    },
+    [storeCategories]
+  );
 
-  const handleUpdate = async (data: CategoryFormData, id: string) => {
-    const updateData = {
-      label: data.label.trim(),
-      icon: data.icon.trim(),
-      color: data.color.trim().toUpperCase(),
-    };
+  const { resetValues } = useEntityFormRowReset({
+    editId,
+    createValues: createDefaults,
+    getEditValuesSync,
+  });
 
-    const originalCategory = storeCategories.find((cat) => cat.id === id);
-    if (!originalCategory) {
-      throw new Error(t('errors.notFound'));
-    }
-
-    updateCategory(id, updateData);
-
-    const result = await updateCategoryAction(id, updateData, locale);
-
-    if (result.error) {
-      updateCategory(id, originalCategory);
-      toast({
-        title: t('toast.errorTitle'),
-        description: `${result.error}\n\n${t('toast.revertedHint')}`,
-        variant: 'destructive',
-      });
-      throw new Error(result.error);
-    }
-
-    if (result.data) {
-      updateCategory(id, result.data);
-      toast({
-        title: t('toast.updatedTitle'),
-        description: t('toast.updatedDescription'),
-        variant: 'success',
-      });
-    }
-  };
-
-  const handleCreate = async (data: CategoryFormData) => {
-    const tempId = getTempId('temp-category');
-    const now = new Date().toISOString();
-    const optimisticCategory: Category = {
-      id: tempId,
-      created_at: now,
-      updated_at: now,
+  const buildPayload = useCallback(
+    (data: CategoryFormData) => ({
       label: data.label.trim(),
       key: data.key.trim(),
       icon: data.icon.trim(),
       color: data.color.trim().toUpperCase(),
       group_id: groupId,
-    };
+    }),
+    [groupId]
+  );
 
-    addCategory(optimisticCategory);
-    onClose();
+  const applyCreateOptimistic = useCallback(
+    (payload: ReturnType<typeof buildPayload>) => {
+      const tempId = getTempId('temp-category');
+      const now = new Date().toISOString();
+      const optimisticCategory: Category = {
+        id: tempId,
+        created_at: now,
+        updated_at: now,
+        ...payload,
+      };
+      addCategory(optimisticCategory);
+      return tempId;
+    },
+    [addCategory]
+  );
 
-    const result = await createCategoryAction(
-      {
-        label: data.label.trim(),
-        key: data.key.trim(),
-        icon: data.icon.trim(),
-        color: data.color.trim().toUpperCase(),
-        group_id: groupId,
-      },
-      locale
-    );
+  const commitCreate = useCallback(
+    (handle: string | { originalCategory: Category; id: string }, result: Category) => {
+      if (typeof handle !== 'string') return;
+      removeCategory(handle);
+      addCategory(result);
+    },
+    [addCategory, removeCategory]
+  );
 
-    if (result.error) {
-      removeCategory(tempId);
-      toast({
-        title: t('toast.errorTitle'),
-        description: `${result.error}\n\n${t('toast.optimisticCreateFailedHint')}`,
-        variant: 'destructive',
+  const rollbackCreate = useCallback(
+    (handle: string | { originalCategory: Category; id: string }) => {
+      if (typeof handle !== 'string') return;
+      removeCategory(handle);
+    },
+    [removeCategory]
+  );
+
+  const applyUpdateOptimistic = useCallback(
+    (id: string, payload: ReturnType<typeof buildPayload>) => {
+      const originalCategory = storeCategories.find((cat) => cat.id === id);
+      if (!originalCategory) {
+        throw new Error(t('errors.notFound'));
+      }
+      updateCategory(id, {
+        label: payload.label,
+        icon: payload.icon,
+        color: payload.color,
       });
-      return;
-    }
+      return { originalCategory, id };
+    },
+    [storeCategories, t, updateCategory]
+  );
 
-    removeCategory(tempId);
-    if (result.data) {
-      addCategory(result.data);
+  const commitUpdate = useCallback(
+    (handle: string | { originalCategory: Category; id: string }, result: Category) => {
+      if (typeof handle === 'string') return;
+      updateCategory(handle.id, result);
+    },
+    [updateCategory]
+  );
+
+  const rollbackUpdate = useCallback(
+    (handle: string | { originalCategory: Category; id: string }) => {
+      if (typeof handle === 'string') return;
+      updateCategory(handle.id, handle.originalCategory);
+    },
+    [updateCategory]
+  );
+
+  const getSuccessToast = useCallback(
+    (edit: boolean) =>
+      edit
+        ? { title: t('toast.updatedTitle'), description: t('toast.updatedDescription') }
+        : { title: t('toast.createdTitle'), description: t('toast.createdDescription') },
+    [t]
+  );
+
+  const formatErrorDescription = useCallback(
+    (error: string, edit: boolean) =>
+      edit
+        ? `${error}\n\n${t('toast.revertedHint')}`
+        : `${error}\n\n${t('toast.optimisticCreateFailedHint')}`,
+    [t]
+  );
+
+  const handleSubmit = useEntityFormSubmit<
+    CategoryFormData,
+    ReturnType<typeof buildPayload>,
+    Category,
+    string | { originalCategory: Category; id: string }
+  >({
+    isEditMode,
+    editId,
+    onClose,
+    buildPayload,
+    createAction: (payload) => createCategoryAction(payload, locale),
+    updateAction: (id, payload) =>
+      updateCategoryAction(
+        id,
+        { label: payload.label, icon: payload.icon, color: payload.color },
+        locale
+      ),
+    applyCreateOptimistic,
+    commitCreate,
+    rollbackCreate,
+    applyUpdateOptimistic,
+    commitUpdate,
+    rollbackUpdate,
+    getSuccessToast,
+    errorToast: { title: t('toast.errorTitle') },
+    formatErrorDescription,
+    unknownErrorMessage: t('errors.unknown'),
+  });
+
+  const handleDelete = useCallback(async () => {
+    if (!editId) return;
+    const category = storeCategories.find((c) => c.id === editId);
+    if (!category) return;
+
+    removeCategory(editId);
+    let restored = false;
+    try {
+      const result = await deleteCategoryAction(editId, locale);
+      if (result.error) {
+        addCategory(category);
+        restored = true;
+        toast({
+          title: t('toast.errorTitle'),
+          description: result.error,
+          variant: 'destructive',
+        });
+        throw new Error(result.error);
+      }
       toast({
-        title: t('toast.createdTitle'),
-        description: t('toast.createdDescription'),
+        title: t('toast.deletedTitle'),
+        description: t('toast.deletedDescription'),
         variant: 'success',
       });
+    } catch {
+      if (!restored) {
+        addCategory(category);
+        toast({
+          title: t('toast.errorTitle'),
+          description: t('errors.unknown'),
+          variant: 'destructive',
+        });
+      }
+      throw new Error('delete failed');
     }
-  };
+  }, [addCategory, editId, locale, removeCategory, storeCategories, t]);
 
   return (
     <EntityFormModal<CategoryFormData>
       isOpen={isOpen}
       onClose={onClose}
       title={title}
-      description={description}
       schema={categorySchema}
       defaultValues={createDefaults}
-      resetValues={resetValues}
-      repositionInputs={false}
+      resetValues={resetValues ?? createDefaults}
       formClassName={categoryStyles.formModal.form}
-      onSubmit={async (data, form) => {
-        try {
-          if (isEditMode && editId) {
-            await handleUpdate(data, editId);
-            onClose();
-          } else {
-            await handleCreate(data);
+      {...(canDelete
+        ? {
+            deletion: {
+              enabled: true,
+              title: t('deleteDialogTitle'),
+              message: t('deleteConfirm'),
+              confirmText: t('buttons.delete'),
+              cancelText: t('buttons.cancel'),
+              onDelete: handleDelete,
+              testId: 'category-form-delete',
+            },
           }
-        } catch (error) {
-          const message = error instanceof Error ? error.message : t('errors.unknown');
-          form.setError('root', { message });
-        }
-      }}
+        : {})}
+      onSubmit={handleSubmit}
       footer={(_, isSubmitting) => (
-        <FormActions
-          submitType="submit"
-          submitLabel={isEditMode ? t('buttons.save') : t('buttons.create')}
-          cancelLabel={t('buttons.cancel')}
-          onCancel={onClose}
+        <EntityFormFooter
           isSubmitting={isSubmitting}
-          className="w-full sm:w-auto"
+          submitLabel={isEditMode ? t('buttons.save') : t('buttons.create')}
+          onCancel={onClose}
         />
       )}
     >

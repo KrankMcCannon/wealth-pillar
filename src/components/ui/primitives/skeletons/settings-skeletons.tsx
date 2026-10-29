@@ -1,159 +1,39 @@
-/**
- * Settings Skeleton Screens
- * Progressive loading components for settings page
- * Uses shimmer animation for visual feedback
- */
+import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
+import { HomeDashboardMain } from '@/components/layout/home-dashboard-layout';
+import { stitchSettings } from '@/styles/home-design-foundation';
 
-import { SkeletonList } from '@/components/ui/primitives';
-import { settingsStyles } from '@/features/settings/theme';
-
-/**
- * Header skeleton for loading state
- */
-export function SettingsHeaderSkeleton() {
-  return (
-    <header className={settingsStyles.header.container}>
-      <div className={settingsStyles.header.inner}>
-        <div
-          className={`${settingsStyles.skeletons.headerIcon} ${settingsStyles.skeletons.shimmer}`}
-        />
-        <div
-          className={`${settingsStyles.skeletons.headerTitle} ${settingsStyles.skeletons.shimmer}`}
-        />
-        <div className={settingsStyles.header.spacer} />
-      </div>
-    </header>
-  );
+function ProfileSectionSkeleton() {
+  return <Skeleton className="h-[3.75rem] w-full rounded-xl" aria-hidden />;
 }
 
-/**
- * Profile section skeleton
- */
-export function ProfileSectionSkeleton() {
+function SettingsSectionCardSkeleton({ rows }: Readonly<{ rows: number }>) {
   return (
-    <section className={settingsStyles.skeletons.section}>
-      <div className={settingsStyles.skeletons.sectionTitle} />
-      <div className={settingsStyles.skeletons.card}>
-        {/* Header */}
-        <div className={settingsStyles.skeletons.cardHeader}>
-          <div className={settingsStyles.skeletons.avatar} />
-          <div className={settingsStyles.skeletons.headerBody}>
-            <div className={settingsStyles.skeletons.headerLinePrimary} />
-            <div className={settingsStyles.skeletons.headerLineSecondary} />
-          </div>
-        </div>
-
-        {/* Details */}
-        <SkeletonList
-          count={3}
-          spacing={settingsStyles.skeletons.dividerLight}
-          renderItem={() => (
-            <div className={settingsStyles.skeletons.listRow}>
-              <div className={settingsStyles.skeletons.listIcon} />
-              <div className={settingsStyles.skeletons.listBody}>
-                <div className={settingsStyles.skeletons.listLineShort} />
-                <div className={settingsStyles.skeletons.listLineMedium} />
-              </div>
-            </div>
-          )}
-        />
+    <section className="flex flex-col gap-1.5">
+      <Skeleton className="h-3 w-24" aria-hidden />
+      <div className={stitchSettings.sectionCard}>
+        {Array.from({ length: rows }, (_, i) => (
+          <Skeleton
+            key={i}
+            className={cn('mx-3 h-12 rounded-md', i < rows - 1 && 'border-b border-border/25')}
+            aria-hidden
+          />
+        ))}
       </div>
     </section>
   );
 }
 
-/**
- * Group management section skeleton
- */
-export function GroupManagementSectionSkeleton() {
-  return (
-    <section className={settingsStyles.skeletons.section}>
-      <div className={settingsStyles.skeletons.sectionTitle} />
-
-      {/* Members list */}
-      <div className={`${settingsStyles.skeletons.card} ${settingsStyles.skeletons.cardMargin}`}>
-        <div className={settingsStyles.skeletons.cardHeaderCompact}>
-          <div className={settingsStyles.skeletons.headerLineSmall} />
-          <div className={settingsStyles.skeletons.headerLineTiny} />
-        </div>
-        <SkeletonList
-          count={3}
-          spacing={settingsStyles.skeletons.dividerLight}
-          renderItem={() => (
-            <div className={settingsStyles.skeletons.memberRow}>
-              <div className={settingsStyles.skeletons.memberLeft}>
-                <div className={settingsStyles.skeletons.memberIcon} />
-                <div className={settingsStyles.skeletons.memberBody}>
-                  <div className={settingsStyles.skeletons.listLineShort} />
-                  <div className={settingsStyles.skeletons.listLineLong} />
-                </div>
-              </div>
-            </div>
-          )}
-        />
-      </div>
-
-      {/* Actions */}
-      <div className={settingsStyles.skeletons.card}>
-        <SkeletonList
-          count={3}
-          spacing={settingsStyles.skeletons.dividerStrong}
-          renderItem={() => (
-            <div className={settingsStyles.skeletons.listRow}>
-              <div className={settingsStyles.skeletons.listIcon} />
-              <div className={settingsStyles.skeletons.listBody}>
-                <div className={settingsStyles.skeletons.listLineXL} />
-                <div className={settingsStyles.skeletons.listLineXLLong} />
-              </div>
-            </div>
-          )}
-        />
-      </div>
-    </section>
-  );
-}
-
-/**
- * Preferences section skeleton
- */
-export function PreferencesSectionSkeleton() {
-  return (
-    <section className={settingsStyles.skeletons.section}>
-      <div className={settingsStyles.skeletons.sectionTitle} />
-      <div className={settingsStyles.skeletons.card}>
-        <SkeletonList
-          count={3}
-          spacing={settingsStyles.skeletons.dividerLight}
-          renderItem={() => (
-            <div className={settingsStyles.skeletons.listRowSpace}>
-              <div className={settingsStyles.skeletons.memberLeft}>
-                <div className={settingsStyles.skeletons.listIcon} />
-                <div className={settingsStyles.skeletons.listBody}>
-                  <div className={settingsStyles.skeletons.listLineXL} />
-                  <div className={settingsStyles.skeletons.listLineShort} />
-                </div>
-              </div>
-              <div className={settingsStyles.skeletons.switchPill} />
-            </div>
-          )}
-        />
-      </div>
-    </section>
-  );
-}
-
-/**
- * Complete settings page skeleton
- */
 export function SettingsPageSkeleton() {
   return (
-    <div className={settingsStyles.page.container}>
-      <SettingsHeaderSkeleton />
-      <main className={settingsStyles.main.container}>
+    <HomeDashboardMain id="main-settings-skeleton" ariaBusy>
+      <div className={stitchSettings.pageMain}>
         <ProfileSectionSkeleton />
-        <GroupManagementSectionSkeleton />
-        <PreferencesSectionSkeleton />
-      </main>
-    </div>
+        <SettingsSectionCardSkeleton rows={2} />
+        <SettingsSectionCardSkeleton rows={4} />
+        <SettingsSectionCardSkeleton rows={2} />
+        <Skeleton className="mt-1 h-11 w-full rounded-xl" aria-hidden />
+      </div>
+    </HomeDashboardMain>
   );
 }

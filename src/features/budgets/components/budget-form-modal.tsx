@@ -1,37 +1,45 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { cn } from '@/lib/utils';
-import { useWatch, type UseFormReturn } from 'react-hook-form';
 import { z } from 'zod';
 import { useLocale, useTranslations } from 'next-intl';
-import { useRouter } from 'next/navigation';
+import { toast } from '@/hooks/use-toast';
 import {
   createBudgetAction,
   deleteBudgetAction,
   getBudgetByIdAction,
   updateBudgetAction,
 } from '@/features/budgets';
-import { EntityFormModal, EntityFormFooter } from '@/components/form';
 import {
-  usePermissions,
-  useRequiredCurrentUser,
-  useRequiredGroupUsers,
-  useRequiredGroupId,
-} from '@/hooks';
+  deleteClosedPeriodBudgetAction,
+  upsertClosedPeriodBudgetAction,
+} from '@/features/budgets/actions/budget-period-actions';
+import { useRouter } from '@/i18n/routing';
+import {
+  EntityFormModal,
+  EntityFormFooter,
+  formModalStyles,
+  useEntityFormPermissions,
+  useEntityFormRowReset,
+  useEntityFormSubmit,
+} from '@/components/form';
 import { useCategories } from '@/stores/reference-data-store';
-import { useUserFilter } from '@/hooks/state/use-user-filter';
-import { toast } from '@/hooks/use-toast';
-import { stitchBudgetFormModal } from '@/styles/home-design-foundation';
+import { useReferenceDataStore } from '@/stores/reference-data-store';
+import { getTempId } from '@/lib/utils/temp-id';
+import type { Budget } from '@/lib/types';
 import { BudgetFormFields, type BudgetFormData } from './budget-form-fields';
+import { buildBudgetPayload, mapBudgetToFormData } from '@/features/budgets/utils/budget-form-data';
 
 interface BudgetFormModalProps {
   isOpen: boolean;
   onClose: () => void;
   editId?: string | null;
+  /** When set, create/edit/delete write this closed period's snapshot, not live budgets. */
+  periodId?: string;
+  periodUserId?: string;
+  periodBudgets?: Budget[];
 }
-
-const s = stitchBudgetFormModal;
 
 function BudgetFormModalBody({
   form,
@@ -41,39 +49,13 @@ function BudgetFormModalBody({
   userFieldHelperText,
   isSubmitting,
 }: Readonly<{
-  form: UseFormReturn<BudgetFormData>;
-  groupUsers: ReturnType<typeof useRequiredGroupUsers>;
+  form: Parameters<typeof BudgetFormFields>[0]['form'];
+  groupUsers: ReturnType<typeof useEntityFormPermissions>['groupUsers'];
   categoryOptions: { value: string; label: string; color: string }[];
   shouldDisableUserField: boolean;
   userFieldHelperText?: string | undefined;
   isSubmitting: boolean;
 }>) {
-  const { control, setValue } = form;
-  const watchedCategories = useWatch({ control, name: 'categories' });
-
-  const handleToggleCategory = useCallback(
-    (categoryId: string) => {
-      const current = watchedCategories;
-      const next = current.includes(categoryId)
-        ? current.filter((id) => id !== categoryId)
-        : Array.from(new Set([...current, categoryId]));
-      setValue('categories', next);
-    },
-    [setValue, watchedCategories]
-  );
-
-  const handleSelectAllCategories = useCallback(() => {
-    if (!categoryOptions.length) return;
-    setValue(
-      'categories',
-      categoryOptions.map((option) => option.value)
-    );
-  }, [categoryOptions, setValue]);
-
-  const handleClearCategories = useCallback(() => {
-    setValue('categories', []);
-  }, [setValue]);
-
   return (
     <BudgetFormFields
       form={form}
@@ -82,34 +64,32 @@ function BudgetFormModalBody({
       shouldDisableUserField={shouldDisableUserField}
       userFieldHelperText={userFieldHelperText}
       isSubmitting={isSubmitting}
-      onToggleCategory={handleToggleCategory}
-      onSelectAllCategories={handleSelectAllCategories}
-      onClearCategories={handleClearCategories}
     />
   );
 }
 
-function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalProps>) {
+function BudgetFormModal({
+  isOpen,
+  onClose,
+  editId,
+  periodId,
+  periodUserId,
+  periodBudgets = [],
+}: Readonly<BudgetFormModalProps>) {
   const t = useTranslations('Budgets.FormModal');
   const locale = useLocale();
   const router = useRouter();
-  const [isLoadingRow, setIsLoadingRow] = useState(false);
-  const [resetValues, setResetValues] = useState<BudgetFormData | undefined>(undefined);
-
-  const currentUser = useRequiredCurrentUser();
-  const groupUsers = useRequiredGroupUsers();
+  const { groupUsers, groupId, shouldDisableUserField, defaultFormUserId, userFieldHelperText } =
+    useEntityFormPermissions();
   const categories = useCategories();
-  const groupId = useRequiredGroupId();
-  const { selectedUserId } = useUserFilter();
+  const addBudget = useReferenceDataStore((state) => state.addBudget);
+  const updateBudget = useReferenceDataStore((state) => state.updateBudget);
+  const removeBudget = useReferenceDataStore((state) => state.removeBudget);
+  const storeBudgets = useReferenceDataStore((state) => state.budgets);
+  const isPeriodMode = Boolean(periodId && periodUserId);
 
-  const isEditMode = !!editId;
+  const isEditMode = Boolean(editId);
   const title = isEditMode ? t('title.edit') : t('title.create');
-  const description = isEditMode ? t('description.edit') : t('description.create');
-
-  const { shouldDisableUserField, defaultFormUserId, userFieldHelperText } = usePermissions({
-    currentUser,
-    selectedUserId,
-  });
 
   const budgetSchema = useMemo(
     () =>
@@ -125,7 +105,6 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
         icon: z.string().nullable().optional(),
         categories: z.array(z.string()).min(1, t('validation.categoriesRequired')),
         user_id: z.string().min(1, t('validation.userRequired')),
-        categorySearch: z.string().optional(),
       }),
     [t]
   );
@@ -137,10 +116,9 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
       type: 'monthly',
       icon: null,
       categories: [],
-      user_id: defaultFormUserId,
-      categorySearch: '',
+      user_id: periodUserId ?? defaultFormUserId,
     }),
-    [defaultFormUserId]
+    [defaultFormUserId, periodUserId]
   );
 
   const categoryOptions = useMemo(
@@ -153,145 +131,200 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
     [categories]
   );
 
-  useEffect(() => {
-    if (!isOpen) return;
-
-    let cancelled = false;
-
-    const run = async () => {
-      if (!editId) {
-        setIsLoadingRow(false);
-        setResetValues(createDefaults);
-        return;
+  const loadEditValues = useCallback(
+    async (id: string, signal: AbortSignal) => {
+      if (isPeriodMode) {
+        const budget = periodBudgets.find((item) => item.id === id);
+        return budget ? mapBudgetToFormData(budget) : null;
       }
+      const result = await getBudgetByIdAction(id, locale);
+      if (signal.aborted) return null;
+      if (!result.data) return null;
+      return mapBudgetToFormData(result.data);
+    },
+    [isPeriodMode, locale, periodBudgets]
+  );
 
-      setIsLoadingRow(true);
-      const result = await getBudgetByIdAction(editId);
-      if (cancelled) return;
-      setIsLoadingRow(false);
+  const getEditValuesSync = useCallback(
+    (id: string) => {
+      const budget = (isPeriodMode ? periodBudgets : storeBudgets).find((item) => item.id === id);
+      return budget ? mapBudgetToFormData(budget) : undefined;
+    },
+    [isPeriodMode, periodBudgets, storeBudgets]
+  );
 
-      const budget = result.data;
-      if (!budget) return;
+  const { resetValues, isReady, isLoading } = useEntityFormRowReset({
+    editId,
+    createValues: createDefaults,
+    loadEditValues,
+    getEditValuesSync,
+  });
 
-      setResetValues({
-        description: budget.description,
-        amount: budget.amount.toString(),
-        type: budget.type,
-        icon: budget.icon,
-        categories: budget.categories,
-        user_id: budget.user_id,
-        categorySearch: '',
-      });
-    };
+  const buildPayload = useCallback(
+    (data: BudgetFormData) => buildBudgetPayload(data, groupId),
+    [groupId]
+  );
 
-    run().catch(() => undefined);
+  const getSuccessToast = useCallback(
+    (edit: boolean) =>
+      edit
+        ? { title: t('toast.updatedTitle'), description: t('toast.updatedDescription') }
+        : { title: t('toast.createdTitle'), description: t('toast.createdDescription') },
+    [t]
+  );
 
-    return () => {
-      cancelled = true;
-    };
-  }, [isOpen, editId, createDefaults]);
-
-  const handleUpdate = async (data: BudgetFormData, id: string) => {
-    const amount = Number.parseFloat(data.amount);
-    const budgetData = {
-      description: data.description.trim(),
-      amount,
-      type: data.type,
-      icon: data.icon ?? null,
-      categories: data.categories,
-      user_id: data.user_id,
-      group_id: groupId,
-    };
-
-    const result = await updateBudgetAction(id, budgetData, locale);
-
-    if (result.error) {
-      toast({
-        title: t('toast.errorTitle'),
-        description: result.error,
-        variant: 'destructive',
-      });
-      throw new Error(result.error);
-    }
-
-    toast({
-      title: t('toast.updatedTitle'),
-      description: t('toast.updatedDescription'),
-      variant: 'success',
-    });
-    router.refresh();
-  };
-
-  const handleCreate = async (data: BudgetFormData) => {
-    const amount = Number.parseFloat(data.amount);
-    const budgetData = {
-      description: data.description.trim(),
-      amount,
-      type: data.type,
-      icon: data.icon ?? null,
-      categories: data.categories,
-      user_id: data.user_id,
-      group_id: groupId,
-    };
-
-    onClose();
-
-    const result = await createBudgetAction(budgetData, locale);
-
-    if (result.error) {
-      toast({
-        title: t('toast.errorTitle'),
-        description: result.error,
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    toast({
-      title: t('toast.createdTitle'),
-      description: t('toast.createdDescription'),
-      variant: 'success',
-    });
-    router.refresh();
-  };
+  const handleSubmit = useEntityFormSubmit<
+    BudgetFormData,
+    ReturnType<typeof buildPayload>,
+    Budget,
+    string | { originalBudget: Budget; id: string }
+  >({
+    isEditMode,
+    editId,
+    onClose,
+    buildPayload,
+    createAction: (payload) =>
+      isPeriodMode && periodId && periodUserId
+        ? upsertClosedPeriodBudgetAction(periodUserId, periodId, payload, locale)
+        : createBudgetAction(payload, locale),
+    updateAction: (id, payload) =>
+      isPeriodMode && periodId && periodUserId
+        ? upsertClosedPeriodBudgetAction(periodUserId, periodId, payload, locale, id)
+        : updateBudgetAction(id, payload, locale),
+    getSuccessToast,
+    errorToast: { title: t('toast.errorTitle') },
+    unknownErrorMessage: t('errors.unknown'),
+    ...(isPeriodMode
+      ? { refreshAfterSuccess: () => router.refresh() }
+      : {
+          applyCreateOptimistic: (payload) => {
+            const tempId = getTempId('temp-budget');
+            const now = new Date().toISOString();
+            const optimistic: Budget = {
+              id: tempId,
+              description: payload.description,
+              amount: payload.amount,
+              type: payload.type,
+              icon: payload.icon ?? null,
+              categories: payload.categories,
+              user_id: payload.user_id,
+              group_id: payload.group_id,
+              created_at: now,
+              updated_at: now,
+            };
+            addBudget(optimistic);
+            return tempId;
+          },
+          commitCreate: (handle, result) => {
+            if (typeof handle !== 'string') return;
+            removeBudget(handle);
+            addBudget(result);
+          },
+          rollbackCreate: (handle) => {
+            if (typeof handle !== 'string') return;
+            removeBudget(handle);
+          },
+          applyUpdateOptimistic: (id, payload) => {
+            const originalBudget = storeBudgets.find((budget) => budget.id === id);
+            if (!originalBudget) {
+              throw new Error(t('errors.notFound'));
+            }
+            updateBudget(id, {
+              description: payload.description,
+              amount: payload.amount,
+              type: payload.type,
+              icon: payload.icon ?? null,
+              categories: payload.categories,
+              user_id: payload.user_id,
+            });
+            return { originalBudget, id };
+          },
+          commitUpdate: (_handle, result) => {
+            updateBudget(result.id, result);
+          },
+          rollbackUpdate: (handle) => {
+            if (typeof handle === 'string') return;
+            updateBudget(handle.id, handle.originalBudget);
+          },
+        }),
+  });
 
   const handleDelete = useCallback(async () => {
     if (!editId) return;
-
-    const result = await deleteBudgetAction(editId, locale);
-
-    if (result.error) {
+    if (isPeriodMode && periodId && periodUserId) {
+      const result = await deleteClosedPeriodBudgetAction(periodUserId, periodId, editId, locale);
+      if (result.error) {
+        toast({
+          title: t('toast.errorTitle'),
+          description: result.error,
+          variant: 'destructive',
+        });
+        throw new Error(result.error);
+      }
       toast({
-        title: t('toast.errorTitle'),
-        description: result.error,
-        variant: 'destructive',
+        title: t('toast.deletedTitle'),
+        description: t('toast.deletedDescription'),
+        variant: 'success',
       });
-      throw new Error(result.error);
+      router.refresh();
+      return;
     }
+    const budget = storeBudgets.find((item) => item.id === editId);
+    if (!budget) return;
 
-    toast({
-      title: t('toast.deletedTitle'),
-      description: t('toast.deletedDescription'),
-      variant: 'success',
-    });
-    onClose();
-    router.refresh();
-  }, [editId, locale, onClose, router, t]);
+    removeBudget(editId);
+    let restored = false;
+    try {
+      const result = await deleteBudgetAction(editId, locale);
+      if (result.error) {
+        addBudget(budget);
+        restored = true;
+        toast({
+          title: t('toast.errorTitle'),
+          description: result.error,
+          variant: 'destructive',
+        });
+        throw new Error(result.error);
+      }
+      toast({
+        title: t('toast.deletedTitle'),
+        description: t('toast.deletedDescription'),
+        variant: 'success',
+      });
+    } catch {
+      if (!restored) {
+        addBudget(budget);
+        toast({
+          title: t('toast.errorTitle'),
+          description: t('errors.unknown'),
+          variant: 'destructive',
+        });
+      }
+      throw new Error('delete failed');
+    }
+  }, [
+    addBudget,
+    editId,
+    isPeriodMode,
+    locale,
+    periodId,
+    periodUserId,
+    removeBudget,
+    router,
+    storeBudgets,
+    t,
+  ]);
 
   return (
     <EntityFormModal<BudgetFormData>
       isOpen={isOpen}
       onClose={onClose}
       title={title}
-      description={description}
       schema={budgetSchema}
       defaultValues={createDefaults}
       resetValues={resetValues ?? createDefaults}
-      repositionInputs={false}
-      isLoading={Boolean(editId) && isLoadingRow}
-      formClassName={s.formColumn}
-      bodyClassName={cn(s.scrollBody, 'overflow-x-hidden')}
-      footerClassName={s.stickyFooter}
+      isLoading={Boolean(editId) && (isLoading || !isReady)}
+      bodyClassName={cn(formModalStyles.scrollBody, 'overflow-x-hidden')}
       {...(isEditMode && editId
         ? {
             deletion: {
@@ -301,50 +334,28 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
               confirmText: t('buttons.deleteBudget'),
               cancelText: t('buttons.cancel'),
               onDelete: handleDelete,
+              testId: 'budget-form-delete',
             },
           }
         : {})}
-      onSubmit={async (data, form) => {
-        try {
-          if (isEditMode && editId) {
-            await handleUpdate(data, editId);
-            onClose();
-          } else {
-            await handleCreate(data);
-          }
-        } catch (error) {
-          const message = error instanceof Error ? error.message : t('errors.unknown');
-          form.setError('root', { message });
-        }
-      }}
-      footer={(_, isSubmitting, { openDeleteDialog }) => (
+      onSubmit={handleSubmit}
+      footer={(_, isSubmitting) => (
         <EntityFormFooter
-          isEditMode={isEditMode}
           isSubmitting={isSubmitting}
           submitLabel={isEditMode ? t('buttons.confirmChanges') : t('buttons.create')}
-          deleteLabel={t('buttons.deleteBudget')}
-          deleteTestId="budget-form-delete"
-          showSubmitSpinner
-          {...(openDeleteDialog ? { onDelete: openDeleteDialog } : {})}
+          onCancel={onClose}
         />
       )}
     >
       {(form) => (
-        <>
-          {form.formState.errors.root ? (
-            <div className={s.errorBanner} role="alert">
-              {form.formState.errors.root.message}
-            </div>
-          ) : null}
-          <BudgetFormModalBody
-            form={form}
-            groupUsers={groupUsers}
-            categoryOptions={categoryOptions}
-            shouldDisableUserField={shouldDisableUserField}
-            userFieldHelperText={userFieldHelperText}
-            isSubmitting={form.formState.isSubmitting}
-          />
-        </>
+        <BudgetFormModalBody
+          form={form}
+          groupUsers={groupUsers}
+          categoryOptions={categoryOptions}
+          shouldDisableUserField={shouldDisableUserField || isPeriodMode}
+          userFieldHelperText={userFieldHelperText}
+          isSubmitting={form.formState.isSubmitting}
+        />
       )}
     </EntityFormModal>
   );

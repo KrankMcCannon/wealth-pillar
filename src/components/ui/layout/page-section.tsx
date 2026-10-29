@@ -2,7 +2,19 @@
 
 import * as React from 'react';
 import { cn } from '@/lib/utils';
-import { layoutStyles } from '@/styles/system';
+
+const sectionContainer = 'space-y-4';
+const sectionSurface = {
+  plain: 'bg-transparent',
+  card: 'bg-card border border-border/20 rounded-2xl',
+  muted: 'bg-muted border border-border/60 rounded-2xl',
+} as const;
+const sectionPadding = {
+  none: '',
+  sm: 'p-2',
+  md: 'p-3',
+  lg: 'p-4',
+} as const;
 
 export interface PageSectionProps {
   children: React.ReactNode;
@@ -25,12 +37,7 @@ export function PageSection({
     <section
       id={id}
       aria-label={ariaLabel}
-      className={cn(
-        layoutStyles.section.container,
-        layoutStyles.section.surface[variant],
-        layoutStyles.section.padding[padding],
-        className
-      )}
+      className={cn(sectionContainer, sectionSurface[variant], sectionPadding[padding], className)}
     >
       {children}
     </section>

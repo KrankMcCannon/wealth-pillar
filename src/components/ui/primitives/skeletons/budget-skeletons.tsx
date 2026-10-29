@@ -1,142 +1,81 @@
-/**
- * Modern skeleton components for budget pages
- * Uses project palette and smooth animations
- */
-
+import { Skeleton } from '@/components/ui/skeleton';
 import { SkeletonList } from '@/components/ui/primitives';
-import { SHIMMER_BASE } from '@/lib/utils/ui-constants';
-import { budgetStyles } from '@/styles/system';
+import { HomeDashboardMain } from '@/components/layout/home-dashboard-layout';
+import { stitchBudgets, stitchHome } from '@/styles/home-design-foundation';
 
 export const BudgetCardSkeleton = () => (
-  <div className={`${budgetStyles.skeleton.budgetCard} ${SHIMMER_BASE}`}>
-    <div className={budgetStyles.skeleton.budgetCardRow}>
-      <div className={budgetStyles.skeleton.budgetCardIcon} />
-      <div className={budgetStyles.skeleton.budgetCardBody}>
-        <div className={budgetStyles.skeleton.budgetCardTitle} />
-        <div className={budgetStyles.skeleton.budgetCardMetaRow}>
-          <div className={budgetStyles.skeleton.budgetCardDot} />
-          <div className={budgetStyles.skeleton.budgetCardMeta} />
-        </div>
+  <div className="rounded-xl border border-border/25 bg-card p-4">
+    <div className="flex items-center justify-between gap-2">
+      <div className="flex items-center gap-2.5">
+        <Skeleton className="size-10 shrink-0 rounded-full" />
+        <Skeleton className="h-4 w-28" />
       </div>
-      <div className={budgetStyles.skeleton.budgetCardRight}>
-        <div className={budgetStyles.skeleton.budgetCardAmount} />
-        <div className={budgetStyles.skeleton.budgetCardSubAmount} />
-      </div>
+      <Skeleton className="h-6 w-16 rounded-full" />
     </div>
-    <div className={budgetStyles.skeleton.budgetCardBar} />
+    <Skeleton className="mt-2 h-7 w-24" />
+    <Skeleton className="mt-2 h-2 w-full rounded-full" />
   </div>
 );
 
 export const BudgetListSkeleton = () => (
-  <SkeletonList count={3} spacing="space-y-3" renderItem={() => <BudgetCardSkeleton />} />
+  <SkeletonList count={3} spacing="flex flex-col gap-4" renderItem={() => <BudgetCardSkeleton />} />
 );
 
 export const BudgetDetailsSkeleton = () => (
-  <div className={`${budgetStyles.skeleton.detailsCard} ${SHIMMER_BASE}`}>
-    <div className={budgetStyles.skeleton.detailsHeader}>
-      <div className={budgetStyles.skeleton.detailsLeft}>
-        <div className={budgetStyles.skeleton.detailsTitle} />
-        <div className={budgetStyles.skeleton.detailsSubtitle} />
+  <HomeDashboardMain id="main-budget-detail-skeleton" ariaBusy>
+    <div className={stitchBudgets.mainStack}>
+      <div className="flex justify-end">
+        <Skeleton className="h-9 w-20" />
       </div>
-      <div className={budgetStyles.skeleton.detailsRight}>
-        <div className={budgetStyles.skeleton.detailsAmount} />
-        <div className={budgetStyles.skeleton.detailsAmountSub} />
-      </div>
-    </div>
-
-    {/* Progress bar */}
-    <div className={budgetStyles.skeleton.detailsBar} />
-
-    {/* Stats */}
-    <div className={budgetStyles.skeleton.detailsStats}>
-      <div>
-        <div className={budgetStyles.skeleton.detailsStatLabel} />
-        <div className={budgetStyles.skeleton.detailsStatValue} />
-      </div>
-      <div>
-        <div className={budgetStyles.skeleton.detailsStatLabel} />
-        <div className={budgetStyles.skeleton.detailsStatValue} />
-      </div>
-    </div>
-  </div>
-);
-
-export const TransactionListSkeleton = () => (
-  <SkeletonList
-    count={4}
-    spacing="space-y-3"
-    renderItem={() => (
-      <div className={`${budgetStyles.skeleton.txCard} ${SHIMMER_BASE}`}>
-        <div className={budgetStyles.skeleton.txRow}>
-          <div className={budgetStyles.skeleton.txIcon} />
-          <div className={budgetStyles.skeleton.txBody}>
-            <div className={budgetStyles.skeleton.txTitle} />
-            <div className={budgetStyles.skeleton.txMeta} />
+      <div className={stitchBudgets.categoryCard}>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2.5">
+            <Skeleton className="size-10 shrink-0 rounded-full" />
+            <Skeleton className="h-5 w-32" />
           </div>
-          <div className={budgetStyles.skeleton.txRight}>
-            <div className={budgetStyles.skeleton.txAmount} />
-            <div className={budgetStyles.skeleton.txAmountSub} />
-          </div>
+          <Skeleton className="h-6 w-16" />
         </div>
+        <Skeleton className="mt-2 h-4 w-48" />
+        <Skeleton className="mt-4 h-2 w-full rounded-full" />
       </div>
-    )}
-  />
+      <section className={stitchHome.scanSection}>
+        <Skeleton className="h-4 w-36" />
+        <ul className={stitchHome.plainList}>
+          {[1, 2, 3].map((i) => (
+            <li key={i} className={stitchHome.plainRow}>
+              <Skeleton className="h-4 w-28" />
+              <Skeleton className="h-4 w-16 shrink-0" />
+            </li>
+          ))}
+        </ul>
+      </section>
+    </div>
+  </HomeDashboardMain>
 );
 
 export const BudgetPageSkeleton = () => (
-  <div className={budgetStyles.skeleton.page}>
-    {/* Header skeleton */}
-    <header className={budgetStyles.skeleton.pageHeader}>
-      <div className={budgetStyles.skeleton.pageHeaderRow}>
-        <div className={budgetStyles.skeleton.pageHeaderLeft}>
-          <div className={budgetStyles.skeleton.pageHeaderIcon} />
-          <div>
-            <div className={budgetStyles.skeleton.pageHeaderText} />
-            <div className={budgetStyles.skeleton.pageHeaderSubtext} />
-          </div>
-        </div>
-        <div className={budgetStyles.skeleton.pageHeaderAction} />
+  <HomeDashboardMain id="main-budgets-skeleton" ariaBusy>
+    <div className={stitchBudgets.mainStack}>
+      <Skeleton className="h-8 w-full rounded-full" />
+      <div className={stitchBudgets.periodHeader}>
+        <Skeleton className="h-4 w-36" />
+        <Skeleton className="size-11 rounded-lg" />
       </div>
-    </header>
-
-    {/* User selector skeleton */}
-    <section className={budgetStyles.skeleton.selectorSection}>
-      <SkeletonList
-        count={3}
-        spacing={budgetStyles.skeleton.selectorList}
-        style={budgetStyles.skeleton.selectorListStyle}
-        renderItem={() => (
-          <div className={budgetStyles.skeleton.selectorItem}>
-            <div className={budgetStyles.skeleton.selectorIcon} />
-            <div className={budgetStyles.skeleton.selectorText} />
-          </div>
-        )}
-      />
-    </section>
-
-    {/* Main content skeleton */}
-    <main className={budgetStyles.skeleton.pageMain}>
-      <div className={budgetStyles.skeleton.pageMainBody}>
-        {/* Section header */}
-        <div>
-          <div className={budgetStyles.skeleton.pageSectionTitle} />
-          <div className={budgetStyles.skeleton.pageSectionSubtitle} />
-        </div>
-
-        {/* Budget list */}
-        <BudgetListSkeleton />
-
-        {/* Details section */}
-        <div className={budgetStyles.skeleton.pageDetails}>
-          <div className={budgetStyles.skeleton.pageDetailsActions}>
-            <div className={budgetStyles.skeleton.pageDetailsAction} />
-            <div className={budgetStyles.skeleton.pageDetailsAction} />
-          </div>
-          <BudgetDetailsSkeleton />
-        </div>
+      <div className={stitchBudgets.heroSection}>
+        <Skeleton className="h-3 w-40" />
+        <Skeleton className="mt-2 h-8 w-48" />
+        <Skeleton className="mt-2 h-4 w-56" />
       </div>
-    </main>
-  </div>
+      <BudgetListSkeleton />
+      <div className={stitchBudgets.detailChartCard}>
+        <div className={stitchBudgets.detailChartHeader}>
+          <Skeleton className="h-3 w-24" />
+          <Skeleton className="mt-2 h-7 w-32" />
+        </div>
+        <Skeleton className="mx-4 mb-4 h-40 rounded-lg" />
+      </div>
+    </div>
+  </HomeDashboardMain>
 );
 
 export default BudgetPageSkeleton;

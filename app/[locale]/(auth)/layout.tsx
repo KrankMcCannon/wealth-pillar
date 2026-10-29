@@ -6,7 +6,7 @@ export default function AuthLayout({ children }: { children: ReactNode }): React
     <div className={authStyles.layout.container}>
       <main className={authStyles.layout.main}>{children}</main>
       <footer className={authStyles.layout.footer}>
-        <div className={authStyles.layout.footerText}>© 2026 Wealth Pillar</div>
+        <p className={authStyles.layout.footerText}>© 2026 Wealth Pillar</p>
       </footer>
     </div>
   );

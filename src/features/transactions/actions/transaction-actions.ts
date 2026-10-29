@@ -1,7 +1,7 @@
 'use server';
 
 import { getCurrentUser } from '@/lib/auth/cached-auth';
-import { revalidateTransactionRelatedPaths } from '@/lib/cache/revalidation-paths';
+import { isAuthDenial, requireAuthenticatedUser } from '@/lib/permissions/action-auth';
 import type { ServiceResult } from '@/lib/types/service-result';
 import { assertCanActOnUser } from '@/features/permissions/assert-can-act-on-user';
 import { createTransactionUseCase } from '@/server/use-cases/transactions/create-transaction.use-case';
@@ -9,8 +9,18 @@ import { updateTransactionUseCase } from '@/server/use-cases/transactions/update
 import { deleteTransactionUseCase } from '@/server/use-cases/transactions/delete-transaction.use-case';
 import { getTransactionByIdUseCase } from '@/server/use-cases/transactions/get-transactions.use-case';
 import type { CreateTransactionInput } from '@/server/use-cases/transactions/types';
-import { canAccessUserData, isMember } from '@/lib/utils';
+import { AccessScope } from '@/lib/permissions/access-scope';
+import { FinancialResourcePolicy } from '@/server/permissions/financial-resource-policy';
+import { isMember } from '@/lib/utils';
 import type { User, Transaction } from '@/lib/types';
+import {
+  createTransactionSchema,
+  updateTransactionSchema,
+} from '@/lib/validation/transaction-schemas';
+import {
+  fetchTransactionsWindow,
+  type TransactionsListQuery,
+} from '@/server/use-cases/pages/transactions-page.use-case';
 
 /**
  * Server Action: Create Transaction
@@ -25,11 +35,17 @@ export async function createTransactionAction(
     const gate = assertCanActOnUser(currentUser as unknown as User, input.user_id ?? undefined);
     if (!gate.ok) return { data: null, error: gate.error };
 
-    const data = await createTransactionUseCase(input);
-
-    if (data) {
-      revalidateTransactionRelatedPaths();
+    const parsed = createTransactionSchema.safeParse(input);
+    if (!parsed.success) {
+      return { data: null, error: parsed.error.issues[0]?.message ?? 'Invalid input' };
     }
+
+    const policy = new FinancialResourcePolicy(currentUser as unknown as User);
+    await policy.assertTransaction(parsed.data);
+    const data = await createTransactionUseCase({
+      ...parsed.data,
+      group_id: policy.groupId,
+    } as CreateTransactionInput);
 
     return { data, error: null };
   } catch (error) {
@@ -57,10 +73,18 @@ export async function updateTransactionAction(
     }
 
     // Get existing transaction to verify ownership
-    const existingTransaction = await getTransactionByIdUseCase(id);
+    const policy = new FinancialResourcePolicy(currentUser as unknown as User);
+    const repoScope = {
+      groupId: policy.groupId,
+      ...(!AccessScope.for(currentUser as unknown as User).isAdmin
+        ? { userId: currentUser.id }
+        : {}),
+    };
+    const existingTransaction = await getTransactionByIdUseCase(id, repoScope);
     if (!existingTransaction) {
       return { data: null, error: 'Transazione non trovata' };
     }
+    policy.assertGroup(existingTransaction.group_id);
 
     // Verify transaction has a user_id
     if (!existingTransaction.user_id) {
@@ -70,27 +94,36 @@ export async function updateTransactionAction(
       };
     }
 
-    // Permission validation: verify access to existing transaction
-    if (!canAccessUserData(currentUser as unknown as User, existingTransaction.user_id)) {
+    const scope = AccessScope.for(currentUser as unknown as User);
+    if (!scope.canViewOwned(existingTransaction)) {
       return { data: null, error: 'Permesso negato' };
     }
 
-    // If changing user_id, verify permission for new user
     if (input.user_id && input.user_id !== existingTransaction.user_id) {
       if (isMember(currentUser as unknown as User)) {
         return { data: null, error: 'Non puoi assegnare la transazione a un altro utente' };
       }
-      if (!canAccessUserData(currentUser as unknown as User, input.user_id)) {
+      if (!scope.canViewUser(input.user_id)) {
         return { data: null, error: 'Permesso negato' };
       }
     }
 
-    // Call service
-    const data = await updateTransactionUseCase(id, input);
-
-    if (data) {
-      revalidateTransactionRelatedPaths();
+    const parsed = updateTransactionSchema.safeParse(input);
+    if (!parsed.success) {
+      return { data: null, error: parsed.error.issues[0]?.message ?? 'Invalid input' };
     }
+
+    const updates = parsed.data as Partial<CreateTransactionInput>;
+    await policy.assertTransaction({
+      ...existingTransaction,
+      ...updates,
+      group_id: updates.group_id ?? existingTransaction.group_id ?? null,
+    });
+    const data = await updateTransactionUseCase(
+      id,
+      parsed.data as Partial<CreateTransactionInput>,
+      repoScope
+    );
 
     return { data, error: null };
   } catch (error) {
@@ -113,14 +146,16 @@ export async function getTransactionByIdAction(id: string): Promise<ServiceResul
       return { data: null, error: 'Non autenticato. Effettua il login per continuare.' };
     }
 
-    const transaction = await getTransactionByIdUseCase(id);
+    const policy = new FinancialResourcePolicy(currentUser as unknown as User);
+    const transaction = await getTransactionByIdUseCase(id, { groupId: policy.groupId });
     if (!transaction) {
       return { data: null, error: 'Transazione non trovata' };
     }
+    policy.assertGroup(transaction.group_id);
 
     if (
       transaction.user_id &&
-      !canAccessUserData(currentUser as unknown as User, transaction.user_id)
+      !AccessScope.for(currentUser as unknown as User).canViewUser(transaction.user_id)
     ) {
       return { data: null, error: 'Permesso negato' };
     }
@@ -134,6 +169,50 @@ export async function getTransactionByIdAction(id: string): Promise<ServiceResul
   }
 }
 
+export type LoadMoreTransactionsInput = {
+  query: TransactionsListQuery;
+  cursor: string;
+};
+
+export async function loadMoreTransactionsAction(input: LoadMoreTransactionsInput): Promise<
+  ServiceResult<{
+    transactions: Transaction[];
+    hasMore: boolean;
+    nextCursor?: string;
+  }>
+> {
+  try {
+    const auth = await requireAuthenticatedUser(
+      'Non autenticato. Effettua il login per continuare.'
+    );
+    if (isAuthDenial(auth)) return auth;
+    const currentUser = auth;
+
+    const groupId = currentUser.group_id?.trim();
+    if (!groupId) {
+      return { data: null, error: 'Gruppo non trovato' };
+    }
+
+    const scopedQuery: TransactionsListQuery = { ...input.query, cursor: input.cursor };
+    if (isMember(currentUser as unknown as User)) {
+      scopedQuery.user = currentUser.id;
+    }
+
+    const window = await fetchTransactionsWindow(
+      groupId,
+      scopedQuery,
+      currentUser as unknown as User
+    );
+
+    return { data: window, error: null };
+  } catch (error) {
+    return {
+      data: null,
+      error: error instanceof Error ? error.message : 'Failed to load more transactions',
+    };
+  }
+}
+
 export async function deleteTransactionAction(id: string): Promise<ServiceResult<{ id: string }>> {
   try {
     // Authentication check (cached per request)
@@ -143,10 +222,18 @@ export async function deleteTransactionAction(id: string): Promise<ServiceResult
     }
 
     // Get existing transaction to verify ownership
-    const existingTransaction = await getTransactionByIdUseCase(id);
+    const policy = new FinancialResourcePolicy(currentUser as unknown as User);
+    const repoScope = {
+      groupId: policy.groupId,
+      ...(!AccessScope.for(currentUser as unknown as User).isAdmin
+        ? { userId: currentUser.id }
+        : {}),
+    };
+    const existingTransaction = await getTransactionByIdUseCase(id, repoScope);
     if (!existingTransaction) {
       return { data: null, error: 'Transazione non trovata' };
     }
+    policy.assertGroup(existingTransaction.group_id);
 
     // Verify transaction has a user_id
     if (!existingTransaction.user_id) {
@@ -156,15 +243,11 @@ export async function deleteTransactionAction(id: string): Promise<ServiceResult
       };
     }
 
-    // Permission validation: verify access to transaction
-    if (!canAccessUserData(currentUser as unknown as User, existingTransaction.user_id)) {
+    if (!AccessScope.for(currentUser as unknown as User).canViewOwned(existingTransaction)) {
       return { data: null, error: 'Permesso negato' };
     }
 
-    // Call service
-    await deleteTransactionUseCase(id);
-
-    revalidateTransactionRelatedPaths();
+    await deleteTransactionUseCase(id, repoScope);
 
     return { data: { id }, error: null };
   } catch (error) {

@@ -1,5 +1,22 @@
 import type { AccountType, BudgetType } from '@/lib/types';
 
+/** Account row in the onboarding wizard form state. */
+export interface OnboardingFormAccount {
+  id: string;
+  name: string;
+  type: AccountType;
+  isDefault?: boolean;
+}
+
+/** Budget row in the onboarding wizard form state. */
+export interface OnboardingFormBudget {
+  id: string;
+  description: string;
+  amount: string;
+  type: BudgetType;
+  categoryId: string;
+}
+
 /**
  * Onboarding group information collected from the wizard
  */

@@ -3,20 +3,40 @@
 import * as React from 'react';
 import { Drawer as DrawerPrimitive } from 'vaul';
 import { cn } from '@/lib/utils';
-import { drawerStyles } from '@/styles/system';
+import { formModalStyles } from '@/components/form/form-modal-styles';
 
 const Drawer = ({
   /** When true, Vaul scales the page behind the drawer; that `transform` breaks `position: fixed` (header / bottom nav) until the drawer tree unmounts. Default off for stable chrome. */
   shouldScaleBackground = false,
+  setBackgroundColorOnScale = false,
   ...props
 }: React.ComponentProps<typeof DrawerPrimitive.Root>) => (
-  <DrawerPrimitive.Root shouldScaleBackground={shouldScaleBackground} {...props} />
+  <DrawerPrimitive.Root
+    shouldScaleBackground={shouldScaleBackground}
+    setBackgroundColorOnScale={setBackgroundColorOnScale}
+    {...props}
+  />
 );
 Drawer.displayName = 'Drawer';
+
+/** Use inside an open drawer (e.g. calendar over a form modal) to avoid aria-hidden/focus conflicts. */
+const DrawerNested = ({
+  shouldScaleBackground = false,
+  setBackgroundColorOnScale = false,
+  ...props
+}: React.ComponentProps<typeof DrawerPrimitive.NestedRoot>) => (
+  <DrawerPrimitive.NestedRoot
+    shouldScaleBackground={shouldScaleBackground}
+    setBackgroundColorOnScale={setBackgroundColorOnScale}
+    {...props}
+  />
+);
+DrawerNested.displayName = 'DrawerNested';
 
 const DrawerTrigger = DrawerPrimitive.Trigger;
 const DrawerPortal = DrawerPrimitive.Portal;
 const DrawerClose = DrawerPrimitive.Close;
+const DrawerHandle = DrawerPrimitive.Handle;
 
 const DrawerOverlay = React.forwardRef<
   React.ElementRef<typeof DrawerPrimitive.Overlay>,
@@ -25,7 +45,7 @@ const DrawerOverlay = React.forwardRef<
   <DrawerPrimitive.Overlay
     ref={ref}
     data-slot="drawer-overlay"
-    className={cn('fixed inset-0 z-150 bg-[oklch(12%_0.01_250)]/60', className)}
+    className={cn('fixed inset-0 z-150 bg-foreground/50', className)}
     {...props}
   />
 ));
@@ -40,11 +60,7 @@ const DrawerContent = React.forwardRef<
     <DrawerPrimitive.Content
       ref={ref}
       data-slot="drawer-content"
-      className={cn(
-        drawerStyles.content,
-        'max-h-[96dvh] flex flex-col fixed bottom-0 left-0 right-0 z-150 pb-[env(safe-area-inset-bottom)]',
-        className
-      )}
+      className={cn(formModalStyles.drawerShell.content, className)}
       {...props}
     >
       {children}
@@ -55,14 +71,14 @@ DrawerContent.displayName = DrawerPrimitive.Content.displayName;
 
 const DrawerHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn(drawerStyles.header, className)} {...props} />
+    <div ref={ref} className={cn(formModalStyles.drawerShell.header, className)} {...props} />
   )
 );
 DrawerHeader.displayName = 'DrawerHeader';
 
 const DrawerFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn(drawerStyles.footer, className)} {...props} />
+    <div ref={ref} className={cn(formModalStyles.drawerShell.footer, className)} {...props} />
   )
 );
 DrawerFooter.displayName = 'DrawerFooter';
@@ -71,7 +87,11 @@ const DrawerTitle = React.forwardRef<
   React.ElementRef<typeof DrawerPrimitive.Title>,
   React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Title>
 >(({ className, ...props }, ref) => (
-  <DrawerPrimitive.Title ref={ref} className={cn('text-lg font-semibold', className)} {...props} />
+  <DrawerPrimitive.Title
+    ref={ref}
+    className={cn('text-lg font-semibold text-foreground', className)}
+    {...props}
+  />
 ));
 DrawerTitle.displayName = DrawerPrimitive.Title.displayName;
 
@@ -81,7 +101,7 @@ const DrawerDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DrawerPrimitive.Description
     ref={ref}
-    className={cn('text-sm text-primary/60', className)}
+    className={cn('text-sm text-modal-fg-muted', className)}
     {...props}
   />
 ));
@@ -89,9 +109,11 @@ DrawerDescription.displayName = DrawerPrimitive.Description.displayName;
 
 export {
   Drawer,
+  DrawerNested,
   DrawerTrigger,
   DrawerPortal,
   DrawerClose,
+  DrawerHandle,
   DrawerContent,
   DrawerHeader,
   DrawerFooter,

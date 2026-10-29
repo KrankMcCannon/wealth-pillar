@@ -1,4 +1,6 @@
-import type { Account, Transaction } from '@/lib/types';
+import type { Account } from '@/lib/types';
+import { roundMoney } from '@/lib/utils/money';
+import { resolveAccountLiquidity } from '@/lib/utils/account-classification';
 
 /**
  * Get default accounts for users (Pure business logic)
@@ -7,73 +9,130 @@ export function getDefaultAccounts(
   accounts: Account[],
   users: Array<{ id: string; default_account_id?: string | null }>
 ): Account[] {
-  // Get all default account IDs from users (filter out null and undefined)
   const defaultAccountIds = new Set(
     users
       .map((user) => user.default_account_id)
       .filter((id): id is string => id !== null && id !== undefined)
   );
 
-  // Filter accounts to only include default accounts
   return accounts.filter((account) => defaultAccountIds.has(account.id));
 }
 
-/**
- * Calculate aggregated balance from a list of accounts
- * Uses the 'balance' field from the database
- */
-export function calculateAggregatedBalance(accounts: Account[]): number {
-  return accounts.reduce((sum, account) => sum + (account.balance || 0), 0);
+export interface AccountStats {
+  totalBalance: number;
+  spendableBalance: number;
+  reserveBalance: number;
+  totalAccounts: number;
+  positiveAccounts: number;
+  negativeAccounts: number;
+}
+
+export function computeAccountStats(
+  accounts: Account[],
+  accountBalances: Record<string, number>
+): AccountStats {
+  let spendableBalance = 0;
+  let reserveBalance = 0;
+  let positiveAccounts = 0;
+  let negativeAccounts = 0;
+
+  for (const account of accounts) {
+    const balance = accountBalances[account.id] ?? 0;
+    if (resolveAccountLiquidity(account) === 'reserve') {
+      reserveBalance += balance;
+    } else {
+      spendableBalance += balance;
+    }
+    if (balance > 0) positiveAccounts += 1;
+    else if (balance < 0) negativeAccounts += 1;
+  }
+
+  const totalBalance = spendableBalance + reserveBalance;
+
+  return {
+    totalBalance: roundMoney(totalBalance),
+    spendableBalance: roundMoney(spendableBalance),
+    reserveBalance: roundMoney(reserveBalance),
+    totalAccounts: accounts.length,
+    positiveAccounts,
+    negativeAccounts,
+  };
+}
+
+export interface DashboardBalanceViewModel {
+  totalBalanceAll: number;
+  spendableBalanceAll: number;
+  reserveBalanceAll: number;
+  totalBalanceByUserId: Record<string, number>;
+  spendableByUserId: Record<string, number>;
+  reserveByUserId: Record<string, number>;
+}
+
+function sumUserBalances(
+  accounts: Account[],
+  accountBalances: Record<string, number>,
+  userId: string
+): { spendable: number; reserve: number } {
+  let spendable = 0;
+  let reserve = 0;
+  for (const account of accounts) {
+    if (!account.user_ids.includes(userId)) continue;
+    const balance = accountBalances[account.id] ?? 0;
+    if (resolveAccountLiquidity(account) === 'reserve') {
+      reserve += balance;
+    } else {
+      spendable += balance;
+    }
+  }
+  return { spendable: roundMoney(spendable), reserve: roundMoney(reserve) };
 }
 
 /**
- * Calculate account balance from transactions (Pure business logic)
+ * Precomputes dashboard balances for "all" and each user (spendable vs reserve).
  */
-export function calculateAccountBalance(
-  accountIds: string | Set<string>,
-  transactions: Transaction[]
-): number {
-  const accountSet = typeof accountIds === 'string' ? new Set([accountIds]) : accountIds;
+export function computeDashboardBalanceViewModel(
+  accounts: Account[],
+  accountBalances: Record<string, number>,
+  groupUserIds: string[]
+): DashboardBalanceViewModel {
+  const allStats = computeAccountStats(accounts, accountBalances);
 
-  const balance = transactions.reduce((balance, transaction) => {
-    // Check if this transaction involves this account
-    const isSourceAccount = accountSet.has(transaction.account_id);
-    const isDestinationAccount =
-      transaction.to_account_id && accountSet.has(transaction.to_account_id);
+  const totalBalanceByUserId: Record<string, number> = {};
+  const spendableByUserId: Record<string, number> = {};
+  const reserveByUserId: Record<string, number> = {};
 
-    // Skip if transaction doesn't involve this account
-    if (!isSourceAccount && !isDestinationAccount) {
-      return balance;
-    }
+  for (const userId of groupUserIds) {
+    const { spendable, reserve } = sumUserBalances(accounts, accountBalances, userId);
+    spendableByUserId[userId] = spendable;
+    reserveByUserId[userId] = reserve;
+    totalBalanceByUserId[userId] = roundMoney(spendable + reserve);
+  }
 
-    // Handle transfers (has to_account_id)
-    if (transaction.to_account_id) {
-      if (isSourceAccount && isDestinationAccount) {
-        // Internal transfer within the set: NO NET CHANGE
-        return balance;
-      } else if (isSourceAccount) {
-        // Money leaving this account set
-        return balance - transaction.amount;
-      } else if (isDestinationAccount) {
-        // Money entering this account set
-        return balance + transaction.amount;
-      }
-    }
+  return {
+    totalBalanceAll: allStats.totalBalance,
+    spendableBalanceAll: allStats.spendableBalance,
+    reserveBalanceAll: allStats.reserveBalance,
+    totalBalanceByUserId,
+    spendableByUserId,
+    reserveByUserId,
+  };
+}
 
-    // Handle regular transactions (no to_account_id or not transfer)
-    if (isSourceAccount) {
-      if (transaction.type === 'income') {
-        // Income adds to balance
-        return balance + transaction.amount;
-      } else if (transaction.type === 'expense') {
-        // Expense subtracts from balance
-        return balance - transaction.amount;
-      }
-    }
+/**
+ * Precomputes account stats for filtered account sets (all users + per user).
+ */
+export function computeAccountsStatsViewModel(
+  accounts: Account[],
+  accountBalances: Record<string, number>,
+  groupUserIds: string[]
+): { all: AccountStats; byUserId: Record<string, AccountStats> } {
+  const all = computeAccountStats(accounts, accountBalances);
+  const byUserId: Record<string, AccountStats> = {};
 
-    return balance;
-  }, 0);
+  for (const userId of groupUserIds) {
+    const userAccounts = accounts.filter((a) => a.user_ids.includes(userId));
+    byUserId[userId] = computeAccountStats(userAccounts, accountBalances);
+  }
 
-  // Round to 2 decimal places to avoid floating point precision issues
-  return Math.round(balance * 100) / 100;
+  return { all, byUserId };
 }

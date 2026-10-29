@@ -17,13 +17,12 @@ const RecurringFormModal = lazy(
   () => import('@/features/recurring/components/recurring-form-modal')
 );
 const AccountFormModal = lazy(() => import('@/features/accounts/components/account-form-modal'));
+const ImportModal = lazy(
+  () => import('@/features/transactions/components/import-modal/import-modal')
+);
 const AddInvestmentModal = lazy(
   () => import('@/features/investments/components/add-investment-modal')
 );
-const SettingsModalRenderer = lazy(
-  () => import('@/features/settings/components/settings-modal-renderer')
-);
-
 interface ModalProviderProps {
   children: React.ReactNode;
 }
@@ -53,9 +52,9 @@ function ModalRenderer() {
 
       {modal === 'account' && <AccountFormModal isOpen onClose={closeModal} editId={editId} />}
 
-      {modal === 'investment' && <AddInvestmentModal isOpen onClose={closeModal} editId={editId} />}
+      {modal === 'import' && <ImportModal isOpen onClose={closeModal} />}
 
-      {modal?.startsWith('settings:') ? <SettingsModalRenderer /> : null}
+      {modal === 'investment' && <AddInvestmentModal isOpen onClose={closeModal} editId={editId} />}
     </Suspense>
   );
 }

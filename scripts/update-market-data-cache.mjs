@@ -1,16 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Try to load dotenv, but don't fail if it's missing (e.g. in CI/production)
-try {
-  const { config } = await import('dotenv');
-  config();
-} catch {
-  // dotenv is likely not installed or not needed in this environment
-  if (process.env.NODE_ENV !== 'production') {
-    console.warn('dotenv not found, relying on process.env');
-  }
-}
-
 const BASE_URL = 'https://api.twelvedata.com';
 const DEFAULT_INTERVAL = '1day';
 const DEFAULT_OUTPUTSIZE = 365 * 2;
@@ -78,6 +67,9 @@ const fetchSymbols = async (from, limit) => {
 const fetchTimeSeries = async (symbol, interval, outputsize) => {
   const url = `${BASE_URL}/time_series?symbol=${symbol}&interval=${interval}&outputsize=${outputsize}&apikey=${TWELVE_DATA_API_KEY}`;
   const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status} for ${symbol}`);
+  }
   const json = await res.json();
   if (json.status === 'error') {
     throw new Error(`TwelveData error for ${symbol}: ${JSON.stringify(json)}`);
@@ -113,6 +105,8 @@ const main = async () => {
 
   process.stdout.write(`Updating ${symbols.length} symbols from ${options.from}...\n`);
 
+  let failureCount = 0;
+
   for (const symbol of symbols) {
     try {
       const series = await fetchTimeSeries(symbol, options.interval, options.outputsize);
@@ -124,8 +118,13 @@ const main = async () => {
       }
       await sleep(250); // Basic throttling for free tier
     } catch (error) {
+      failureCount += 1;
       console.error(`[ERR] ${symbol}:`, error?.message || error);
     }
+  }
+
+  if (failureCount > 0) {
+    process.exit(1);
   }
 };
 

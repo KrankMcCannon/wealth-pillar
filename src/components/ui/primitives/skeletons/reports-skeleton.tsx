@@ -1,108 +1,59 @@
-import { BottomNavigation, PageContainer, HomeDashboardMain } from '@/components/layout';
-import { reportsStyles } from '@/features/reports/theme/reports-styles';
-import { cn } from '@/lib/utils';
-import { STICKY_HEADER_BASE } from '@/lib/utils/ui-constants';
-import { headerStyles } from '@/components/layout/theme/header-styles';
-import { stitchReports } from '@/styles/home-design-foundation';
+import { Skeleton } from '@/components/ui/skeleton';
+import { HomeDashboardMain } from '@/components/layout/home-dashboard-layout';
+import { stitchHome, stitchReports } from '@/styles/home-design-foundation';
 
 export function ReportsSkeleton() {
-  const { skeletons: s } = reportsStyles;
-
   return (
-    <PageContainer>
-      {/* Premium Header Skeleton - Matches Header component structure */}
-      <header className={cn(STICKY_HEADER_BASE, headerStyles.container)}>
-        <div className={headerStyles.inner}>
-          <div className={headerStyles.slotLeft}>
-            <div className="h-8 w-8 animate-pulse rounded-full bg-primary/10 border border-primary/20" />
-          </div>
-          <div className={headerStyles.slotCenter}>
-            <div className="h-5 w-32 animate-pulse rounded-lg bg-primary/20" />
-          </div>
-          <div className={headerStyles.slotRight}>
-            <div className="h-8 w-8 animate-pulse rounded-full bg-primary/10 border border-primary/20" />
-          </div>
-        </div>
-      </header>
-
-      {/* Sticky Filter Bar Skeleton - Matches ReportsTimeFilter structure */}
+    <div className="flex min-h-0 w-full flex-col">
       <div className={stitchReports.stickyFilterBar}>
         <div className={stitchReports.chipRow}>
-          {[1, 2, 3, 4].map((i) => (
-            <div
-              key={i}
-              className="h-9 w-24 shrink-0 animate-pulse rounded-full border border-primary/20 bg-primary/10"
-            />
+          {[1, 2, 3, 4, 5].map((i) => (
+            <Skeleton key={i} className="h-7 w-16 shrink-0 rounded-full" />
           ))}
         </div>
+        <Skeleton className="h-8 w-48 rounded-full" />
       </div>
 
-      <HomeDashboardMain id="main-reports-skeleton">
-        <div className="flex flex-col gap-8 pt-4">
-          {/* Hero Section */}
-          <div className={s.hero}>
-            <div className={s.heroLine1} />
-            <div className={s.heroLine2} />
-            <div className={s.heroLine3} />
+      <HomeDashboardMain id="main-reports-skeleton" className="pt-2" ariaBusy>
+        <div className={stitchReports.sectionStack}>
+          <div className={stitchReports.heroNetCard}>
+            <Skeleton className="h-3 w-32" />
+            <Skeleton className="mt-2 h-8 w-40" />
+            <Skeleton className="mt-3 h-4 w-full" />
+            <Skeleton className="mt-1 h-4 w-2/3" />
           </div>
 
-          {/* Quick Stats Grid */}
-          <div className={s.grid}>
-            <div className={s.gridItem} />
-            <div className={s.gridItem} />
-          </div>
-
-          {/* Top Expenses */}
-          <section className={s.section}>
-            <div className={s.sectionTitle} />
-            <div className={s.rankingCard}>
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className={s.rankingItem}>
-                  <div className={s.rankingItemHeader}>
-                    <div className={s.rankingItemLabel} />
-                    <div className={s.rankingItemAmount} />
-                  </div>
-                  <div className={s.rankingItemBar} />
-                </div>
+          <section className={stitchHome.scanSection}>
+            <Skeleton className="h-5 w-44" />
+            <ul className={stitchHome.plainList}>
+              {[1, 2, 3, 4, 5].map((i) => (
+                <li key={i} className={stitchHome.plainRow}>
+                  <Skeleton className="h-4 w-28" />
+                  <Skeleton className="h-4 w-16 shrink-0" />
+                </li>
               ))}
-            </div>
+            </ul>
           </section>
 
-          {/* Account Breakdown */}
-          <section className={s.section}>
-            <div className={s.sectionTitle} />
-            <div className={s.accountList}>
+          <section className={stitchHome.scanSection}>
+            <Skeleton className="h-5 w-40" />
+            <ul className={stitchHome.plainList}>
               {[1, 2, 3].map((i) => (
-                <div key={i} className={s.accountItem}>
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-lg bg-primary/20" />
-                    <div className="h-4 w-32 rounded bg-primary/20" />
-                  </div>
-                  <div className="h-4 w-20 rounded bg-primary/20" />
-                </div>
+                <li key={i} className={stitchHome.plainRow}>
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-4 w-16 shrink-0" />
+                </li>
               ))}
-            </div>
+            </ul>
           </section>
 
-          {/* Historical Budget */}
-          <section className={s.section}>
-            <div className={s.sectionTitle} />
-            <div className={s.budgetList}>
-              {[1, 2].map((i) => (
-                <div key={i} className={s.budgetItem} />
-              ))}
-            </div>
+          <section className={stitchHome.scanSection}>
+            <Skeleton className="h-5 w-44" />
+            <Skeleton className="h-10 w-full rounded-xl" />
+            <Skeleton className="h-10 w-full rounded-xl" />
           </section>
-
-          {/* Footer Actions */}
-          <div className={s.footer}>
-            <div className={s.footerTitle} />
-            <div className={s.footerAction} />
-          </div>
         </div>
       </HomeDashboardMain>
-
-      <BottomNavigation />
-    </PageContainer>
+    </div>
   );
 }

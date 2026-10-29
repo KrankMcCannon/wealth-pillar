@@ -9,8 +9,9 @@ export interface BudgetsSummaryHeroProps {
   readonly summary: UserBudgetSummary;
   readonly labels: {
     readonly totalAvailable: string;
-    readonly totalBudgeted: string;
     readonly totalSpent: string;
+    readonly totalAssigned: string;
+    readonly srHeading: string;
   };
 }
 
@@ -24,34 +25,33 @@ function splitCurrencyParts(formatted: string): { main: string; rest: string } {
 export function BudgetsSummaryHero({ summary, labels }: Readonly<BudgetsSummaryHeroProps>) {
   const locale = useLocale();
   const availableFormatted = formatCurrencyLocale(summary.totalRemaining, locale);
+  const budgetFormatted = formatCurrencyLocale(summary.totalBudget, locale);
+  const spentFormatted = formatCurrencyLocale(summary.totalSpent, locale);
   const { main, rest } = splitCurrencyParts(availableFormatted);
 
   return (
-    <section className={stitchBudgets.heroSection} aria-label={labels.totalAvailable}>
+    <section className={stitchBudgets.heroSection} aria-labelledby="budgets-hero-heading">
+      <h2 id="budgets-hero-heading" className="sr-only">
+        {labels.srHeading}
+      </h2>
       <div className={stitchBudgets.heroInner}>
-        <div className="flex flex-col gap-1">
+        <div className={stitchBudgets.heroPrimaryBlock}>
           <span className={stitchBudgets.heroEyebrow}>{labels.totalAvailable}</span>
           <div className={stitchBudgets.heroAmountRow}>
             <span className={stitchBudgets.heroAmount}>{main}</span>
             {rest ? <span className={stitchBudgets.heroAmountCents}>{rest}</span> : null}
           </div>
         </div>
-        <div className={stitchBudgets.heroMetricsRow}>
-          <div>
-            <p className={stitchBudgets.heroMetricLabel}>{labels.totalBudgeted}</p>
-            <p className={stitchBudgets.heroMetricValue}>
-              {formatCurrencyLocale(summary.totalBudget, locale)}
-            </p>
-          </div>
-          <div>
-            <p className={stitchBudgets.heroMetricLabel}>{labels.totalSpent}</p>
-            <p className={stitchBudgets.heroMetricValue}>
-              {formatCurrencyLocale(summary.totalSpent, locale)}
-            </p>
-          </div>
+
+        <div className={stitchBudgets.heroStatMiniRow}>
+          <p className="text-sm text-muted-foreground">
+            <span className="text-expense">{spentFormatted}</span>
+            {` ${labels.totalSpent} · `}
+            {budgetFormatted}
+            {` ${labels.totalAssigned}`}
+          </p>
         </div>
       </div>
-      <div className={stitchBudgets.heroGradientBar} aria-hidden />
     </section>
   );
 }

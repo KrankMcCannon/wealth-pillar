@@ -1,144 +1,69 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import {
-  BottomNavigation,
-  HomeDashboardMain,
-  PageContainer,
-  SkipToMainLink,
-} from '@/components/layout';
-import { headerStyles } from '@/components/layout/theme/header-styles';
-import { SkeletonBox } from '@/components/ui/primitives/skeleton-box';
+import { Skeleton } from '@/components/ui/skeleton';
 import { TransactionListSkeleton } from '@/components/ui/primitives/skeletons';
+import { HomePageSectionsSkeleton } from '@/components/ui/primitives/skeletons/dashboard-skeletons';
 import { cn } from '@/lib/utils';
-import { STICKY_HEADER_BASE } from '@/lib/utils/ui-constants';
-import { stitchHome } from '@/styles/home-design-foundation';
-import { pageLoaderStyles } from './theme/page-loader-styles';
+import { HomeDashboardMain } from '@/components/layout';
+import { PageTabsSkeleton } from '@/components/shared/page-tabs';
+import {
+  stitchTransactions,
+  stitchTransactionPageSearch,
+  stitchPageTabs,
+} from '@/styles/home-design-foundation';
 
-const SKIP_LINK_LABEL = 'Skip to balances, budgets, and recurring items';
+interface HomePageSkeletonProps {
+  skipLabel: string;
+}
 
-function HeaderSkeleton() {
+function HomePageSkeleton({ skipLabel }: HomePageSkeletonProps) {
   return (
-    <header className={cn(STICKY_HEADER_BASE, headerStyles.container)}>
-      <div className={headerStyles.inner}>
-        <div className={headerStyles.slotLeft}>
-          <SkeletonBox height="h-9" width="w-9" variant="light" className="rounded-full" />
-        </div>
-        <div className={headerStyles.slotCenter}>
-          <SkeletonBox height="h-5" width="w-36" variant="medium" />
-        </div>
-        <div className={headerStyles.slotRight}>
-          <SkeletonBox height="h-9" width="w-9" variant="light" className="rounded-full" />
-        </div>
-      </div>
-    </header>
+    <HomeDashboardMain ariaBusy aria-label={skipLabel}>
+      <HomePageSectionsSkeleton />
+    </HomeDashboardMain>
   );
 }
 
-function HomeListBlockSkeleton() {
+function TransactionsPageSkeleton() {
   return (
-    <section className={stitchHome.sectionCard} aria-hidden>
-      <div className="mb-3 flex items-center justify-between">
-        <SkeletonBox height="h-5" width="w-36" variant="medium" />
-        <SkeletonBox height="h-4" width="w-14" variant="light" />
-      </div>
-      <div className="flex flex-col gap-2">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className={stitchHome.listRow}>
-            <SkeletonBox height="h-8" width="w-8" variant="light" className="shrink-0 rounded-xl" />
-            <div className="min-w-0 flex-1 space-y-1.5">
-              <SkeletonBox height="h-4" width="w-[60%]" variant="light" />
-              <SkeletonBox height="h-3" width="w-20" variant="light" />
-            </div>
-            <SkeletonBox height="h-4" width="w-16" variant="medium" className="shrink-0" />
+    <>
+      <div className={stitchPageTabs.stickyBar}>
+        <div className={stitchPageTabs.stickyStack}>
+          <div className={stitchPageTabs.leading}>
+            <Skeleton className="h-8 w-48 rounded-full" />
           </div>
-        ))}
+          <PageTabsSkeleton />
+        </div>
       </div>
-    </section>
-  );
-}
-
-function HomePageSkeleton() {
-  return (
-    <PageContainer>
-      <SkipToMainLink href="#main-dashboard">{SKIP_LINK_LABEL}</SkipToMainLink>
-      <HeaderSkeleton />
-      <HomeDashboardMain ariaBusy>
-        <section className={stitchHome.balanceSection} aria-hidden>
-          <SkeletonBox height="h-24" width="w-full" variant="light" className="rounded-2xl" />
-        </section>
-        <HomeListBlockSkeleton />
-        <HomeListBlockSkeleton />
+      <HomeDashboardMain id="main-transactions-skeleton" ariaBusy className="gap-2.5 pt-1.5">
+        <div className={stitchTransactions.mainStack}>
+          <Skeleton className={cn(stitchTransactionPageSearch.input, 'h-11')} />
+          <div className={stitchTransactions.chipRow}>
+            <Skeleton className="h-7 w-14 shrink-0 rounded-full" />
+            <Skeleton className="h-7 w-16 shrink-0 rounded-full" />
+            <Skeleton className="h-7 w-20 shrink-0 rounded-full" />
+          </div>
+          <TransactionListSkeleton />
+        </div>
       </HomeDashboardMain>
-      <BottomNavigation />
-    </PageContainer>
+    </>
   );
 }
 
-function ListPageSkeleton() {
-  return (
-    <PageContainer>
-      <HeaderSkeleton />
-      <div className="px-3 pt-2 pb-24" aria-busy="true">
-        <TransactionListSkeleton />
-      </div>
-      <BottomNavigation />
-    </PageContainer>
-  );
-}
-
-export type PageLoaderVariant = 'home' | 'list' | 'form';
+export type PageLoaderVariant = 'home' | 'transactions';
 
 interface PageLoaderProps {
   variant?: PageLoaderVariant;
-  message?: string;
-  submessage?: string;
+  skipLabel?: string;
 }
 
-function FormPageLoader({
-  message,
-  submessage,
-}: Readonly<Pick<PageLoaderProps, 'message' | 'submessage'>>) {
-  const t = useTranslations('Common.PageLoader');
-  const resolvedMessage = message ?? t('message');
-  const resolvedSubmessage = submessage ?? t('submessage');
+export function PageLoader({ variant = 'home', skipLabel }: Readonly<PageLoaderProps>) {
+  const tHome = useTranslations('HomeContent');
+  const resolvedSkipLabel = skipLabel ?? tHome('skipToContent');
 
-  return (
-    <div className={pageLoaderStyles.page}>
-      <div className={pageLoaderStyles.container}>
-        <div className={pageLoaderStyles.content}>
-          <div className={pageLoaderStyles.iconWrap}>
-            <svg
-              className={pageLoaderStyles.icon}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-              />
-            </svg>
-          </div>
-          <p className={pageLoaderStyles.message}>{resolvedMessage}</p>
-          <p className={pageLoaderStyles.submessage}>{resolvedSubmessage}</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export function PageLoader({ variant = 'form', message, submessage }: Readonly<PageLoaderProps>) {
-  if (variant === 'home') return <HomePageSkeleton />;
-  if (variant === 'list') return <ListPageSkeleton />;
-  return (
-    <FormPageLoader
-      {...(message !== undefined ? { message } : {})}
-      {...(submessage !== undefined ? { submessage } : {})}
-    />
-  );
+  if (variant === 'transactions') return <TransactionsPageSkeleton />;
+  return <HomePageSkeleton skipLabel={resolvedSkipLabel} />;
 }
 
 export default PageLoader;

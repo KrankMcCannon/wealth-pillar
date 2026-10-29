@@ -1,27 +1,24 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useFilteredAccounts, usePermissions, useUserFilter } from '@/hooks';
 import { useModalState } from '@/lib/navigation/url-state';
 import type { Account, User } from '@/lib/types';
+import { computeAccountStats, type AccountStats } from '@/server/use-cases/accounts/account.logic';
 
 export interface UseAccountsContentProps {
-  accountBalances: Record<string, number>;
   currentUser: User;
   accounts: Account[];
 }
 
-export function useAccountsContent({
-  accountBalances,
-  currentUser,
-  accounts,
-}: UseAccountsContentProps) {
-  // User filtering state management (global context)
+export function useAccountsContent({ currentUser, accounts }: UseAccountsContentProps) {
   const { setSelectedGroupFilter, selectedUserId } = useUserFilter();
-  const { isMember } = usePermissions({ currentUser, selectedUserId });
+  const { isMember } = usePermissions({
+    currentUser,
+    selectedUserId,
+  });
 
-  // Modal state management (URL-based)
-  const { openModal } = useModalState();
+  const { openModal, modal } = useModalState();
 
   useEffect(() => {
     if (isMember) {
@@ -29,65 +26,59 @@ export function useAccountsContent({
     }
   }, [isMember, currentUser.id, setSelectedGroupFilter]);
 
+  const effectiveSelectedUserId = isMember ? currentUser.id : selectedUserId;
+
   const { filteredAccounts } = useFilteredAccounts({
     accounts,
     currentUser,
-    selectedUserId: isMember ? currentUser.id : selectedUserId,
+    selectedUserId: effectiveSelectedUserId,
   });
 
   const filteredBalances = useMemo(() => {
-    return filteredAccounts.reduce(
-      (acc, account) => {
-        const balance = accountBalances[account.id];
-        if (balance !== undefined) {
-          acc[account.id] = balance;
-        }
-        return acc;
-      },
-      {} as Record<string, number>
-    );
-  }, [filteredAccounts, accountBalances]);
+    return filteredAccounts.reduce<Record<string, number>>((result, account) => {
+      result[account.id] = Number(account.balance ?? 0);
+      return result;
+    }, {});
+  }, [filteredAccounts]);
 
-  // Sort accounts by balance (descending - highest first)
   const sortedAccounts = useMemo(() => {
     return [...filteredAccounts].sort((a, b) => {
-      const balanceA = filteredBalances[a.id] || 0;
-      const balanceB = filteredBalances[b.id] || 0;
+      const balanceA = filteredBalances[a.id] ?? 0;
+      const balanceB = filteredBalances[b.id] ?? 0;
+
       return balanceB - balanceA;
     });
   }, [filteredAccounts, filteredBalances]);
 
-  // Calculate account statistics from balances
-  const accountStats = useMemo(() => {
-    return Object.values(filteredBalances).reduce(
-      (stats, balance) => {
-        stats.totalBalance += balance;
-        if (balance > 0) {
-          stats.positiveAccounts += 1;
-        } else if (balance < 0) {
-          stats.negativeAccounts += 1;
-        }
-        return stats;
-      },
-      {
-        totalBalance: 0,
-        totalAccounts: filteredAccounts.length,
-        positiveAccounts: 0,
-        negativeAccounts: 0,
-      }
-    );
-  }, [filteredAccounts.length, filteredBalances]);
+  const accountStats = useMemo<AccountStats>(
+    () => computeAccountStats(filteredAccounts, filteredBalances),
+    [filteredAccounts, filteredBalances]
+  );
 
-  const handleEditAccount = (account: Account) => {
-    openModal('account', account.id);
-  };
+  const handleEditAccount = useCallback(
+    (account: Account) => {
+      openModal('account', account.id);
+    },
+    [openModal]
+  );
+
+  const handleUserFilterChange = useCallback(
+    (userId: string) => {
+      setSelectedGroupFilter(userId);
+    },
+    [setSelectedGroupFilter]
+  );
 
   return {
     currentUser,
     isMember,
+    selectedUserId: effectiveSelectedUserId,
     accountStats,
     sortedAccounts,
     filteredBalances,
     handleEditAccount,
+    handleUserFilterChange,
+    openModal,
+    isModalOpen: Boolean(modal),
   };
 }

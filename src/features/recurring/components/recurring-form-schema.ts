@@ -13,7 +13,7 @@ export function createRecurringSchema(t: ReturnType<typeof useTranslations>) {
         .refine((val) => !Number.isNaN(Number.parseFloat(val)) && Number.parseFloat(val) > 0, {
           message: t('validation.amountGreaterThanZero'),
         }),
-      type: z.enum(['income', 'expense']),
+      type: z.enum(['income', 'expense', 'transfer']),
       category: z.string().min(1, t('validation.categoryRequired')),
       frequency: z.enum(['once', 'weekly', 'biweekly', 'monthly', 'yearly']),
       user_ids: z.array(z.string()).min(1, t('validation.userIdsRequired')),
@@ -52,7 +52,7 @@ export type RecurringFormData = z.infer<ReturnType<typeof createRecurringSchema>
 export interface RecurringTransactionSeriesData {
   description: string;
   amount: number;
-  type: 'income' | 'expense';
+  type: 'income' | 'expense' | 'transfer';
   category: string;
   frequency: TransactionFrequencyType;
   account_id: string;

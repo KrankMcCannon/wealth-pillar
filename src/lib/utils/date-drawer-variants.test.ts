@@ -1,10 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   dayButtonVariants,
-  drawerContentVariants,
   monthNavButtonVariants,
-  presetButtonVariants,
-  calendarTriggerVariants,
   weekdayLabelVariants,
   getDayState,
 } from './date-drawer-variants';
@@ -78,18 +75,18 @@ describe('CVA Variants', () => {
     it('should return valid classes for default variant', () => {
       const className = dayButtonVariants({ state: 'default' });
       expect(className).toContain('rounded-xl');
-      expect(className).toBeTruthy();
+      expect(className).toContain('hover:bg-muted');
     });
 
     it('should return valid classes for selected variant', () => {
       const className = dayButtonVariants({ state: 'selected' });
-      expect(className).toContain('bg-primary');
-      expect(className).toBeTruthy();
+      expect(className).toContain('bg-foreground');
+      expect(className).not.toContain('bg-primary');
     });
 
     it('should return valid classes for today variant', () => {
       const className = dayButtonVariants({ state: 'today' });
-      expect(className).toContain('ring-2');
+      expect(className).toContain('ring-1');
     });
 
     it('should return valid classes for disabled variant', () => {
@@ -108,32 +105,11 @@ describe('CVA Variants', () => {
     });
   });
 
-  describe('drawerContentVariants', () => {
-    it('should return valid classes for bottom position', () => {
-      const className = drawerContentVariants({ position: 'bottom' });
-      expect(className).toContain('bottom-0');
-    });
-
-    it('should return valid classes for center position', () => {
-      const className = drawerContentVariants({ position: 'center' });
-      expect(className).toContain('-translate-x-1/2');
-    });
-
-    it('should handle compact size', () => {
-      const className = drawerContentVariants({ size: 'compact' });
-      expect(className).toContain('max-h-[60vh]');
-    });
-
-    it('should handle full size', () => {
-      const className = drawerContentVariants({ size: 'full' });
-      expect(className).toContain('max-h-[90vh]');
-    });
-  });
-
   describe('monthNavButtonVariants', () => {
     it('should return valid classes when enabled', () => {
       const className = monthNavButtonVariants({ disabled: false });
-      expect(className).toContain('hover:bg-primary');
+      expect(className).toContain('hover:bg-muted');
+      expect(className).not.toContain('hover:bg-primary');
     });
 
     it('should return valid classes when disabled', () => {
@@ -142,39 +118,16 @@ describe('CVA Variants', () => {
     });
   });
 
-  describe('presetButtonVariants', () => {
-    it('should return valid classes when active', () => {
-      const className = presetButtonVariants({ active: true });
-      expect(className).toContain('bg-primary');
-    });
-
-    it('should return valid classes when inactive', () => {
-      const className = presetButtonVariants({ active: false });
-      expect(className).toContain('bg-card');
-    });
-  });
-
-  describe('calendarTriggerVariants', () => {
-    it('should return valid classes when active', () => {
-      const className = calendarTriggerVariants({ active: true });
-      expect(className).toContain('bg-primary');
-    });
-
-    it('should return valid classes when inactive', () => {
-      const className = calendarTriggerVariants({ active: false });
-      expect(className).toContain('border-2');
-    });
-  });
-
   describe('weekdayLabelVariants', () => {
     it('should return valid classes for weekday', () => {
       const className = weekdayLabelVariants({ isWeekend: false });
-      expect(className).toContain('text-primary');
+      expect(className).toContain('text-muted-foreground');
+      expect(className).not.toContain('text-primary');
     });
 
     it('should return valid classes for weekend', () => {
       const className = weekdayLabelVariants({ isWeekend: true });
-      expect(className).toContain('text-primary/80');
+      expect(className).toContain('text-muted-foreground');
     });
   });
 });

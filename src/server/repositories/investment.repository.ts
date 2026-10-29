@@ -1,6 +1,6 @@
 import { db } from '@/server/db/drizzle';
 import { investments } from '@/server/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, inArray, sql } from 'drizzle-orm';
 
 export class InvestmentRepository {
   static async findByUser(userId: string) {
@@ -9,6 +9,36 @@ export class InvestmentRepository {
       .from(investments)
       .where(eq(investments.user_id, userId))
       .orderBy(investments.created_at);
+  }
+
+  static async findByUsers(userIds: string[]) {
+    if (userIds.length === 0) return [];
+    return await db
+      .select()
+      .from(investments)
+      .where(inArray(investments.user_id, userIds))
+      .orderBy(investments.created_at);
+  }
+
+  static async getTotalsByUsers(userIds: string[]) {
+    if (userIds.length === 0) {
+      return { totalInvested: 0, totalTaxPaid: 0, count: 0 };
+    }
+
+    const [result] = await db
+      .select({
+        totalInvested: sql<string>`coalesce(sum(${investments.amount}), 0)`,
+        totalTaxPaid: sql<string>`coalesce(sum(${investments.tax_paid}), 0)`,
+        count: sql<number>`count(*)::int`,
+      })
+      .from(investments)
+      .where(inArray(investments.user_id, userIds));
+
+    return {
+      totalInvested: Number(result?.totalInvested ?? 0),
+      totalTaxPaid: Number(result?.totalTaxPaid ?? 0),
+      count: result?.count ?? 0,
+    };
   }
 
   static async findById(id: string) {

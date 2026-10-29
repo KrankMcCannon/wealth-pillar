@@ -1,4 +1,5 @@
 import type { User, RoleType } from '@/lib/types';
+import { AccessScope } from '@/lib/permissions/access-scope';
 
 /**
  * Permission Utilities - Centralized permission logic
@@ -33,12 +34,7 @@ export const isSuperAdmin = (user: User | null) => hasRole(user, 'superadmin');
  */
 export function canAccessUserData(currentUser: User | null, targetUserId: string): boolean {
   if (!currentUser) return false;
-
-  // Admins can access anyone's data
-  if (isAdmin(currentUser)) return true;
-
-  // Members can only access their own data
-  return currentUser.id === targetUserId;
+  return AccessScope.for(currentUser).canViewUser(targetUserId);
 }
 
 /**
@@ -155,9 +151,8 @@ export function filterByUserPermissions<T extends { user_id: string }>(
 ): T[] {
   if (!currentUser) return [];
 
-  // Members only see their own items
   if (isMember(currentUser)) {
-    return items.filter((item) => item.user_id === currentUser.id);
+    return AccessScope.for(currentUser).filterOwned(items);
   }
 
   // Admins see filtered or all items
@@ -175,4 +170,19 @@ export function filterByUserPermissions<T extends { user_id: string }>(
 export function requiresAdmin(route: string): boolean {
   const adminRoutes = ['/settings/members', '/settings/group', '/admin'];
   return adminRoutes.some((adminRoute) => route.startsWith(adminRoute));
+}
+
+const ROLE_SORT_RANK: Record<string, number> = {
+  superadmin: 0,
+  admin: 1,
+  member: 2,
+};
+
+/** Admins first, then members; name is the tie-breaker. */
+export function sortUsersByRole(users: User[]): User[] {
+  return [...users].sort((a, b) => {
+    const byRole = (ROLE_SORT_RANK[a.role ?? ''] ?? 9) - (ROLE_SORT_RANK[b.role ?? ''] ?? 9);
+    if (byRole !== 0) return byRole;
+    return (a.name ?? '').localeCompare(b.name ?? '', undefined, { sensitivity: 'base' });
+  });
 }

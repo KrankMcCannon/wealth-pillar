@@ -3,18 +3,18 @@
 import { useMemo } from 'react';
 import { z } from 'zod';
 import { useTranslations } from 'next-intl';
-import { Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { EntityFormModal } from '@/components/form';
+import { ModalTextField } from '@/components/form/modal-fields';
+import { ModalFooterActions } from '@/components/ui/modal-footer-actions';
 import { toast } from '@/hooks/use-toast';
 import { updateUserProfileAction } from '@/features/settings';
-import { settingsStyles } from '@/features/settings/theme';
-import { FormField } from '@/components/form';
-import { Input } from '@/components/ui';
-import { useRouter } from '@/i18n/routing';
+import { useSettingsModalsContextOptional } from '@/features/settings/context/settings-modals-context';
+import { stitchSettings as s } from '@/styles/home-design-foundation';
+import { useVerifiedProfileEmail } from '../hooks/use-verified-profile-email';
 
 const createEditProfileSchema = (t: ReturnType<typeof useTranslations>) =>
   z.object({
+    verificationCode: z.string(),
     name: z.string().min(1, t('validation.nameRequired')).max(100, t('validation.nameMax')).trim(),
     email: z
       .string()
@@ -42,12 +42,19 @@ export function EditProfileModal({
 }: Readonly<EditProfileModalProps>) {
   const t = useTranslations('SettingsModals.EditProfile');
   const editProfileSchema = useMemo(() => createEditProfileSchema(t), [t]);
-  const router = useRouter();
+  const settingsContext = useSettingsModalsContextOptional();
+  const { pendingEmail, verifyEmail, resetVerification, resendVerification } =
+    useVerifiedProfileEmail();
+  const close = () => {
+    resetVerification();
+    onClose();
+  };
 
   const defaultValues = useMemo(
     (): EditProfileFormData => ({
       name: currentName,
       email: currentEmail,
+      verificationCode: '',
     }),
     [currentName, currentEmail]
   );
@@ -55,52 +62,54 @@ export function EditProfileModal({
   return (
     <EntityFormModal<EditProfileFormData>
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={close}
       title={t('title')}
-      description={t('description')}
       schema={editProfileSchema}
       defaultValues={defaultValues}
       resetValues={defaultValues}
       repositionInputs={false}
-      formClassName={settingsStyles.modals.form}
+      bodyClassName={s.modalFormBody}
       footer={(form) => (
-        <>
-          <Button
-            variant="outline"
-            onClick={onClose}
-            disabled={form.formState.isSubmitting}
-            className={settingsStyles.modals.actionsButton}
-            type="button"
-          >
-            {t('cancelButton')}
-          </Button>
-          <Button
-            type="submit"
-            disabled={form.formState.isSubmitting}
-            className={settingsStyles.modals.actionsButton}
-          >
-            {form.formState.isSubmitting ? (
-              <>
-                <Loader2 className={settingsStyles.modals.loadingIcon} />
-                {t('savingButton')}
-              </>
-            ) : (
-              t('saveChangesButton')
-            )}
-          </Button>
-        </>
+        <ModalFooterActions
+          variant="dual"
+          cancelLabel={t('cancelButton')}
+          submitLabel={t(pendingEmail ? 'verifyAndSaveButton' : 'saveChangesButton')}
+          onCancel={close}
+          submitType="submit"
+          isSubmitting={form.formState.isSubmitting}
+        />
       )}
-      onSubmit={async (data) => {
+      onSubmit={async (data, form) => {
         if (data.name === currentName && data.email === currentEmail) {
           toast({
             title: t('toast.noChangesTitle'),
             description: t('toast.noChangesDescription'),
             variant: 'info',
           });
-          onClose();
+          close();
           return;
         }
 
+        if (data.email !== currentEmail) {
+          if (pendingEmail === data.email && !data.verificationCode.trim()) {
+            form.setError('verificationCode', { message: t('verificationCodeRequired') });
+            return;
+          }
+          try {
+            if (!(await verifyEmail(data.email, data.verificationCode))) {
+              form.setValue('verificationCode', '');
+              return;
+            }
+          } catch (error) {
+            const details = error as { errors?: Array<{ longMessage?: string }> };
+            form.setError(pendingEmail ? 'verificationCode' : 'email', {
+              message:
+                details?.errors?.[0]?.longMessage ??
+                (error instanceof Error ? error.message : t('verificationFailed')),
+            });
+            return;
+          }
+        }
         const { data: updatedUser, error } = await updateUserProfileAction(userId, {
           name: data.name === currentName ? undefined : data.name,
           email: data.email === currentEmail ? undefined : data.email,
@@ -120,49 +129,67 @@ export function EditProfileModal({
           throw new Error('update failed');
         }
 
-        router.refresh();
+        settingsContext?.onProfileUpdate({
+          name: updatedUser.name,
+          email: updatedUser.email,
+        });
         toast({
           title: t('toast.updatedTitle'),
           description: t('toast.updatedDescription'),
           variant: 'success',
         });
-        onClose();
+        close();
       }}
     >
       {(form) => (
-        <>
-          <FormField
+        <div className={s.formCard}>
+          <ModalTextField
+            control={form.control}
+            name="name"
             label={t('nameLabel')}
-            htmlFor="name"
-            error={form.formState.errors.name?.message}
-          >
-            <Input
-              id="name"
-              type="text"
-              placeholder={t('namePlaceholder')}
-              disabled={form.formState.isSubmitting}
-              autoComplete="name"
-              className={settingsStyles.modals.field.input}
-              {...form.register('name')}
-            />
-          </FormField>
-
-          <FormField
+            placeholder={t('namePlaceholder')}
+            autoComplete="name"
+            disabled={form.formState.isSubmitting}
+          />
+          <ModalTextField
+            control={form.control}
+            name="email"
             label={t('emailLabel')}
-            htmlFor="email"
-            error={form.formState.errors.email?.message}
-          >
-            <Input
-              id="email"
-              type="email"
-              placeholder={t('emailPlaceholder')}
-              disabled={form.formState.isSubmitting}
-              autoComplete="email"
-              className={settingsStyles.modals.field.input}
-              {...form.register('email')}
-            />
-          </FormField>
-        </>
+            type="email"
+            placeholder={t('emailPlaceholder')}
+            autoComplete="email"
+            disabled={form.formState.isSubmitting}
+          />
+          {pendingEmail ? (
+            <>
+              <p role="status" className="px-4 text-sm text-muted-foreground">
+                {t('verificationSent', { email: pendingEmail })}
+              </p>
+              <ModalTextField
+                control={form.control}
+                name="verificationCode"
+                label={t('verificationCodeLabel')}
+                autoComplete="one-time-code"
+                type="tel"
+                disabled={form.formState.isSubmitting}
+              />
+              <button
+                type="button"
+                className="px-4 text-sm underline"
+                disabled={form.formState.isSubmitting}
+                onClick={async () => {
+                  try {
+                    await resendVerification();
+                  } catch {
+                    form.setError('verificationCode', { message: t('verificationFailed') });
+                  }
+                }}
+              >
+                {t('resendCodeButton')}
+              </button>
+            </>
+          ) : null}
+        </div>
       )}
     </EntityFormModal>
   );

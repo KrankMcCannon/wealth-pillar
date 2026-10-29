@@ -1,8 +1,12 @@
 import { cached } from '@/lib/cache';
-import { CACHE_TAGS, cacheOptions } from '@/lib/cache/config';
+import { CACHE_TAGS, cacheOptions, CACHE_TTL } from '@/lib/cache/config';
 import { transactionCacheKeys } from '@/lib/cache/keys';
+import { cacheLife, cacheTag } from 'next/cache';
 import { serialize } from '@/lib/utils/serializer';
-import { TransactionsRepository } from '@/server/repositories/transactions.repository';
+import {
+  TransactionsRepository,
+  type TransactionScope,
+} from '@/server/repositories/transactions.repository';
 import type { TransactionFilterOptions } from '@/server/repositories/transactions.repository';
 import type { Transaction } from '@/lib/types';
 import { db } from '@/server/db/drizzle';
@@ -13,6 +17,11 @@ export async function getTransactionsByGroupUseCase(
   groupId: string,
   options?: TransactionFilterOptions
 ): Promise<{ data: Transaction[]; total: number; hasMore: boolean }> {
+  'use cache';
+  cacheLife('minutes');
+  cacheTag(CACHE_TAGS.TRANSACTIONS);
+  cacheTag(`group:${groupId}:transactions`);
+
   if (!groupId?.trim()) throw new Error('Group ID is required');
 
   const result = await TransactionsRepository.getByGroup(groupId, options);
@@ -32,6 +41,14 @@ export async function getTransactionsByUserUseCase(
 ): Promise<Transaction[]> {
   if (!userId?.trim()) throw new Error('User ID is required');
 
+  const filterKey = JSON.stringify({
+    startDate: options?.startDate?.toISOString() ?? null,
+    endDate: options?.endDate?.toISOString() ?? null,
+    category: options?.category ?? null,
+    categoryKeys: options?.categoryKeys ?? null,
+    limit: options?.limit ?? null,
+  });
+
   const getCachedTransactions = cached(
     async () => {
       const result = await TransactionsRepository.getByUser(userId, options);
@@ -39,7 +56,7 @@ export async function getTransactionsByUserUseCase(
         result.data.map((t: (typeof result.data)[number]) => ({ ...t, amount: Number(t.amount) }))
       ) as Transaction[];
     },
-    transactionCacheKeys.byUser(userId),
+    transactionCacheKeys.byUser(userId, filterKey),
     cacheOptions.transactionsByUser(userId)
   );
 
@@ -79,16 +96,38 @@ export async function getTransactionsByAccountUseCase(accountId: string): Promis
   return getCachedTransactions();
 }
 
-export async function getTransactionByIdUseCase(transactionId: string): Promise<Transaction> {
+export async function getUsedCategoryKeysByGroupUseCase(groupId: string): Promise<string[]> {
+  if (!groupId?.trim()) throw new Error('Group ID is required');
+
+  const getCachedKeys = cached(
+    async () => TransactionsRepository.getUsedCategoryKeysByGroup(groupId),
+    [`group:${groupId}:used-category-keys`],
+    {
+      revalidate: CACHE_TTL.TRANSACTION,
+      tags: [CACHE_TAGS.TRANSACTIONS, `group:${groupId}:transactions`],
+    }
+  );
+
+  return getCachedKeys();
+}
+
+export async function getTransactionByIdUseCase(
+  transactionId: string,
+  scope?: TransactionScope
+): Promise<Transaction> {
   if (!transactionId?.trim()) throw new Error('Transaction ID is required');
+
+  const cacheKey = scope?.groupId
+    ? ['transaction', 'id', transactionId, 'group', scope.groupId]
+    : ['transaction', 'id', transactionId];
 
   const getCachedTransaction = cached(
     async () => {
-      const transaction = await TransactionsRepository.getById(transactionId);
+      const transaction = await TransactionsRepository.getById(transactionId, scope);
       if (!transaction) throw new Error('Transaction not found');
       return serialize({ ...transaction, amount: Number(transaction.amount) }) as Transaction;
     },
-    ['transaction', 'id', transactionId],
+    cacheKey,
     { revalidate: 120, tags: [CACHE_TAGS.TRANSACTIONS, `transaction:${transactionId}`] }
   );
 

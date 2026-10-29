@@ -3,8 +3,9 @@
 import { TrendingDown, TrendingUp } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
-import { stitchReports } from '@/styles/home-design-foundation';
+import { stitchHome, stitchReports } from '@/styles/home-design-foundation';
 import { useFormatCurrency } from '@/features/reports/hooks/use-format-currency';
+import { SplitBar } from './split-bar';
 
 interface ReportsHeroProps {
   netFlow: number;
@@ -30,50 +31,68 @@ export function ReportsHero({
   const positive = netFlow >= 0;
   const pct = comparisonPercent ?? null;
   const trendUp = pct !== null && pct >= 0;
+  const flowTotal = income + expenses;
+  const incomeShare = flowTotal > 0 ? (income / flowTotal) * 100 : 0;
 
   return (
-    <section aria-labelledby="reports-hero-heading" className="grid grid-cols-2 gap-2">
-      <h2 id="reports-hero-heading" className="sr-only">
-        {t('srHeading')}
-      </h2>
-      <div className={`${stitchReports.heroNetCard} col-span-2`}>
-        <div className={stitchReports.heroNetDecor} aria-hidden />
-        <div className="relative z-1">
-          <p className={stitchReports.heroEyebrow}>{t('netFlow')}</p>
-          <p className={stitchReports.heroNetAmount}>
-            {positive ? '+' : ''}
-            {formatMoney(netFlow)}
+    <section aria-labelledby="reports-hero-heading" className={stitchHome.scanSection}>
+      <div className={stitchHome.balanceSection}>
+        <h2 id="reports-hero-heading" className={stitchHome.scanSectionTitle}>
+          {t('netFlow')}
+        </h2>
+        <p
+          className={cn(
+            stitchReports.heroNetAmount,
+            positive ? stitchHome.amountIncome : stitchHome.amountExpense
+          )}
+        >
+          {positive ? '+' : ''}
+          {formatMoney(netFlow)}
+        </p>
+        {flowTotal > 0 ? (
+          <SplitBar
+            leftPercent={incomeShare}
+            leftClassName="bg-income"
+            rightClassName="bg-expense"
+            label={t('splitAria', { income: formatMoney(income), expense: formatMoney(expenses) })}
+            valuetext={t('splitAria', {
+              income: formatMoney(income),
+              expense: formatMoney(expenses),
+            })}
+          />
+        ) : null}
+        <p className={stitchReports.kpiPair}>
+          <span>
+            {t('incomeThisPeriod')}{' '}
+            <span className="tabular-nums text-income">{formatMoney(income)}</span>
+          </span>
+          {' · '}
+          <span>
+            {t('expenseThisPeriod')}{' '}
+            <span className="tabular-nums text-expense">{formatMoney(expenses)}</span>
+          </span>
+        </p>
+        {!omitComparison && pct !== null ? (
+          <p
+            className={cn(
+              stitchReports.trendRow,
+              trendUp ? stitchReports.trendPositive : stitchReports.trendNegative
+            )}
+          >
+            {trendUp ? (
+              <TrendingUp className="h-4 w-4 shrink-0" aria-hidden />
+            ) : (
+              <TrendingDown className="h-4 w-4 shrink-0" aria-hidden />
+            )}
+            <span>
+              {trendUp ? '+' : ''}
+              {pct.toFixed(0)}% {comparisonLabel ?? ''}
+            </span>
           </p>
-          {!omitComparison && pct !== null ? (
-            <div
-              className={cn(
-                stitchReports.trendRow,
-                trendUp ? stitchReports.trendPositive : stitchReports.trendNegative
-              )}
-            >
-              {trendUp ? (
-                <TrendingUp className="h-4 w-4 shrink-0" aria-hidden />
-              ) : (
-                <TrendingDown className="h-4 w-4 shrink-0" aria-hidden />
-              )}
-              <span>
-                {trendUp ? '+' : ''}
-                {pct.toFixed(0)}% {comparisonLabel ?? ''}
-              </span>
-            </div>
-          ) : null}
-          {!omitComparison && pct === null ? (
-            <p className="mt-1 text-[12px] text-[#9fb0d7]">{t('noComparison')}</p>
-          ) : null}
-        </div>
-      </div>
-      <div className={stitchReports.heroSmallCard}>
-        <p className={stitchReports.heroEyebrow}>{t('income')}</p>
-        <p className={stitchReports.heroSmallAmount}>{formatMoney(income)}</p>
-      </div>
-      <div className={stitchReports.heroSmallCard}>
-        <p className={stitchReports.heroEyebrow}>{t('expense')}</p>
-        <p className={stitchReports.heroSmallAmount}>{formatMoney(expenses)}</p>
+        ) : null}
+        {!omitComparison && pct === null ? (
+          <p className="mt-1 text-sm text-muted-foreground">{t('noComparison')}</p>
+        ) : null}
       </div>
     </section>
   );

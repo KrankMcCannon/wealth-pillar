@@ -1,7 +1,15 @@
-import type { Database, Json } from './database.types';
+import type { Database } from './database.types';
 
 export type RoleType = 'superadmin' | 'admin' | 'member';
 export type AccountType = 'payroll' | 'savings' | 'cash' | 'investments';
+export type AccountLiquidity = 'spendable' | 'reserve';
+
+export const DEFAULT_LIQUIDITY_BY_TYPE: Record<AccountType, AccountLiquidity> = {
+  payroll: 'spendable',
+  cash: 'spendable',
+  savings: 'reserve',
+  investments: 'reserve',
+};
 export type TransactionType = 'income' | 'expense' | 'transfer';
 export type TransactionFrequencyType = 'once' | 'weekly' | 'biweekly' | 'monthly' | 'yearly';
 export type BudgetType = 'monthly' | 'annually';
@@ -64,19 +72,19 @@ export interface Group {
 /** User row: Drizzle allows null name/email; timestamps may be Date or ISO string; jsonb may infer as unknown. */
 export type User = Omit<
   Database['public']['Tables']['users']['Row'],
-  'name' | 'email' | 'created_at' | 'updated_at' | 'budget_periods'
+  'name' | 'email' | 'created_at' | 'updated_at'
 > & {
   name: string | null;
   email: string | null;
   created_at: DateString | null;
   updated_at: DateString | null;
-  budget_periods: Json | null | unknown;
 };
 
 export interface Account {
   id: string;
   name: string;
   type: AccountType;
+  liquidity?: AccountLiquidity | null;
   user_ids: string[];
   group_id: string;
   balance?: number; // Added for performance optimization
@@ -97,6 +105,7 @@ export interface Transaction {
   frequency?: TransactionFrequencyType | null;
   recurring_series_id?: string | null; // Link to recurring series if this transaction is generated from one
   group_id?: string | null;
+  import_hash?: string | null;
   created_at: DateString;
   updated_at: DateString;
 }
@@ -133,11 +142,24 @@ export interface RecurringTransactionSeries {
 export interface BudgetPeriod {
   id: string;
   user_id: string;
+  group_id?: string | null;
   start_date: DateString;
   end_date: DateString | null;
   is_active: boolean;
+  spendable_spent?: number | null;
+  reserve_saved?: number | null;
+  category_spending?: Record<string, number> | null;
+  snapshot_at?: DateString | null;
+  /** Closed-period envelopes. null = missing history; [] = none. Never live rows. */
+  budgets_snapshot?: Budget[] | null;
   created_at: DateString;
   updated_at: DateString;
+}
+
+/** Resolved liquidity amounts for a budget period (live or snapshot). */
+export interface PeriodLiquidityAmounts {
+  spendableSpent: number;
+  categorySpending: Record<string, number>;
 }
 
 export interface Budget {
@@ -256,18 +278,6 @@ export interface UserPreferencesUpdate {
   notifications_push?: boolean;
   notifications_email?: boolean;
   notifications_budget_alerts?: boolean;
-}
-
-/**
- * Budget Period JSON structure used in database
- */
-export interface BudgetPeriodJSON {
-  id: string;
-  start_date: string;
-  end_date: string | null;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
 }
 
 // Market Data Types

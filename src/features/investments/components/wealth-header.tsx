@@ -1,78 +1,104 @@
-import { TrendingUp, TrendingDown } from 'lucide-react';
-import { useFormatter, useTranslations } from 'next-intl';
-import { investmentsStyles } from '@/features/investments';
+'use client';
+
+import { TrendingDown, TrendingUp } from 'lucide-react';
+import { useLocale, useTranslations } from 'next-intl';
+import { stitchInvestments } from '@/styles/home-design-foundation';
+import { formatCurrencyLocale } from '@/lib/utils/currency-formatter';
+import { cn } from '@/lib/utils';
 
 interface WealthHeaderProps {
-  totalValue: number;
-  trendAmount?: number;
-  trendPercentage?: number;
-  currency?: string;
+  totalValue: number | null;
+  trendAmount?: number | null;
+  trendPercentage?: number | null;
+  marketDataUpdatedAt: string | null;
+}
+
+function formatMarketFreshness(value: string | null | undefined, locale: string): string | null {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+
+  return new Intl.DateTimeFormat(locale, {
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date);
+}
+
+function splitCurrencyParts(formatted: string): { main: string; rest: string } {
+  const trimmed = formatted.trim();
+  const match = /^([\s\S]*?)([,.]\d{2})\s*(\S*)$/.exec(trimmed);
+  if (!match) return { main: trimmed, rest: '' };
+  return { main: (match[1] ?? '').trim(), rest: `${match[2]} ${match[3] ?? ''}`.trim() };
 }
 
 export function WealthHeader({
   totalValue,
   trendAmount = 0,
   trendPercentage = 0,
-  currency = 'EUR',
-}: WealthHeaderProps) {
-  const format = useFormatter();
+  marketDataUpdatedAt,
+}: Readonly<WealthHeaderProps>) {
+  const locale = useLocale();
   const t = useTranslations('Investments.PersonalTab');
 
-  const isPositive = trendAmount >= 0;
+  const hasReturn = totalValue != null && trendAmount != null && trendPercentage != null;
+  const isPositive = (trendAmount ?? 0) >= 0;
   const TrendIcon = isPositive ? TrendingUp : TrendingDown;
 
-  // Format total value
-  const formattedTotal = format.number(totalValue, {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-
-  // Format trend amount
-  const formattedTrendAmount = format.number(Math.abs(trendAmount), {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-
-  // Format trend percentage
-  const formattedTrendPercentage = format.number(Math.abs(trendPercentage) / 100, {
-    style: 'percent',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  const totalFormatted =
+    totalValue == null ? t('valuationUnavailable') : formatCurrencyLocale(totalValue, locale);
+  const returnFormatted = formatCurrencyLocale(Math.abs(trendAmount ?? 0), locale);
+  const { main, rest } = splitCurrencyParts(totalFormatted);
+  const percentLabel = `${Math.abs(trendPercentage ?? 0).toFixed(2)}%`;
+  const returnWithPercent = `${isPositive ? '+' : '-'}${returnFormatted} (${percentLabel})`;
+  const freshness = formatMarketFreshness(marketDataUpdatedAt, locale);
 
   return (
-    <section
-      className={
-        investmentsStyles.card.root +
-        ' ' +
-        investmentsStyles.card.content +
-        ' flex flex-col items-center justify-center text-center'
-      }
-    >
-      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#9fb0d7] mb-2">
-        {t('totalPortfolioValue')}
-      </p>
-      <h1 className="text-4xl md:text-5xl font-bold text-[#8fb0ff] mb-4 tabular-nums tracking-[-0.02em]">
-        {formattedTotal}
-      </h1>
+    <section className={stitchInvestments.heroSection} aria-label={t('totalPortfolioValue')}>
+      <div className={stitchInvestments.heroInner}>
+        <div className={stitchInvestments.heroPrimaryColumn}>
+          <span className={stitchInvestments.heroEyebrow}>{t('totalPortfolioValue')}</span>
+          <div className={stitchInvestments.heroAmountRow}>
+            <span
+              className={
+                totalValue == null ? 'text-lg text-muted-foreground' : stitchInvestments.heroAmount
+              }
+            >
+              {main}
+            </span>
+            {rest ? <span className={stitchInvestments.heroAmountCents}>{rest}</span> : null}
+          </div>
+        </div>
 
-      <div
-        className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold ring-1 ring-inset ${
-          isPositive
-            ? 'bg-[#8fe2b4]/10 text-[#8fe2b4] ring-[#8fe2b4]/20'
-            : 'bg-[#f0a6a6]/10 text-[#f0a6a6] ring-[#f0a6a6]/20'
-        }`}
-      >
-        <TrendIcon className="w-3.5 h-3.5" />
-        <span>
-          {isPositive ? '+' : ''}
-          {formattedTrendAmount} ({formattedTrendPercentage}) {t('today')}
-        </span>
+        <div className={stitchInvestments.heroReturnColumn}>
+          <span className={stitchInvestments.heroEyebrow}>{t('totalReturn')}</span>
+          <div className={stitchInvestments.heroReturnValueRow}>
+            {hasReturn ? (
+              <TrendIcon
+                className={cn('size-3.5 shrink-0', isPositive ? 'text-income' : 'text-expense')}
+                aria-hidden
+              />
+            ) : null}
+            <span
+              className={
+                !hasReturn
+                  ? 'text-muted-foreground'
+                  : isPositive
+                    ? stitchInvestments.heroReturnValue
+                    : stitchInvestments.heroReturnValueNegative
+              }
+            >
+              {hasReturn ? returnWithPercent : t('valuationUnavailable')}
+            </span>
+          </div>
+        </div>
       </div>
+      <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+        {freshness
+          ? t('marketDataFreshness', { date: freshness })
+          : t('marketDataFreshnessUnknown')}
+      </p>
     </section>
   );
 }

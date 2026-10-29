@@ -1,11 +1,12 @@
 'use server';
 
-import { revalidateBudgetRelatedPaths } from '@/lib/cache/revalidation-paths';
 import { getTranslations } from 'next-intl/server';
+import { runAuthorizedMutation } from '@/lib/server-action/run-authorized-mutation';
 
 import { getCurrentUser } from '@/lib/auth/cached-auth';
 import type { CreateBudgetInput } from '@/server/use-cases/budgets/types';
-import { canAccessUserData, isMember } from '@/lib/utils';
+import { AccessScope } from '@/lib/permissions/access-scope';
+import { isMember } from '@/lib/utils';
 import type { Budget, User } from '@/lib/types';
 import { createBudgetUseCase } from '@/server/use-cases/budgets/create-budget.use-case';
 import { updateBudgetUseCase } from '@/server/use-cases/budgets/update-budget.use-case';
@@ -54,26 +55,16 @@ export async function createBudgetAction(
       };
     }
 
-    // Admins can create for anyone, but verify target user exists
-    if (!canAccessUserData(currentUser as unknown as User, input.user_id)) {
+    if (!AccessScope.for(currentUser as unknown as User).canViewUser(input.user_id)) {
       return {
         data: null,
         error: t('errors.noPermissionUserData'),
       };
     }
 
-    // Resolve group_id (BudgetService handles default logic but we can do it here explicitly if needed)
-    // BudgetService.createBudget handles permission/group resolution too, but we keep this action as a wrapper
-    // Actually, let's delegate to service which now has robust validation
-
-    // We can just call createBudgetUseCase - it handles validation.
-    // However, the action is responsible for revalidating paths that might not be known to service (though service does tags)
-
     const budget = await createBudgetUseCase(input);
 
     if (budget) {
-      revalidateBudgetRelatedPaths();
-
       return { data: budget, error: null };
     }
 
@@ -117,15 +108,14 @@ export async function updateBudgetAction(
       };
     }
 
-    // Permission validation: verify access to existing budget
-    if (!canAccessUserData(currentUser as unknown as User, existingBudget.user_id)) {
+    const scope = AccessScope.for(currentUser as unknown as User);
+    if (!scope.canViewOwned(existingBudget)) {
       return {
         data: null,
         error: t('errors.noPermissionUpdate'),
       };
     }
 
-    // If changing user_id, verify permission for new user
     if (input.user_id && input.user_id !== existingBudget.user_id) {
       if (isMember(currentUser as unknown as User)) {
         return {
@@ -134,7 +124,7 @@ export async function updateBudgetAction(
         };
       }
 
-      if (!canAccessUserData(currentUser as unknown as User, input.user_id)) {
+      if (!scope.canViewUser(input.user_id)) {
         return {
           data: null,
           error: t('errors.noPermissionAssignUser'),
@@ -145,8 +135,6 @@ export async function updateBudgetAction(
     const budget = await updateBudgetUseCase(id, input);
 
     if (budget) {
-      revalidateBudgetRelatedPaths();
-
       return { data: budget, error: null };
     }
 
@@ -162,27 +150,31 @@ export async function updateBudgetAction(
   }
 }
 
-export async function getBudgetByIdAction(id: string): Promise<ServiceResult<Budget>> {
+export async function getBudgetByIdAction(
+  id: string,
+  locale?: string
+): Promise<ServiceResult<Budget>> {
+  const t = await getBudgetsActionTranslator(locale);
   try {
     const currentUser = await getCurrentUser();
     if (!currentUser) {
-      return { data: null, error: 'Non autenticato' };
+      return { data: null, error: t('errors.unauthenticated') };
     }
 
     const budget = await getBudgetByIdUseCase(id);
     if (!budget?.user_id) {
-      return { data: null, error: 'Budget non trovato' };
+      return { data: null, error: t('errors.notFound') };
     }
 
-    if (!canAccessUserData(currentUser as unknown as User, budget.user_id)) {
-      return { data: null, error: 'Permesso negato' };
+    if (!AccessScope.for(currentUser as unknown as User).canViewOwned(budget)) {
+      return { data: null, error: t('errors.permissionDenied') };
     }
 
     return { data: budget, error: null };
   } catch (error) {
     return {
       data: null,
-      error: error instanceof Error ? error.message : 'Failed to load budget',
+      error: error instanceof Error ? error.message : t('errors.loadFailed'),
     };
   }
 }
@@ -194,50 +186,26 @@ export async function deleteBudgetAction(
   id: string,
   locale?: string
 ): Promise<ServiceResult<{ id: string }>> {
-  let t: Awaited<ReturnType<typeof getTranslations>> | null = null;
-  try {
-    t = await getBudgetsActionTranslator(locale);
-    // Authentication check (cached per request)
-    const currentUser = await getCurrentUser();
-    if (!currentUser) {
-      return { data: null, error: t('errors.unauthenticated') };
-    }
-
-    // Get existing budget to verify ownership
-    const existingBudget = await getBudgetByIdUseCase(id);
-
-    // Verify budget has a user_id
-    if (!existingBudget || !existingBudget.user_id) {
-      return {
-        data: null,
-        error: t('errors.userMissing'),
-      };
-    }
-
-    // Permission validation: verify access to budget
-    if (!canAccessUserData(currentUser as unknown as User, existingBudget.user_id)) {
-      return {
-        data: null,
-        error: t('errors.noPermissionDelete'),
-      };
-    }
-
-    const result = await deleteBudgetUseCase(id);
-
-    if (result) {
-      revalidateBudgetRelatedPaths();
-
-      return { data: { id }, error: null };
-    }
-
-    return { data: null, error: t('errors.deleteFailed') };
-  } catch (error) {
-    return {
-      data: null,
-      error:
-        error instanceof Error
-          ? error.message
-          : (t?.('errors.deleteFailed') ?? 'Failed to delete budget'),
-    };
-  }
+  const t = await getBudgetsActionTranslator(locale);
+  return runAuthorizedMutation({
+    unauthenticatedError: t('errors.unauthenticated'),
+    authorize: async (currentUser) => {
+      const existingBudget = await getBudgetByIdUseCase(id);
+      if (!existingBudget?.user_id) {
+        return { data: null, error: t('errors.userMissing') };
+      }
+      if (!AccessScope.for(currentUser).canViewOwned(existingBudget)) {
+        return { data: null, error: t('errors.noPermissionDelete') };
+      }
+      return null;
+    },
+    mutate: async () => {
+      const result = await deleteBudgetUseCase(id);
+      if (!result) {
+        throw new Error(t('errors.deleteFailed'));
+      }
+      return { id };
+    },
+    formatError: (error) => (error instanceof Error ? error.message : t('errors.deleteFailed')),
+  });
 }

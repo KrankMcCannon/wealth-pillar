@@ -1,17 +1,20 @@
 'use client';
 
+import { formModalStyles as modalS } from '@/components/form/form-modal-styles';
 import { cn } from '@/lib/utils';
+import { stitchSurface } from '@/styles/home-design-foundation';
 import * as React from 'react';
 import {
   Drawer,
+  DrawerNested,
   DrawerClose,
   DrawerContent,
   DrawerDescription,
   DrawerHeader,
   DrawerTitle,
 } from './drawer';
-import { modalWrapperStyles } from './theme/modal-wrapper-styles';
-import { Loader2, X } from 'lucide-react';
+import { Spinner } from './spinner';
+import { X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 export interface ModalWrapperProps {
@@ -27,9 +30,13 @@ export interface ModalWrapperProps {
   isLoading?: boolean;
   disableOutsideClose?: boolean;
   repositionInputs?: boolean;
-  handleClassName?: string;
+  /** When true, renders as Vaul NestedRoot (required when opening over another drawer). */
+  nested?: boolean;
   drawerHeaderClassName?: string;
   drawerCloseClassName?: string;
+  /** Compact centered card for sequential confirmations. */
+  presentation?: 'sheet' | 'alert';
+  leadingAction?: React.ReactNode;
 }
 
 export function ModalWrapper({
@@ -45,11 +52,15 @@ export function ModalWrapper({
   isLoading = false,
   disableOutsideClose = false,
   repositionInputs = false,
-  handleClassName,
+  nested = false,
   drawerHeaderClassName,
   drawerCloseClassName,
+  presentation = 'sheet',
+  leadingAction,
 }: Readonly<ModalWrapperProps>) {
   const tCommon = useTranslations('Common');
+  const DrawerRoot = nested ? DrawerNested : Drawer;
+  const isAlert = presentation === 'alert';
 
   const handleOpenChange = React.useCallback(
     (open: boolean) => {
@@ -62,61 +73,54 @@ export function ModalWrapper({
   );
 
   return (
-    <Drawer open={isOpen} onOpenChange={handleOpenChange} repositionInputs={repositionInputs}>
+    <DrawerRoot
+      open={isOpen}
+      onOpenChange={handleOpenChange}
+      dismissible={!disableOutsideClose}
+      repositionInputs={repositionInputs}
+      shouldScaleBackground={false}
+    >
       <DrawerContent
         className={cn(
-          modalWrapperStyles.drawerContent,
-          modalWrapperStyles.drawerSurface,
-          'mt-24 min-h-0',
+          isAlert ? modalS.drawerShell.alertContent : modalS.shell.formContent,
           className
         )}
       >
-        <div className={cn(modalWrapperStyles.handle, handleClassName)} aria-hidden />
-        <DrawerHeader
-          className={cn(
-            modalWrapperStyles.drawerHeader,
-            modalWrapperStyles.drawerHeaderShell,
-            'flex flex-col gap-2 px-4 py-3',
-            drawerHeaderClassName
-          )}
-        >
-          <div className="flex w-full min-w-0 items-center justify-between gap-3">
-            <DrawerTitle className={cn(modalWrapperStyles.drawerTitle, titleClassName)}>
-              {title}
-            </DrawerTitle>
-            {showCloseButton ? (
-              <DrawerClose className={cn(modalWrapperStyles.headerClose, drawerCloseClassName)}>
-                <X className="h-5 w-5" aria-hidden />
-                <span className="sr-only">{tCommon('closeDialog')}</span>
-              </DrawerClose>
-            ) : null}
-          </div>
-          {description ? (
-            <DrawerDescription
-              className={cn(
-                modalWrapperStyles.drawerDescription,
-                descriptionClassName,
-                'text-left'
+        <DrawerHeader className={cn(modalS.shell.header, drawerHeaderClassName)}>
+          {isAlert ? (
+            <DrawerTitle className={cn(modalS.shell.title, titleClassName)}>{title}</DrawerTitle>
+          ) : (
+            <div className="flex w-full min-w-0 items-center gap-1">
+              {leadingAction ?? <span className="size-11 shrink-0" aria-hidden />}
+              <DrawerTitle className={cn(modalS.shell.title, titleClassName)}>{title}</DrawerTitle>
+              {showCloseButton ? (
+                <DrawerClose className={cn(modalS.shell.closeButton, drawerCloseClassName)}>
+                  <X aria-hidden />
+                  <span className="sr-only">{tCommon('closeDialog')}</span>
+                </DrawerClose>
+              ) : (
+                <span className="size-11 shrink-0" aria-hidden />
               )}
-            >
+            </div>
+          )}
+          {description ? (
+            <DrawerDescription className={cn(modalS.shell.description, descriptionClassName)}>
               {description}
             </DrawerDescription>
           ) : (
-            <DrawerDescription className={modalWrapperStyles.dialogDescriptionHidden}>
-              {title}
-            </DrawerDescription>
+            <DrawerDescription className="sr-only">{title}</DrawerDescription>
           )}
         </DrawerHeader>
 
         {isLoading ? (
-          <div className={modalWrapperStyles.loadingWrap}>
-            <Loader2 className="h-10 w-10 animate-spin text-primary/60" />
+          <div className={modalS.shell.loadingWrap}>
+            <Spinner className="size-10 text-modal-fg-muted" />
           </div>
         ) : (
-          <div className={cn(modalWrapperStyles.drawerContentBody, 'min-h-0')}>{children}</div>
+          <div className={modalS.shell.body}>{children}</div>
         )}
       </DrawerContent>
-    </Drawer>
+    </DrawerRoot>
   );
 }
 
@@ -125,7 +129,14 @@ export function ModalBody({
   className,
 }: Readonly<{ children: React.ReactNode; className?: string }>) {
   return (
-    <div className={cn('min-h-0 flex-1 overflow-y-auto py-2 space-y-4', className)}>{children}</div>
+    <div
+      className={cn(
+        'flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain px-4 py-2',
+        className
+      )}
+    >
+      {children}
+    </div>
   );
 }
 
@@ -136,7 +147,8 @@ export function ModalFooter({
   return (
     <div
       className={cn(
-        'mt-auto shrink-0 border-t border-border bg-card/95 py-4 pt-4 backdrop-blur-sm supports-backdrop-filter:bg-card/90 flex flex-col-reverse gap-3 pb-[max(env(safe-area-inset-bottom),0.75rem)]',
+        stitchSurface.modalFooter,
+        'flex flex-col gap-2 px-4 py-3 pb-[max(env(safe-area-inset-bottom),0.75rem)]',
         className
       )}
     >
@@ -155,10 +167,8 @@ export function ModalSection({
   className?: string;
 }>) {
   return (
-    <div className={cn('flex flex-col gap-3', className)}>
-      {title && (
-        <h3 className="text-xs font-semibold text-primary/60 uppercase tracking-wider">{title}</h3>
-      )}
+    <div className={cn('flex flex-col gap-1.5', className)}>
+      {title ? <h3 className={modalS.shell.sectionEyebrow}>{title}</h3> : null}
       {children}
     </div>
   );

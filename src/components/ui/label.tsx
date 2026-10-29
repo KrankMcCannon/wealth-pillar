@@ -1,50 +1,21 @@
+'use client';
+
 import * as React from 'react';
-import { Slot } from '@radix-ui/react-slot';
-import { cva, type VariantProps } from 'class-variance-authority';
-import { cn } from '@/lib/utils';
+import { Label as LabelPrimitive } from 'radix-ui';
 
-const labelVariants = cva(
-  'text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70',
-  {
-    variants: {
-      variant: {
-        default: 'text-primary',
-        muted: 'text-muted-foreground',
-        destructive: 'text-destructive',
-      },
-      size: {
-        default: 'text-sm',
-        sm: 'text-xs',
-        lg: 'text-base',
-      },
-    },
-    defaultVariants: {
-      variant: 'default',
-      size: 'default',
-    },
-  }
-);
+import { cn } from '@/lib/utils/index';
 
-export interface LabelProps
-  extends React.LabelHTMLAttributes<HTMLLabelElement>, VariantProps<typeof labelVariants> {
-  asChild?: boolean;
+function Label({ className, ...props }: React.ComponentProps<typeof LabelPrimitive.Root>) {
+  return (
+    <LabelPrimitive.Root
+      data-slot="label"
+      className={cn(
+        'flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50',
+        className
+      )}
+      {...props}
+    />
+  );
 }
 
-const Label = React.forwardRef<HTMLLabelElement, LabelProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
-    const Comp = asChild ? Slot : 'label';
-
-    return (
-      <Comp
-        ref={ref}
-        data-slot="label"
-        className={cn(labelVariants({ variant, size }), className)}
-        {...props}
-      />
-    );
-  }
-);
-
-Label.displayName = 'Label';
-
-export { Label, labelVariants };
+export { Label };

@@ -1,21 +1,18 @@
-import type { Json } from '@/lib/types/database.types';
-import { parseBudgetPeriodsFromJson } from '@/lib/utils/budget-period-json';
-import { UsersRepository } from '@/server/repositories/users.repository';
+import { BudgetPeriodsRepository } from '@/server/repositories/budget-periods.repository';
 import { invalidateBudgetPeriodCaches } from '@/lib/utils/cache-utils';
+import { withBudgetPeriodTransaction } from './budget-period-transaction';
 
 export const deleteBudgetPeriodUseCase = async (
   userId: string,
   periodId: string
 ): Promise<{ id: string }> => {
-  const user = await UsersRepository.findById(userId);
-  if (!user) throw new Error('User not found');
+  await withBudgetPeriodTransaction(userId, async (tx) => {
+    const period = await BudgetPeriodsRepository.findById(periodId, tx);
+    if (!period || period.user_id !== userId) {
+      throw new Error('Period not found');
+    }
 
-  const periods = parseBudgetPeriodsFromJson(user.budget_periods as Json);
-
-  const newPeriods = periods.filter((p) => p.id !== periodId);
-
-  await UsersRepository.update(user.id, {
-    budget_periods: newPeriods as unknown as Json,
+    await BudgetPeriodsRepository.delete(periodId, tx);
   });
 
   invalidateBudgetPeriodCaches({ userId, periodId });

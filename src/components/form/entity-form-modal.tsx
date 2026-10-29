@@ -9,6 +9,7 @@ import {
   useForm,
 } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Trash2 } from 'lucide-react';
 import type { ZodType } from 'zod';
 import { cn } from '@/lib/utils';
 import {
@@ -17,7 +18,10 @@ import {
   ModalFooter,
   type ModalWrapperProps,
 } from '@/components/ui/modal-wrapper';
+import { FieldGroup } from '@/components/ui/field';
 import { ConfirmationDialog } from '@/components/shared/confirmation-dialog';
+import { ModalRootError } from './modal-fields/modal-root-error';
+import { formModalStyles } from './form-modal-styles';
 
 export type EntityFormModalWrapperProps = Omit<
   ModalWrapperProps,
@@ -31,6 +35,7 @@ export interface EntityFormModalDeletionProps {
   confirmText?: string;
   cancelText?: string;
   onDelete: () => Promise<void>;
+  testId?: string;
 }
 
 export interface EntityFormModalFooterActions {
@@ -60,6 +65,7 @@ export interface EntityFormModalProps<T extends FieldValues> {
   footerClassName?: string;
   wrapperProps?: EntityFormModalWrapperProps;
   isLoading?: boolean;
+  autoRootError?: boolean;
 }
 
 export function EntityFormModal<T extends FieldValues>({
@@ -76,11 +82,12 @@ export function EntityFormModal<T extends FieldValues>({
   deletion,
   disableOutsideClose = false,
   repositionInputs = false,
-  formClassName,
-  bodyClassName,
-  footerClassName,
+  formClassName = formModalStyles.formColumn,
+  bodyClassName = formModalStyles.scrollBody,
+  footerClassName = formModalStyles.stickyFooter,
   wrapperProps,
   isLoading = false,
+  autoRootError = true,
 }: EntityFormModalProps<T>) {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -90,11 +97,13 @@ export function EntityFormModal<T extends FieldValues>({
     defaultValues,
   });
 
+  const { reset } = form;
+
   useEffect(() => {
-    if (isOpen) {
-      form.reset(resetValues ?? defaultValues);
+    if (isOpen && !isLoading) {
+      reset(resetValues ?? defaultValues);
     }
-  }, [isOpen, resetValues, defaultValues, form]);
+  }, [isOpen, isLoading, resetValues, defaultValues, reset]);
 
   const openDeleteDialog = useCallback(() => {
     if (deletion?.enabled) {
@@ -119,11 +128,12 @@ export function EntityFormModal<T extends FieldValues>({
   });
 
   const footerActions: EntityFormModalFooterActions = deletion?.enabled ? { openDeleteDialog } : {};
+  const formOpen = isOpen && !deleteOpen;
 
   return (
     <>
       <ModalWrapper
-        isOpen={isOpen}
+        isOpen={formOpen}
         onOpenChange={onClose}
         title={title}
         {...(description !== undefined ? { description } : {})}
@@ -131,13 +141,32 @@ export function EntityFormModal<T extends FieldValues>({
         repositionInputs={repositionInputs}
         isLoading={isLoading}
         {...wrapperProps}
+        leadingAction={
+          deletion?.enabled ? (
+            <button
+              type="button"
+              data-testid={deletion.testId}
+              disabled={form.formState.isSubmitting || isDeleting}
+              onClick={openDeleteDialog}
+              className={formModalStyles.shell.leadingButton}
+              aria-label={deletion.title}
+            >
+              <Trash2 className="size-5" aria-hidden />
+            </button>
+          ) : undefined
+        }
       >
         <form onSubmit={handleSubmit} className={cn('flex min-h-0 flex-1 flex-col', formClassName)}>
-          <ModalBody {...(bodyClassName !== undefined ? { className: bodyClassName } : {})}>
-            {children(form)}
+          <ModalBody className={bodyClassName}>
+            <FieldGroup className={formModalStyles.fieldsColumn}>
+              {autoRootError && form.formState.errors.root?.message ? (
+                <ModalRootError message={form.formState.errors.root.message} />
+              ) : null}
+              {children(form)}
+            </FieldGroup>
           </ModalBody>
           {footer ? (
-            <ModalFooter {...(footerClassName !== undefined ? { className: footerClassName } : {})}>
+            <ModalFooter className={footerClassName}>
               {footer(form, form.formState.isSubmitting, footerActions)}
             </ModalFooter>
           ) : null}

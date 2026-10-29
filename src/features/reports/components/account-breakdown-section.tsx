@@ -1,10 +1,10 @@
 'use client';
 
 import type { AccountTypeSummary } from '@/server/use-cases/reports/reports.use-cases';
-import { Banknote, Briefcase, Landmark, PiggyBank, TrendingUp, Wallet } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
-import { stitchReports } from '@/styles/home-design-foundation';
+import { stitchHome, stitchReports } from '@/styles/home-design-foundation';
+import { getBudgetProgressbarProps } from '@/features/budgets/components/budget-progress-bar';
 import { useFormatCurrency } from '@/features/reports/hooks/use-format-currency';
 
 interface AccountBreakdownSectionProps {
@@ -16,23 +16,6 @@ function normalizeType(type: string): string {
   const lower = type.toLowerCase();
   if (lower === 'investment' || lower === 'investments') return 'investments';
   return lower;
-}
-
-function iconForType(type: string) {
-  const t = normalizeType(type);
-  if (t === 'checking') return Landmark;
-  if (t === 'savings') return PiggyBank;
-  if (t === 'cash') return Banknote;
-  if (t === 'payroll') return Briefcase;
-  if (t === 'investments') return TrendingUp;
-  if (t === 'other') return Wallet;
-  return Landmark;
-}
-
-function iconWrapClass(type: string, idx: number) {
-  const t = normalizeType(type);
-  if (t === 'checking' || t === 'cash' || idx === 0) return stitchReports.accountIconWrap;
-  return stitchReports.accountIconWrapMuted;
 }
 
 export function AccountBreakdownSection({ rows, totalWealth }: AccountBreakdownSectionProps) {
@@ -58,48 +41,52 @@ export function AccountBreakdownSection({ rows, totalWealth }: AccountBreakdownS
     }
   };
 
-  const sorted = [...rows].sort((a, b) => b.totalBalance - a.totalBalance);
+  const visible = [...rows]
+    .filter((row) => row.totalBalance !== 0)
+    .sort((a, b) => b.totalBalance - a.totalBalance);
   const denom = totalWealth > 0 ? totalWealth : 1;
 
-  if (sorted.length === 0) {
-    return (
-      <section aria-labelledby="reports-accounts-heading">
-        <h3 id="reports-accounts-heading" className={cn(stitchReports.sectionTitle, 'mb-3')}>
-          {t('title')}
-        </h3>
-        <div className={stitchReports.emptyWell}>{t('empty')}</div>
-      </section>
-    );
-  }
-
   return (
-    <section aria-labelledby="reports-accounts-heading">
-      <h3 id="reports-accounts-heading" className={cn(stitchReports.sectionTitle, 'mb-3')}>
+    <section aria-labelledby="reports-accounts-heading" className={stitchHome.scanSection}>
+      <h3 id="reports-accounts-heading" className={stitchHome.scanSectionTitle}>
         {t('title')}
       </h3>
-      <div className="flex flex-col gap-2">
-        {sorted.map((row, idx) => {
-          const Icon = iconForType(row.accountType);
-          const pct = Math.round((row.totalBalance / denom) * 100);
-          const label = labelForType(normalizeType(row.accountType));
-          return (
-            <div key={row.accountType} className={stitchReports.accountRow}>
-              <div className="flex min-w-0 items-center gap-3">
-                <div className={iconWrapClass(row.accountType, idx)}>
-                  <Icon className="h-5 w-5" aria-hidden />
+      {visible.length === 0 ? (
+        <div className={stitchReports.emptyWell}>{t('empty')}</div>
+      ) : (
+        <ul className={stitchHome.plainList}>
+          {visible.map((row) => {
+            const pct = Math.round((row.totalBalance / denom) * 100);
+            const label = labelForType(normalizeType(row.accountType));
+            const headingId = `reports-account-${row.accountType}`;
+            const shareLabel = t('percentOfWealth', { percent: pct });
+            return (
+              <li key={row.accountType} className={stitchReports.rankingRow}>
+                <div className={stitchReports.rankingRowHeader}>
+                  <h4 id={headingId} className={stitchReports.rankingLabel}>
+                    {label}
+                  </h4>
+                  <span className={stitchReports.rankingAmount}>
+                    {formatMoney(row.totalBalance)}
+                  </span>
                 </div>
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-[#e6ecff]">{label}</p>
-                  <p className={stitchReports.accountMeta}>
-                    {t('percentOfWealth', { percent: pct })}
-                  </p>
+                <div
+                  className={cn(stitchReports.progressTrack, 'h-2')}
+                  {...getBudgetProgressbarProps({ percent: pct, label: `${label}, ${shareLabel}` })}
+                >
+                  <div
+                    className={cn(
+                      'h-full min-h-[8px] rounded-full',
+                      stitchReports.progressFillPrimary
+                    )}
+                    style={{ width: `${Math.min(100, Math.max(0, pct))}%` }}
+                  />
                 </div>
-              </div>
-              <p className={stitchReports.accountAmount}>{formatMoney(row.totalBalance)}</p>
-            </div>
-          );
-        })}
-      </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </section>
   );
 }

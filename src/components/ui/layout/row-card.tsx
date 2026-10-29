@@ -6,7 +6,6 @@
  * A flexible, reusable row-based card component that supports:
  * - Icon + Title + Subtitle/Metadata layout
  * - Primary value + Secondary value + Actions on the right
- * - Optional swipe-to-delete gesture (Framer Motion)
  * - Multiple variants (regular, interactive, highlighted, muted)
  * - Full accessibility (keyboard nav, ARIA labels)
  *
@@ -14,20 +13,60 @@
  */
 
 import { memo, type CSSProperties } from 'react';
-import { rowCardStyles } from './theme/row-card-styles';
 import { cn } from '@/lib/utils';
-import { SwipeableCard, type SwipeAction } from '@/components/ui/interactions/swipeable-card';
 
-export interface RowCardSwipeConfig {
-  /** Unique ID for swipe state tracking */
-  id: string;
+const rowCardStyles = {
+  // Base card styles
+  base: 'relative z-10 flex items-center justify-between first:pb-2 last:pt-2',
 
-  /** Delete action configuration */
-  deleteAction?: SwipeAction | undefined;
+  // Variant styles
+  variant: {
+    regular: '',
+    interactive: 'cursor-pointer hover:bg-primary/5 active:bg-primary/10',
+    highlighted: 'border-primary/20 bg-primary/5',
+    muted: 'opacity-60',
+  },
 
-  /** Optional callback when card is clicked */
-  onCardClick?: (() => void) | undefined;
-}
+  // Layout structure
+  layout: {
+    left: 'flex items-center gap-3 flex-1 min-w-0',
+    content: 'flex-1 min-w-0',
+    right: 'flex flex-col items-end gap-1 shrink-0 ml-3 text-foreground',
+    rightRow: 'flex items-center gap-2 shrink-0 ml-3 text-foreground',
+  },
+
+  // Icon styles
+  icon: {
+    container: 'rounded-lg shrink-0 flex items-center justify-center',
+    size: {
+      xs: 'size-7',
+      sm: 'w-8 h-8',
+      md: 'w-10 h-10',
+      lg: 'w-12 h-12',
+    },
+    color: {
+      primary: 'bg-primary/10 text-primary',
+      success: 'bg-success/10 text-success',
+      warning: 'bg-warning/10 text-warning',
+      destructive: 'bg-destructive/10 text-destructive',
+      muted: 'bg-primary/10 text-primary/60',
+      accent: 'bg-primary/10 text-primary',
+      none: '',
+    },
+  },
+
+  // Text styles
+  title: 'font-semibold text-[15px] text-foreground line-clamp-1',
+  subtitle: 'mt-0.5 truncate text-xs text-muted-foreground [text-wrap:balance]',
+  metadata: 'flex items-center gap-2 mt-0.5 text-xs text-muted-foreground',
+  value: 'text-md font-semibold text-foreground',
+  valueVariant: {
+    primary: 'text-foreground',
+    success: 'text-success',
+    destructive: 'text-destructive',
+  },
+  secondaryValue: 'text-xs text-muted-foreground',
+};
 
 export interface RowCardProps {
   // Layout - Left Section
@@ -51,12 +90,6 @@ export interface RowCardProps {
   variant?: 'regular' | 'interactive' | 'highlighted' | 'muted';
   onClick?: (() => void) | undefined;
 
-  // Swipe configuration (new unified system)
-  swipeConfig?: RowCardSwipeConfig | undefined;
-
-  /** Hint linked to the swipe surface for assistive technology */
-  swipeDragHint?: string | undefined;
-
   // State
   isDisabled?: boolean;
   className?: string;
@@ -75,7 +108,7 @@ export interface RowCardProps {
 /**
  * RowCard Component
  *
- * Provides a unified row card pattern with optional swipe-to-delete.
+ * Provides a unified row card pattern.
  * Extracted from TransactionRow to be reusable across the app.
  */
 export const RowCard = memo(
@@ -93,8 +126,6 @@ export const RowCard = memo(
     rightLayout = 'stack',
     variant = 'regular',
     onClick,
-    swipeConfig,
-    swipeDragHint,
     isDisabled = false,
     iconStyle,
     iconClassName,
@@ -150,7 +181,7 @@ export const RowCard = memo(
 
           {/* Content */}
           <div className={cn(rowCardStyles.layout.content, compact && 'w-max min-w-0 flex-none')}>
-            <h4
+            <p
               className={cn(
                 rowCardStyles.title,
                 compact &&
@@ -159,13 +190,13 @@ export const RowCard = memo(
               )}
             >
               {title}
-            </h4>
+            </p>
             {subtitle && (
               <p
                 className={cn(
                   rowCardStyles.subtitle,
                   compact &&
-                    'mt-0.5 overflow-hidden text-ellipsis whitespace-nowrap text-[10px] leading-tight text-primary/70',
+                    'mt-0.5 overflow-hidden text-ellipsis whitespace-nowrap text-[10px] leading-tight text-muted-foreground',
                   !compact && subtitleClassName
                 )}
               >
@@ -210,31 +241,6 @@ export const RowCard = memo(
         )}
       </div>
     );
-
-    // ========================================================================
-    // Render with Swipe Support (New Unified System)
-    // ========================================================================
-
-    if (swipeConfig) {
-      const cardClick = swipeConfig.onCardClick ?? onClick;
-      return (
-        <SwipeableCard
-          id={swipeConfig.id}
-          rightAction={swipeConfig.deleteAction}
-          {...(cardClick !== undefined && { onCardClick: cardClick })}
-          {...(swipeDragHint !== undefined && { dragHint: swipeDragHint })}
-          disabled={isDisabled}
-        >
-          <div className={cardClasses} data-testid={testId}>
-            {renderCardContent()}
-          </div>
-        </SwipeableCard>
-      );
-    }
-
-    // ========================================================================
-    // Regular Card (No Swipe)
-    // ========================================================================
 
     const isClickable = Boolean(onClick) && !isDisabled;
     const handleKeyDown = (e: React.KeyboardEvent) => {

@@ -1,162 +1,78 @@
-/**
- * Dashboard Skeleton Components
- * Progressive loading placeholders with enhanced shimmer animation
- * Prevents Cumulative Layout Shift (CLS) with accurate dimensions
- */
-
-import { userSelectorStyles } from '@/components/shared/theme/user-selector-styles';
+import { Skeleton } from '@/components/ui/skeleton';
 import { SkeletonList } from '@/components/ui/primitives';
-import { accountStyles } from '@/features/accounts';
-import { budgetStyles } from '@/styles/system';
-import { dashboardStyles } from '@/features/dashboard/theme/dashboard-styles';
+import { stitchHome } from '@/styles/home-design-foundation';
 
-/**
- * Skeleton shimmer animation class
- * Uses the existing shimmer animation from globals.css for consistent loading states
- * The liquid-shimmer class provides a smooth, performant gradient effect
- */
-const skeletonClasses = {
-  shimmer: dashboardStyles.skeletons.shimmer,
-};
-
-/**
- * User selector skeleton loader
- * Shows 3 placeholder pills while user data loads
- */
-export function UserSelectorSkeleton() {
+function BriefingSectionSkeleton({ rows }: { rows: number }) {
   return (
-    <div className={userSelectorStyles.loading.container}>
-      <div className={userSelectorStyles.loading.heading} aria-hidden />
+    <section aria-hidden className={stitchHome.scanSection}>
+      <div className={stitchHome.scanSectionHeader}>
+        <Skeleton className="h-4 w-24" />
+        <Skeleton className="h-3 w-16" />
+      </div>
       <SkeletonList
-        count={3}
-        spacing={userSelectorStyles.loading.list}
+        count={rows}
+        spacing="flex flex-col"
         renderItem={() => (
-          <div className={`${userSelectorStyles.loading.item} ${skeletonClasses.shimmer}`}>
-            <div className={userSelectorStyles.loading.avatar} />
-            <div className={userSelectorStyles.loading.text} />
+          <div className="flex min-h-10 items-center justify-between gap-3 py-1">
+            <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+              <Skeleton className="h-4 w-[55%]" />
+              <Skeleton className="h-3 w-24" />
+            </div>
+            <Skeleton className="h-4 w-16 shrink-0" />
           </div>
         )}
       />
-    </div>
-  );
-}
-
-/**
- * Balance section skeleton loader
- * Displays loading state for accounts and total balance
- */
-export function BalanceSectionSkeleton() {
-  return (
-    <section className={accountStyles.balanceSection.container}>
-      <div className={accountStyles.slider.container}>
-        <div className={accountStyles.slider.inner}>
-          <div
-            className={`${accountStyles.slider.skeletonCard} ${skeletonClasses.shimmer}`}
-            aria-hidden
-          />
-          <div
-            className={`${accountStyles.slider.skeletonCard} ${skeletonClasses.shimmer}`}
-            aria-hidden
-          />
-        </div>
-      </div>
-
-      <div className={accountStyles.totalBalanceLink.embeddedContainer} aria-hidden>
-        <div
-          className={`flex min-w-0 flex-1 items-center gap-3 sm:gap-4 ${skeletonClasses.shimmer}`}
-        >
-          <div className="size-12 shrink-0 rounded-xl bg-muted/60 sm:size-14" />
-          <div className="flex min-w-0 flex-1 flex-col gap-2">
-            <div className="h-2.5 w-24 rounded bg-muted/50" />
-            <div className="h-8 w-40 max-w-full rounded-md bg-muted/50 sm:h-9 sm:w-44" />
-          </div>
-        </div>
-        <div
-          className={`h-10 w-28 shrink-0 rounded-full bg-muted/50 sm:h-11 ${skeletonClasses.shimmer}`}
-        />
-      </div>
     </section>
   );
 }
 
-/**
- * Budget section skeleton loader
- * Shows loading state for budget cards with progress indicators
- */
-export function BudgetSectionSkeleton() {
+export function BalanceSectionSkeleton() {
   return (
-    <div className={budgetStyles.section.container}>
-      <div className="mb-4 border-b border-border/40 pb-4 dark:border-border/35">
-        <div className={`h-5 w-36 rounded-md ${skeletonClasses.shimmer}`} />
-        <div className={`mt-2 h-3 w-48 rounded-md ${skeletonClasses.shimmer}`} />
+    <section aria-hidden className={stitchHome.balanceSection}>
+      <div className="flex items-baseline justify-between gap-3">
+        <Skeleton className="h-3 w-32" />
+        <Skeleton className="h-3 w-14" />
       </div>
-
-      <SkeletonList
-        count={2}
-        spacing="flex flex-col gap-4 sm:gap-5"
-        renderItem={() => (
-          <div className={dashboardStyles.budgetSection.budgetCard.container}>
-            <div className={dashboardStyles.skeletons.budgetRow}>
-              <div
-                className={`${dashboardStyles.skeletons.budgetIcon} ${skeletonClasses.shimmer}`}
-              />
-              <div className={dashboardStyles.skeletons.budgetText}>
-                <div
-                  className={`${dashboardStyles.skeletons.budgetLinePrimary} ${skeletonClasses.shimmer}`}
-                />
-                <div
-                  className={`${dashboardStyles.skeletons.budgetLineSecondary} ${skeletonClasses.shimmer}`}
-                />
-              </div>
-            </div>
-            <div
-              className={`${dashboardStyles.skeletons.budgetProgress} ${skeletonClasses.shimmer}`}
-            />
-            <div className={dashboardStyles.skeletons.budgetStats}>
-              <div
-                className={`${dashboardStyles.skeletons.budgetStat} ${skeletonClasses.shimmer}`}
-              />
-              <div
-                className={`${dashboardStyles.skeletons.budgetStat} ${skeletonClasses.shimmer}`}
-              />
-            </div>
-          </div>
-        )}
-      />
-    </div>
+      <Skeleton className="h-8 w-44 max-w-full" />
+      <Skeleton className="h-4 w-36" />
+    </section>
   );
 }
 
-/**
- * Recurring series section skeleton loader
- * Shows loading state for recurring transaction cards
- */
-export function RecurringSeriesSkeleton() {
+export function BudgetSectionSkeleton() {
   return (
-    <div className={dashboardStyles.recurringSection.container}>
-      <div className={dashboardStyles.recurringSection.header}>
-        <div className={`h-4 w-32 rounded ${skeletonClasses.shimmer}`} />
+    <section aria-hidden className={stitchHome.scanSection}>
+      <div className={stitchHome.scanSectionHeader}>
+        <Skeleton className="h-4 w-28" />
+        <Skeleton className="h-3 w-16" />
       </div>
+      <div className="flex items-center justify-between gap-3 py-1">
+        <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-3 w-28" />
+        </div>
+        <Skeleton className="h-4 w-16 shrink-0" />
+      </div>
+      <Skeleton className="h-2 w-full rounded-full" />
+    </section>
+  );
+}
 
-      <SkeletonList
-        count={3}
-        spacing={dashboardStyles.recurringSection.skeletonListSpacing}
-        renderItem={() => (
-          <div className={dashboardStyles.recurringSection.seriesCard.container}>
-            <div className={dashboardStyles.skeletons.recurringRow}>
-              <div
-                className={`${dashboardStyles.skeletons.recurringLinePrimary} ${skeletonClasses.shimmer}`}
-              />
-              <div
-                className={`${dashboardStyles.skeletons.recurringLineSecondary} ${skeletonClasses.shimmer}`}
-              />
-            </div>
-            <div
-              className={`${dashboardStyles.skeletons.recurringLineTertiary} ${skeletonClasses.shimmer}`}
-            />
-          </div>
-        )}
-      />
+export function RecurringSeriesSkeleton() {
+  return <BriefingSectionSkeleton rows={3} />;
+}
+
+export function RecentActivitySectionSkeleton() {
+  return <BriefingSectionSkeleton rows={3} />;
+}
+
+export function HomePageSectionsSkeleton() {
+  return (
+    <div className="flex flex-col gap-5">
+      <BalanceSectionSkeleton />
+      <BudgetSectionSkeleton />
+      <RecurringSeriesSkeleton />
+      <RecentActivitySectionSkeleton />
     </div>
   );
 }

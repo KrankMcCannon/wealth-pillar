@@ -1,0 +1,86 @@
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import { BudgetSection } from './budget-section';
+import type { UserBudgetSummary } from '@/lib/types';
+
+vi.mock('next-intl', () => ({
+  useTranslations: () => (key: string) => key,
+  useLocale: () => 'en',
+}));
+
+vi.mock('@/i18n/routing', () => ({
+  useRouter: () => ({ push: vi.fn() }),
+  Link: ({ href, children }: { href: string; children: React.ReactNode }) => (
+    <a href={href}>{children}</a>
+  ),
+}));
+
+const summary: UserBudgetSummary = {
+  user: { id: 'u1', name: 'Ada' } as UserBudgetSummary['user'],
+  budgets: [
+    {
+      id: 'b1',
+      description: 'Food',
+      amount: 200,
+      spent: 50,
+      remaining: 150,
+      percentage: 25,
+      categories: [],
+      transactionCount: 1,
+    },
+  ],
+  activePeriod: { id: 'p1' } as UserBudgetSummary['activePeriod'],
+  periodStart: '2026-09-01',
+  periodEnd: null,
+  totalBudget: 200,
+  totalSpent: 50,
+  totalRemaining: 150,
+  overallPercentage: 25,
+};
+
+describe('BudgetSection', () => {
+  it('leads with remaining, not allocated total, and exposes a progressbar', () => {
+    render(<BudgetSection budgetsByUser={{ u1: summary }} />);
+
+    expect(screen.getByRole('progressbar')).toBeTruthy();
+    expect(screen.getByText(/150/)).toBeTruthy();
+    expect(screen.queryByText('categoryCard.badgeOnTrack')).toBeNull();
+    expect(screen.getByText(/periodOngoing/)).toBeTruthy();
+    expect(screen.queryByText('spentPrefix')).toBeNull();
+    expect(screen.queryByText('assignedPrefix')).toBeNull();
+  });
+
+  it('shows household avatars when more than one member has a budget', () => {
+    const other: UserBudgetSummary = {
+      ...summary,
+      user: { id: 'u2', name: 'Ivana' } as UserBudgetSummary['user'],
+      overallPercentage: 10,
+    };
+    render(<BudgetSection budgetsByUser={{ u1: summary, u2: other }} />);
+
+    expect(screen.getByText('Ada')).toBeTruthy();
+    expect(screen.getByText('Ivana')).toBeTruthy();
+    expect(screen.getByText('AD')).toBeTruthy();
+    expect(screen.getByText('IV')).toBeTruthy();
+  });
+
+  it('uses the 100% fill token when the rollup is exactly full', () => {
+    render(
+      <BudgetSection
+        budgetsByUser={{
+          u1: {
+            ...summary,
+            totalSpent: 200,
+            totalRemaining: 0,
+            overallPercentage: 100,
+          },
+        }}
+      />
+    );
+
+    const fill = screen.getByRole('progressbar').firstElementChild;
+    expect(fill?.className).toContain('bg-warning');
+    expect(fill?.className).not.toContain('bg-secondary');
+    expect(fill?.className).not.toContain('bg-muted');
+  });
+});

@@ -1,12 +1,19 @@
 import type { ReactNode } from 'react';
 import { cn } from '@/lib';
-import { homeDashboardLayoutStyles } from './theme/home-dashboard-layout-styles';
+import { dashboardContentBottomPadding } from '@/styles/home-design-foundation';
+
+export { dashboardContentBottomPadding };
+
+const homeDashboardLayoutStyles = {
+  main: `flex min-h-0 w-full flex-col gap-4 px-4 pt-3 ${dashboardContentBottomPadding}`,
+};
 
 interface HomeDashboardMainProps {
   children: ReactNode;
   className?: string;
   id?: string;
   ariaBusy?: boolean;
+  'aria-label'?: string;
 }
 
 export function HomeDashboardMain({
@@ -14,28 +21,16 @@ export function HomeDashboardMain({
   className,
   id = 'main-dashboard',
   ariaBusy,
+  'aria-label': ariaLabel,
 }: HomeDashboardMainProps) {
   return (
     <main
       id={id}
       aria-busy={ariaBusy ? true : undefined}
+      aria-label={ariaLabel}
       className={cn(homeDashboardLayoutStyles.main, className)}
     >
       {children}
     </main>
-  );
-}
-
-interface SkipToMainLinkProps {
-  href: string;
-  children: ReactNode;
-  className?: string;
-}
-
-export function SkipToMainLink({ href, children, className }: SkipToMainLinkProps) {
-  return (
-    <a href={href} className={cn(homeDashboardLayoutStyles.skipLink, className)}>
-      {children}
-    </a>
   );
 }

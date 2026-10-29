@@ -1,6 +1,6 @@
 'use server';
 
-import { revalidateInvestmentRelatedPaths } from '@/lib/cache/revalidation-paths';
+import { invalidateInvestmentCaches } from '@/lib/utils/cache-utils';
 import { getCurrentUser } from '@/lib/auth/cached-auth';
 import * as useCases from '@/server/use-cases';
 import { investments } from '@/server/db/schema';
@@ -35,7 +35,7 @@ export async function updateInvestmentAction(input: {
   shares_acquired: number;
   currency: string;
   tax_paid: number;
-  created_at: Date;
+  created_at: Date | string;
   currency_rate?: number;
   net_earn?: number;
 }): Promise<ServiceResult<InvestmentRow>> {
@@ -52,12 +52,12 @@ export async function updateInvestmentAction(input: {
       currency_rate: input.currency_rate ?? 1,
       tax_paid: input.tax_paid ?? 0,
       net_earn: input.net_earn ?? 0,
-      created_at: input.created_at.toISOString(),
+      created_at: new Date(input.created_at).toISOString(),
     });
 
     if (!updated) return { data: null, error: 'NOT_FOUND' };
 
-    revalidateInvestmentRelatedPaths();
+    invalidateInvestmentCaches({ groupId: currentUser.group_id, userId: currentUser.id });
     return { data: updated, error: null };
   } catch (error) {
     console.error('Error updating investment:', error);
@@ -101,7 +101,7 @@ export async function createInvestmentAction(
 
     if (!data) return { data: null, error: 'Failed to create investment' };
 
-    revalidateInvestmentRelatedPaths();
+    invalidateInvestmentCaches({ groupId: currentUser.group_id, userId: currentUser.id });
 
     return { data, error: null };
   } catch (error) {

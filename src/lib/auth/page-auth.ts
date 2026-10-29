@@ -3,14 +3,14 @@
  *
  * Centralized helper for the common "resolve params → auth → redirect" pattern
  * shared across all authenticated dashboard pages.
- *
- * Eliminates the 4-line boilerplate repeated in every page.tsx and ensures
- * auth behavior is applied uniformly.
  */
 
 import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
-import { getCurrentUser, getGroupUsers } from './cached-auth';
+import { getCurrentUser, getGroupUsers, getAuth } from './cached-auth';
+import { isOnboardingComplete } from './clerk-session';
+import { getSelectableUsers } from '@/lib/utils/permissions';
+import { withTimeout } from '@/lib/utils/with-timeout';
 import type { User } from '@/lib/types';
 
 export interface PageAuthResult {
@@ -19,21 +19,20 @@ export interface PageAuthResult {
   groupUsers: User[];
 }
 
+async function redirectUnauthenticated(locale: string): Promise<never> {
+  const { userId: clerkId } = await getAuth();
+  if (clerkId) {
+    redirect(`/${locale}/onboarding`);
+  }
+  redirect(`/${locale}/sign-in`);
+}
+
 /**
  * Resolves locale from Next.js async params, verifies authentication and
  * returns `currentUser` + `groupUsers` in one call.
  *
- * Redirects to `/<locale>/sign-in` when not authenticated.
- *
- * Both `getCurrentUser` and `getGroupUsers` are request-scoped via React
- * `cache()` so calling this helper is free when the layout has already
- * resolved the same data.
- *
- * @example
- * export default async function MyPage({ params }) {
- *   const { locale, currentUser, groupUsers } = await requirePageAuth(params);
- *   // ...
- * }
+ * Redirects to onboarding when Clerk session exists but profile is incomplete;
+ * otherwise to sign-in.
  */
 export async function requirePageAuth(
   params: Promise<{ locale: string }>
@@ -42,10 +41,15 @@ export async function requirePageAuth(
   const currentUser = await getCurrentUser();
 
   if (!currentUser) {
-    redirect(`/${locale}/sign-in`);
+    return redirectUnauthenticated(locale);
   }
 
-  const groupUsers = await getGroupUsers();
+  if (!isOnboardingComplete(currentUser)) {
+    redirect(`/${locale}/onboarding`);
+  }
+
+  const allGroupUsers = await withTimeout(getGroupUsers(), 1500, [currentUser]);
+  const groupUsers = getSelectableUsers(currentUser, allGroupUsers);
 
   return { locale, currentUser, groupUsers };
 }
@@ -64,8 +68,19 @@ export async function requireGroupId(currentUser: User): Promise<string> {
 }
 
 /**
+ * Resolves auth + group id for dashboard pages inside a Suspense boundary.
+ * Uses request-scoped cached auth from the locale layout when available.
+ */
+export async function resolvePageContext(
+  params: Promise<{ locale: string }>
+): Promise<PageAuthResult & { groupId: string }> {
+  const auth = await requirePageAuth(params);
+  const groupId = await requireGroupId(auth.currentUser);
+  return { ...auth, groupId };
+}
+
+/**
  * Variant that only resolves auth without fetching group users.
- * Use on pages that don't need `groupUsers` (e.g. settings-only paths).
  */
 export async function requireUserAuth(
   params: Promise<{ locale: string }>
@@ -74,7 +89,11 @@ export async function requireUserAuth(
   const currentUser = await getCurrentUser();
 
   if (!currentUser) {
-    redirect(`/${locale}/sign-in`);
+    return redirectUnauthenticated(locale);
+  }
+
+  if (!isOnboardingComplete(currentUser)) {
+    redirect(`/${locale}/onboarding`);
   }
 
   return { locale, currentUser };

@@ -1,5 +1,9 @@
 import { cn } from '@/lib';
-import { pageContainerStyles } from './theme/page-container-styles';
+import { stitchDashboardShell } from '@/styles/home-design-foundation';
+
+const pageContainerStyles = {
+  container: `relative flex w-full min-h-0 flex-col overflow-x-hidden ${stitchDashboardShell.pageBackground} pt-[64px]`,
+} as const;
 
 interface PageContainerProps {
   children: React.ReactNode;

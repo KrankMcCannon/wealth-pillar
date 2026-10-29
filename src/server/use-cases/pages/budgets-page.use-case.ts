@@ -1,109 +1,103 @@
-import { getBudgetsByGroupUseCase } from '../budgets/get-budgets.use-case';
+import { CACHE_TAGS } from '@/lib/cache/config';
+import type { Account, Budget, BudgetPeriod, Category, User, UserBudgetSummary } from '@/lib/types';
+import { scopeBudgetsPageData } from '@/server/permissions/scope-page-data';
 import {
   getAccountsByGroupDeduped,
   getAllCategoriesDeduped,
   getGroupUsersByGroupIdDeduped,
 } from '@/server/request-cache/services';
+import { cacheLife, cacheTag } from 'next/cache';
 import { getActiveBudgetPeriodsForUsersUseCase } from '../budget-periods/get-active-budget-periods-for-users.use-case';
-import { getTransactionsByGroupUseCase } from '../transactions/get-transactions.use-case';
+import {
+  buildBudgetChartViewModel,
+  type BudgetChartViewModel,
+} from '../budgets/budget-chart.logic';
 import { buildBudgetsByUserPure } from '../budgets/budget.logic';
-import type {
-  Budget,
-  Account,
-  Category,
-  BudgetPeriod,
-  User,
-  Transaction,
-  UserBudgetSummary,
-} from '@/lib/types';
-import { toDateTime } from '@/lib/utils/date-utils';
+import { getBudgetsByGroupUseCase } from '../budgets/get-budgets.use-case';
+import { parsePeriodDates, resolveChartPeriodEnd } from '../shared/period.logic';
+import { getBudgetPeriodTransactionsUseCase } from '../budgets/get-budget-period-transactions.use-case';
 
 export interface BudgetsPageData {
   budgets: Budget[];
-  transactions: Transaction[];
   accounts: Account[];
   categories: Category[];
   budgetPeriods: Record<string, BudgetPeriod | null>;
   budgetsByUser: Record<string, UserBudgetSummary>;
+  chartViewModelsByUser: Record<string, BudgetChartViewModel>;
 }
 
-async function safeFetch<T>(promise: Promise<T>, fallback: T): Promise<T> {
-  try {
-    return await promise;
-  } catch (e) {
-    console.error(`[BudgetsPageUseCase] Fetch failed:`, e);
-    return fallback;
-  }
-}
+async function getCachedBudgetsPageData(groupId: string): Promise<BudgetsPageData> {
+  'use cache';
+  cacheLife('minutes');
+  cacheTag(`group:${groupId}:budgets`);
+  cacheTag(`group:${groupId}:transactions`);
+  cacheTag(`group:${groupId}:accounts`);
+  cacheTag(CACHE_TAGS.BUDGET_PERIODS);
+  cacheTag('categories');
 
-export async function getBudgetsPageData(groupId: string): Promise<BudgetsPageData> {
-  // 1. Get group users
-  let groupUsers: User[] = [];
-  try {
-    groupUsers = await getGroupUsersByGroupIdDeduped(groupId);
-  } catch (error) {
-    console.error('[BudgetsPageUseCase] Failed to fetch group users:', error);
-  }
+  const groupUsers = await getGroupUsersByGroupIdDeduped(groupId);
   const userIds = groupUsers.map((u) => u.id);
 
-  // 2. Fetch Metadata
   const [budgets, accounts, categories, periodMap] = await Promise.all([
-    safeFetch(getBudgetsByGroupUseCase(groupId), [] as Budget[]),
-    safeFetch(getAccountsByGroupDeduped(groupId), [] as Account[]),
-    safeFetch(getAllCategoriesDeduped(), [] as Category[]),
-    safeFetch(
-      getActiveBudgetPeriodsForUsersUseCase(userIds),
-      {} as Record<string, BudgetPeriod | null>
-    ),
+    getBudgetsByGroupUseCase(groupId),
+    getAccountsByGroupDeduped(groupId),
+    getAllCategoriesDeduped(),
+    getActiveBudgetPeriodsForUsersUseCase(userIds),
   ]);
 
   // 3. Build Budget Periods & Determine Time Range
   const budgetPeriods: Record<string, BudgetPeriod | null> = {};
-  let minDate: Date | null = null;
-  let maxDate: Date | null = null;
   const now = new Date();
-
   userIds.forEach((userId) => {
-    const period = periodMap?.[userId] ?? null;
-    budgetPeriods[userId] = period;
-
-    let start: Date, end: Date;
-    if (period) {
-      start = new Date(period.start_date);
-      const endDateTime = toDateTime(period.end_date ?? '');
-      end = endDateTime ? endDateTime.endOf('day').toJSDate() : now;
-    } else {
-      start = new Date(now.getFullYear(), now.getMonth(), 1);
-      end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
-    }
-    if (!minDate || start < minDate) minDate = start;
-    if (!maxDate || end > maxDate) maxDate = end;
+    budgetPeriods[userId] = periodMap?.[userId] ?? null;
   });
-
-  // 4. Fetch transactions for the union period (same rows used by the UI list + chart)
-  const txOptions: { startDate?: Date; endDate?: Date } = {};
-  if (minDate) txOptions.startDate = minDate;
-  if (maxDate) txOptions.endDate = maxDate;
-  const transactionResult = await getTransactionsByGroupUseCase(groupId, txOptions).catch(() => ({
-    data: [] as Transaction[],
-    total: 0,
-    hasMore: false,
-  }));
+  const budgetTransactions = await getBudgetPeriodTransactionsUseCase(
+    groupId,
+    userIds,
+    budgetPeriods,
+    now
+  );
 
   // 5. Budget totals from the same transactions as the list/chart (avoids empty RPC aggregates)
   const budgetsByUser = buildBudgetsByUserPure(
     groupUsers,
     budgets,
-    transactionResult.data,
-    budgetPeriods
+    budgetTransactions,
+    budgetPeriods,
+    undefined,
+    accounts
   );
+
+  const chartViewModelsByUser: Record<string, BudgetChartViewModel> = {};
+  for (const user of groupUsers) {
+    const userBudgets = budgets.filter((b) => b.user_id === user.id);
+    const [periodStart] = parsePeriodDates(budgetPeriods[user.id], now);
+    const chartPeriodEnd = resolveChartPeriodEnd(budgetPeriods[user.id], now);
+    chartViewModelsByUser[user.id] = buildBudgetChartViewModel(
+      budgetTransactions,
+      userBudgets,
+      user.id,
+      periodStart,
+      chartPeriodEnd,
+      budgetsByUser[user.id] ?? null,
+      accounts
+    );
+  }
 
   return {
     budgets,
-    transactions: transactionResult.data,
     accounts,
     categories,
     budgetPeriods,
     budgetsByUser,
+    chartViewModelsByUser,
   };
+}
+
+export async function getBudgetsPageData(
+  groupId: string,
+  currentUser: User
+): Promise<BudgetsPageData> {
+  const data = await getCachedBudgetsPageData(groupId);
+  return scopeBudgetsPageData(data, currentUser);
 }

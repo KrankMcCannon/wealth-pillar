@@ -1,0 +1,472 @@
+import { describe, it, expect } from 'vitest';
+import {
+  calculateEnvelopePeriodTotals,
+  calculatePeriodBudgetRollup,
+  effectiveSpentFromTransactions,
+  buildBudgetsByUserPure,
+  filterTransactionsForBudgetsUnion,
+  buildBudgetCategoryBreakdown,
+  calculateBudgetsWithProgress,
+} from './budget.logic';
+import { resolveEffectivePeriod, resolveChartPeriodEnd } from '../shared/period.logic';
+import type { Budget, Transaction, User, BudgetPeriod, Category, Account } from '@/lib/types';
+
+const user = {
+  id: 'user-1',
+  name: 'Test',
+  email: 't@test.com',
+  clerk_id: 'clerk-1',
+  group_id: 'group-1',
+  role: 'member',
+  avatar: null,
+  theme_color: null,
+  default_account_id: null,
+  budget_start_date: null,
+  created_at: '2024-01-01',
+  updated_at: '2024-01-01',
+} as User;
+
+function tx(overrides: Partial<Transaction> = {}): Transaction {
+  return {
+    id: 'tx-1',
+    description: 'Test',
+    amount: 100,
+    type: 'expense',
+    category: 'food',
+    date: '2024-06-15',
+    user_id: 'user-1',
+    account_id: 'acc-1',
+    to_account_id: null,
+    frequency: 'once',
+    recurring_series_id: null,
+    group_id: 'group-1',
+    created_at: '2024-06-01',
+    updated_at: '2024-06-01',
+    ...overrides,
+  };
+}
+
+function budget(overrides: Partial<Budget> = {}): Budget {
+  return {
+    id: 'b-1',
+    user_id: 'user-1',
+    group_id: 'group-1',
+    description: 'Food',
+    amount: 500,
+    icon: 'cart',
+    type: 'monthly',
+    categories: ['food'],
+    created_at: '2024-01-01',
+    updated_at: '2024-01-01',
+    ...overrides,
+  };
+}
+
+describe('effectiveSpentFromTransactions', () => {
+  it('subtracts income and floors at zero', () => {
+    const spent = effectiveSpentFromTransactions([
+      tx({ amount: 200, type: 'expense' }),
+      tx({ amount: 50, type: 'income' }),
+    ]);
+    expect(spent).toBe(150);
+  });
+
+  it('ignores transfers when accounts are unknown', () => {
+    const spent = effectiveSpentFromTransactions([
+      tx({ amount: 200, type: 'expense' }),
+      tx({ amount: 100, type: 'transfer', to_account_id: 'acc-2' }),
+    ]);
+    expect(spent).toBe(200);
+  });
+
+  it('counts a dest-shared transfer as source spent when accounts are known', () => {
+    const accounts: Account[] = [
+      {
+        id: 'acc-1',
+        name: 'Payroll',
+        type: 'payroll',
+        user_ids: ['user-1'],
+        group_id: 'group-1',
+        created_at: '2024-01-01',
+        updated_at: '2024-01-01',
+      },
+      {
+        id: 'acc-2',
+        name: 'Joint savings',
+        type: 'savings',
+        user_ids: ['user-1', 'user-2'],
+        group_id: 'group-1',
+        created_at: '2024-01-01',
+        updated_at: '2024-01-01',
+      },
+    ];
+    const spent = effectiveSpentFromTransactions(
+      [tx({ amount: 100, type: 'transfer', account_id: 'acc-1', to_account_id: 'acc-2' })],
+      accounts,
+      'user-1'
+    );
+    expect(spent).toBe(100);
+  });
+});
+
+describe('resolveEffectivePeriod', () => {
+  it('uses calendar month when no active period', () => {
+    const now = new Date('2024-06-15T12:00:00Z');
+    const effective = resolveEffectivePeriod(null, now);
+    expect(effective.isSynthetic).toBe(true);
+    expect(effective.start.month).toBe(6);
+    expect(effective.start.day).toBe(1);
+  });
+});
+
+describe('buildBudgetsByUserPure', () => {
+  const fixedNow = new Date('2024-06-15T12:00:00Z');
+
+  it('computes spent for user without active period using calendar month (fix #1)', () => {
+    const transactions = [tx({ date: '2024-06-10', amount: 80 })];
+    const result = buildBudgetsByUserPure(
+      [user],
+      [budget()],
+      transactions,
+      { 'user-1': null },
+      fixedNow
+    );
+    expect(result['user-1']?.totalSpent).toBe(80);
+  });
+
+  it('adds each envelope spent into totalSpent', () => {
+    const period: BudgetPeriod = {
+      id: 'p-1',
+      user_id: 'user-1',
+      start_date: '2024-06-01',
+      end_date: null,
+      is_active: true,
+      created_at: '2024-06-01',
+      updated_at: '2024-06-01',
+    };
+    const budgets = [
+      budget({ id: 'b-1', categories: ['food'] }),
+      budget({ id: 'b-2', categories: ['food'], description: 'Food 2' }),
+    ];
+    const transactions = [tx({ date: '2024-06-10', amount: 100 })];
+    const result = buildBudgetsByUserPure(
+      [user],
+      budgets,
+      transactions,
+      { 'user-1': period },
+      fixedNow
+    );
+    expect(result['user-1']?.totalSpent).toBe(200);
+    const sumPerBudget = (result['user-1']?.budgets ?? []).reduce((s, b) => s + b.spent, 0);
+    expect(sumPerBudget).toBe(200);
+  });
+
+  it('counts a shared-account expense only for the transaction owner', () => {
+    const other = { ...user, id: 'user-2' } as User;
+    const result = buildBudgetsByUserPure(
+      [user, other],
+      [budget(), budget({ id: 'b-2', user_id: 'user-2' })],
+      [tx({ amount: 80, account_id: 'shared-acc' })],
+      { 'user-1': null, 'user-2': null },
+      fixedNow
+    );
+    expect(result['user-1']?.totalSpent).toBe(80);
+    expect(result['user-2']?.totalSpent).toBe(0);
+  });
+
+  it('includes Rome date-only last day and excludes the next calendar day', () => {
+    const period: BudgetPeriod = {
+      id: 'p-1',
+      user_id: 'user-1',
+      start_date: '2024-06-01',
+      end_date: '2024-06-30',
+      is_active: false,
+      created_at: '2024-06-01',
+      updated_at: '2024-06-01',
+    };
+    const result = buildBudgetsByUserPure(
+      [user],
+      [budget()],
+      [
+        tx({ id: 'in', date: '2024-06-30', amount: 40 }),
+        tx({ id: 'out', date: '2024-07-01', amount: 99 }),
+      ],
+      { 'user-1': period },
+      new Date('2024-07-15T12:00:00+02:00')
+    );
+    expect(result['user-1']?.totalSpent).toBe(40);
+  });
+
+  it('stops an open period at now so future-dated rows do not count', () => {
+    const period: BudgetPeriod = {
+      id: 'p-1',
+      user_id: 'user-1',
+      start_date: '2024-06-01',
+      end_date: null,
+      is_active: true,
+      created_at: '2024-06-01',
+      updated_at: '2024-06-01',
+    };
+    const result = buildBudgetsByUserPure(
+      [user],
+      [budget()],
+      [
+        tx({ id: 'past', date: '2024-06-10', amount: 25 }),
+        tx({ id: 'future', date: '2024-06-20', amount: 90 }),
+      ],
+      { 'user-1': period },
+      fixedNow
+    );
+    expect(result['user-1']?.totalSpent).toBe(25);
+  });
+
+  it('puts a categorized transfer on the envelope that includes that category', () => {
+    const period: BudgetPeriod = {
+      id: 'p-1',
+      user_id: 'user-1',
+      start_date: '2024-06-01',
+      end_date: null,
+      is_active: true,
+      created_at: '2024-06-01',
+      updated_at: '2024-06-01',
+    };
+    const payroll: Account = {
+      id: 'acc-1',
+      name: 'Payroll',
+      type: 'payroll',
+      user_ids: ['user-1'],
+      group_id: 'group-1',
+      created_at: '2024-01-01',
+      updated_at: '2024-01-01',
+    };
+    const savings: Account = {
+      id: 'acc-2',
+      name: 'Joint savings',
+      type: 'savings',
+      user_ids: ['user-1', 'user-2'],
+      group_id: 'group-1',
+      created_at: '2024-01-01',
+      updated_at: '2024-01-01',
+    };
+    const result = buildBudgetsByUserPure(
+      [user],
+      [
+        budget({ id: 'b-spese', categories: ['food'], amount: 500, description: 'Spese' }),
+        budget({
+          id: 'b-save',
+          categories: ['trasferimento'],
+          amount: 1000,
+          description: 'Risparmi',
+        }),
+      ],
+      [
+        tx({ id: 'food', date: '2024-06-10', amount: 80, category: 'food' }),
+        tx({
+          id: 'save',
+          date: '2024-06-10',
+          amount: 100,
+          type: 'transfer',
+          category: 'trasferimento',
+          account_id: 'acc-1',
+          to_account_id: 'acc-2',
+        }),
+      ],
+      { 'user-1': period },
+      fixedNow,
+      [payroll, savings]
+    );
+    const byId = Object.fromEntries((result['user-1']?.budgets ?? []).map((b) => [b.id, b]));
+    expect(byId['b-spese']?.spent).toBe(80);
+    expect(byId['b-save']?.spent).toBe(100);
+    expect(result['user-1']?.totalSpent).toBe(180);
+  });
+
+  it('counts exclusive personal savings on the matching envelope', () => {
+    const period: BudgetPeriod = {
+      id: 'p-1',
+      user_id: 'user-1',
+      start_date: '2024-06-01',
+      end_date: null,
+      is_active: true,
+      created_at: '2024-06-01',
+      updated_at: '2024-06-01',
+    };
+    const payroll: Account = {
+      id: 'acc-1',
+      name: 'Payroll',
+      type: 'payroll',
+      user_ids: ['user-1'],
+      group_id: 'group-1',
+      created_at: '2024-01-01',
+      updated_at: '2024-01-01',
+    };
+    const personalSave: Account = {
+      id: 'acc-2',
+      name: 'My savings',
+      type: 'savings',
+      user_ids: ['user-1'],
+      group_id: 'group-1',
+      created_at: '2024-01-01',
+      updated_at: '2024-01-01',
+    };
+    const result = buildBudgetsByUserPure(
+      [user],
+      [budget({ id: 'b-save', categories: ['risparmi'], amount: 1000, description: 'Risparmi' })],
+      [
+        tx({
+          id: 'save',
+          date: '2024-06-10',
+          amount: 70,
+          type: 'transfer',
+          category: 'risparmi',
+          account_id: 'acc-1',
+          to_account_id: 'acc-2',
+        }),
+      ],
+      { 'user-1': period },
+      fixedNow,
+      [payroll, personalSave]
+    );
+    expect(result['user-1']?.budgets[0]?.spent).toBe(70);
+    expect(result['user-1']?.totalSpent).toBe(70);
+  });
+});
+
+describe('filterTransactionsForBudgetsUnion', () => {
+  it('returns transactions once for union of categories', () => {
+    const period = resolveEffectivePeriod(null, new Date('2024-06-15'));
+    const txs = filterTransactionsForBudgetsUnion(
+      [tx(), tx({ id: 'tx-2', category: 'transport' })],
+      [budget(), budget({ id: 'b-2', categories: ['transport'] })],
+      period.start,
+      period.end
+    );
+    expect(txs).toHaveLength(2);
+  });
+});
+
+describe('calculateEnvelopePeriodTotals', () => {
+  const periodStart = '2024-06-01';
+  const periodEnd = '2024-06-30';
+
+  it('sums envelope spent so leftover matches the cards', () => {
+    const budgets = [
+      budget({ id: 'personal', amount: 200, categories: ['hobby'] }),
+      budget({ id: 'food-a', amount: 400, categories: ['food'] }),
+      budget({ id: 'food-b', amount: 100, categories: ['food'] }),
+    ];
+    const transactions = [
+      tx({ id: 'refund', amount: 50, type: 'income', category: 'hobby', date: '2024-06-10' }),
+      tx({ id: 'groceries', amount: 80, category: 'food', date: '2024-06-10' }),
+    ];
+    const totals = calculateEnvelopePeriodTotals(
+      budgets,
+      transactions,
+      periodStart,
+      periodEnd,
+      [],
+      'user-1'
+    );
+    const cards = calculateBudgetsWithProgress(
+      budgets,
+      transactions,
+      periodStart,
+      periodEnd,
+      [],
+      'user-1'
+    );
+    const cardSpent = cards.reduce((sum, row) => sum + row.spent, 0);
+
+    expect(totals.allocated).toBe(700);
+    expect(totals.spent).toBe(cardSpent);
+    expect(totals.spent).toBe(160);
+    expect(totals.remaining).toBe(540);
+  });
+
+  it('keeps category credits so ranking can sum to envelope spent', () => {
+    const budgets = [
+      budget({
+        id: 'spese',
+        amount: 1100,
+        categories: ['gym', 'hair', 'refund'],
+        description: 'Spese',
+      }),
+    ];
+    const transactions = [
+      tx({ id: 'gym', amount: 70, category: 'gym', date: '2024-06-10' }),
+      tx({ id: 'hair', amount: 58, category: 'hair', date: '2024-06-10' }),
+      tx({ id: 'refund', amount: 41, type: 'income', category: 'refund', date: '2024-06-10' }),
+    ];
+    const rollup = calculatePeriodBudgetRollup(
+      budgets,
+      transactions,
+      periodStart,
+      periodEnd,
+      [],
+      'user-1'
+    );
+
+    expect(rollup.spent).toBe(87);
+    expect(rollup.remaining).toBe(1013);
+    expect(rollup.categorySpending).toEqual({ gym: 70, hair: 58, refund: -41 });
+    expect(70 + 58 - 41).toBe(rollup.spent);
+  });
+});
+
+describe('buildBudgetCategoryBreakdown', () => {
+  const categories: Category[] = [
+    {
+      id: 'cat-1',
+      key: 'food',
+      label: 'Food',
+      icon: 'cart',
+      color: '#ff0000',
+      group_id: 'group-1',
+      created_at: '2024-01-01',
+      updated_at: '2024-01-01',
+    },
+    {
+      id: 'cat-2',
+      key: 'transport',
+      label: 'Transport',
+      icon: 'car',
+      color: '#00ff00',
+      group_id: 'group-1',
+      created_at: '2024-01-01',
+      updated_at: '2024-01-01',
+    },
+  ];
+
+  it('sums spent per category with income reducing spent', () => {
+    const b = budget({ categories: ['food', 'transport'] });
+    const transactions = [
+      tx({ category: 'food', amount: 200, type: 'expense' }),
+      tx({ id: 'tx-2', category: 'food', amount: 50, type: 'income' }),
+      tx({ id: 'tx-3', category: 'transport', amount: 80, type: 'expense' }),
+      tx({
+        id: 'tx-4',
+        category: 'transport',
+        amount: 100,
+        type: 'transfer',
+        to_account_id: 'acc-2',
+      }),
+    ];
+    const breakdown = buildBudgetCategoryBreakdown(b, transactions, categories);
+    expect(breakdown).toHaveLength(2);
+    expect(breakdown[0]?.spent).toBe(150);
+    expect(breakdown[1]?.spent).toBe(80);
+  });
+
+  it('excludes zero-spent categories and sorts by spent descending', () => {
+    const b = budget({ categories: ['food', 'transport'] });
+    const breakdown = buildBudgetCategoryBreakdown(b, [], categories);
+    expect(breakdown).toHaveLength(0);
+  });
+});
+
+describe('resolveChartPeriodEnd', () => {
+  it('is exported and usable from period logic', () => {
+    const end = resolveChartPeriodEnd(null, new Date('2024-06-15'));
+    expect(end.month).toBe(6);
+  });
+});

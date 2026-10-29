@@ -1,90 +1,83 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
-import { ConfirmationDialog } from '@/components/shared';
-import { useModalState } from '@/lib/navigation/url-state';
+import { lazy, Suspense } from 'react';
 import { useSettingsModalsContextOptional } from '@/features/settings/context/settings-modals-context';
-import { DeleteAccountConfirmContent } from './delete-account-confirm-content';
-import { EditProfileModal } from './edit-profile-modal';
-import { InviteMemberModal } from './invite-member-modal';
-import { SubscriptionModal } from './subscription-modal';
-import {
-  CurrencyPreferenceModal,
-  LanguagePreferenceModal,
-  TimezonePreferenceModal,
-} from './settings-preference-modals';
+import { useModalState, type SettingsModalKind } from '@/lib/navigation/url-state';
+
+const EditProfileModal = lazy(() =>
+  import('./edit-profile-modal').then((m) => ({ default: m.EditProfileModal }))
+);
+const InviteMemberModal = lazy(() =>
+  import('./invite-member-modal').then((m) => ({ default: m.InviteMemberModal }))
+);
+const ManageGroupModal = lazy(() =>
+  import('./manage-group-modal').then((m) => ({ default: m.ManageGroupModal }))
+);
+const ManageCategoriesModal = lazy(() =>
+  import('./manage-categories-modal').then((m) => ({ default: m.ManageCategoriesModal }))
+);
+const CurrencyPreferenceModal = lazy(() =>
+  import('./settings-preference-modals').then((m) => ({ default: m.CurrencyPreferenceModal }))
+);
+const LanguagePreferenceModal = lazy(() =>
+  import('./settings-preference-modals').then((m) => ({ default: m.LanguagePreferenceModal }))
+);
+const TimezonePreferenceModal = lazy(() =>
+  import('./settings-preference-modals').then((m) => ({ default: m.TimezonePreferenceModal }))
+);
+
+function parseSettingsModalKind(modal: string | null): SettingsModalKind | null {
+  if (!modal?.startsWith('settings:')) return null;
+  return modal.replace('settings:', '') as SettingsModalKind;
+}
 
 export default function SettingsModalRenderer() {
   const { modal, closeModal } = useModalState();
   const ctx = useSettingsModalsContextOptional();
-  const tDeleteAccount = useTranslations('SettingsModals.DeleteAccount');
+  const activeKind = parseSettingsModalKind(modal);
 
-  if (!ctx || !modal?.startsWith('settings:')) {
+  if (!ctx || !activeKind) {
     return null;
   }
 
-  const {
-    currentUser,
-    preferences,
-    isAdmin,
-    isDeletingAccount,
-    deleteError,
-    onDeleteAccountConfirm,
-    onCloseDeleteModal,
-  } = ctx;
+  const { currentUser, isAdmin, groupName } = ctx;
 
   return (
-    <>
-      <ConfirmationDialog
-        isOpen={modal === 'settings:delete-account'}
-        isLoading={isDeletingAccount}
-        onCancel={() => {
-          onCloseDeleteModal();
-          closeModal();
-        }}
-        onConfirm={onDeleteAccountConfirm}
-        title={tDeleteAccount('title')}
-        description={tDeleteAccount('description')}
-        message=""
-        confirmText={
-          isDeletingAccount ? tDeleteAccount('deletingButton') : tDeleteAccount('deleteButton')
-        }
-        cancelText={tDeleteAccount('cancelButton')}
-        variant="destructive"
-      >
-        <DeleteAccountConfirmContent error={deleteError} />
-      </ConfirmationDialog>
+    <Suspense fallback={null}>
+      {activeKind === 'profile' ? (
+        <EditProfileModal
+          isOpen
+          onClose={closeModal}
+          userId={currentUser.id}
+          currentName={currentUser.name ?? ''}
+          currentEmail={currentUser.email ?? ''}
+        />
+      ) : null}
 
-      <EditProfileModal
-        isOpen={modal === 'settings:profile'}
-        onClose={closeModal}
-        userId={currentUser.id}
-        currentName={currentUser.name ?? ''}
-        currentEmail={currentUser.email ?? ''}
-      />
+      {activeKind === 'currency' ? <CurrencyPreferenceModal /> : null}
+      {activeKind === 'language' ? <LanguagePreferenceModal /> : null}
+      {activeKind === 'timezone' ? <TimezonePreferenceModal /> : null}
 
-      <CurrencyPreferenceModal />
-      <LanguagePreferenceModal />
-      <TimezonePreferenceModal />
-
-      {isAdmin ? (
+      {activeKind === 'invite' && isAdmin ? (
         <InviteMemberModal
-          isOpen={modal === 'settings:invite'}
+          isOpen
           onClose={closeModal}
           groupId={currentUser.group_id || ''}
           currentUserId={currentUser.id}
         />
       ) : null}
 
-      {isAdmin ? (
-        <SubscriptionModal
-          isOpen={modal === 'settings:subscription'}
+      {activeKind === 'group' ? (
+        <ManageGroupModal
+          isOpen
           onClose={closeModal}
           groupId={currentUser.group_id || ''}
-          currentPlan="free"
-          billingCurrency={preferences?.currency ?? 'EUR'}
+          groupName={groupName}
+          isAdmin={isAdmin}
         />
       ) : null}
-    </>
+
+      {activeKind === 'categories' ? <ManageCategoriesModal isOpen onClose={closeModal} /> : null}
+    </Suspense>
   );
 }

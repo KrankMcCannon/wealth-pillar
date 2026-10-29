@@ -1,57 +1,38 @@
 'use client';
 
 import { memo, useCallback } from 'react';
-import { Card } from '@/components/ui';
 import { useTranslations } from 'next-intl';
 import { Transaction, Category } from '@/lib';
-import {
-  getCategoryLabel as getCategoryLabelLogic,
-  getCategoryColor as getCategoryColorLogic,
-} from '@/server/use-cases/categories/category.logic';
-import { formatCurrency, cn } from '@/lib/utils';
-import { stitchTransactions } from '@/styles/home-design-foundation';
+import { getCategoryLabel as getCategoryLabelLogic } from '@/server/use-cases/categories/category.logic';
+import { formatCurrency } from '@/lib/utils';
+import { stitchHome } from '@/styles/home-design-foundation';
 import { TransactionRow } from './transaction-row';
 import {
   transactionStyles,
-  getCardVariantStyles,
   getHeaderVariantStyles,
   getTotalAmountColor,
-} from '@/styles/system';
+} from '@/features/transactions/theme/transaction-styles';
 
 interface GroupedTransactionCardProps {
   transactions: Transaction[];
-  accountNames: Record<string, string>;
   variant?: 'regular' | 'recurrent';
   showHeader?: boolean;
   totalAmount?: number;
-  context?: 'due' | 'informative';
   categories?: Category[];
   onEditTransaction?: (transaction: Transaction) => void;
 }
 
-/**
- * Grouped Transaction Card Component
- *
- * Displays a list of transactions in a card with optional header.
- * Supports both regular and recurrent transaction variants.
- */
 function GroupedTransactionCardInner({
   transactions,
-  accountNames,
   variant = 'regular',
   showHeader = false,
   totalAmount,
-  context = 'informative',
   categories = [],
   onEditTransaction,
 }: Readonly<GroupedTransactionCardProps>) {
   const t = useTranslations('Transactions.GroupedCard');
   const getCategoryLabel = useCallback(
     (categoryKey: string) => getCategoryLabelLogic(categories, categoryKey),
-    [categories]
-  );
-  const getCategoryColor = useCallback(
-    (categoryKey: string) => getCategoryColorLogic(categories, categoryKey),
     [categories]
   );
 
@@ -72,32 +53,20 @@ function GroupedTransactionCardInner({
     ) : null;
 
   const rows = transactions.map((transaction, index) => (
-    <TransactionRow
-      key={transaction.id ?? `temp-${transaction.date ?? 'unknown'}-${index}`}
-      transaction={transaction}
-      accountNames={accountNames}
-      variant={variant}
-      context={context}
-      onEditTransaction={onEditTransaction}
-      getCategoryLabel={getCategoryLabel}
-      getCategoryColor={getCategoryColor}
-    />
+    <li key={transaction.id ?? `temp-${transaction.date ?? 'unknown'}-${index}`}>
+      <TransactionRow
+        transaction={transaction}
+        onEditTransaction={onEditTransaction}
+        getCategoryLabel={getCategoryLabel}
+      />
+    </li>
   ));
 
-  if (variant === 'regular') {
-    return (
-      <div className={cn(stitchTransactions.dayCard, 'flex flex-col gap-2 p-1')}>
-        {header}
-        <div className="flex flex-col gap-2">{rows}</div>
-      </div>
-    );
-  }
-
   return (
-    <Card className={cn(getCardVariantStyles(variant))}>
+    <>
       {header}
-      <div className={transactionStyles.groupedCard.rowContainer}>{rows}</div>
-    </Card>
+      <ul className={stitchHome.plainList}>{rows}</ul>
+    </>
   );
 }
 

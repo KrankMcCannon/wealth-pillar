@@ -7,57 +7,52 @@
  * Data is passed from parent component (Server Component pattern).
  */
 
-import { useCallback, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { RecurringTransactionSeries } from '@/lib';
 import { SeriesCard } from './series-card';
 import { EmptyState } from '@/components/shared';
-import { Banknote, CircleAlert, Plus, RefreshCw, TrendingDown, TrendingUp } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Button, CategoryBadge, Text } from '@/components/ui';
+import { Banknote, Plus, RefreshCw, TrendingDown, TrendingUp } from 'lucide-react';
+import { Amount, type AmountVariants } from '@/components/ui/primitives/amount';
 import { HomeSectionCard } from '@/components/home';
-import { SectionHeader } from '@/components/layout';
-import { stitchHome } from '@/styles/home-design-foundation';
+import { PageFab, SectionHeader } from '@/components/layout';
+import { Link } from '@/i18n/routing';
 import {
-  calculateDaysUntilDue,
-  calculateMonthlyTotalAbs,
-  calculateRecurringTotals,
-} from '@/lib/recurring/recurring-calculations';
-import { formatCurrency, cn } from '@/lib/utils';
+  stitchDashboardGroupedList,
+  stitchHome,
+  stitchRecurring,
+  stitchSurface,
+} from '@/styles/home-design-foundation';
+import { buildRecurringView } from '@/lib/recurring/recurring-view';
+import { cn } from '@/lib/utils';
 import { User } from '@/lib/types';
-import { recurringStyles } from '../theme/recurring-styles';
+
+type RecurringStatCard = {
+  label: string;
+  Icon: typeof Banknote;
+  itemClass: string;
+  iconWrap: string;
+  iconClass: string;
+  valueClass: string;
+  amount: number;
+  amountType: NonNullable<AmountVariants['type']>;
+};
 
 interface RecurringSeriesSectionProps {
-  /** All recurring series data */
   readonly series: RecurringTransactionSeries[];
-  /** Filter series by user ID (optional) */
   readonly selectedUserId?: string | undefined;
-  /** Additional CSS classes */
   readonly className?: string;
-  /** Maximum number of items to display */
   readonly maxItems?: number;
-  /** Show action buttons on each series card */
-  readonly showActions?: boolean;
-  /** Show statistics header */
-  readonly showStats?: boolean;
-  /** Show delete icon on each series card */
   readonly showDelete?: boolean;
-  /** Callback when create button is clicked */
+  readonly showStats?: boolean;
   readonly onCreateRecurringSeries?: () => void;
-  /** Callback when edit button is clicked (modale) */
   readonly onEditRecurringSeries?: (series: RecurringTransactionSeries) => void;
-  /** Callback when card is clicked (navigazione) - se definito, sovrascrive onEditRecurringSeries per il click */
   readonly onCardClick?: (series: RecurringTransactionSeries) => void;
-  /** Callback when delete icon is clicked */
   readonly onDeleteRecurringSeries?: (series: RecurringTransactionSeries) => void;
-  /** Callback when pause icon is clicked */
   readonly onPauseRecurringSeries?: (series: RecurringTransactionSeries) => void;
-  /** Group users for badge display on cards */
   readonly groupUsers?: User[];
-  /** Callback when series is updated (pause/resume) to refresh UI */
-  readonly onSeriesUpdate?: (series: RecurringTransactionSeries) => void;
-  /** Home dashboard: card in griglia su md+ invece che colonna unica stretta. */
   readonly homeDashboardListLayout?: boolean;
+  readonly viewAllHref?: string | undefined;
 }
 
 export function RecurringSeriesSection({
@@ -65,7 +60,6 @@ export function RecurringSeriesSection({
   selectedUserId,
   className = '',
   maxItems,
-  showActions = false,
   showStats = false,
   showDelete = false,
   onCreateRecurringSeries,
@@ -73,106 +67,187 @@ export function RecurringSeriesSection({
   onCardClick,
   onDeleteRecurringSeries,
   onPauseRecurringSeries,
-  groupUsers,
-  onSeriesUpdate,
   homeDashboardListLayout = false,
+  viewAllHref,
 }: RecurringSeriesSectionProps) {
   const t = useTranslations('Recurring.Section');
-  const tSeriesCard = useTranslations('Recurring.SeriesCard');
-  const [executeErrorMessage, setExecuteErrorMessage] = useState<string | null>(null);
 
-  const handleExecuteError = useCallback((message: string) => {
-    setExecuteErrorMessage(message);
-  }, []);
-
-  const getDueLabel = useCallback(
-    (seriesItem: RecurringTransactionSeries) => {
-      const days = calculateDaysUntilDue(seriesItem);
-      if (days === 0) return tSeriesCard('due.today');
-      if (days === 1) return tSeriesCard('due.tomorrow');
-      if (days < 0) return tSeriesCard('due.daysAgo', { count: Math.abs(days) });
-      return tSeriesCard('due.inDays', { count: days });
-    },
-    [tSeriesCard]
+  const view = useMemo(
+    () =>
+      buildRecurringView(series, {
+        ...(selectedUserId ? { selectedUserId } : {}),
+        ...(maxItems ? { maxItems } : {}),
+      }),
+    [series, selectedUserId, maxItems]
   );
 
-  // Filter series by user if selected
-  const filteredSeries = useMemo(() => {
-    let result = series;
+  const {
+    filteredSeries,
+    visibleSeriesCount,
+    pausedCount,
+    upcomingSeries,
+    monthlySeries,
+    yearlySeries,
+    pausedSeries,
+    monthlyTotals,
+    totalMonthlyRecurring,
+  } = view;
 
-    // Filter by user (check if user is in user_ids array)
-    if (selectedUserId) {
-      result = result.filter((s) => s.user_ids.includes(selectedUserId));
-    }
+  const monthlyStats = useMemo(() => {
+    const summaryCard: RecurringStatCard =
+      totalMonthlyRecurring < 0
+        ? {
+            label: t('summary.netOutflowLabel'),
+            Icon: TrendingDown,
+            itemClass: stitchRecurring.statMiniItemDestructive,
+            iconWrap: stitchRecurring.statMiniIconWrapDestructive,
+            iconClass: stitchRecurring.statMiniIconDestructive,
+            valueClass: stitchRecurring.statMiniValueDestructive,
+            // Show absolute value — "Uscita netta" + red color already communicate direction
+            amount: Math.abs(totalMonthlyRecurring),
+            amountType: 'expense',
+          }
+        : totalMonthlyRecurring > 0
+          ? {
+              label: t('summary.netInflowLabel'),
+              Icon: TrendingUp,
+              itemClass: stitchRecurring.statMiniItemSuccess,
+              iconWrap: stitchRecurring.statMiniIconWrapSuccess,
+              iconClass: stitchRecurring.statMiniIconSuccess,
+              valueClass: stitchRecurring.statMiniValueSuccess,
+              amount: totalMonthlyRecurring,
+              amountType: 'income',
+            }
+          : {
+              label: t('summary.totalMonthlyLabel'),
+              Icon: Banknote,
+              itemClass: stitchRecurring.statMiniItemPrimary,
+              iconWrap: stitchRecurring.statMiniIconWrap,
+              iconClass: stitchRecurring.statMiniIcon,
+              valueClass: stitchRecurring.statMiniValuePrimary,
+              amount: totalMonthlyRecurring,
+              amountType: 'neutral',
+            };
 
-    // Sort by days left (ascending)
-    result = result.slice().sort((a, b) => calculateDaysUntilDue(a) - calculateDaysUntilDue(b));
+    return [
+      {
+        label: t('stats.expensesPerMonth'),
+        Icon: TrendingDown,
+        itemClass: stitchRecurring.statMiniItemDestructive,
+        iconWrap: stitchRecurring.statMiniIconWrapDestructive,
+        iconClass: stitchRecurring.statMiniIconDestructive,
+        valueClass: stitchRecurring.statMiniValueDestructive,
+        amount: monthlyTotals.totalExpenses,
+        amountType: 'expense' as const,
+      },
+      {
+        label: t('stats.incomePerMonth'),
+        Icon: TrendingUp,
+        itemClass: stitchRecurring.statMiniItemSuccess,
+        iconWrap: stitchRecurring.statMiniIconWrapSuccess,
+        iconClass: stitchRecurring.statMiniIconSuccess,
+        valueClass: stitchRecurring.statMiniValueSuccess,
+        amount: monthlyTotals.totalIncome,
+        amountType: 'income' as const,
+      },
+      summaryCard,
+    ];
+  }, [t, totalMonthlyRecurring, monthlyTotals.totalIncome, monthlyTotals.totalExpenses]);
 
-    // Limit results if maxItems specified
-    if (maxItems && maxItems > 0) {
-      result = result.slice(0, maxItems);
-    }
-
-    return result;
-  }, [series, selectedUserId, maxItems]);
-
-  // Get active series only for count
-  const activeSeries = useMemo(() => {
-    return filteredSeries.filter((s) => s.is_active);
-  }, [filteredSeries]);
-  const visibleSeriesCount = useMemo(() => {
-    return selectedUserId
-      ? series.filter((s) => s.user_ids.includes(selectedUserId)).length
-      : series.length;
-  }, [selectedUserId, series]);
-  const pausedCount = filteredSeries.length - activeSeries.length;
-
-  // Calculate monthly totals using service method
-  const monthlyTotals = useMemo(() => {
-    return calculateRecurringTotals(activeSeries);
-  }, [activeSeries]);
-
-  const upcomingSeries = useMemo(
-    () => filteredSeries.filter((item) => item.is_active && calculateDaysUntilDue(item) >= 0),
-    [filteredSeries]
-  );
-  const paidSeries = useMemo(
-    () => filteredSeries.filter((item) => !item.is_active || calculateDaysUntilDue(item) < 0),
-    [filteredSeries]
-  );
-  const totalMonthlyRecurring = useMemo(
-    () => calculateMonthlyTotalAbs(activeSeries),
-    [activeSeries]
-  );
-
-  const renderExecuteErrorBanner = () => {
-    if (!executeErrorMessage) return null;
-    return (
-      <Alert
-        variant="destructive"
-        className={recurringStyles.section.executeErrorBanner}
-        role="status"
-        aria-live="polite"
-      >
-        <CircleAlert className="size-4" aria-hidden />
-        <AlertTitle>{t('executeErrorBannerTitle')}</AlertTitle>
-        <AlertDescription className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <span className="min-w-0">{executeErrorMessage}</span>
-          <Button
+  const renderPageEmptyState = () => (
+    <div className={cn(stitchRecurring.emptyState, className)} role="status" aria-live="polite">
+      <p className={stitchRecurring.emptyTitle}>{t('empty.title')}</p>
+      <p className={stitchRecurring.emptyDescription}>
+        {selectedUserId ? t('empty.forUser') : t('empty.defaultDescription')}
+      </p>
+      {onCreateRecurringSeries ? (
+        <div className={stitchRecurring.emptyActions}>
+          <button
             type="button"
-            variant="outline"
-            size="sm"
-            className="shrink-0 border-destructive/40 text-destructive hover:bg-destructive/10"
-            onClick={() => setExecuteErrorMessage(null)}
+            onClick={onCreateRecurringSeries}
+            className={stitchRecurring.emptyCtaPrimary}
           >
-            {t('executeErrorDismiss')}
-          </Button>
-        </AlertDescription>
-      </Alert>
+            {t('empty.addButton')}
+          </button>
+        </div>
+      ) : null}
+    </div>
+  );
+
+  const renderFab = () => {
+    if (!onCreateRecurringSeries || filteredSeries.length === 0) return null;
+    return (
+      <PageFab
+        onClick={onCreateRecurringSeries}
+        ariaLabel={t('empty.addButton')}
+        testId="recurring-fab-add"
+      />
     );
   };
 
-  // Empty state
+  const renderSeriesCard = (item: (typeof filteredSeries)[number]) => (
+    <SeriesCard
+      series={item}
+      daysUntilDue={item.daysUntilDue}
+      showDelete={showDelete}
+      onEdit={onEditRecurringSeries}
+      onCardClick={onCardClick}
+      onDelete={onDeleteRecurringSeries}
+      onPause={onPauseRecurringSeries}
+    />
+  );
+
+  const renderSeriesList = (items: typeof filteredSeries) => (
+    <ul className={cn(stitchDashboardGroupedList, 'm-0 list-none p-0')}>
+      {items.map((item) => (
+        <li key={item.id}>{renderSeriesCard(item)}</li>
+      ))}
+    </ul>
+  );
+
+  const viewAllAction =
+    viewAllHref && filteredSeries.length > 0 ? (
+      <Link href={viewAllHref} className={stitchHome.viewAllLink}>
+        {t('viewAll')}
+      </Link>
+    ) : undefined;
+
+  const renderSeriesGroup = (label: string, items: typeof filteredSeries) => {
+    if (items.length === 0) return null;
+    return (
+      <div className={stitchRecurring.groupSection}>
+        <h3 className={stitchRecurring.groupLabel}>{label}</h3>
+        <div className={stitchRecurring.groupCard}>
+          <div className={stitchRecurring.listStack}>{renderSeriesList(items)}</div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderFooter = () => {
+    if (!maxItems || series.length <= maxItems) return null;
+    return (
+      <div>
+        <div className={stitchRecurring.footerDivider} />
+        <div className={stitchRecurring.footer}>
+          <p className={stitchRecurring.footerText}>
+            {t('footer.showingOf', {
+              shown: filteredSeries.length,
+              total: visibleSeriesCount,
+            })}
+          </p>
+        </div>
+      </div>
+    );
+  };
+
+  const renderSubtitle = () => (
+    <>
+      {t('subtitle.seriesCount', { count: visibleSeriesCount })}
+      {pausedCount > 0 && <> • {t('subtitle.pausedCount', { count: pausedCount })}</>}
+    </>
+  );
+
   if (filteredSeries.length === 0) {
     if (homeDashboardListLayout) {
       return (
@@ -183,6 +258,7 @@ export function RecurringSeriesSection({
             className="pb-1"
             titleClassName={stitchHome.sectionHeaderTitle}
             subtitleClassName={stitchHome.sectionHeaderSubtitle}
+            actions={viewAllAction}
           />
           <EmptyState
             icon={RefreshCw}
@@ -190,33 +266,21 @@ export function RecurringSeriesSection({
             description={selectedUserId ? t('empty.forUser') : t('empty.defaultDescription')}
             action={
               onCreateRecurringSeries && (
-                <Button onClick={onCreateRecurringSeries} variant="default" size="sm">
-                  <Plus className={recurringStyles.section.emptyActionIcon} />
+                <button
+                  type="button"
+                  onClick={onCreateRecurringSeries}
+                  className={stitchSurface.primaryCta}
+                >
+                  <Plus className="mr-2 h-4 w-4" />
                   {t('empty.addButton')}
-                </Button>
+                </button>
               )
             }
           />
         </HomeSectionCard>
       );
     }
-    return (
-      <div className={cn(recurringStyles.section.emptyWrap, className)}>
-        <EmptyState
-          icon={RefreshCw}
-          title={t('empty.title')}
-          description={selectedUserId ? t('empty.forUser') : t('empty.defaultDescription')}
-          action={
-            onCreateRecurringSeries && (
-              <Button onClick={onCreateRecurringSeries} variant="default" size="sm">
-                <Plus className={recurringStyles.section.emptyActionIcon} />
-                {t('empty.addButton')}
-              </Button>
-            )
-          }
-        />
-      </div>
-    );
+    return renderPageEmptyState();
   }
 
   if (homeDashboardListLayout) {
@@ -224,206 +288,67 @@ export function RecurringSeriesSection({
       <HomeSectionCard className={className}>
         <SectionHeader
           title={t('title')}
-          subtitle={
-            <>
-              {t('subtitle.seriesCount', { count: visibleSeriesCount })}
-              {pausedCount > 0 && <> • {t('subtitle.pausedCount', { count: pausedCount })}</>}
-            </>
-          }
+          subtitle={renderSubtitle()}
           className="pb-1"
           titleClassName={stitchHome.sectionHeaderTitle}
           subtitleClassName={stitchHome.sectionHeaderSubtitle}
+          actions={viewAllAction}
         />
 
-        {renderExecuteErrorBanner()}
+        {renderSeriesList(filteredSeries)}
 
-        <div className="flex flex-col gap-2">
-          {filteredSeries.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => (onCardClick ? onCardClick(item) : onEditRecurringSeries?.(item))}
-              className={stitchHome.listRow}
-            >
-              <div className="flex min-w-0 items-center gap-3">
-                <CategoryBadge categoryKey={item.category} size="md" />
-                <div className="min-w-0">
-                  <p className={stitchHome.rowTitle}>{item.description}</p>
-                  <p className={stitchHome.rowMeta}>{getDueLabel(item)}</p>
-                </div>
-              </div>
-              <p
-                className={cn(
-                  'shrink-0 text-sm font-semibold tabular-nums',
-                  item.type === 'income' ? stitchHome.amountIncome : stitchHome.amountExpense
-                )}
-              >
-                {item.type === 'income' ? '+' : '-'}
-                {formatCurrency(Math.abs(item.amount))}
-              </p>
-            </button>
-          ))}
-        </div>
-
-        {maxItems && series.length > maxItems ? (
-          <div className="px-1 py-1">
-            <p className={`text-center text-xs ${stitchHome.sectionHeaderSubtitle}`}>
-              {t('footer.showingOf', {
-                shown: filteredSeries.length,
-                total: visibleSeriesCount,
-              })}
-            </p>
-          </div>
-        ) : null}
+        {renderFooter()}
       </HomeSectionCard>
     );
   }
 
   return (
-    <div className={cn(recurringStyles.section.container, className)}>
-      <div className={recurringStyles.section.header}>
-        <div className={recurringStyles.section.headerRow}>
-          <div className={recurringStyles.section.headerLeft}>
-            <div className={recurringStyles.section.headerIconWrap}>
-              <RefreshCw className={recurringStyles.section.headerIcon} />
+    <div className={cn(stitchRecurring.relativeWrap, className)}>
+      <div className={stitchRecurring.summaryCard}>
+        <div className={stitchRecurring.summaryTopRow}>
+          <div className={stitchRecurring.summaryHeaderLeft}>
+            <div className={stitchRecurring.summaryIconWrap}>
+              <RefreshCw className={stitchRecurring.summaryIcon} aria-hidden />
             </div>
-            <div>
-              <Text variant="primary" size="md" as="h3" className={recurringStyles.section.title}>
-                {t('title')}
-              </Text>
-              <Text variant="primary" size="xs" className={recurringStyles.section.subtitle}>
-                {t('subtitle.seriesCount', { count: visibleSeriesCount })}
-                {pausedCount > 0 && (
-                  <span className={recurringStyles.section.subtitle}>
-                    {' '}
-                    • {t('subtitle.pausedCount', { count: pausedCount })}
-                  </span>
-                )}
-              </Text>
+            <div className="min-w-0">
+              <h2 className={stitchRecurring.summaryTitle}>{t('title')}</h2>
+              <p className={stitchRecurring.summarySubtitle}>{renderSubtitle()}</p>
             </div>
           </div>
         </div>
 
         {showStats && filteredSeries.length > 0 ? (
-          <div className={recurringStyles.section.stats}>
-            <div className={recurringStyles.section.statRow}>
-              <div className={recurringStyles.section.statLeft}>
-                <div className={recurringStyles.section.statIconWrapNeutral}>
-                  <Banknote className={recurringStyles.section.statIconNeutral} aria-hidden />
+          <div className={stitchRecurring.statMiniGrid}>
+            {monthlyStats.map((stat) => (
+              <div key={stat.label} className={cn(stitchRecurring.statMiniItem, stat.itemClass)}>
+                <div className={stitchRecurring.statMiniHeader}>
+                  <div className={stat.iconWrap}>
+                    <stat.Icon className={stat.iconClass} aria-hidden />
+                  </div>
+                  <p className={stitchRecurring.statMiniLabel}>{stat.label}</p>
                 </div>
-                <p className={recurringStyles.section.statLabel}>
-                  {t('summary.totalMonthlyLabel')}
-                </p>
+                <Amount
+                  type={stat.amountType}
+                  size="sm"
+                  emphasis="strong"
+                  currency
+                  className={stat.valueClass}
+                >
+                  {stat.amount}
+                </Amount>
               </div>
-              <p className={recurringStyles.section.statValueNeutral}>
-                {formatCurrency(totalMonthlyRecurring)}
-              </p>
-            </div>
-            <div className={recurringStyles.section.statRow}>
-              <div className={recurringStyles.section.statLeft}>
-                <div className={recurringStyles.section.statIconWrapPositive}>
-                  <TrendingUp className={recurringStyles.section.statIconPositive} aria-hidden />
-                </div>
-                <p className={recurringStyles.section.statLabel}>{t('stats.incomePerMonth')}</p>
-              </div>
-              <p className={recurringStyles.section.statValuePositive}>
-                +{formatCurrency(monthlyTotals.totalIncome)}
-              </p>
-            </div>
-            <div className={recurringStyles.section.statRow}>
-              <div className={recurringStyles.section.statLeft}>
-                <div className={recurringStyles.section.statIconWrapNegative}>
-                  <TrendingDown className={recurringStyles.section.statIconNegative} aria-hidden />
-                </div>
-                <p className={recurringStyles.section.statLabel}>{t('stats.expensesPerMonth')}</p>
-              </div>
-              <p className={recurringStyles.section.statValueNegative}>
-                -{formatCurrency(monthlyTotals.totalExpenses)}
-              </p>
-            </div>
+            ))}
           </div>
         ) : null}
       </div>
 
-      {renderExecuteErrorBanner()}
+      {renderSeriesGroup(t('groups.upcoming'), upcomingSeries)}
+      {renderSeriesGroup(t('groups.monthly'), monthlySeries)}
+      {renderSeriesGroup(t('groups.yearly'), yearlySeries)}
+      {renderSeriesGroup(t('groups.paused'), pausedSeries)}
 
-      {/* Series List */}
-      <div className="space-y-4">
-        <div>
-          <p className="px-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#9fb0d7]">
-            {t('groups.upcoming')}
-          </p>
-          <div className={cn(recurringStyles.section.list, 'mt-2')}>
-            <div className={recurringStyles.section.listLayoutPage}>
-              {upcomingSeries.length === 0 ? (
-                <div className={stitchHome.emptyWell}>{t('groups.upcomingEmpty')}</div>
-              ) : (
-                upcomingSeries.map((item) => (
-                  <div key={item.id} className={recurringStyles.section.cardCellPage}>
-                    <SeriesCard
-                      series={item}
-                      showActions={showActions}
-                      showDelete={showDelete}
-                      onEdit={onEditRecurringSeries}
-                      onCardClick={onCardClick}
-                      onDelete={onDeleteRecurringSeries}
-                      onPause={onPauseRecurringSeries}
-                      groupUsers={groupUsers}
-                      onSeriesUpdate={onSeriesUpdate}
-                      onExecuteError={handleExecuteError}
-                    />
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <p className="px-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#9fb0d7]">
-            {t('groups.paid')}
-          </p>
-          <div className={cn(recurringStyles.section.list, 'mt-2')}>
-            <div className={recurringStyles.section.listLayoutPage}>
-              {paidSeries.length === 0 ? (
-                <div className={stitchHome.emptyWell}>{t('groups.paidEmpty')}</div>
-              ) : (
-                paidSeries.map((item) => (
-                  <div key={item.id} className={recurringStyles.section.cardCellPage}>
-                    <SeriesCard
-                      series={item}
-                      showActions={showActions}
-                      showDelete={showDelete}
-                      onEdit={onEditRecurringSeries}
-                      onCardClick={onCardClick}
-                      onDelete={onDeleteRecurringSeries}
-                      onPause={onPauseRecurringSeries}
-                      groupUsers={groupUsers}
-                      onSeriesUpdate={onSeriesUpdate}
-                      onExecuteError={handleExecuteError}
-                    />
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Show More Link (if truncated) */}
-      {maxItems && series.length > maxItems && (
-        <div>
-          <div className={recurringStyles.section.listDivider} />
-          <div className={recurringStyles.section.footer}>
-            <p className={recurringStyles.section.footerText}>
-              {t('footer.showingOf', {
-                shown: filteredSeries.length,
-                total: visibleSeriesCount,
-              })}
-            </p>
-          </div>
-        </div>
-      )}
+      {renderFooter()}
+      {renderFab()}
     </div>
   );
 }

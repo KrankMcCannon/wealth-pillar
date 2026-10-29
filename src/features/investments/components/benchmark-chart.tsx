@@ -11,17 +11,18 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { cn } from '@/lib/utils';
 import { ShareSelector } from './share-selector';
+import { stitchInvestments } from '@/styles/home-design-foundation';
 import { investmentsStyles } from '@/features/investments/theme/investments-styles';
 import {
   investmentChartColors,
+  rechartsAnimationOff,
   rechartsBenchmarkInitialDimension,
   rechartsTooltipContentStyle,
   rechartsTooltipItemStyle,
 } from './investment-chart-theme';
 import { formatBenchmarkAxisHead, formatLocaleMediumDate } from './chart-format-utils';
+import { InvestmentChartContainer } from './investment-chart-container';
 
 function rowDateKey(row: {
   datetime?: string | undefined;
@@ -72,36 +73,32 @@ export function BenchmarkChart({
       : null;
 
   return (
-    <Card
+    <section
       role="region"
       aria-labelledby={titleId}
       aria-describedby={srSummary ? summaryId : undefined}
-      className={investmentsStyles.card.root}
+      className={stitchInvestments.chartCard}
       id={anchorId}
     >
-      <CardHeader className="flex flex-col gap-2 px-3 pt-3 sm:gap-4">
-        <div className="flex min-w-0 flex-col justify-between gap-2 md:flex-row md:items-center md:gap-4">
-          <div className="min-w-0">
-            <CardTitle id={titleId} className={investmentsStyles.card.title}>
-              {t('title')}
-            </CardTitle>
-            <CardDescription className={cn(investmentsStyles.card.description, 'hidden sm:block')}>
-              {t('description', { index: currentIndex })}
-            </CardDescription>
-          </div>
-          <div className="w-full min-w-[200px] md:w-auto">
-            <ShareSelector value={currentIndex} onChange={onBenchmarkChange} />
-          </div>
+      <div className={`${stitchInvestments.chartCardHeader} flex flex-col gap-3`}>
+        <div className="min-w-0">
+          <p id={titleId} className={stitchInvestments.chartCardTitle}>
+            {t('title')}
+          </p>
+          <p className={stitchInvestments.chartCardDescription}>
+            {t('description', { index: currentIndex })}
+          </p>
         </div>
-      </CardHeader>
-      <CardContent className={investmentsStyles.card.content}>
+        <ShareSelector value={currentIndex} onChange={onBenchmarkChange} />
+      </div>
+      <div className={stitchInvestments.chartCardContent}>
         {srSummary ? (
           <p id={summaryId} className="sr-only">
             {srSummary}
           </p>
         ) : null}
         {hasData ? (
-          <div className={investmentsStyles.charts.container} aria-hidden>
+          <InvestmentChartContainer className={investmentsStyles.charts.container} aria-hidden>
             <ResponsiveContainer
               width="100%"
               height="100%"
@@ -156,14 +153,15 @@ export function BenchmarkChart({
                   dot={false}
                   strokeWidth={3}
                   activeDot={{ r: 6, strokeWidth: 0 }}
+                  {...rechartsAnimationOff}
                 />
               </LineChart>
             </ResponsiveContainer>
-          </div>
+          </InvestmentChartContainer>
         ) : (
           <div className={investmentsStyles.charts.fallback}>{t('fallback')}</div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </section>
   );
 }

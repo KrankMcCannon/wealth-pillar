@@ -8,9 +8,13 @@ interface FilterChipProps {
   active?: boolean;
   onClick?: () => void;
   className?: string;
+  /** Exclusive choice in a radiogroup. Default is a pressed toggle. */
+  role?: 'radio';
 }
 
-export function FilterChip({ label, active = false, onClick, className }: FilterChipProps) {
+export function FilterChip({ label, active = false, onClick, className, role }: FilterChipProps) {
+  const isRadio = role === 'radio';
+
   return (
     <button
       type="button"
@@ -20,6 +24,9 @@ export function FilterChip({ label, active = false, onClick, className }: Filter
         active ? stitchTransactions.chipActive : stitchTransactions.chipInactive,
         className
       )}
+      {...(isRadio
+        ? { role: 'radio' as const, 'aria-checked': active }
+        : { 'aria-pressed': active })}
     >
       {label}
     </button>

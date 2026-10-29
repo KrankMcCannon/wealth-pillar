@@ -1,6 +1,7 @@
 'use server';
 
 import { CACHE_TAGS } from '@/lib/cache/config';
+import { isOnboardingComplete, requireAuthenticatedClerkId } from '@/lib/auth/clerk-session';
 import {
   createUserUseCase,
   updateUserUseCase,
@@ -21,15 +22,7 @@ import {
   getOnboardingActionTranslations,
   type OnboardingActionTranslator,
 } from '@/features/onboarding/onboarding-action-i18n';
-
-function getInitials(name: string) {
-  const parts = name.trim().split(' ').filter(Boolean);
-  if (parts.length === 0) return 'WP';
-  const first = parts[0];
-  if (parts.length === 1) return first?.[0]?.toUpperCase() ?? 'W';
-  const lastPart = parts.at(-1);
-  return `${first?.[0] ?? ''}${lastPart?.[0] ?? ''}`.toUpperCase();
-}
+import { initialsFromName } from '@/lib/utils/string-formatter';
 
 // Helper: Validate onboarding input (messaggi tramite namespace Onboarding.Actions)
 function validateOnboardingInput(
@@ -151,11 +144,20 @@ export async function completeOnboardingAction(
   const t = await getOnboardingActionTranslations(locale);
   const { user, group, accounts, budgets, budgetStartDay } = input;
 
+  const sessionClerkId = await requireAuthenticatedClerkId();
+  if (!sessionClerkId) {
+    return { data: null, error: t('validation.userMissing') };
+  }
+
+  if (input.user.clerkId && input.user.clerkId !== sessionClerkId) {
+    return { data: null, error: t('validation.userMissing') };
+  }
+
   const validationError = validateOnboardingInput(input, t);
   if (validationError) return { data: null, error: validationError };
 
-  const existingUser = await getUserByClerkIdUseCase(user.clerkId);
-  if (existingUser) {
+  const existingUser = await getUserByClerkIdUseCase(sessionClerkId);
+  if (existingUser && isOnboardingComplete(existingUser)) {
     return {
       data: null,
       error: t('alreadyConfigured'),
@@ -163,7 +165,7 @@ export async function completeOnboardingAction(
     };
   }
 
-  const userId = randomUUID();
+  const userId = existingUser?.id ?? randomUUID();
   const groupId = randomUUID();
 
   try {
@@ -181,18 +183,23 @@ export async function completeOnboardingAction(
       return { data: null, error: t('genericConfigurationFailed') };
     }
 
-    const createdUser = await createUserUseCase({
-      id: userId,
+    const profilePayload = {
       name: user.name.trim(),
       email: user.email.trim().toLowerCase(),
-      avatar: getInitials(user.name),
+      avatar: initialsFromName(user.name),
       theme_color: '#6366F1',
       budget_start_date: budgetStartDay,
       group_id: groupId,
-      role: 'admin',
-      clerk_id: user.clerkId,
-      budget_periods: [],
-    });
+      role: 'admin' as const,
+      clerk_id: sessionClerkId,
+    };
+
+    const createdUser = existingUser
+      ? await updateUserUseCase(userId, profilePayload)
+      : await createUserUseCase({
+          id: userId,
+          ...profilePayload,
+        });
 
     if (!createdUser) {
       await rollbackOnboarding(userId, groupId);
@@ -201,7 +208,7 @@ export async function completeOnboardingAction(
 
     revalidateTag(CACHE_TAGS.USERS, 'max');
     revalidateTag(CACHE_TAGS.USER(userId), 'max');
-    revalidateTag(CACHE_TAGS.USER_BY_CLERK(user.clerkId), 'max');
+    revalidateTag(CACHE_TAGS.USER_BY_CLERK(sessionClerkId), 'max');
 
     // Phase 2: Accounts
     const {
@@ -213,7 +220,7 @@ export async function completeOnboardingAction(
       logOnboardingFailure(
         'accounts',
         { groupId, userId, accountIds: createdAccountIds },
-        user.clerkId,
+        sessionClerkId,
         accountError
       );
       await rollbackOnboarding(userId, groupId);
@@ -228,7 +235,7 @@ export async function completeOnboardingAction(
         logOnboardingFailure(
           'default_account',
           { groupId, userId, accountIds: createdAccountIds },
-          user.clerkId,
+          sessionClerkId,
           err
         );
         await rollbackOnboarding(userId, groupId);
@@ -242,7 +249,7 @@ export async function completeOnboardingAction(
       logOnboardingFailure(
         'budgets',
         { groupId, userId, accountIds: createdAccountIds },
-        user.clerkId,
+        sessionClerkId,
         budgetError
       );
       await rollbackOnboarding(userId, groupId);
@@ -256,7 +263,7 @@ export async function completeOnboardingAction(
       error: null,
     };
   } catch (error) {
-    logOnboardingFailure('user', { groupId, userId }, user.clerkId, error);
+    logOnboardingFailure('user', { groupId, userId }, sessionClerkId, error);
     try {
       await rollbackOnboarding(userId, groupId);
     } catch {
@@ -276,11 +283,9 @@ const MAX_DELETE_CLERK_ATTEMPTS = 3;
  * Deletes a Clerk user - used for rollback when onboarding fails.
  * Retries up to 3 times with backoff (500ms, 1s, 2s).
  */
-export async function deleteClerkUserAction(
-  clerkUserId: string,
-  locale?: string
-): Promise<ServiceResult<void>> {
+export async function deleteClerkUserAction(locale?: string): Promise<ServiceResult<void>> {
   const t = await getOnboardingActionTranslations(locale);
+  const clerkUserId = await requireAuthenticatedClerkId();
   if (!clerkUserId) {
     return { data: null, error: t('deleteClerk.missingId') };
   }
@@ -321,11 +326,13 @@ export async function deleteClerkUserAction(
  * Registers an orphan Clerk user (Clerk account without Supabase profile) for manual remediation.
  * Call when onboarding fails and deleteClerkUserAction has failed after retries.
  */
-export async function registerOrphanUserAction(
-  clerkId: string,
-  locale?: string
-): Promise<ServiceResult<void>> {
+export async function registerOrphanUserAction(locale?: string): Promise<ServiceResult<void>> {
   const t = await getOnboardingActionTranslations(locale);
+  const clerkId = await requireAuthenticatedClerkId();
+  if (!clerkId) {
+    return { data: null, error: t('registerOrphan.failed') };
+  }
+
   try {
     const { supabase } = await import('@/server/db/supabase');
     // Orphan_users Insert is in database.types.ts; Supabase client infers insert as never for this table
@@ -343,90 +350,4 @@ export async function registerOrphanUserAction(
       error: t('registerOrphan.failed'),
     };
   }
-}
-
-const CHECK_USER_RETRY_DELAYS_MS = [500, 1000, 2000];
-const MAX_CHECK_USER_ATTEMPTS = 3;
-
-function isNotFoundError(message: string): boolean {
-  return message.includes('User not found') || message.includes('not found');
-}
-
-function getErrorType(message: string): 'timeout' | 'not_found' | 'unknown' {
-  const lower = message.toLowerCase();
-  if (lower.includes('timeout') || lower.includes('timed out')) return 'timeout';
-  if (isNotFoundError(message)) return 'not_found';
-  return 'unknown';
-}
-
-/**
- * Checks if a user exists in DB by Clerk ID.
- * Uses retry with exponential backoff (500ms → 1s → 2s, max 3 attempts) for transient errors.
- * "Not found" is not retried; after 3 failures returns differentiated error message.
- */
-export async function checkUserExistsAction(
-  clerkId: string,
-  locale?: string
-): Promise<ServiceResult<{ exists: boolean; userId?: string | undefined }>> {
-  const t = await getOnboardingActionTranslations(locale);
-  if (!clerkId) {
-    return { data: null, error: t('checkUser.missingClerkId') };
-  }
-
-  let lastErrorType: 'timeout' | 'not_found' | 'unknown' = 'unknown';
-
-  for (let attempt = 1; attempt <= MAX_CHECK_USER_ATTEMPTS; attempt++) {
-    try {
-      const user = await getUserByClerkIdUseCase(clerkId);
-      return {
-        data: {
-          exists: !!user,
-          userId: user ? user.id : undefined,
-        },
-        error: null,
-      };
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      lastErrorType = getErrorType(message);
-
-      // Not found: do not retry, allow onboarding
-      if (isNotFoundError(message)) {
-        return {
-          data: { exists: false, userId: undefined },
-          error: null,
-        };
-      }
-
-      const logPayload = {
-        userId: clerkId,
-        attemptNumber: attempt,
-        errorType: lastErrorType,
-        timestamp: new Date().toISOString(),
-        message,
-      };
-      console.error('[checkUserExistsAction] Attempt failed:', JSON.stringify(logPayload));
-
-      if (attempt < MAX_CHECK_USER_ATTEMPTS) {
-        const delayMs = CHECK_USER_RETRY_DELAYS_MS[attempt - 1] ?? 2000;
-        await new Promise((resolve) => setTimeout(resolve, delayMs));
-      }
-    }
-  }
-
-  // After 3 failures: differentiated message and final log
-  const finalLog = {
-    userId: clerkId,
-    attemptNumber: MAX_CHECK_USER_ATTEMPTS,
-    errorType: lastErrorType,
-    timestamp: new Date().toISOString(),
-  };
-  console.error('[checkUserExistsAction] All attempts failed:', JSON.stringify(finalLog));
-
-  const userFacingMessage =
-    lastErrorType === 'timeout' ? t('checkUser.timeout') : t('checkUser.verificationFailed');
-
-  return {
-    data: null,
-    error: userFacingMessage,
-  };
 }

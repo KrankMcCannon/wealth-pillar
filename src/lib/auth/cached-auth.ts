@@ -59,31 +59,6 @@ export const getCurrentUser = cache(async (): Promise<User | null> => {
 });
 
 /**
- * Require authenticated user
- *
- * Helper that throws if user is not authenticated.
- * Useful for actions that always require authentication.
- *
- * @throws Error if not authenticated
- * @returns Promise with authenticated User
- *
- * @example
- * export async function protectedAction() {
- *   const user = await requireUser();
- *   // user is guaranteed to exist here
- * }
- */
-export const requireUser = cache(async (): Promise<User> => {
-  const user = await getCurrentUser();
-
-  if (!user) {
-    throw new Error('Non autenticato. Effettua il login per continuare.');
-  }
-
-  return user;
-});
-
-/**
  * Request-scoped cached group users
  *
  * Fetches all users in the current user's group with request-level deduplication.

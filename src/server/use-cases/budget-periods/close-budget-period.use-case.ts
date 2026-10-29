@@ -1,59 +1,25 @@
-import type { BudgetPeriod, BudgetPeriodJSON } from '@/lib/types';
-import type { Json } from '@/lib/types/database.types';
-import { parseBudgetPeriodsFromJson } from '@/lib/utils/budget-period-json';
-import { toDateTime, todayDateString } from '@/lib/utils/date-utils';
-import { UsersRepository } from '@/server/repositories/users.repository';
-import { jsonToBudgetPeriod } from './get-budget-periods-by-user.use-case';
-import { createBudgetPeriodUseCase } from './create-budget-period.use-case';
-import { DateTime } from 'luxon';
+import type { BudgetPeriod } from '@/lib/types';
+import { toDateTime } from '@/lib/utils/date-utils';
+import { BudgetPeriodsRepository } from '@/server/repositories/budget-periods.repository';
 import { revalidateTag } from 'next/cache';
 import { CACHE_TAGS } from '@/lib/cache/config';
+import { invalidateBudgetPeriodCaches } from '@/lib/utils/cache-utils';
+import { getBudgetsByUserUseCase } from '../budgets/get-budgets.use-case';
+import {
+  computePeriodLiquidityAmounts,
+  periodToDateWindow,
+  snapshotFieldsFromAmounts,
+} from './period-amounts.logic';
+import { loadPeriodLiquidityData } from './load-period-liquidity-data';
+import { categoryKeysFromBudgets, toBudgetsSnapshot } from './period-budgets.logic';
+import { withBudgetPeriodTransaction } from './budget-period-transaction';
 
-const validatePeriodClosure = (
-  periods: BudgetPeriodJSON[],
-  periodId: string,
-  endDt: DateTime
-): void => {
-  const periodToClose = periods.find((p) => p.id === periodId);
-  if (!periodToClose) {
-    throw new Error('Period not found in user data');
+export class CloseBudgetPeriodError extends Error {
+  constructor(public readonly code: string) {
+    super(code);
+    this.name = 'CloseBudgetPeriodError';
   }
-
-  const startDt = toDateTime(periodToClose.start_date);
-  if (!startDt || endDt < startDt) {
-    throw new Error('End date must be on or after start date');
-  }
-};
-
-const updatePeriodsListForClosure = (
-  periods: BudgetPeriodJSON[],
-  periodId: string,
-  endDt: DateTime
-): BudgetPeriodJSON[] => {
-  return periods.map((p) =>
-    p.id === periodId
-      ? {
-          ...p,
-          end_date: endDt.toISODate() as string,
-          is_active: false,
-          updated_at: todayDateString(),
-        }
-      : p
-  );
-};
-
-const autoCreateNextPeriod = async (userId: string, endDt: DateTime): Promise<void> => {
-  const nextStartDt = endDt.plus({ days: 1 });
-  const nextStartDateStr = nextStartDt.toISODate();
-
-  if (nextStartDateStr) {
-    try {
-      await createBudgetPeriodUseCase(userId, nextStartDateStr);
-    } catch (createError) {
-      console.error('[BudgetPeriodService] Failed to auto-create next period:', createError);
-    }
-  }
-};
+}
 
 export const closeBudgetPeriodUseCase = async (
   userId: string,
@@ -63,23 +29,53 @@ export const closeBudgetPeriodUseCase = async (
   const endDt = toDateTime(endDate);
   if (!endDt) throw new Error('Invalid end date format');
 
-  const user = await UsersRepository.findById(userId);
-  if (!user) throw new Error('User not found');
+  const closedPeriod = await withBudgetPeriodTransaction(userId, async (tx) => {
+    const period = await BudgetPeriodsRepository.findById(periodId, tx);
+    if (!period || period.user_id !== userId) {
+      throw new CloseBudgetPeriodError('periodNotFound');
+    }
+    if (!period.is_active || period.end_date != null) {
+      throw new CloseBudgetPeriodError('periodNotOpen');
+    }
 
-  const periods = parseBudgetPeriodsFromJson(user.budget_periods as Json);
+    const startDt = toDateTime(period.start_date);
+    if (!startDt || endDt < startDt) {
+      throw new Error('End date must be on or after start date');
+    }
 
-  validatePeriodClosure(periods, periodId, endDt);
+    const endDateStr = endDt.toISODate() as string;
+    const closingPeriod: BudgetPeriod = { ...period, end_date: endDateStr, is_active: false };
+    const window = periodToDateWindow(closingPeriod);
 
-  const updatedPeriods = updatePeriodsListForClosure(periods, periodId, endDt);
+    const [liquidity, budgets] = await Promise.all([
+      loadPeriodLiquidityData(period.group_id, userId, window, tx),
+      getBudgetsByUserUseCase(userId),
+    ]);
+    const { transactions, accounts } = liquidity;
 
-  await UsersRepository.update(user.id, {
-    budget_periods: updatedPeriods as unknown as Json,
+    const amounts = computePeriodLiquidityAmounts(
+      transactions,
+      accounts,
+      window,
+      userId,
+      categoryKeysFromBudgets(budgets),
+      budgets
+    );
+
+    return BudgetPeriodsRepository.update(
+      periodId,
+      {
+        end_date: endDateStr,
+        is_active: false,
+        ...snapshotFieldsFromAmounts(amounts),
+        budgets_snapshot: toBudgetsSnapshot(budgets),
+      },
+      tx
+    );
   });
 
   revalidateTag(CACHE_TAGS.USER_PREFERENCE(userId), 'max');
+  invalidateBudgetPeriodCaches({ userId, periodId });
 
-  await autoCreateNextPeriod(userId, endDt);
-
-  const closedPeriod = updatedPeriods.find((p) => p.id === periodId);
-  return closedPeriod ? jsonToBudgetPeriod(closedPeriod, userId) : null;
+  return closedPeriod;
 };

@@ -5,17 +5,15 @@ import type { User, UserPreferences, UserPreferencesUpdate } from '@/lib/types';
 
 export interface SettingsModalsContextValue {
   currentUser: User;
-  groupUsers: User[];
   preferences: UserPreferences | null;
   isAdmin: boolean;
-  isDeletingAccount: boolean;
-  deleteError: string | null;
+  groupName: string;
   onPreferenceUpdate: <K extends keyof UserPreferencesUpdate>(
     key: K,
     value: UserPreferencesUpdate[K]
   ) => void;
-  onDeleteAccountConfirm: () => Promise<void>;
-  onCloseDeleteModal: () => void;
+  onProfileUpdate: (updates: Partial<Pick<User, 'name' | 'email'>>) => void;
+  onGroupUpdate: (name: string) => void;
 }
 
 const SettingsModalsContext = createContext<SettingsModalsContextValue | null>(null);
