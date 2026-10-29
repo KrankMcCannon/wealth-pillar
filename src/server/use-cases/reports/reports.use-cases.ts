@@ -12,6 +12,7 @@ import { addSyntheticActivePeriod } from '@/server/use-cases/budget-periods/synt
 import { calculateEnvelopePeriodTotals } from '@/server/use-cases/budgets/budget.logic';
 import { getBudgetsByGroupUseCase } from '@/server/use-cases/budgets/get-budgets.use-case';
 import { parsePeriodDates } from '@/server/use-cases/shared/period.logic';
+import type { DateWindow } from './report.logic';
 
 /** Spent vs allocation: live envelope spend (income/expense and categorized transfers). */
 export interface ReportPeriodSummary {
@@ -161,6 +162,42 @@ export async function getReportsTransactionsUseCase(
   ) as Transaction[];
 
   return { transactions: normalizedTransactions, hasMore };
+}
+
+/** Budget totals cover entire overlapping periods, independently of report filters and list limits. */
+export async function getReportsPeriodSummariesUseCase(
+  groupId: string,
+  periods: BudgetPeriod[],
+  accounts: Account[],
+  budgets: Budget[],
+  reportWindow: DateWindow
+): Promise<ReportPeriodSummary[]> {
+  const now = new Date();
+  const relevant = periods
+    .map((period) => ({ period, dates: parsePeriodDates(period, now) }))
+    .filter(
+      ({ dates: [start, end] }) =>
+        end.toMillis() >= reportWindow.start.getTime() &&
+        start.toMillis() <= reportWindow.end.getTime()
+    );
+  if (!relevant.length) return [];
+
+  const { data, hasMore } = await TransactionsRepository.getByGroup(groupId, {
+    startDate: new Date(Math.min(...relevant.map(({ dates }) => dates[0].toMillis()))),
+    endDate: new Date(Math.max(...relevant.map(({ dates }) => dates[1].toMillis()))),
+    countTotal: false,
+  });
+  if (hasMore) throw new Error('Cannot calculate budget summaries from an incomplete ledger');
+  const ledger = data.map((row: typeof transactions.$inferSelect) => ({
+    ...row,
+    amount: Number(row.amount),
+  })) as Transaction[];
+  return calculatePeriodSummariesUseCase(
+    relevant.map(({ period }) => period),
+    ledger,
+    accounts,
+    budgets
+  );
 }
 
 /** Leftover vs allocation: sum of period envelope spent (same as the cards). */

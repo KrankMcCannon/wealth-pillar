@@ -1,4 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+vi.mock('./budget-period-transaction', () => ({
+  withBudgetPeriodTransaction: vi.fn(
+    async (_userId: string, mutate: (tx: Record<string, never>) => Promise<unknown>) => mutate({})
+  ),
+}));
+
 import type { BudgetPeriod, Transaction, Account } from '@/lib/types';
 import {
   editBudgetPeriodClosingDateUseCase,
@@ -104,12 +111,14 @@ describe('editPeriodDatesUseCase', () => {
     expect(BudgetPeriodsRepository.update).toHaveBeenNthCalledWith(
       1,
       'closed-1',
-      expect.objectContaining({ end_date: '2024-05-28', snapshot_at: expect.any(Date) })
+      expect.objectContaining({ end_date: '2024-05-28', snapshot_at: expect.any(Date) }),
+      {}
     );
     expect(BudgetPeriodsRepository.update).toHaveBeenNthCalledWith(
       2,
       'active-1',
-      expect.objectContaining({ start_date: '2024-05-29', snapshot_at: null })
+      expect.objectContaining({ start_date: '2024-05-29', snapshot_at: null }),
+      {}
     );
   });
 
@@ -130,7 +139,8 @@ describe('editPeriodDatesUseCase', () => {
     expect(BudgetPeriodsRepository.update).toHaveBeenNthCalledWith(
       2,
       'older',
-      expect.objectContaining({ end_date: '2024-05-04', snapshot_at: expect.any(Date) })
+      expect.objectContaining({ end_date: '2024-05-04', snapshot_at: expect.any(Date) }),
+      {}
     );
   });
 
@@ -151,7 +161,8 @@ describe('editPeriodDatesUseCase', () => {
     expect(BudgetPeriodsRepository.update).toHaveBeenNthCalledWith(
       1,
       'active-1',
-      expect.objectContaining({ start_date: '2024-05-20', snapshot_at: null })
+      expect.objectContaining({ start_date: '2024-05-20', snapshot_at: null }),
+      {}
     );
   });
 

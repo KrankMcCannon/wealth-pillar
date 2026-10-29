@@ -8,13 +8,14 @@ vi.mock('next/cache', () => ({
 vi.mock('../reports/reports.use-cases', () => ({
   getReportsContextUseCase: vi.fn(),
   getReportsTransactionsUseCase: vi.fn(),
-  calculatePeriodSummariesUseCase: vi.fn(() => []),
+  getReportsPeriodSummariesUseCase: vi.fn(async () => []),
   resolveYtdBudgetStart: vi.fn(() => null),
 }));
 
 import {
   getReportsContextUseCase,
   getReportsTransactionsUseCase,
+  getReportsPeriodSummariesUseCase,
 } from '../reports/reports.use-cases';
 import { getReportsPageDataUseCase } from './reports-page.use-case';
 
@@ -30,6 +31,7 @@ const admin = {
 
 describe('getReportsPageDataUseCase', () => {
   beforeEach(() => {
+    vi.clearAllMocks();
     vi.mocked(getReportsContextUseCase).mockResolvedValue({
       accounts: [],
       periods: [],
@@ -61,5 +63,20 @@ describe('getReportsPageDataUseCase', () => {
 
     const result = await getReportsPageDataUseCase('g1', ['u1'], admin, { preset: 'monthly' });
     expect(result.transactionsTruncated).toBe(true);
+  });
+
+  it('loads complete budget summaries separately from the report transaction list', async () => {
+    await getReportsPageDataUseCase('g1', ['u1'], admin, {
+      preset: 'custom',
+      customStart: '2024-05-20',
+      customEnd: '2024-05-25',
+    });
+    expect(getReportsPeriodSummariesUseCase).toHaveBeenCalledWith('g1', [], [], [], {
+      start: expect.any(Date),
+      end: expect.any(Date),
+    });
+    const reportWindow = vi.mocked(getReportsPeriodSummariesUseCase).mock.calls[0]![4];
+    const comparisonUnion = vi.mocked(getReportsTransactionsUseCase).mock.calls[0]![1];
+    expect(comparisonUnion.startDate.getTime()).toBeLessThan(reportWindow.start.getTime());
   });
 });

@@ -1728,6 +1728,7 @@
         "editFailed": "Impossibile modificare la data di chiusura",
         "invalidDate": "Data non valida",
         "periodNotFound": "Periodo non trovato",
+        "periodNotOpen": "Solo un periodo attivo e aperto può essere chiuso.",
         "periodMustBeClosed": "Solo i periodi chiusi possono essere modificati",
         "noActivePeriod": "Nessun periodo attivo trovato",
         "notLatestPeriod": "Solo l'ultimo periodo chiuso può essere modificato",

@@ -14,6 +14,7 @@ import { isSyntheticBudgetPeriodId } from './synthetic-active-period.logic';
 import { revalidateTag } from 'next/cache';
 import { CACHE_TAGS } from '@/lib/cache/config';
 import { invalidateBudgetPeriodCaches } from '@/lib/utils/cache-utils';
+import { withBudgetPeriodTransaction } from './budget-period-transaction';
 
 export class EditClosingDateError extends Error {
   constructor(public readonly code: string) {
@@ -91,113 +92,133 @@ export async function editPeriodDatesUseCase(
     throw new EditClosingDateError('syntheticPeriod');
   }
 
-  const period = await BudgetPeriodsRepository.findById(periodId);
-  if (!period || period.user_id !== userId) {
-    throw new EditClosingDateError('periodNotFound');
-  }
-
-  const isOpen = period.is_active && period.end_date == null;
-  if (isOpen && input.endDate != null) {
-    throw new EditClosingDateError('cannotEditActiveEnd');
-  }
-
-  const currentStart = toDateOnlyString(period.start_date);
-  const currentEnd = period.end_date ? toDateOnlyString(period.end_date) : null;
-  const newStart = input.startDate != null ? toDateOnlyString(input.startDate) : currentStart;
-  const newEnd = isOpen
-    ? null
-    : input.endDate != null
-      ? toDateOnlyString(input.endDate)
-      : currentEnd;
-
-  if (!newStart || (!isOpen && !newEnd)) {
-    throw new EditClosingDateError('invalidDate');
-  }
-  if (input.startDate != null && !toDateTime(newStart)) {
-    throw new EditClosingDateError('invalidDate');
-  }
-  if (input.endDate != null && newEnd && !toDateTime(newEnd)) {
-    throw new EditClosingDateError('invalidDate');
-  }
-  if (!isOpen && newEnd && newEnd < newStart) {
-    throw new EditClosingDateError('endBeforeStart');
-  }
-
-  const today = todayDateString();
-  if (isOpen && newStart > today) {
-    throw new EditClosingDateError('futureActiveStart');
-  }
-
-  const startChanged = newStart !== currentStart;
-  const endChanged = !isOpen && newEnd !== currentEnd;
-
-  const periods = await BudgetPeriodsRepository.findByUser(userId);
-  const previous = findPreviousPeriod(periods, period);
-  const next = findNextPeriod(periods, period);
-
-  let previousEnd: string | null = null;
-  if (startChanged && previous) {
-    previousEnd = shiftIsoDate(newStart, -1);
-    if (previousEnd < toDateOnlyString(previous.start_date)) {
-      throw new EditClosingDateError('neighborOutOfRange');
+  const result = await withBudgetPeriodTransaction(userId, async (tx) => {
+    const period = await BudgetPeriodsRepository.findById(periodId, tx);
+    if (!period || period.user_id !== userId) {
+      throw new EditClosingDateError('periodNotFound');
     }
-  }
 
-  let nextStart: string | null = null;
-  if (endChanged && next && newEnd) {
-    nextStart = shiftIsoDate(newEnd, 1);
-    if (next.end_date && nextStart > toDateOnlyString(next.end_date)) {
-      throw new EditClosingDateError('neighborOutOfRange');
+    const isOpen = period.is_active && period.end_date == null;
+    if (isOpen && input.endDate != null) {
+      throw new EditClosingDateError('cannotEditActiveEnd');
     }
-    if (next.is_active && nextStart > today) {
+
+    const currentStart = toDateOnlyString(period.start_date);
+    const currentEnd = period.end_date ? toDateOnlyString(period.end_date) : null;
+    const newStart = input.startDate != null ? toDateOnlyString(input.startDate) : currentStart;
+    const newEnd = isOpen
+      ? null
+      : input.endDate != null
+        ? toDateOnlyString(input.endDate)
+        : currentEnd;
+
+    if (!newStart || (!isOpen && !newEnd)) {
+      throw new EditClosingDateError('invalidDate');
+    }
+    if (input.startDate != null && !toDateTime(newStart)) {
+      throw new EditClosingDateError('invalidDate');
+    }
+    if (input.endDate != null && newEnd && !toDateTime(newEnd)) {
+      throw new EditClosingDateError('invalidDate');
+    }
+    if (!isOpen && newEnd && newEnd < newStart) {
+      throw new EditClosingDateError('endBeforeStart');
+    }
+
+    const today = todayDateString();
+    if (isOpen && newStart > today) {
       throw new EditClosingDateError('futureActiveStart');
     }
-  }
 
-  // Date edits may also recalculate either neighbor; load the entire affected interval.
-  const affected = [
-    { ...period, start_date: newStart, end_date: newEnd },
-    ...(previous && previousEnd ? [{ ...previous, end_date: previousEnd }] : []),
-    ...(next && nextStart ? [{ ...next, start_date: nextStart }] : []),
-  ].map((row) => periodToDateWindow(row));
-  const { transactions, accounts } = await loadPeriodLiquidityData(period.group_id, userId, {
-    start: new Date(Math.min(...affected.map((window) => window.start.getTime()))),
-    end: new Date(Math.max(...affected.map((window) => window.end.getTime()))),
+    const startChanged = newStart !== currentStart;
+    const endChanged = !isOpen && newEnd !== currentEnd;
+
+    const periods = await BudgetPeriodsRepository.findByUser(userId, tx);
+    const previous = findPreviousPeriod(periods, period);
+    const next = findNextPeriod(periods, period);
+
+    let previousEnd: string | null = null;
+    if (startChanged && previous) {
+      previousEnd = shiftIsoDate(newStart, -1);
+      if (previousEnd < toDateOnlyString(previous.start_date)) {
+        throw new EditClosingDateError('neighborOutOfRange');
+      }
+    }
+
+    let nextStart: string | null = null;
+    if (endChanged && next && newEnd) {
+      nextStart = shiftIsoDate(newEnd, 1);
+      if (next.end_date && nextStart > toDateOnlyString(next.end_date)) {
+        throw new EditClosingDateError('neighborOutOfRange');
+      }
+      if (next.is_active && nextStart > today) {
+        throw new EditClosingDateError('futureActiveStart');
+      }
+    }
+
+    // Date edits may also recalculate either neighbor; load the entire affected interval.
+    const affected = [
+      { ...period, start_date: newStart, end_date: newEnd },
+      ...(previous && previousEnd ? [{ ...previous, end_date: previousEnd }] : []),
+      ...(next && nextStart ? [{ ...next, start_date: nextStart }] : []),
+    ].map((row) => periodToDateWindow(row));
+    const { transactions, accounts } = await loadPeriodLiquidityData(
+      period.group_id,
+      userId,
+      {
+        start: new Date(Math.min(...affected.map((window) => window.start.getTime()))),
+        end: new Date(Math.max(...affected.map((window) => window.end.getTime()))),
+      },
+      tx
+    );
+
+    const thisRow: BudgetPeriod = {
+      ...period,
+      start_date: newStart,
+      end_date: newEnd,
+    };
+    const updatedPeriod = await BudgetPeriodsRepository.update(
+      periodId,
+      {
+        start_date: newStart,
+        end_date: newEnd,
+        ...amountsPatch(thisRow, transactions, accounts),
+      },
+      tx
+    );
+
+    let previousPeriod: BudgetPeriod | null = null;
+    if (previous && previousEnd) {
+      const prevRow: BudgetPeriod = { ...previous, end_date: previousEnd };
+      previousPeriod = await BudgetPeriodsRepository.update(
+        previous.id,
+        {
+          end_date: previousEnd,
+          ...amountsPatch(prevRow, transactions, accounts),
+        },
+        tx
+      );
+    }
+
+    let nextPeriod: BudgetPeriod | null = null;
+    if (next && nextStart) {
+      const nextRow: BudgetPeriod = { ...next, start_date: nextStart };
+      nextPeriod = await BudgetPeriodsRepository.update(
+        next.id,
+        {
+          start_date: nextStart,
+          ...amountsPatch(nextRow, transactions, accounts),
+        },
+        tx
+      );
+    }
+    return { period: updatedPeriod, previousPeriod, nextPeriod };
   });
-
-  const thisRow: BudgetPeriod = {
-    ...period,
-    start_date: newStart,
-    end_date: newEnd,
-  };
-  const updatedPeriod = await BudgetPeriodsRepository.update(periodId, {
-    start_date: newStart,
-    end_date: newEnd,
-    ...amountsPatch(thisRow, transactions, accounts),
-  });
-
-  let previousPeriod: BudgetPeriod | null = null;
-  if (previous && previousEnd) {
-    const prevRow: BudgetPeriod = { ...previous, end_date: previousEnd };
-    previousPeriod = await BudgetPeriodsRepository.update(previous.id, {
-      end_date: previousEnd,
-      ...amountsPatch(prevRow, transactions, accounts),
-    });
-  }
-
-  let nextPeriod: BudgetPeriod | null = null;
-  if (next && nextStart) {
-    const nextRow: BudgetPeriod = { ...next, start_date: nextStart };
-    nextPeriod = await BudgetPeriodsRepository.update(next.id, {
-      start_date: nextStart,
-      ...amountsPatch(nextRow, transactions, accounts),
-    });
-  }
 
   revalidateTag(CACHE_TAGS.USER_PREFERENCE(userId), 'max');
   invalidateBudgetPeriodCaches({ userId });
 
-  return { period: updatedPeriod, previousPeriod, nextPeriod };
+  return result;
 }
 
 export interface EditClosingDateResult {

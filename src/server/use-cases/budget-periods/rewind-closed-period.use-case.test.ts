@@ -1,4 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+vi.mock('./budget-period-transaction', () => ({
+  withBudgetPeriodTransaction: vi.fn(
+    async (_userId: string, mutate: (tx: Record<string, never>) => Promise<unknown>) => mutate({})
+  ),
+}));
+
 import type { BudgetPeriod } from '@/lib/types';
 import {
   findPreviousPeriod,
@@ -112,7 +119,7 @@ describe('rewindClosedPeriodUseCase', () => {
     expect(result.deletedPeriodId).toBe('active-1');
     expect(result.previousPeriod.id).toBe('closed-1');
     expect(BudgetPeriodsRepository.delete).toHaveBeenCalledTimes(1);
-    expect(BudgetPeriodsRepository.delete).toHaveBeenCalledWith('active-1', expect.anything());
+    expect(BudgetPeriodsRepository.delete).toHaveBeenCalledWith('active-1', {});
     expect(BudgetPeriodsRepository.update).toHaveBeenCalledWith(
       'closed-1',
       expect.objectContaining({
@@ -120,7 +127,7 @@ describe('rewindClosedPeriodUseCase', () => {
         end_date: null,
         snapshot_at: null,
       }),
-      expect.anything()
+      {}
     );
   });
 

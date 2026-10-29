@@ -7,7 +7,10 @@ import {
   requireAuthenticatedUser,
 } from '@/lib/permissions/action-auth';
 import { createBudgetPeriodUseCase } from '@/server/use-cases/budget-periods/create-budget-period.use-case';
-import { closeBudgetPeriodUseCase } from '@/server/use-cases/budget-periods/close-budget-period.use-case';
+import {
+  closeBudgetPeriodUseCase,
+  CloseBudgetPeriodError,
+} from '@/server/use-cases/budget-periods/close-budget-period.use-case';
 import { deleteBudgetPeriodUseCase } from '@/server/use-cases/budget-periods/delete-budget-period.use-case';
 import { getBudgetsPeriodsByUserUseCase } from '@/server/use-cases/budget-periods/get-budget-periods-by-user.use-case';
 import { getActiveBudgetPeriodUseCase } from '@/server/use-cases/budget-periods/get-active-budget-period.use-case';
@@ -127,6 +130,13 @@ export async function closePeriodAction(
 
     return { data: null, error: t('errors.closeFailed') };
   } catch (error) {
+    if (error instanceof CloseBudgetPeriodError && t) {
+      const messages: Record<string, string> = {
+        periodNotFound: t('errors.periodNotFound'),
+        periodNotOpen: t('errors.periodNotOpen'),
+      };
+      if (messages[error.code]) return { data: null, error: messages[error.code]! };
+    }
     return {
       data: null,
       error:

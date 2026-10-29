@@ -1,5 +1,5 @@
 import type { BudgetPeriod } from '@/lib/types';
-import { db } from '@/server/db/drizzle';
+import { withBudgetPeriodTransaction } from './budget-period-transaction';
 import { BudgetPeriodsRepository } from '@/server/repositories/budget-periods.repository';
 import { isSyntheticBudgetPeriodId } from './synthetic-active-period.logic';
 import { revalidateTag } from 'next/cache';
@@ -76,35 +76,39 @@ export async function rewindClosedPeriodUseCase(
     throw new RewindClosedPeriodError('syntheticPeriod');
   }
 
-  const period = await BudgetPeriodsRepository.findById(periodId);
-  if (!period || period.user_id !== userId) {
-    throw new RewindClosedPeriodError('periodNotFound');
-  }
-  if (!period.is_active || period.end_date != null) {
-    throw new RewindClosedPeriodError('periodMustBeActive');
-  }
+  const { period, previous, previousPeriod } = await withBudgetPeriodTransaction(
+    userId,
+    async (tx) => {
+      const period = await BudgetPeriodsRepository.findById(periodId, tx);
+      if (!period || period.user_id !== userId) {
+        throw new RewindClosedPeriodError('periodNotFound');
+      }
+      if (!period.is_active || period.end_date != null) {
+        throw new RewindClosedPeriodError('periodMustBeActive');
+      }
 
-  const periods = await BudgetPeriodsRepository.findByUser(userId);
-  const previous = findPreviousPeriod(periods, period);
-  if (!previous || previous.is_active || !previous.end_date) {
-    throw new RewindClosedPeriodError('noPreviousPeriod');
-  }
+      const periods = await BudgetPeriodsRepository.findByUser(userId, tx);
+      const previous = findPreviousPeriod(periods, period);
+      if (!previous || previous.is_active || !previous.end_date) {
+        throw new RewindClosedPeriodError('noPreviousPeriod');
+      }
 
-  const previousPeriod = await db.transaction(async (tx) => {
-    await BudgetPeriodsRepository.delete(periodId, tx);
-    return BudgetPeriodsRepository.update(
-      previous.id,
-      {
-        is_active: true,
-        end_date: null,
-        spendable_spent: null,
-        reserve_saved: null,
-        category_spending: {},
-        snapshot_at: null,
-      },
-      tx
-    );
-  });
+      await BudgetPeriodsRepository.delete(periodId, tx);
+      const previousPeriod = await BudgetPeriodsRepository.update(
+        previous.id,
+        {
+          is_active: true,
+          end_date: null,
+          spendable_spent: null,
+          reserve_saved: null,
+          category_spending: {},
+          snapshot_at: null,
+        },
+        tx
+      );
+      return { period, previous, previousPeriod };
+    }
+  );
 
   revalidateTag(CACHE_TAGS.USER_PREFERENCE(userId), 'max');
   invalidateBudgetPeriodCaches({ userId, periodId });

@@ -1,6 +1,6 @@
 import type { Account, Budget, BudgetPeriod, Transaction } from '@/lib/types';
 import { toDateTime } from '@/lib/utils/date-utils';
-import { db } from '@/server/db/drizzle';
+import { withBudgetPeriodTransaction } from './budget-period-transaction';
 import type { DbExecutor } from '@/server/repositories/db-executor';
 import { UsersRepository } from '@/server/repositories/users.repository';
 import { BudgetPeriodsRepository } from '@/server/repositories/budget-periods.repository';
@@ -81,7 +81,7 @@ export const createBudgetPeriodUseCase = async (
 
   const budgets = await getBudgetsByUserUseCase(userId);
 
-  const newPeriod = await db.transaction(async (tx) => {
+  const newPeriod = await withBudgetPeriodTransaction(userId, async (tx) => {
     const active = await BudgetPeriodsRepository.findActiveByUser(userId, tx);
 
     if (active) {

@@ -1,4 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+vi.mock('./budget-period-transaction', () => ({
+  withBudgetPeriodTransaction: vi.fn(
+    async (_userId: string, mutate: (tx: Record<string, never>) => Promise<unknown>) => mutate({})
+  ),
+}));
+
 import type { Account, BudgetPeriod, Transaction } from '@/lib/types';
 import {
   RecalculateClosedPeriodError,
@@ -124,17 +131,23 @@ describe('recalculateClosedPeriodSnapshotUseCase', () => {
     const result = await recalculateClosedPeriodSnapshotUseCase('u1', 'closed-1');
 
     expect(result.spendable_spent).toBe(40);
-    expect(loadPeriodLiquidityData).toHaveBeenCalledWith('g1', 'u1', {
-      start: expect.any(Date),
-      end: expect.any(Date),
-    });
+    expect(loadPeriodLiquidityData).toHaveBeenCalledWith(
+      'g1',
+      'u1',
+      {
+        start: expect.any(Date),
+        end: expect.any(Date),
+      },
+      {}
+    );
     expect(BudgetPeriodsRepository.update).toHaveBeenCalledWith(
       'closed-1',
       expect.objectContaining({
         spendable_spent: '40',
         reserve_saved: null,
         category_spending: { food: 40 },
-      })
+      }),
+      {}
     );
   });
 
@@ -162,7 +175,8 @@ describe('recalculateClosedPeriodSnapshotUseCase', () => {
 
     expect(BudgetPeriodsRepository.update).toHaveBeenCalledWith(
       'closed-1',
-      expect.objectContaining({ reserve_saved: null, spendable_spent: '0' })
+      expect.objectContaining({ reserve_saved: null, spendable_spent: '0' }),
+      {}
     );
   });
 
@@ -180,7 +194,8 @@ describe('recalculateClosedPeriodSnapshotUseCase', () => {
       expect.objectContaining({
         spendable_spent: '0',
         reserve_saved: null,
-      })
+      }),
+      {}
     );
   });
 

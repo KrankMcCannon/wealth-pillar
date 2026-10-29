@@ -4,13 +4,12 @@ import { CACHE_TAGS } from '@/lib/cache/config';
 import {
   getReportsContextUseCase,
   getReportsTransactionsUseCase,
-  calculatePeriodSummariesUseCase,
+  getReportsPeriodSummariesUseCase,
   resolveYtdBudgetStart,
   type ReportPeriodSummary,
 } from '../reports/reports.use-cases';
 import {
   buildReportsSectionViewModel,
-  periodOverlapsWindow,
   type DateWindow,
   type ReportsSectionViewModel,
 } from '../reports/report.logic';
@@ -83,15 +82,13 @@ async function getCachedReportsPageData(
   }
 
   const fetchWindow = unionReportingWindows(currentWindow, comparisonWindow);
-  const { transactions, hasMore: transactionsTruncated } = await getReportsTransactionsUseCase(
-    groupId,
-    { startDate: fetchWindow.start, endDate: fetchWindow.end }
-  );
-
-  const periodSummaries = calculatePeriodSummariesUseCase(periods, transactions, accounts, budgets);
-  const filteredPeriods = periodSummaries
-    .filter((p) => periodOverlapsWindow(p, currentWindow))
-    .sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
+  const [{ transactions, hasMore: transactionsTruncated }, filteredPeriods] = await Promise.all([
+    getReportsTransactionsUseCase(groupId, {
+      startDate: fetchWindow.start,
+      endDate: fetchWindow.end,
+    }),
+    getReportsPeriodSummariesUseCase(groupId, periods, accounts, budgets, currentWindow),
+  ]);
 
   const sections: ReportsPageData['sections'] = {
     all: buildReportsSectionViewModel(

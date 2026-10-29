@@ -1727,6 +1727,7 @@
         "editFailed": "Failed to edit closing date",
         "invalidDate": "Invalid date",
         "periodNotFound": "Period not found",
+        "periodNotOpen": "Only an active, open period can be closed.",
         "periodMustBeClosed": "Only closed periods can be edited",
         "noActivePeriod": "No active period found",
         "notLatestPeriod": "Only the most recently closed period can be edited",

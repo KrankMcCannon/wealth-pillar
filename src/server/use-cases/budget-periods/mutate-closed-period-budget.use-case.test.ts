@@ -1,4 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+vi.mock('./budget-period-transaction', () => ({
+  withBudgetPeriodTransaction: vi.fn(
+    async (_userId: string, mutate: (tx: Record<string, never>) => Promise<unknown>) => mutate({})
+  ),
+}));
+
 import type { Budget, BudgetPeriod } from '@/lib/types';
 import {
   ClosedPeriodBudgetError,

@@ -7,6 +7,18 @@ import { BudgetPeriodsRepository } from '@/server/repositories/budget-periods.re
 import { TransactionsRepository } from '@/server/repositories/transactions.repository';
 import { deleteAccountUseCase } from '@/server/use-cases/accounts/account.use-cases';
 import { recalculateClosedPeriodSnapshotUseCase } from '@/server/use-cases/budget-periods/recalculate-closed-period.use-case';
+import { closeBudgetPeriodUseCase } from '@/server/use-cases/budget-periods/close-budget-period.use-case';
+import { createBudgetPeriodUseCase } from '@/server/use-cases/budget-periods/create-budget-period.use-case';
+import { editPeriodDatesUseCase } from '@/server/use-cases/budget-periods/edit-closing-date.use-case';
+import { getBudgetsByUserUseCase } from '@/server/use-cases/budgets/get-budgets.use-case';
+import { UsersRepository } from '@/server/repositories/users.repository';
+import {
+  getReportsContextUseCase,
+  getReportsPeriodSummariesUseCase,
+  getReportsTransactionsUseCase,
+} from '@/server/use-cases/reports/reports.use-cases';
+import { getReportsPageDataUseCase } from '@/server/use-cases/pages/reports-page.use-case';
+import type { Budget, User } from '@/lib/types';
 import { updateTransactionUseCase } from '@/server/use-cases/transactions/update-transaction.use-case';
 import { deleteTransactionUseCase } from '@/server/use-cases/transactions/delete-transaction.use-case';
 import { bulkCreateTransactionsUseCase } from '@/server/use-cases/transactions/bulk-create-transactions.use-case';
@@ -21,7 +33,20 @@ import {
   invalidateTransactionUpdateCaches,
 } from '@/lib/utils/cache-utils';
 
-vi.mock('next/cache', () => ({ revalidateTag: vi.fn(), updateTag: vi.fn() }));
+vi.mock('next/cache', () => ({
+  revalidateTag: vi.fn(),
+  updateTag: vi.fn(),
+  cacheLife: vi.fn(),
+  cacheTag: vi.fn(),
+}));
+vi.mock('@/server/use-cases/budgets/get-budgets.use-case', () => ({
+  getBudgetsByUserUseCase: vi.fn(),
+  getBudgetsByGroupUseCase: vi.fn(),
+}));
+vi.mock('@/server/use-cases/reports/reports.use-cases', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/server/use-cases/reports/reports.use-cases')>()),
+  getReportsContextUseCase: vi.fn(),
+}));
 vi.mock('@/lib/utils/cache-utils', () => ({
   invalidateAccountCaches: vi.fn(),
   invalidateTransactionCaches: vi.fn(),
@@ -55,6 +80,9 @@ beforeAll(async () => {
   )`);
   await db.execute(sql`CREATE UNIQUE INDEX transactions_account_import_hash_unique
     ON transactions (account_id, import_hash) WHERE import_hash IS NOT NULL`);
+  await db.execute(
+    sql`CREATE UNIQUE INDEX idx_budget_periods_one_active_per_user ON budget_periods (user_id) WHERE is_active = true`
+  );
 });
 
 afterAll(async () => {
@@ -66,6 +94,7 @@ afterAll(async () => {
 beforeEach(async () => {
   vi.clearAllMocks();
   vi.stubEnv('CLERK_SECRET_KEY', 'local-integration-test-key');
+  vi.mocked(getBudgetsByUserUseCase).mockResolvedValue([foodBudget()]);
   await db.execute(sql`TRUNCATE accounts, transactions, budget_periods`);
   await AccountsRepository.create({
     id: a,
@@ -404,5 +433,291 @@ describe('idempotent CSV imports against the real partial unique index', () => {
     expect(results.reduce((sum, result) => sum + result.inserted, 0)).toBe(2);
     expect(results.reduce((sum, result) => sum + result.skipped, 0)).toBe(2);
     expect(Number((await AccountsRepository.findById(a))?.balance)).toBe(810);
+  });
+});
+
+function foodBudget(overrides: Partial<Budget> = {}): Budget {
+  return {
+    id: 'food-budget',
+    description: 'Food',
+    amount: 100,
+    type: 'monthly',
+    categories: ['food'],
+    user_id: userId,
+    group_id: groupId,
+    icon: null,
+    created_at: '',
+    updated_at: '',
+    ...overrides,
+  };
+}
+
+async function createTimeline() {
+  const previous = await BudgetPeriodsRepository.create({
+    user_id: userId,
+    group_id: groupId,
+    start_date: '2024-04-01',
+    end_date: '2024-04-30',
+    is_active: false,
+    budgets_snapshot: [foodBudget()],
+    snapshot_at: new Date('2024-05-01'),
+  });
+  const current = await BudgetPeriodsRepository.create({
+    user_id: userId,
+    group_id: groupId,
+    start_date: '2024-05-01',
+    end_date: '2024-05-31',
+    is_active: false,
+    budgets_snapshot: [foodBudget()],
+    snapshot_at: new Date('2024-06-01'),
+  });
+  const next = await BudgetPeriodsRepository.create({
+    user_id: userId,
+    group_id: groupId,
+    start_date: '2024-06-01',
+    end_date: null,
+    is_active: true,
+  });
+  return { previous, current, next };
+}
+
+describe('budget period lifecycle and timeline integrity', () => {
+  it('refuses a second close without replacing historical budgets or totals', async () => {
+    const active = await BudgetPeriodsRepository.create({
+      user_id: userId,
+      group_id: groupId,
+      start_date: '2024-05-01',
+      end_date: null,
+      is_active: true,
+    });
+    await closeBudgetPeriodUseCase(userId, active.id, '2024-05-31');
+    const before = await BudgetPeriodsRepository.findById(active.id);
+    vi.mocked(getBudgetsByUserUseCase).mockResolvedValue([foodBudget({ amount: 999 })]);
+    await expect(closeBudgetPeriodUseCase(userId, active.id, '2024-05-25')).rejects.toMatchObject({
+      code: 'periodNotOpen',
+    });
+    expect(await BudgetPeriodsRepository.findById(active.id)).toEqual(before);
+    expect(before?.budgets_snapshot).toEqual([foodBudget()]);
+  });
+
+  it('allows only one of two concurrent closing requests to succeed', async () => {
+    const active = await BudgetPeriodsRepository.create({
+      user_id: userId,
+      group_id: groupId,
+      start_date: '2024-05-01',
+      end_date: null,
+      is_active: true,
+    });
+    const results = await Promise.allSettled([
+      closeBudgetPeriodUseCase(userId, active.id, '2024-05-30'),
+      closeBudgetPeriodUseCase(userId, active.id, '2024-05-31'),
+    ]);
+    expect(results.filter((result) => result.status === 'fulfilled')).toHaveLength(1);
+    expect(results.filter((result) => result.status === 'rejected')).toHaveLength(1);
+    const saved = await BudgetPeriodsRepository.findById(active.id);
+    expect(saved?.is_active).toBe(false);
+    expect(saved?.budgets_snapshot).toEqual([foodBudget()]);
+  });
+
+  it.each(['2024-04-01', '2024-06-01'])(
+    'rolls back every date and snapshot if updating the neighbor starting %s fails',
+    async (failingStart) => {
+      const { current } = await createTimeline();
+      const before = await BudgetPeriodsRepository.findByUser(userId);
+      await db.execute(
+        sql`CREATE FUNCTION fail_period_update() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'forced period failure'; END $$`
+      );
+      // Dates are fixed test cases, not external input.
+      await db.execute(
+        sql.raw(
+          `CREATE TRIGGER fail_period_update BEFORE UPDATE ON budget_periods FOR EACH ROW WHEN (OLD.start_date = DATE '${failingStart}') EXECUTE FUNCTION fail_period_update()`
+        )
+      );
+      try {
+        await expect(
+          editPeriodDatesUseCase(userId, current.id, {
+            startDate: '2024-05-05',
+            endDate: '2024-05-28',
+          })
+        ).rejects.toThrow();
+        expect(await BudgetPeriodsRepository.findByUser(userId)).toEqual(before);
+      } finally {
+        await db.execute(sql`DROP TRIGGER fail_period_update ON budget_periods`);
+        await db.execute(sql`DROP FUNCTION fail_period_update()`);
+      }
+    }
+  );
+
+  it('commits all three neighboring periods together', async () => {
+    const { current } = await createTimeline();
+    const result = await editPeriodDatesUseCase(userId, current.id, {
+      startDate: '2024-05-05',
+      endDate: '2024-05-28',
+    });
+    expect(result.previousPeriod?.end_date).toBe('2024-05-04');
+    expect(result.period.start_date).toBe('2024-05-05');
+    expect(result.period.end_date).toBe('2024-05-28');
+    expect(result.nextPeriod?.start_date).toBe('2024-05-29');
+    expect(result.period.budgets_snapshot).toEqual([foodBudget()]);
+    expect(result.nextPeriod?.snapshot_at).toBeNull();
+  });
+
+  it('keeps neighboring periods continuous after concurrent edits from either side', async () => {
+    const { current, next } = await createTimeline();
+    const update = BudgetPeriodsRepository.update.bind(BudgetPeriodsRepository);
+    vi.spyOn(BudgetPeriodsRepository, 'update').mockImplementation(async (...args) => {
+      await delay(25);
+      return update(...args);
+    });
+    await Promise.all([
+      editPeriodDatesUseCase(userId, current.id, { endDate: '2024-05-28' }),
+      editPeriodDatesUseCase(userId, next.id, { startDate: '2024-05-20' }),
+    ]);
+    const left = await BudgetPeriodsRepository.findById(current.id);
+    const right = await BudgetPeriodsRepository.findById(next.id);
+    expect(
+      new Date(`${right?.start_date}T00:00:00Z`).getTime() -
+        new Date(`${left?.end_date}T00:00:00Z`).getTime()
+    ).toBe(86400000);
+    expect(left?.budgets_snapshot).toEqual([foodBudget()]);
+  });
+
+  it('coordinates starting a new period with closing the old one', async () => {
+    vi.spyOn(UsersRepository, 'findById').mockResolvedValue({
+      id: userId,
+      group_id: groupId,
+    } as Awaited<ReturnType<typeof UsersRepository.findById>>);
+    const active = await BudgetPeriodsRepository.create({
+      user_id: userId,
+      group_id: groupId,
+      start_date: '2024-05-01',
+      end_date: null,
+      is_active: true,
+    });
+    const results = await Promise.allSettled([
+      closeBudgetPeriodUseCase(userId, active.id, '2024-05-31'),
+      createBudgetPeriodUseCase(userId, '2024-06-01'),
+    ]);
+    expect(results[1]?.status).toBe('fulfilled');
+    const saved = await BudgetPeriodsRepository.findByUser(userId);
+    expect(saved).toHaveLength(2);
+    expect(saved.filter((period) => period.is_active)).toHaveLength(1);
+    expect(saved.find((period) => period.id === active.id)?.end_date).toBe('2024-05-31');
+    expect(saved.find((period) => period.is_active)?.start_date).toBe('2024-06-01');
+  });
+});
+
+describe('complete period totals independently of report windows', () => {
+  it('keeps budget remaining unchanged when only the custom report range changes', async () => {
+    const period = await BudgetPeriodsRepository.create({
+      user_id: userId,
+      group_id: groupId,
+      start_date: '2024-05-01',
+      end_date: '2024-05-24',
+      is_active: false,
+      budgets_snapshot: [foodBudget()],
+      spendable_spent: '0',
+      snapshot_at: new Date('2024-06-01'),
+    });
+    for (const [date, amount] of [
+      ['2024-05-05', '40'],
+      ['2024-05-22', '10'],
+    ]) {
+      await TransactionsRepository.create({
+        description: 'Food',
+        amount: amount!,
+        type: 'expense',
+        category: 'food',
+        date: date!,
+        account_id: a,
+        group_id: groupId,
+        user_id: userId,
+      });
+    }
+    const accounts = (await AccountsRepository.findByGroup(groupId)).map((account) => ({
+      ...account,
+      balance: Number(account.balance),
+    }));
+    const viewer = { id: userId, role: 'admin', group_id: groupId } as User;
+    vi.mocked(getReportsContextUseCase).mockResolvedValue({
+      accounts,
+      periods: [period],
+      categories: [],
+      users: [viewer] as Awaited<ReturnType<typeof getReportsContextUseCase>>['users'],
+      budgets: [foodBudget({ amount: 999 })],
+    });
+    const first = await getReportsPageDataUseCase(groupId, [userId], viewer, {
+      preset: 'custom',
+      customStart: '2024-05-20',
+      customEnd: '2024-05-25',
+    });
+    const second = await getReportsPageDataUseCase(groupId, [userId], viewer, {
+      preset: 'custom',
+      customStart: '2024-05-21',
+      customEnd: '2024-05-25',
+    });
+    expect(first.sections.all.expenses).toBe(10);
+    expect(first.periods[0]).toMatchObject({ allocated: 100, spendableSpent: 50, remaining: 50 });
+    expect(second.periods).toEqual(first.periods);
+  });
+
+  it('loads the whole period across month boundaries', async () => {
+    const period = await BudgetPeriodsRepository.create({
+      user_id: userId,
+      group_id: groupId,
+      start_date: '2024-04-20',
+      end_date: '2024-05-10',
+      is_active: false,
+      budgets_snapshot: [foodBudget()],
+    });
+    for (const date of ['2024-04-25', '2024-05-05'])
+      await TransactionsRepository.create({
+        description: 'Food',
+        amount: '25',
+        type: 'expense',
+        category: 'food',
+        date,
+        account_id: a,
+        group_id: groupId,
+        user_id: userId,
+      });
+    const summaries = await getReportsPeriodSummariesUseCase(
+      groupId,
+      [period],
+      await AccountsRepository.findByGroup(groupId),
+      [],
+      { start: new Date('2024-05-07'), end: new Date('2024-05-08') }
+    );
+    expect(summaries[0]).toMatchObject({ allocated: 100, spendableSpent: 50, remaining: 50 });
+  });
+
+  it('ignores the 5,000-row display limit when calculating a budget period', async () => {
+    const period = await BudgetPeriodsRepository.create({
+      user_id: userId,
+      group_id: groupId,
+      start_date: '2024-05-01',
+      end_date: '2024-05-31',
+      is_active: false,
+      budgets_snapshot: [foodBudget({ amount: 10000 })],
+    });
+    await db.execute(sql`INSERT INTO transactions (description, amount, type, category, date, account_id, user_id, group_id)
+      SELECT 'Food', 1, 'expense', 'food', DATE '2024-05-10', ${a}::uuid, ${userId}::uuid, ${groupId}::uuid FROM generate_series(1, 5001)`);
+    const window = { start: new Date('2024-05-01'), end: new Date('2024-05-31T23:59:59Z') };
+    expect(
+      (
+        await getReportsTransactionsUseCase(groupId, {
+          startDate: window.start,
+          endDate: window.end,
+        })
+      ).hasMore
+    ).toBe(true);
+    const summaries = await getReportsPeriodSummariesUseCase(
+      groupId,
+      [period],
+      await AccountsRepository.findByGroup(groupId),
+      [],
+      window
+    );
+    expect(summaries[0]).toMatchObject({ spendableSpent: 5001, remaining: 4999 });
   });
 });

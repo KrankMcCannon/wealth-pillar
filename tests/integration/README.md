@@ -2,7 +2,9 @@
 
 These tests exercise the real repositories and use cases against PostgreSQL,
 including transfer reconciliation, rollback, concurrent edits/deletes, idempotent CSV
-imports using the production partial unique index, and historical snapshots with 12,000 rows.
+imports using the production partial unique index, historical snapshots with 12,000 rows,
+concurrent budget period operations, rollback of neighboring date edits, and complete
+budget totals under narrow report filters and overflowing transaction lists.
 
 Create a dedicated empty local database, then run:
 
