@@ -1,7 +1,9 @@
 'use server';
 
 import { getCurrentUser } from '@/lib/auth/cached-auth';
-import { updateUserProfileUseCase } from '@/server/use-cases/users/user.use-cases';
+import { syncProfileWithClerkUseCase } from '@/server/use-cases/users/sync-profile-with-clerk.use-case';
+import { updateTag } from 'next/cache';
+import { CACHE_TAGS } from '@/lib/cache/config';
 import { updateUserPreferencesUseCase } from '@/server/use-cases/users/get-user-preferences.use-case';
 import { createGroupInvitationUseCase } from '@/server/use-cases/groups/group-invitations.use-cases';
 import { updateGroupUseCase } from '@/server/use-cases/groups/groups.use-cases';
@@ -51,7 +53,10 @@ export async function updateUserProfileAction(
       };
     }
 
-    const data = await updateUserProfileUseCase(userId, updates);
+    const data = await syncProfileWithClerkUseCase(currentUser, updates);
+    updateTag(CACHE_TAGS.USERS);
+    updateTag(CACHE_TAGS.USER(userId));
+    if (currentUser.clerk_id) updateTag(CACHE_TAGS.USER_BY_CLERK(currentUser.clerk_id));
 
     return {
       data: {

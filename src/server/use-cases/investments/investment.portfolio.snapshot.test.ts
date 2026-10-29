@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   buildPortfolioHistory,
   buildPortfolioHistoryWithSnapshots,
@@ -44,8 +44,29 @@ describe('buildPortfolioHistoryWithSnapshots', () => {
   };
 
   beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2024-01-03T18:00:00Z'));
     vi.mocked(PortfolioSnapshotRepository.findByUserIds).mockReset();
     vi.mocked(PortfolioSnapshotRepository.upsertMany).mockReset();
+  });
+  afterEach(() => vi.useRealTimers());
+
+  it('counts persisted snapshots once, sums different users, and stays stable on a second load', async () => {
+    let stored: Array<{ user_id: string; snapshot_date: string; value: string }> = [];
+    vi.mocked(PortfolioSnapshotRepository.findByUserIds).mockImplementation(
+      async () => stored as Awaited<ReturnType<typeof PortfolioSnapshotRepository.findByUserIds>>
+    );
+    vi.mocked(PortfolioSnapshotRepository.upsertMany).mockImplementation(async (rows) => {
+      stored = [...stored, ...rows];
+    });
+    const rows = [row(), row({ id: 'inv-2', user_id: 'user-2', shares_acquired: '3' })];
+    const first = await buildPortfolioHistoryWithSnapshots(['user-1', 'user-2'], rows, seriesIndex);
+    expect(stored).toHaveLength(4);
+    expect(first).toEqual(buildPortfolioHistory(rows, seriesIndex));
+    expect(first.find((point) => point.date === '2024-01-02')?.value).toBe(60);
+    expect(
+      await buildPortfolioHistoryWithSnapshots(['user-1', 'user-2'], rows, seriesIndex)
+    ).toEqual(first);
   });
 
   it('matches full rebuild for a single user when snapshots are empty', async () => {

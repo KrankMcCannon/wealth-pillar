@@ -56,5 +56,15 @@ describe('resolveChartPeriodEnd', () => {
     const chartEnd = resolveChartPeriodEnd(null, now);
     const effective = resolveEffectivePeriod(null, now);
     expect(chartEnd.toISODate()).toBe(effective.end.toISODate());
+    expect(effective.start.toISO()).toBe('2024-06-01T00:00:00.000+02:00');
+    expect(effective.end.toISO()).toBe('2024-06-30T23:59:59.999+02:00');
+  });
+});
+
+describe('calendar month boundaries', () => {
+  it('uses the Rome calendar month when UTC is still in the previous month', () => {
+    const effective = resolveEffectivePeriod(null, new Date('2024-06-30T22:30:00Z'));
+    expect(effective.start.toISO()).toBe('2024-07-01T00:00:00.000+02:00');
+    expect(effective.end.toISO()).toBe('2024-07-31T23:59:59.999+02:00');
   });
 });

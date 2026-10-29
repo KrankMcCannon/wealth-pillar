@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { Account } from '@/lib/types';
+import type { Account, Budget, BudgetPeriod, User } from '@/lib/types';
+import { getBudgetsPageData } from './budgets-page.use-case';
 
 vi.mock('next/cache', () => ({
   cacheLife: vi.fn(),
@@ -66,6 +67,7 @@ const accounts: Account[] = [
 
 describe('getDashboardPageData', () => {
   beforeEach(() => {
+    vi.clearAllMocks();
     vi.mocked(getGroupUsersByGroupIdDeduped).mockResolvedValue(groupUsers);
     vi.mocked(getAccountsByGroupDeduped).mockResolvedValue(accounts);
     vi.mocked(getTransactionsByGroupUseCase).mockResolvedValue({
@@ -116,5 +118,74 @@ describe('getDashboardPageData', () => {
     expect(result.recentActivityByScope.all).toHaveLength(3);
     expect(result.recentActivityByScope.byUserId.u1).toHaveLength(3);
     expect(result.recentActivityByScope.all[0]?.id).toBe('tx0');
+  });
+
+  it('uses all 2,500 period transactions, including dates older than the activity window', async () => {
+    const period = {
+      id: 'p1',
+      user_id: 'u1',
+      group_id: 'g1',
+      start_date: '2023-01-01',
+      end_date: null,
+      is_active: true,
+      created_at: '',
+      updated_at: '',
+    } as BudgetPeriod;
+    vi.mocked(getActiveBudgetPeriodsForUsersUseCase).mockResolvedValue({ u1: period });
+    vi.mocked(getBudgetsByGroupUseCase).mockResolvedValue([
+      {
+        id: 'b1',
+        description: 'Food',
+        amount: 3000,
+        type: 'monthly',
+        categories: ['food'],
+        user_id: 'u1',
+        group_id: 'g1',
+        created_at: '',
+        updated_at: '',
+      } as Budget,
+    ]);
+    const txs = Array.from({ length: 2500 }, (_, i) => ({
+      id: `tx-${i}`,
+      description: 'Food',
+      amount: 1,
+      type: 'expense' as const,
+      category: 'food',
+      date: '2023-06-10',
+      user_id: 'u1',
+      account_id: 'a1',
+      group_id: 'g1',
+      created_at: '',
+      updated_at: '',
+    }));
+    vi.mocked(getTransactionsByGroupUseCase).mockImplementation(async (_group, options) => ({
+      data: options?.limit ? [] : txs,
+      total: 0,
+      hasMore: false,
+    }));
+    const dashboard = await getDashboardPageData('g1', (groupUsers as User[])[0]!);
+    const budgets = await getBudgetsPageData('g1', (groupUsers as User[])[0]!);
+    expect(dashboard.budgetsByUser.u1).toEqual(budgets.budgetsByUser.u1);
+    expect(dashboard.budgetsByUser.u1?.totalSpent).toBe(2500);
+    expect(getTransactionsByGroupUseCase).toHaveBeenCalledWith(
+      'g1',
+      expect.objectContaining({ startDate: expect.any(Date), countTotal: false })
+    );
+    const fullReads = vi
+      .mocked(getTransactionsByGroupUseCase)
+      .mock.calls.filter(([, options]) => options?.limit === undefined);
+    expect(fullReads).toHaveLength(2);
+    expect(fullReads[0]![1]!.startDate!.getUTCFullYear()).toBeLessThanOrEqual(2023);
+  });
+
+  it('does not turn an incomplete budget ledger into a cached financial summary', async () => {
+    vi.mocked(getTransactionsByGroupUseCase).mockImplementation(async (_group, options) => ({
+      data: [],
+      total: 0,
+      hasMore: !options?.limit,
+    }));
+    await expect(getDashboardPageData('g1', (groupUsers as User[])[0]!)).rejects.toThrow(
+      'BUDGETS_TRANSACTIONS_OVERFLOW'
+    );
   });
 });

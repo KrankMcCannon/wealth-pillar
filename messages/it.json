@@ -174,7 +174,13 @@
       "emailPlaceholder": "mario.rossi@example.com",
       "cancelButton": "Annulla",
       "savingButton": "Salvataggio...",
-      "saveChangesButton": "Salva Modifiche"
+      "saveChangesButton": "Salva Modifiche",
+      "verifyAndSaveButton": "Verifica e salva",
+      "verificationCodeLabel": "Codice di verifica",
+      "verificationCodeRequired": "Inserisci il codice ricevuto via email",
+      "verificationSent": "Inserisci il codice inviato a {email}.",
+      "resendCodeButton": "Invia di nuovo il codice",
+      "verificationFailed": "Impossibile verificare l’email. Riprova."
     },
     "ManageGroup": {
       "validation": {

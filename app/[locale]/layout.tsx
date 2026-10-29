@@ -1,24 +1,25 @@
 import React, { Suspense } from 'react';
 import type { Metadata, Viewport } from 'next';
-import { Figtree, Source_Serif_4 as SourceSerif } from 'next/font/google';
+import localFont from 'next/font/local';
 import { routing } from '@/i18n/routing';
 import { LocaleLayoutBody, LocaleLayoutHtmlFallback } from './locale-layout-body';
 import '../globals.css';
 
-const figtree = Figtree({
+const figtree = localFont({
+  src: '../fonts/Figtree-variable.woff2',
   variable: '--font-figtree',
-  subsets: ['latin', 'latin-ext'],
-  weight: ['400', '500', '600', '700'],
+  weight: '400 700',
   display: 'swap',
   fallback: ['system-ui', 'arial'],
 });
 
-const sourceSerif = SourceSerif({
+const sourceSerif = localFont({
+  src: '../fonts/SourceSerif4-variable.woff2',
   variable: '--font-source-serif',
-  subsets: ['latin', 'latin-ext'],
-  weight: ['600', '700'],
+  weight: '600 700',
   display: 'swap',
   fallback: ['Georgia', 'serif'],
+  adjustFontFallback: 'Times New Roman',
 });
 
 const fontClassName = `${figtree.variable} ${sourceSerif.variable}`;

@@ -28,6 +28,7 @@ import {
 import { getActiveBudgetPeriodsForUsersUseCase } from '../budget-periods/get-active-budget-periods-for-users.use-case';
 import { buildBudgetsByUserPure } from '../budgets/budget.logic';
 import { getBudgetsByGroupUseCase } from '../budgets/get-budgets.use-case';
+import { getBudgetPeriodTransactionsUseCase } from '../budgets/get-budget-period-transactions.use-case';
 import { getSeriesByGroupUseCase } from '../recurring/recurring.use-cases';
 import { transactionInvolvesUser } from '@/server/ledger';
 import { getTransactionsByGroupUseCase } from '../transactions/get-transactions.use-case';
@@ -148,11 +149,7 @@ async function getCachedDashboardPageData(groupId: string): Promise<DashboardPag
         'Failed to fetch recurring series'
       ),
       safeFetch(getAllCategoriesDeduped(), [] as Category[], 'Failed to fetch categories'),
-      safeFetch(
-        getActiveBudgetPeriodsForUsersUseCase(userIds),
-        {} as Record<string, BudgetPeriod | null>,
-        'Failed to fetch budget periods'
-      ),
+      getActiveBudgetPeriodsForUsersUseCase(userIds),
     ]);
 
   const budgetPeriods: Record<string, BudgetPeriod | null> = {};
@@ -160,10 +157,15 @@ async function getCachedDashboardPageData(groupId: string): Promise<DashboardPag
     budgetPeriods[userId] = periodMap?.[userId] ?? null;
   });
 
+  const budgetTransactions = await getBudgetPeriodTransactionsUseCase(
+    groupId,
+    userIds,
+    budgetPeriods
+  );
   const budgetsByUser = buildBudgetsByUserPure(
     groupUsers,
     budgets,
-    transactionResult.data,
+    budgetTransactions,
     budgetPeriods,
     undefined,
     accounts

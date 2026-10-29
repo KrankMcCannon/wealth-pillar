@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { handleClerkWebhook } from './clerk-webhook-handler';
+import { clerkClient } from '@clerk/nextjs/server';
+vi.mock('@clerk/nextjs/server', () => ({ clerkClient: vi.fn() }));
 
 vi.mock('@/server/use-cases/users/user.use-cases', () => ({
   ensureClerkIdentityStubUseCase: vi.fn(),
@@ -18,6 +20,18 @@ import {
 describe('handleClerkWebhook', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(clerkClient).mockResolvedValue({
+      users: {
+        getUser: vi.fn(async () => ({
+          firstName: 'New',
+          lastName: 'Name',
+          primaryEmailAddressId: 'em_1',
+          emailAddresses: [
+            { id: 'em_1', emailAddress: 'new@b.com', verification: { status: 'verified' } },
+          ],
+        })),
+      },
+    } as never);
   });
 
   it('creates identity stub on user.created', async () => {
@@ -50,7 +64,7 @@ describe('handleClerkWebhook', () => {
       type: 'user.updated',
       data: {
         id: 'clerk_1',
-        email_addresses: [{ id: 'em_1', email_address: 'new@b.com' }],
+        email_addresses: [{ id: 'em_1', email_address: 'stale@b.com' }],
         primary_email_address_id: 'em_1',
         first_name: 'New',
         last_name: 'Name',
