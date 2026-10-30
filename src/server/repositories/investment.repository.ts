@@ -68,8 +68,11 @@ export class InvestmentRepository {
     return records.length > 0 ? records[0] : null;
   }
 
-  static async delete(id: string) {
-    const records = await db.delete(investments).where(eq(investments.id, id)).returning();
+  static async delete(id: string, userId: string) {
+    const records = await db
+      .delete(investments)
+      .where(and(eq(investments.id, id), eq(investments.user_id, userId)))
+      .returning();
     return records.length > 0 ? records[0] : null;
   }
 }

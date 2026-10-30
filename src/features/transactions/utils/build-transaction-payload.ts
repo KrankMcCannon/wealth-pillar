@@ -1,10 +1,11 @@
+import { parseDecimal } from '@/lib/utils/parse-decimal';
 import type { CreateTransactionInput } from '@/server/use-cases/transactions/types';
 import type { TransactionFormData } from '../components/transaction-form-fields';
 export function buildTransactionPayload(
   data: TransactionFormData,
   groupId: string
 ): CreateTransactionInput {
-  const amount = Number.parseFloat(data.amount);
+  const amount = parseDecimal(data.amount);
 
   return {
     description: data.description.trim(),

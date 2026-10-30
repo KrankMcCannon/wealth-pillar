@@ -263,6 +263,8 @@ export function TransactionsLedger(props: TransactionsLedgerProps) {
                     <li key={transaction.id}>
                       <TransactionRow
                         transaction={transaction}
+                        accountNames={props.accountNames}
+                        selectedAccountId={props.filters.accountId}
                         getCategoryLabel={(key) => getCategoryLabel(props.categories, key)}
                         onEditTransaction={props.onEditTransaction}
                       />

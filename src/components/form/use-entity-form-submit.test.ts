@@ -21,7 +21,7 @@ describe('useEntityFormSubmit', () => {
     toastMock.mockClear();
   });
 
-  it('closes before create, refreshes and toasts on success', async () => {
+  it('closes after create, refreshes and toasts on success', async () => {
     const onClose = vi.fn();
     const refreshAfterSuccess = vi.fn();
     const createAction = vi.fn(async () => ({ data: { id: '1' }, error: null }));
@@ -45,7 +45,7 @@ describe('useEntityFormSubmit', () => {
       await result.current({ name: 'Test' }, form);
     });
 
-    expect(onClose).toHaveBeenCalledBefore(createAction);
+    expect(createAction).toHaveBeenCalledBefore(onClose);
     expect(createAction).toHaveBeenCalledWith({ name: 'Test' });
     expect(refreshAfterSuccess).toHaveBeenCalled();
     expect(toastMock).toHaveBeenCalledWith(
@@ -77,6 +77,7 @@ describe('useEntityFormSubmit', () => {
       await result.current({ name: 'Test' }, createFormMock());
     });
 
+    expect(onClose).not.toHaveBeenCalled();
     expect(rollbackCreate).toHaveBeenCalledWith('temp-1', 'Failed');
     expect(toastMock).toHaveBeenCalledWith(
       expect.objectContaining({ title: 'Error', variant: 'destructive' })

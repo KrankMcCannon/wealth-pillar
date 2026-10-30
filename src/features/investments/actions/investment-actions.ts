@@ -112,3 +112,17 @@ export async function createInvestmentAction(
     };
   }
 }
+
+/** Delete only an entry owned by the current user, atomically in the repository. */
+export async function deleteInvestmentAction(id: string): Promise<ServiceResult<boolean>> {
+  try {
+    const currentUser = await getCurrentUser();
+    if (!currentUser) return { data: null, error: 'UNAUTHENTICATED' };
+    const deleted = await useCases.deleteInvestmentUseCase(id, currentUser.id);
+    if (!deleted) return { data: null, error: 'NOT_FOUND' };
+    invalidateInvestmentCaches({ groupId: currentUser.group_id, userId: currentUser.id });
+    return { data: true, error: null };
+  } catch {
+    return { data: null, error: 'DELETE_FAILED' };
+  }
+}

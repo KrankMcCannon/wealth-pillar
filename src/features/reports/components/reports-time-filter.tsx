@@ -43,6 +43,8 @@ export function ReportsTimeFilter({
     setCustomOpen(true);
   };
 
+  const invalidRange = Boolean(draftStart && draftEnd && draftStart > draftEnd);
+
   const applyCustom = () => {
     if (!draftStart || !draftEnd) return;
     if (new Date(draftStart).getTime() > new Date(draftEnd).getTime()) return;
@@ -106,13 +108,14 @@ export function ReportsTimeFilter({
               presentation="inline"
               label={t('to')}
               value={draftEnd}
+              error={invalidRange ? t('invalidRange') : undefined}
               onChange={setDraftEnd}
             />
           </div>
           <Button
             type="button"
             className="min-h-11 w-full rounded-xl font-semibold"
-            disabled={!draftStart || !draftEnd}
+            disabled={!draftStart || !draftEnd || invalidRange}
             onClick={applyCustom}
           >
             {t('apply')}

@@ -97,3 +97,24 @@ in produzione. Workflow e protezione sono descritti in [.github/CI.md](.github/C
 
 Nessuna migrazione o nuova variabile è richiesta in produzione. Le variabili E2E
 sono solo locali: [istruzioni](tests/README.md).
+
+## Review UX/UI del 30 ottobre 2026
+
+- Parser decimale unico per importi e quote; invio con Invio e incolla IT/EN coerenti,
+  senza troncamenti o reinterpretazioni silenziose dei formati ambigui.
+- Form conservati fino alla conferma server, con rollback ottimistico, errore inline
+  annunciato e chiusura bloccata durante il salvataggio.
+- Conferma eliminazione conto esplicita sulla cancellazione dei movimenti, dei
+  trasferimenti e sulla rettifica degli altri saldi. Nessuna archiviazione DB introdotta.
+- Obiettivi annuali definiti come quota di 1/12 per periodo, esplicitata nel form;
+  importo per periodo coerente in progresso e allocazione. Non sono plafond annuali.
+- Riepilogo “Utilizzo delle buste” distinto dalla spesa netta deduplicata del grafico,
+  con spiegazione visibile delle categorie condivise; regole storiche delle buste conservate.
+- Filtri Report ripristinati dalle props della navigazione; date invertite segnalate
+  vicino al campo e pulsante Mostra disabilitato.
+- Filtri conto server/client comprensivi dei trasferimenti ricevuti.
+- EUR dichiarata come valuta contabile; rimossa la scelta di valute non supportate.
+- Eliminazione inserimenti investimento dalla modifica, conferma nominativa e
+  DELETE atomico vincolato all’utente autenticato; cache aggiornate dopo il successo.
+
+Non sono richieste migrazioni o nuove variabili di ambiente.

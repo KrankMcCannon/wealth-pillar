@@ -13,7 +13,7 @@ import { roundMoney } from '@/lib/utils/money';
 import { filterTransactionsByPeriod, filterByCategories } from '../transactions/transaction.logic';
 import { parsePeriodDates } from '../shared/period.logic';
 import { getCategoryColor, getCategoryLabel } from '../categories/category.logic';
-import { allocatedFromBudgets } from '../budget-periods/period-budgets.logic';
+import { allocatedFromBudgets, periodBudgetAmount } from '../budget-periods/period-budgets.logic';
 import { foldBudgetCategorySpending, foldBudgetSpent } from '@/server/ledger';
 
 export interface BudgetCategoryBreakdownItem {
@@ -123,7 +123,7 @@ function categorySpendingFromUnion(
 
 /**
  * Same rollup as active budgets: each envelope folds its own categories, and
- * period spent is the sum of those envelopes (a matching tx raises both).
+ * envelope utilization can count a movement in multiple envelopes.
  */
 export function calculatePeriodBudgetRollup(
   budgets: Budget[],
@@ -188,13 +188,14 @@ export function calculateBudgetProgress(
   userId?: string
 ): BudgetProgress {
   const effectiveSpent = effectiveSpentFromTransactions(transactions, accounts, userId);
-  const remaining = budget.amount - effectiveSpent;
-  const percentage = budget.amount > 0 ? (effectiveSpent / budget.amount) * 100 : 0;
+  const amount = periodBudgetAmount(budget);
+  const remaining = amount - effectiveSpent;
+  const percentage = amount > 0 ? (effectiveSpent / amount) * 100 : 0;
 
   return {
     id: budget.id,
     description: budget.description,
-    amount: budget.amount,
+    amount,
     spent: effectiveSpent,
     remaining,
     percentage,
@@ -229,7 +230,7 @@ export function calculateBudgetsWithProgress(
 
 /**
  * Helper to build UserBudgetSummary from computed budget progress.
- * totalSpent is the sum of envelope spent — same number as the cards.
+ * totalSpent is envelope utilization, distinct from deduplicated ledger spending.
  */
 function buildBudgetSummary(
   user: User,

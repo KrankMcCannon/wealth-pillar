@@ -86,8 +86,8 @@ export async function addInvestmentUseCase(data: InvestmentInsert) {
   return await InvestmentRepository.create(depositData);
 }
 
-export async function deleteInvestmentUseCase(id: string) {
-  return await InvestmentRepository.delete(id);
+export async function deleteInvestmentUseCase(id: string, userId: string) {
+  return await InvestmentRepository.delete(id, userId);
 }
 
 export async function updateInvestmentUseCase(

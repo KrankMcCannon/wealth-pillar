@@ -99,6 +99,8 @@ export function BudgetFormFields({
           disabled={isSubmitting}
         />
 
+        <p className="px-4 text-sm text-muted-foreground">{t('periodHelp')}</p>
+
         <ModalMultiSelectField
           control={control}
           name="categories"
@@ -107,6 +109,8 @@ export function BudgetFormFields({
           shape="chips"
           disabled={isSubmitting}
         />
+
+        <p className="px-4 text-sm text-muted-foreground">{t('overlapHelp')}</p>
 
         {userOptions.length <= 5 ? (
           <ModalRadioField

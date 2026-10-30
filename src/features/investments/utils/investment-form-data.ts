@@ -1,3 +1,4 @@
+import { parseDecimal } from '@/lib/utils/parse-decimal';
 import type { investments } from '@/server/db/schema';
 import type { InvestmentFormData } from '../components/investment-form-fields';
 
@@ -26,11 +27,11 @@ export function buildInvestmentPayload(data: InvestmentFormData) {
   return {
     name: data.name,
     symbol: data.symbol.toUpperCase(),
-    amount: Number(data.amount),
-    shares_acquired: Number(data.shares),
+    amount: parseDecimal(data.amount),
+    shares_acquired: parseDecimal(data.shares, 10),
     currency: data.currency,
     created_at: data.created_at,
-    tax_paid: Number(data.tax_paid) || 0,
+    tax_paid: parseDecimal(data.tax_paid) || 0,
     currency_rate: 1,
     net_earn: 0,
   };

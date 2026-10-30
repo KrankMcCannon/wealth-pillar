@@ -1,3 +1,4 @@
+import { parseDecimal } from '@/lib/utils/parse-decimal';
 import type { useTranslations } from 'next-intl';
 import { z } from 'zod';
 
@@ -10,7 +11,7 @@ export function createRecurringSchema(t: ReturnType<typeof useTranslations>) {
       amount: z
         .string()
         .min(1, t('validation.amountRequired'))
-        .refine((val) => !Number.isNaN(Number.parseFloat(val)) && Number.parseFloat(val) > 0, {
+        .refine((val) => !Number.isNaN(parseDecimal(val)) && parseDecimal(val) > 0, {
           message: t('validation.amountGreaterThanZero'),
         }),
       type: z.enum(['income', 'expense', 'transfer']),

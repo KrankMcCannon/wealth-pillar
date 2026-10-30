@@ -144,3 +144,7 @@ describe('categoryKeysFromBudgets', () => {
     ).toEqual(new Set(['food', 'transport']));
   });
 });
+
+it('allocates one twelfth of an annual target per period', () => {
+  expect(allocatedFromBudgets([{ ...live, amount: 1200, type: 'annually' }])).toBe(100);
+});

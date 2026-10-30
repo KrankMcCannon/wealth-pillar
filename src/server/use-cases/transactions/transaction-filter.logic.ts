@@ -63,6 +63,7 @@ export function filterTransactions<
     date: string | Date;
     accountId?: string;
     account_id?: string;
+    to_account_id?: string | null;
   },
 >(transactions: T[], filters: TransactionFiltersState, categories?: Category[]): T[] {
   const categoryByKey = categories ? new Map(categories.map((c) => [c.key, c])) : null;
@@ -75,7 +76,7 @@ export function filterTransactions<
 
     if (filters.accountId !== 'all') {
       const txAccountId = t.accountId ?? t.account_id;
-      if (txAccountId !== filters.accountId) return false;
+      if (txAccountId !== filters.accountId && t.to_account_id !== filters.accountId) return false;
     }
 
     return true;

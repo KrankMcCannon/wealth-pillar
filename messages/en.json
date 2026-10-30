@@ -68,7 +68,7 @@
   },
   "SettingsContent": {
     "headerTitle": "Settings",
-    "currencyModalTitle": "Select Currency",
+    "currencyModalTitle": "Accounting currency: EUR",
     "languageModalTitle": "Select Language",
     "timezoneModalTitle": "Select Timezone"
   },
@@ -272,7 +272,7 @@
     "currency": {
       "EUR": {
         "label": "Euro (€)",
-        "description": "Official currency of the European Union"
+        "description": "Accounts and budgets use euros. No currency conversion is performed."
       },
       "USD": {
         "label": "US Dollar ($)",
@@ -415,7 +415,8 @@
       "customTitle": "Choose dates",
       "from": "From",
       "to": "To",
-      "apply": "Show"
+      "apply": "Show",
+      "invalidRange": "The end date must be on or after the start date."
     },
     "Hero": {
       "srHeading": "Period summary",
@@ -674,6 +675,12 @@
         "saveError": "Something went wrong while saving",
         "loadError": "Could not load investment",
         "notFound": "Investment not found"
+      },
+      "delete": {
+        "title": "Delete entry",
+        "message": "Delete entry “{name}” from the portfolio? Use this to correct mistakes or duplicates. This does not record a sale.",
+        "confirm": "Delete entry",
+        "error": "The entry could not be deleted. Please try again."
       }
     }
   },
@@ -884,7 +891,9 @@
         "perPageLabel": "Per page",
         "perPageAriaLabel": "Rows per page",
         "goToPage": "Go to page {page}"
-      }
+      },
+      "transferDirection": "From {from} to {to}",
+      "accountFallback": "account"
     },
     "FormModal": {
       "validation": {
@@ -950,7 +959,7 @@
       },
       "errors": {
         "notFound": "Transaction not found. Reload the page and try again.",
-        "unknown": "Something went wrong. Please try again."
+        "unknown": "The operation could not be completed. Your form entries are preserved. Please try again."
       },
       "toast": {
         "errorTitle": "Error",
@@ -1120,7 +1129,7 @@
       },
       "errors": {
         "notFound": "Recurring series not found",
-        "unknown": "Unknown error"
+        "unknown": "The operation could not be completed. Your form entries are preserved. Please try again."
       },
       "typeOptions": {
         "expense": "Expense",
@@ -1309,9 +1318,9 @@
       "dialogs": {
         "delete": {
           "title": "Delete account",
-          "message": "Are you sure you want to delete the account \"{name}\"? This action cannot be undone.",
-          "messageFallback": "Delete this account? This can’t be undone.",
-          "confirm": "Delete",
+          "message": "Permanently delete account \"{name}\" and all its movements? Transfers will also be deleted and the balances of other affected accounts adjusted. Deleted history cannot be recovered.",
+          "messageFallback": "Permanently delete account selected and all its movements? Transfers will also be deleted and the balances of other affected accounts adjusted. Deleted history cannot be recovered.",
+          "confirm": "Delete account and movements",
           "cancel": "Cancel"
         }
       },
@@ -1407,7 +1416,7 @@
       },
       "errors": {
         "notFound": "Account not found",
-        "unknown": "Unknown error"
+        "unknown": "The operation could not be completed. Your form entries are preserved. Please try again."
       }
     },
     "Actions": {
@@ -1502,11 +1511,12 @@
       "sectionDetailsTitle": "Budget and period",
       "sectionDetailsSubtitle": "Progress, trend, and linked transactions",
       "hero": {
-        "totalAvailable": "Total available to spend",
-        "totalSpent": "Total spent",
+        "totalAvailable": "Available in envelopes",
+        "totalSpent": "Envelope utilization",
         "totalAssigned": "Assigned",
         "outOf": "of {total}",
-        "srHeading": "Budget summary"
+        "srHeading": "Budget summary",
+        "envelopeHelp": "Envelopes may share categories: one expense can use several envelopes. The chart counts each movement only once."
       },
       "closePeriod": "Close period",
       "editClosingDate": "Adjust last closing date",
@@ -1581,7 +1591,7 @@
       }
     },
     "Chart": {
-      "spentLabel": "You spent",
+      "spentLabel": "Net spending, counted once",
       "svgTitle": "Cumulative spending trend for the period",
       "svgDescription": "Line chart of spending accumulated day by day across all your budgets in this period.",
       "sectionAriaLabel": "Spending trend for all budgets in this period",
@@ -1608,7 +1618,7 @@
           "label": "Budget type",
           "options": {
             "monthly": "Monthly",
-            "annually": "Yearly"
+            "annually": "Annual target (1/12 per period)"
           }
         },
         "amount": {
@@ -1658,8 +1668,10 @@
       },
       "errors": {
         "notFound": "Budget not found",
-        "unknown": "Unknown error"
-      }
+        "unknown": "The operation could not be completed. Your form entries are preserved. Please try again."
+      },
+      "periodHelp": "Annual targets allocate 1/12 of the amount to each budget period. Spending shown is for the current period.",
+      "overlapHelp": "Budgets may share categories. Each movement is counted only once in total spending."
     },
     "Actions": {
       "errors": {
@@ -1811,7 +1823,7 @@
       },
       "errors": {
         "notFound": "Category not found",
-        "unknown": "Unknown error"
+        "unknown": "The operation could not be completed. Your form entries are preserved. Please try again."
       }
     },
     "Actions": {

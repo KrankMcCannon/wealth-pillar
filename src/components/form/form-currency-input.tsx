@@ -1,4 +1,5 @@
 'use client';
+import { parseDecimal } from '@/lib/utils/parse-decimal';
 
 import * as React from 'react';
 import { Euro } from 'lucide-react';
@@ -88,7 +89,7 @@ export function FormCurrencyInput({
     }
 
     // Allow only numbers and decimal point
-    const cleanedValue = inputValue.replaceAll(/[^\d.,]/g, '');
+    const cleanedValue = inputValue;
 
     // Just pass the cleaned value, don't normalize yet
     onChange(cleanedValue);
@@ -101,20 +102,8 @@ export function FormCurrencyInput({
       return;
     }
 
-    // Normalize: replace commas with dots
-    const normalized = stringValue.replaceAll(',', '.');
-
-    // Handle multiple dots - keep only first
-    const parts = normalized.split('.');
-    let finalValue = parts[0] ?? '';
-    if (parts.length > 1) {
-      finalValue += '.' + parts.slice(1).join('');
-    }
-
-    const numValue = Number.parseFloat(finalValue);
-    if (Number.isNaN(numValue)) {
-      onChange('');
-    } else {
+    const numValue = parseDecimal(stringValue, decimals);
+    if (!Number.isNaN(numValue)) {
       // Validate min/max on blur
       let validatedValue = numValue;
       if (min !== undefined && numValue < min) validatedValue = min;

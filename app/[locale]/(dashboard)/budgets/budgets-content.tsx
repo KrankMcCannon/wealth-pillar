@@ -109,6 +109,8 @@ export default function BudgetsContent({
                 }}
               />
 
+              <p className="text-sm text-muted-foreground">{t('hero.envelopeHelp')}</p>
+
               <div role="status" aria-live="polite" className="sr-only">
                 {periodStatusMessage}
               </div>

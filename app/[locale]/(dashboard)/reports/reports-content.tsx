@@ -52,14 +52,24 @@ export default function ReportsContent({
   const t = useTranslations('ReportsContent');
   const tHero = useTranslations('Reports.Hero');
 
-  const [preset, setPreset] = useState<ReportsTimePreset>(initialPreset);
-  const [customRange, setCustomRange] = useState<{ start: string; end: string } | null>(
-    initialCustomStart && initialCustomEnd
-      ? { start: initialCustomStart, end: initialCustomEnd }
-      : null
+  const preset = initialPreset;
+  const customRange = useMemo(
+    () =>
+      initialCustomStart && initialCustomEnd
+        ? { start: initialCustomStart, end: initialCustomEnd }
+        : null,
+    [initialCustomStart, initialCustomEnd]
   );
-  const [selectedScope, setSelectedScope] = useState<ReportsScope>(
-    initialScope ?? data.defaultScope
+  const [scopeState, setScopeState] = useState({
+    applied: initialScope,
+    value: initialScope ?? data.defaultScope,
+  });
+  if (scopeState.applied !== initialScope)
+    setScopeState({ applied: initialScope, value: initialScope ?? data.defaultScope });
+  const selectedScope = scopeState.value;
+  const setSelectedScope = useCallback(
+    (value: ReportsScope) => setScopeState({ applied: initialScope, value }),
+    [initialScope]
   );
   const [insightsOpen, setInsightsOpen] = useState(false);
 
@@ -95,9 +105,7 @@ export default function ReportsContent({
 
   const handlePresetChange = useCallback(
     (p: ReportsTimePreset) => {
-      setPreset(p);
       if (p !== 'custom') {
-        setCustomRange(null);
         pushTimeParams({ preset: p });
       }
     },
@@ -110,7 +118,7 @@ export default function ReportsContent({
       setSelectedScope(next);
       syncScopeToUrl(next);
     },
-    [syncScopeToUrl]
+    [syncScopeToUrl, setSelectedScope]
   );
 
   const comparisonLabel = tHero(data.comparisonLabelKey);
@@ -142,7 +150,6 @@ export default function ReportsContent({
         onChange={handlePresetChange}
         customRange={customRange}
         onCustomApply={(start, end) => {
-          setCustomRange({ start, end });
           pushTimeParams({ preset: 'custom', customStart: start, customEnd: end });
         }}
       >

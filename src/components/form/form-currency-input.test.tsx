@@ -33,3 +33,13 @@ describe('FormCurrencyInput', () => {
     expect(input).toHaveValue('12,5');
   });
 });
+
+it('normalizes a pasted Italian amount without changing its value', async () => {
+  const user = userEvent.setup();
+  render(<BoundInput />);
+  const input = screen.getByLabelText('Amount');
+  await user.click(input);
+  await user.paste('1.234,56');
+  await user.tab();
+  expect(input).toHaveValue('1234.56');
+});

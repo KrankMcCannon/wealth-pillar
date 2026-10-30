@@ -42,11 +42,7 @@ export function PreferencesSection({
 
   const isDark = mounted && (resolvedTheme ?? theme) === 'dark';
 
-  const currencyLabel = resolveOptionLabel(
-    preferences?.currency,
-    currencyOptions,
-    preferences?.currency ?? t('currencyFallback')
-  );
+  const currencyLabel = resolveOptionLabel('EUR', currencyOptions, 'EUR');
 
   const languageLabel = resolveOptionLabel(currentLanguage, languageOptions, t('languageFallback'));
 
