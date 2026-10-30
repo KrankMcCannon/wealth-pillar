@@ -78,13 +78,29 @@ export function useTransactionsContent({
   const t = useTranslations('TransactionsContent');
   const searchParams = useSearchParams();
   const [isNavigating, startNavigation] = useTransition();
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [extraPages, setExtraPages] = useState<Transaction[]>([]);
-  const [hasMore, setHasMore] = useState(initialHasMore);
-  const [nextCursor, setNextCursor] = useState<string | undefined>(initialNextCursor);
-  const loadMoreLock = useRef(false);
   const queryKey = useMemo(() => buildQueryKey(appliedQuery), [appliedQuery]);
-  const prevQueryKeyRef = useRef(queryKey);
+  const [pagination, setPagination] = useState({
+    queryKey,
+    generation: 0,
+    extraPages: [] as Transaction[],
+    hasMore: initialHasMore,
+    nextCursor: initialNextCursor,
+    isLoadingMore: false,
+  });
+  // Adjust this hook's state before rendering children when the server query changes.
+  // A pending request retains its old key and cannot append into the new query.
+  if (pagination.queryKey !== queryKey) {
+    setPagination({
+      queryKey,
+      generation: pagination.generation + 1,
+      extraPages: [],
+      hasMore: initialHasMore,
+      nextCursor: initialNextCursor,
+      isLoadingMore: false,
+    });
+  }
+  const { extraPages, hasMore, nextCursor, isLoadingMore, generation } = pagination;
+  const loadMoreLock = useRef<number | null>(null);
 
   const optimisticOverlay = useOptimisticTransactionStore(
     useShallow((state) => ({
@@ -102,20 +118,17 @@ export function useTransactionsContent({
     () => appliedQueryToFiltersState(appliedQuery, appliedQuery.q ?? ''),
     [appliedQuery]
   );
-  const [searchDraft, setSearchDraft] = useState(urlFilters.searchQuery);
-
-  useEffect(() => {
-    setSearchDraft(urlFilters.searchQuery);
-  }, [urlFilters.searchQuery]);
-
-  useEffect(() => {
-    if (prevQueryKeyRef.current !== queryKey) {
-      prevQueryKeyRef.current = queryKey;
-      setExtraPages([]);
-      setHasMore(initialHasMore);
-      setNextCursor(initialNextCursor);
-    }
-  }, [queryKey, initialHasMore, initialNextCursor]);
+  const [searchState, setSearchState] = useState({
+    urlQuery: urlFilters.searchQuery,
+    draft: urlFilters.searchQuery,
+  });
+  if (searchState.urlQuery !== urlFilters.searchQuery) {
+    setSearchState({ urlQuery: urlFilters.searchQuery, draft: urlFilters.searchQuery });
+  }
+  const searchDraft = searchState.draft;
+  const setSearchDraft = useCallback((draft: string) => {
+    setSearchState((current) => ({ ...current, draft }));
+  }, []);
 
   const serverList = useMemo(() => {
     const merged = [...serverTransactions, ...extraPages];
@@ -145,7 +158,8 @@ export function useTransactionsContent({
     [serverList, optimisticOverlay, appliedQuery, searchDraft, accounts]
   );
 
-  const debouncedSearch = useDebouncedValue(searchDraft, 300);
+  const debouncedDraft = useDebouncedValue(searchState, 300);
+  const debouncedSearch = debouncedDraft.draft;
 
   const selectedUserId = appliedQuery.user;
 
@@ -172,11 +186,19 @@ export function useTransactionsContent({
   );
 
   useEffect(() => {
+    if (debouncedDraft.urlQuery !== urlFilters.searchQuery) return;
     const trimmed = debouncedSearch.trim();
     const urlQ = (appliedQuery.q ?? '').trim();
     if (trimmed === urlQ) return;
     pushQuery({ ...urlFilters, searchQuery: debouncedSearch }, selectedUserId);
-  }, [debouncedSearch, appliedQuery.q, urlFilters, pushQuery, selectedUserId]);
+  }, [
+    debouncedSearch,
+    debouncedDraft.urlQuery,
+    appliedQuery.q,
+    urlFilters,
+    pushQuery,
+    selectedUserId,
+  ]);
 
   const setFilters: React.Dispatch<React.SetStateAction<TransactionFiltersState>> = useCallback(
     (updater) => {
@@ -200,13 +222,13 @@ export function useTransactionsContent({
         pushQuery(next, selectedUserId);
       }
     },
-    [urlFilters, searchDraft, pushQuery, selectedUserId]
+    [urlFilters, searchDraft, pushQuery, selectedUserId, setSearchDraft]
   );
 
   const loadMore = useCallback(async () => {
-    if (!hasMore || !nextCursor || isLoadingMore || loadMoreLock.current) return;
-    loadMoreLock.current = true;
-    setIsLoadingMore(true);
+    if (!hasMore || !nextCursor || isLoadingMore || loadMoreLock.current === generation) return;
+    loadMoreLock.current = generation;
+    setPagination((current) => ({ ...current, isLoadingMore: true }));
     try {
       const listQuery = appliedQueryToListQuery(appliedQuery, searchDraft);
       const result = await loadMoreTransactionsAction({
@@ -217,16 +239,26 @@ export function useTransactionsContent({
         toast({ title: t('loadMoreError'), variant: 'destructive' });
         return;
       }
-      setExtraPages((prev) => [...prev, ...result.data!.transactions]);
-      setHasMore(result.data.hasMore);
-      setNextCursor(result.data.nextCursor);
+      const page = result.data;
+      setPagination((current) =>
+        current.generation === generation
+          ? {
+              ...current,
+              extraPages: [...current.extraPages, ...page.transactions],
+              hasMore: page.hasMore,
+              nextCursor: page.nextCursor,
+            }
+          : current
+      );
     } catch {
       toast({ title: t('loadMoreError'), variant: 'destructive' });
     } finally {
-      setIsLoadingMore(false);
-      loadMoreLock.current = false;
+      setPagination((current) =>
+        current.generation === generation ? { ...current, isLoadingMore: false } : current
+      );
+      if (loadMoreLock.current === generation) loadMoreLock.current = null;
     }
-  }, [hasMore, nextCursor, isLoadingMore, appliedQuery, searchDraft, t]);
+  }, [hasMore, nextCursor, isLoadingMore, appliedQuery, searchDraft, t, generation]);
 
   const handleUserFilterChange = useCallback(
     (userId: string) => {
@@ -244,7 +276,7 @@ export function useTransactionsContent({
     startNavigation(() => {
       router.push(transactionsHref(qs, searchParams));
     });
-  }, [router, searchParams, selectedUserId, startNavigation]);
+  }, [router, searchParams, selectedUserId, startNavigation, setSearchDraft]);
 
   const accountNames = useIdNameMap(accounts);
   const setTransactionEditSeed = useTransactionEditStore((state) => state.setSeed);

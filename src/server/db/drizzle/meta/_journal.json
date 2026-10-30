@@ -29,6 +29,13 @@
       "when": 1748822400003,
       "tag": "0008_budget_periods_budgets_snapshot",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793382430457,
+      "tag": "0009_server_only_data_access",
+      "breakpoints": true
     }
   ]
 }

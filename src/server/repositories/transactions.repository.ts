@@ -200,8 +200,8 @@ export class TransactionsRepository {
   /**
    * Get transactions by account (including transfers)
    */
-  static async getByAccount(accountId: string) {
-    const data = await db
+  static async getByAccount(accountId: string, executor?: DbExecutor) {
+    const data = await resolveDb(executor)
       .select()
       .from(transactions)
       .where(or(eq(transactions.account_id, accountId), eq(transactions.to_account_id, accountId)))

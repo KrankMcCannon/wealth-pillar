@@ -5,6 +5,11 @@ import type { Account } from '@/lib/types';
 import { resolveDb, type DbExecutor } from './db-executor';
 
 export class AccountsRepository {
+  static async findByIdForUpdate(id: string, executor: DbExecutor): Promise<Account | null> {
+    const [row] = await executor.select().from(accounts).where(eq(accounts.id, id)).for('update');
+    return (row as unknown as Account) ?? null;
+  }
+
   static async findById(id: string, executor?: DbExecutor): Promise<Account | null> {
     const rows = await resolveDb(executor).select().from(accounts).where(eq(accounts.id, id));
     return (rows[0] as unknown as Account) ?? null;
@@ -40,8 +45,12 @@ export class AccountsRepository {
     return rows[0] as unknown as Account;
   }
 
-  static async update(id: string, data: Partial<typeof accounts.$inferInsert>): Promise<Account> {
-    const rows = await db
+  static async update(
+    id: string,
+    data: Partial<typeof accounts.$inferInsert>,
+    executor?: DbExecutor
+  ): Promise<Account> {
+    const rows = await resolveDb(executor)
       .update(accounts)
       .set({ ...data, updated_at: new Date() })
       .where(eq(accounts.id, id))

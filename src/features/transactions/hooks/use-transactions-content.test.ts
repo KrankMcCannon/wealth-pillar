@@ -1,6 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { useTransactionsContent } from './use-transactions-content';
+import {
+  useTransactionsContent,
+  type UseTransactionsContentProps,
+} from './use-transactions-content';
 import {
   buildOptimisticTransaction,
   useOptimisticTransactionStore,
@@ -11,13 +14,22 @@ import { toast } from '@/hooks/use-toast';
 
 let search = '';
 const push = vi.fn();
+const router = { push };
+let cachedSearch = '';
+let cachedParams = new URLSearchParams();
 
 vi.mock('next/navigation', () => ({
-  useSearchParams: () => new URLSearchParams(search),
+  useSearchParams: () => {
+    if (cachedSearch !== search) {
+      cachedSearch = search;
+      cachedParams = new URLSearchParams(search);
+    }
+    return cachedParams;
+  },
 }));
 
 vi.mock('@/i18n/routing', () => ({
-  useRouter: () => ({ push }),
+  useRouter: () => router,
 }));
 
 vi.mock('@/hooks', () => ({
@@ -209,5 +221,102 @@ describe('useTransactionsContent optimistic merge', () => {
     });
 
     expect(push).toHaveBeenCalledWith('/transactions?user=u2&from=%2Fbudgets%2Fb1');
+  });
+
+  it('restores the URL search draft during browser navigation', () => {
+    const { result, rerender } = renderHook<
+      ReturnType<typeof useTransactionsContent>,
+      UseTransactionsContentProps
+    >((props: UseTransactionsContentProps) => useTransactionsContent(props), {
+      initialProps: {
+        ...baseProps,
+        transactions: [serverTx],
+        appliedQuery: { ...baseProps.appliedQuery, q: 'rent' },
+      },
+    });
+    act(() => {
+      result.current.setFilters((current) => ({ ...current, searchQuery: 'coffee' }));
+    });
+    expect(result.current.filters.searchQuery).toBe('coffee');
+    push.mockClear();
+    rerender({
+      ...baseProps,
+      transactions: [serverTx],
+      appliedQuery: { ...baseProps.appliedQuery, q: 'salary' },
+    });
+    expect(result.current.filters.searchQuery).toBe('salary');
+    expect(push).not.toHaveBeenCalled();
+  });
+
+  it('resets pagination on query changes and ignores an old in-flight page', async () => {
+    const old = Promise.withResolvers<Awaited<ReturnType<typeof loadMoreTransactionsAction>>>();
+    vi.mocked(loadMoreTransactionsAction).mockReturnValueOnce(old.promise);
+    const { result, rerender } = renderHook<
+      ReturnType<typeof useTransactionsContent>,
+      UseTransactionsContentProps
+    >((props: UseTransactionsContentProps) => useTransactionsContent(props), {
+      initialProps: {
+        ...baseProps,
+        transactions: [serverTx],
+        hasMore: true,
+        nextCursor: 'old-cursor',
+      },
+    });
+    let pending!: Promise<void>;
+    act(() => {
+      pending = result.current.loadMore();
+    });
+    expect(result.current.isLoadingMore).toBe(true);
+    rerender({
+      ...baseProps,
+      transactions: [],
+      appliedQuery: { ...baseProps.appliedQuery, type: 'income' },
+    });
+    expect(result.current.isLoadingMore).toBe(false);
+    expect(result.current.hasMore).toBe(false);
+    await act(async () => {
+      old.resolve({
+        data: {
+          transactions: [{ ...serverTx, id: 'obsolete' }],
+          hasMore: true,
+          nextCursor: 'obsolete-cursor',
+        },
+        error: null,
+      });
+      await pending;
+    });
+    expect(result.current.listItems).toEqual([]);
+    expect(result.current.hasMore).toBe(false);
+  });
+
+  it('discards a pending page even after navigating back to the original query', async () => {
+    const old = Promise.withResolvers<Awaited<ReturnType<typeof loadMoreTransactionsAction>>>();
+    vi.mocked(loadMoreTransactionsAction).mockReturnValueOnce(old.promise);
+    const initial = { ...baseProps, transactions: [serverTx], hasMore: true, nextCursor: 'cursor' };
+    const { result, rerender } = renderHook<
+      ReturnType<typeof useTransactionsContent>,
+      UseTransactionsContentProps
+    >((props: UseTransactionsContentProps) => useTransactionsContent(props), {
+      initialProps: initial,
+    });
+    let pending!: Promise<void>;
+    act(() => {
+      pending = result.current.loadMore();
+    });
+    rerender({
+      ...baseProps,
+      transactions: [],
+      appliedQuery: { ...baseProps.appliedQuery, type: 'income' },
+    });
+    rerender(initial);
+    await act(async () => {
+      old.resolve({
+        data: { transactions: [{ ...serverTx, id: 'obsolete' }], hasMore: false },
+        error: null,
+      });
+      await pending;
+    });
+    expect(result.current.listItems.map((row) => row.id)).toEqual(['server-1']);
+    expect(result.current.hasMore).toBe(true);
   });
 });

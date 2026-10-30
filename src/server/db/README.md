@@ -7,6 +7,10 @@
 
 ## Migrations
 
+- **Access control:** [audit e verifica del 30 ottobre 2026](ACCESS_CONTROL.md).
+  `0009_server_only_data_access.sql` chiude gli accessi client allo schema pubblico,
+  preservando i due ruoli backend; è già applicata al progetto Supabase.
+
 - Single baseline: [`drizzle/0000_baseline_existing_db.sql`](./drizzle/0000_baseline_existing_db.sql) (no-op `SELECT 1;` — the production schema predates Drizzle) plus [`drizzle/meta/0000_snapshot.json`](./drizzle/meta/0000_snapshot.json), which captures the live DB exactly.
 - `pnpm db:generate` against the current `schema.ts` reports **"No schema changes"** — schema and snapshot are in sync. New changes: edit `schema.ts`, run `pnpm db:generate`, review the SQL, then `pnpm db:migrate`.
 - RLS-enabled tables without policies (`available_shares`, `budget_periods`, `market_data_cache`, `orphan_users`) are kept on via `.enableRLS()` so Drizzle never emits a `DISABLE ROW LEVEL SECURITY`.

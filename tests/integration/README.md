@@ -7,6 +7,11 @@ concurrent budget period operations, rollback of neighboring date edits, and com
 budget totals under narrow report filters and overflowing transaction lists, and
 validated preference updates with rejected ownership changes.
 
+They also force both lock orderings between account balance recalculation and
+ledger mutations, and verify the server-only database migration against anonymous,
+authenticated, service and pooler roles, including views, privileged RPCs and future
+objects. Access-control fixtures are fully rolled back, including their roles.
+
 Create a dedicated empty local database, then run:
 
 ```sh
