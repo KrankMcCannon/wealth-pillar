@@ -16,7 +16,7 @@ const base = {
 function tx(
   partial: Partial<Transaction> & Pick<Transaction, 'id' | 'amount' | 'type' | 'date'>
 ): Transaction {
-  return { ...base, ...partial } as Transaction;
+  return { ...base, ...partial };
 }
 
 describe('groupByDay', () => {
@@ -63,10 +63,7 @@ describe('groupByDay', () => {
   });
 
   it('skips transactions with invalid dates', () => {
-    const list = groupByDay(
-      [tx({ id: '1', amount: 1, type: 'expense', date: '' as unknown as string })],
-      'en-US'
-    );
+    const list = groupByDay([tx({ id: '1', amount: 1, type: 'expense', date: '' })], 'en-US');
     expect(list).toEqual([]);
   });
 });

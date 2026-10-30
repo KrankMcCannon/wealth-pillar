@@ -32,7 +32,7 @@ export async function createTransactionAction(
 ): Promise<ServiceResult<Transaction>> {
   try {
     const currentUser = await getCurrentUser();
-    const gate = assertCanActOnUser(currentUser as unknown as User, input.user_id ?? undefined);
+    const gate = assertCanActOnUser(currentUser, input.user_id ?? undefined);
     if (!gate.ok) return { data: null, error: gate.error };
 
     const parsed = createTransactionSchema.safeParse(input);
@@ -73,12 +73,10 @@ export async function updateTransactionAction(
     }
 
     // Get existing transaction to verify ownership
-    const policy = new FinancialResourcePolicy(currentUser as unknown as User);
+    const policy = new FinancialResourcePolicy(currentUser);
     const repoScope = {
       groupId: policy.groupId,
-      ...(!AccessScope.for(currentUser as unknown as User).isAdmin
-        ? { userId: currentUser.id }
-        : {}),
+      ...(!AccessScope.for(currentUser).isAdmin ? { userId: currentUser.id } : {}),
     };
     const existingTransaction = await getTransactionByIdUseCase(id, repoScope);
     if (!existingTransaction) {
@@ -94,13 +92,13 @@ export async function updateTransactionAction(
       };
     }
 
-    const scope = AccessScope.for(currentUser as unknown as User);
+    const scope = AccessScope.for(currentUser);
     if (!scope.canViewOwned(existingTransaction)) {
       return { data: null, error: 'Permesso negato' };
     }
 
     if (input.user_id && input.user_id !== existingTransaction.user_id) {
-      if (isMember(currentUser as unknown as User)) {
+      if (isMember(currentUser)) {
         return { data: null, error: 'Non puoi assegnare la transazione a un altro utente' };
       }
       if (!scope.canViewUser(input.user_id)) {
@@ -146,17 +144,14 @@ export async function getTransactionByIdAction(id: string): Promise<ServiceResul
       return { data: null, error: 'Non autenticato. Effettua il login per continuare.' };
     }
 
-    const policy = new FinancialResourcePolicy(currentUser as unknown as User);
+    const policy = new FinancialResourcePolicy(currentUser);
     const transaction = await getTransactionByIdUseCase(id, { groupId: policy.groupId });
     if (!transaction) {
       return { data: null, error: 'Transazione non trovata' };
     }
     policy.assertGroup(transaction.group_id);
 
-    if (
-      transaction.user_id &&
-      !AccessScope.for(currentUser as unknown as User).canViewUser(transaction.user_id)
-    ) {
+    if (transaction.user_id && !AccessScope.for(currentUser).canViewUser(transaction.user_id)) {
       return { data: null, error: 'Permesso negato' };
     }
 
@@ -194,15 +189,11 @@ export async function loadMoreTransactionsAction(input: LoadMoreTransactionsInpu
     }
 
     const scopedQuery: TransactionsListQuery = { ...input.query, cursor: input.cursor };
-    if (isMember(currentUser as unknown as User)) {
+    if (isMember(currentUser)) {
       scopedQuery.user = currentUser.id;
     }
 
-    const window = await fetchTransactionsWindow(
-      groupId,
-      scopedQuery,
-      currentUser as unknown as User
-    );
+    const window = await fetchTransactionsWindow(groupId, scopedQuery, currentUser);
 
     return { data: window, error: null };
   } catch (error) {
@@ -222,12 +213,10 @@ export async function deleteTransactionAction(id: string): Promise<ServiceResult
     }
 
     // Get existing transaction to verify ownership
-    const policy = new FinancialResourcePolicy(currentUser as unknown as User);
+    const policy = new FinancialResourcePolicy(currentUser);
     const repoScope = {
       groupId: policy.groupId,
-      ...(!AccessScope.for(currentUser as unknown as User).isAdmin
-        ? { userId: currentUser.id }
-        : {}),
+      ...(!AccessScope.for(currentUser).isAdmin ? { userId: currentUser.id } : {}),
     };
     const existingTransaction = await getTransactionByIdUseCase(id, repoScope);
     if (!existingTransaction) {
@@ -243,7 +232,7 @@ export async function deleteTransactionAction(id: string): Promise<ServiceResult
       };
     }
 
-    if (!AccessScope.for(currentUser as unknown as User).canViewOwned(existingTransaction)) {
+    if (!AccessScope.for(currentUser).canViewOwned(existingTransaction)) {
       return { data: null, error: 'Permesso negato' };
     }
 

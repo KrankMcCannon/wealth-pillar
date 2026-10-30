@@ -8,12 +8,7 @@ import { toCents } from '@/lib/utils/money';
 import { computeBalanceDeltas } from '../use-cases/transactions/transaction-balance-delta.core';
 
 export type MovementKind =
-  | 'income'
-  | 'expense'
-  | 'split_transfer'
-  | 'savings_transfer'
-  | 'internal_transfer'
-  | 'ignored';
+  'income' | 'expense' | 'split_transfer' | 'savings_transfer' | 'internal_transfer' | 'ignored';
 
 /** Expense +, income − (same sign as budget spent). */
 export interface LedgerLeg {

@@ -71,7 +71,7 @@ describe('editClosingDateAction', () => {
   });
 
   it('returns unauthenticated when user is missing', async () => {
-    vi.mocked(getCurrentUser).mockResolvedValue(null as unknown as User);
+    vi.mocked(getCurrentUser).mockResolvedValue(null);
 
     const result = await editClosingDateAction('user-1', 'closed-1', '2024-05-28');
     expect(result.error).toBe('errors.unauthenticated');

@@ -113,7 +113,7 @@ export async function createRecurringSeriesAction(
     if (inputError) return { data: null, error: inputError };
 
     // Validate permissions logic
-    const permError = validateCreatePermissions(currentUser as unknown as User, input.user_ids);
+    const permError = validateCreatePermissions(currentUser, input.user_ids);
     if (permError) return { data: null, error: permError };
 
     const data = await createSeriesUseCase({
@@ -135,7 +135,7 @@ export async function createRecurringSeriesAction(
       return { data: null, error: 'Failed to create recurring series' };
     }
 
-    return { data: serialize(data) as unknown as RecurringTransactionSeries, error: null };
+    return { data: serialize(data), error: null };
   } catch (error) {
     console.error('[createRecurringSeriesAction] Unexpected error:', error);
     return {
@@ -240,11 +240,7 @@ export async function updateRecurringSeriesAction(
     }
 
     // Permission validation
-    const permError = validateUpdatePermission(
-      currentUser as unknown as User,
-      oldSeries,
-      input.user_ids
-    );
+    const permError = validateUpdatePermission(currentUser, oldSeries, input.user_ids);
     if (permError) return { data: null, error: permError };
 
     // Build update data
@@ -252,15 +248,12 @@ export async function updateRecurringSeriesAction(
     if (payloadError) return { data: null, error: payloadError };
     const updatePayload = payload;
 
-    const data = await updateSeriesUseCase(
-      input.id,
-      updatePayload as Parameters<typeof updateSeriesUseCase>[1]
-    );
+    const data = await updateSeriesUseCase(input.id, updatePayload);
     if (!data) {
       return { data: null, error: 'Failed to update series' };
     }
 
-    return { data: serialize(data) as unknown as RecurringTransactionSeries, error: null };
+    return { data: serialize(data), error: null };
   } catch (error) {
     console.error('[updateRecurringSeriesAction] Unexpected error:', error);
     return {
@@ -296,7 +289,7 @@ export async function deleteRecurringSeriesAction(
       return { data: null, error: 'Serie ricorrente non trovata' };
     }
 
-    if (!AccessScope.for(currentUser as unknown as User).canViewShared(series)) {
+    if (!AccessScope.for(currentUser).canViewShared(series)) {
       return { data: null, error: 'Permesso negato' };
     }
 
@@ -333,7 +326,7 @@ export async function getRecurringSeriesByIdAction(
       return { data: null, error: 'Serie non trovata' };
     }
 
-    if (!AccessScope.for(currentUser as unknown as User).canViewShared(series)) {
+    if (!AccessScope.for(currentUser).canViewShared(series)) {
       return { data: null, error: 'Permesso negato' };
     }
 

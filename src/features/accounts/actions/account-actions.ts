@@ -14,7 +14,7 @@ import {
 } from '@/server/use-cases/accounts/account.use-cases';
 import { setUserDefaultAccountUseCase } from '@/server/use-cases/users/user.use-cases';
 import type { ServiceResult } from '@/lib/types/service-result';
-import { Account, User } from '@/lib/types';
+import { Account } from '@/lib/types';
 import { AccessScope } from '@/lib/permissions/access-scope';
 import { defaultAccountUserId } from '@/features/accounts/utils/default-account-id';
 import { FinancialResourcePolicy } from '@/server/permissions/financial-resource-policy';
@@ -49,7 +49,7 @@ export async function createAccountAction(
     if (!input.group_id) return { data: null, error: t('errors.groupRequired') };
     if (!input.user_ids?.length) return { data: null, error: t('errors.userRequired') };
 
-    const policy = new FinancialResourcePolicy(currentUser as unknown as User);
+    const policy = new FinancialResourcePolicy(currentUser);
     policy.assertGroup(input.group_id);
     await policy.assertUsers(input.user_ids);
     const account = await createAccountUseCase({ ...input, group_id: policy.groupId });
@@ -92,7 +92,7 @@ export async function updateAccountAction(
       return { data: null, error: t('errors.noPermissionUpdate') };
     }
 
-    const scope = AccessScope.for(currentUser as unknown as User);
+    const scope = AccessScope.for(currentUser);
     if (!scope.canViewShared(existingAccount)) {
       return { data: null, error: t('errors.noPermissionUpdate') };
     }
@@ -109,7 +109,7 @@ export async function updateAccountAction(
       return { data: null, error: t('errors.nameEmpty') };
     if (input.user_ids?.length === 0) return { data: null, error: t('errors.userRequired') };
 
-    const policy = new FinancialResourcePolicy(currentUser as unknown as User);
+    const policy = new FinancialResourcePolicy(currentUser);
     if ('group_id' in input) policy.assertGroup(input.group_id);
     if (input.user_ids) await policy.assertUsers(input.user_ids);
     const account = await updateAccountUseCase(accountId, input);

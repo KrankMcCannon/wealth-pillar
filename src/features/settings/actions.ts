@@ -34,7 +34,7 @@ export async function updateUserProfileAction(
       return { data: null, error: 'Not authenticated' };
     }
 
-    const permissionError = assertSelfOrDenied(currentUser as unknown as User, userId);
+    const permissionError = assertSelfOrDenied(currentUser, userId);
     if (permissionError) {
       return { data: null, error: permissionError };
     }
@@ -87,7 +87,7 @@ export async function updateUserPreferencesAction(
       return { data: null, error: 'Not authenticated' };
     }
 
-    const permissionError = assertSelfOrDenied(currentUser as unknown as User, userId);
+    const permissionError = assertSelfOrDenied(currentUser, userId);
     if (permissionError) {
       return { data: null, error: permissionError };
     }

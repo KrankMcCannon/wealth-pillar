@@ -90,7 +90,7 @@ export function getDateChipLabel(
     }
     return t('dateOptions.custom');
   }
-  return getDateLabel(filters.dateRange as DateRangeFilter, t);
+  return getDateLabel(filters.dateRange, t);
 }
 
 export const defaultFiltersState: TransactionFiltersState = {

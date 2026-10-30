@@ -97,7 +97,7 @@ export async function createInvestmentAction(
       user_id: currentUser.id, // Force connect to current user for now
     };
 
-    const data = await useCases.addInvestmentUseCase(investmentData as InvestmentInsert);
+    const data = await useCases.addInvestmentUseCase(investmentData);
 
     if (!data) return { data: null, error: 'Failed to create investment' };
 

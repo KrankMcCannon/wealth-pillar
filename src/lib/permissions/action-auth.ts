@@ -15,7 +15,7 @@ export async function requireAuthenticatedUser(
   if (!currentUser) {
     return { data: null, error: unauthenticatedError };
   }
-  return currentUser as unknown as User;
+  return currentUser;
 }
 
 /**

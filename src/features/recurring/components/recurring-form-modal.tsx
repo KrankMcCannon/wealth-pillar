@@ -13,7 +13,7 @@ import {
   useEntityFormRowReset,
   useEntityFormSubmit,
 } from '@/components/form';
-import { RecurringTransactionSeries, TransactionFrequencyType } from '@/lib/types';
+import { RecurringTransactionSeries } from '@/lib/types';
 import {
   createRecurringSeriesAction,
   deleteRecurringSeriesAction,
@@ -68,7 +68,7 @@ function buildRecurringPayload(
     amount: Number.parseFloat(data.amount),
     type: data.type,
     category: data.category,
-    frequency: data.frequency as TransactionFrequencyType,
+    frequency: data.frequency,
     account_id: data.account_id,
     start_date: data.start_date,
     end_date: data.end_date || null,

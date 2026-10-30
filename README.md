@@ -93,7 +93,7 @@
 
 ### Prerequisites
 
-- **Node.js** ≥ 22.13.0 (see `.nvmrc`, currently 22.14.0)
+- **Node.js** ≥ 22.13.0 (see `.nvmrc`, currently 26.13.0)
 - **pnpm** 10.x (used in CI and Netlify)
 - **Supabase** account (PostgreSQL database)
 - **Clerk** account (authentication)
@@ -337,7 +337,7 @@ The project is configured for Netlify via `netlify.toml`:
 pnpm build
 ```
 
-Netlify uses Node 22.14.0 and `pnpm run build`.
+Netlify uses Node 26.13.0 and `pnpm run build`.
 
 Ensure all environment variables listed above are set in your deployment platform.
 

@@ -3,7 +3,6 @@
 import { PlusCircle, Star, Trash2 } from 'lucide-react';
 import { Button, Field, FieldLabel, Input } from '@/components/ui';
 import { ChoiceRadios } from '@/components/form/modal-fields';
-import type { AccountType } from '@/lib/types';
 import type { OnboardingFormAccount } from '@/features/onboarding/types';
 import { onboardingStyles } from '@/features/onboarding/styles';
 import type { OnboardingWizardApi } from './use-onboarding-wizard';
@@ -100,7 +99,7 @@ export function OnboardingStepProfile({
             <ChoiceRadios
               name={`account-type-${account.id}`}
               value={account.type}
-              onChange={(value) => updateAccountField(index, 'type', value as AccountType)}
+              onChange={(value) => updateAccountField(index, 'type', value)}
               label={t('fields.accounts.typeLabel')}
               variant="cards"
               padded={false}
