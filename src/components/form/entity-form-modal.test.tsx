@@ -84,3 +84,26 @@ describe('EntityFormModal template defaults', () => {
     expect(screen.getByText('Are you sure?')).toBeInTheDocument();
   });
 });
+
+it('preserves edited fields when optimistic data is rolled back', async () => {
+  const user = userEvent.setup();
+  const view = (name: string) => (
+    <EntityFormModal
+      isOpen
+      onClose={() => {}}
+      title="Draft"
+      schema={schema}
+      defaultValues={{ name }}
+      resetValues={{ name }}
+      onSubmit={async () => {}}
+    >
+      {(form) => <input aria-label="Editable name" {...form.register('name')} />}
+    </EntityFormModal>
+  );
+  const { rerender } = render(view('Original'));
+  const input = screen.getByLabelText('Editable name');
+  await user.clear(input);
+  await user.type(input, 'User draft');
+  rerender(view('Rolled back server value'));
+  expect(input).toHaveValue('User draft');
+});

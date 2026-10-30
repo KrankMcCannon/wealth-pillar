@@ -68,7 +68,7 @@
   },
   "SettingsContent": {
     "headerTitle": "Impostazioni",
-    "currencyModalTitle": "Seleziona Valuta",
+    "currencyModalTitle": "Valuta contabile: EUR",
     "languageModalTitle": "Seleziona Lingua",
     "timezoneModalTitle": "Seleziona Fuso Orario"
   },
@@ -272,7 +272,7 @@
     "currency": {
       "EUR": {
         "label": "Euro (€)",
-        "description": "Valuta ufficiale dell'Unione Europea"
+        "description": "Conti e budget sono espressi in euro. Non vengono effettuate conversioni."
       },
       "USD": {
         "label": "Dollaro Americano ($)",
@@ -415,7 +415,8 @@
       "customTitle": "Scegli le date",
       "from": "Da",
       "to": "A",
-      "apply": "Mostra"
+      "apply": "Mostra",
+      "invalidRange": "La data finale deve essere successiva o uguale alla data iniziale."
     },
     "Hero": {
       "srHeading": "Riepilogo del periodo",
@@ -675,6 +676,12 @@
         "saveError": "Errore durante il salvataggio",
         "loadError": "Impossibile caricare l'investimento",
         "notFound": "Investimento non trovato"
+      },
+      "delete": {
+        "title": "Elimina inserimento",
+        "message": "Eliminare l’inserimento «{name}» dal portafoglio? Usalo per correggere un errore o un duplicato. Non registra una vendita.",
+        "confirm": "Elimina inserimento",
+        "error": "Non è stato possibile eliminare l’inserimento. Riprova."
       }
     }
   },
@@ -885,7 +892,9 @@
         "perPageLabel": "Per pagina",
         "perPageAriaLabel": "Righe per pagina",
         "goToPage": "Vai alla pagina {page}"
-      }
+      },
+      "transferDirection": "Da {from} a {to}",
+      "accountFallback": "conto"
     },
     "FormModal": {
       "validation": {
@@ -951,7 +960,7 @@
       },
       "errors": {
         "notFound": "Transazione non trovata. Ricarica la pagina e riprova.",
-        "unknown": "Qualcosa è andato storto. Riprova."
+        "unknown": "Non è stato possibile completare l’operazione. I dati del modulo sono conservati: riprova."
       },
       "toast": {
         "errorTitle": "Errore",
@@ -1121,7 +1130,7 @@
       },
       "errors": {
         "notFound": "Serie ricorrente non trovata",
-        "unknown": "Errore sconosciuto"
+        "unknown": "Non è stato possibile completare l’operazione. I dati del modulo sono conservati: riprova."
       },
       "typeOptions": {
         "expense": "Uscita",
@@ -1310,9 +1319,9 @@
       "dialogs": {
         "delete": {
           "title": "Elimina conto",
-          "message": "Sei sicuro di voler eliminare il conto \"{name}\"? Questa azione non può essere annullata.",
-          "messageFallback": "Eliminare questo conto? L'operazione non può essere annullata.",
-          "confirm": "Elimina",
+          "message": "Eliminare definitivamente il conto \"{name}\" e tutti i movimenti collegati? Anche i trasferimenti saranno cancellati e i saldi degli altri conti coinvolti verranno rettificati. Lo storico eliminato non può essere recuperato.",
+          "messageFallback": "Eliminare definitivamente il conto selezionato e tutti i movimenti collegati? Anche i trasferimenti saranno cancellati e i saldi degli altri conti coinvolti verranno rettificati. Lo storico eliminato non può essere recuperato.",
+          "confirm": "Elimina conto e movimenti",
           "cancel": "Annulla"
         }
       },
@@ -1408,7 +1417,7 @@
       },
       "errors": {
         "notFound": "Conto non trovato",
-        "unknown": "Errore sconosciuto"
+        "unknown": "Non è stato possibile completare l’operazione. I dati del modulo sono conservati: riprova."
       }
     },
     "Actions": {
@@ -1503,11 +1512,12 @@
       "sectionDetailsTitle": "Budget e periodo",
       "sectionDetailsSubtitle": "Progressi, andamento e transazioni collegate",
       "hero": {
-        "totalAvailable": "Totale disponibile da spendere",
-        "totalSpent": "Totale speso",
+        "totalAvailable": "Disponibilità delle buste",
+        "totalSpent": "Utilizzo delle buste",
         "totalAssigned": "Assegnato",
         "outOf": "su {total}",
-        "srHeading": "Riepilogo budget"
+        "srHeading": "Riepilogo budget",
+        "envelopeHelp": "Le buste possono condividere categorie: la stessa spesa può impegnare più buste. Il grafico conta invece ogni movimento una sola volta."
       },
       "closePeriod": "Chiudi periodo",
       "editClosingDate": "Modifica ultima chiusura",
@@ -1582,7 +1592,7 @@
       }
     },
     "Chart": {
-      "spentLabel": "Hai speso",
+      "spentLabel": "Spesa netta, senza duplicati",
       "svgTitle": "Andamento cumulativo delle spese nel periodo",
       "svgDescription": "Grafico a linee delle spese accumulate giorno per giorno su tutti i budget di questo periodo.",
       "sectionAriaLabel": "Andamento delle spese su tutti i budget nel periodo",
@@ -1609,7 +1619,7 @@
           "label": "Tipo budget",
           "options": {
             "monthly": "Mensile",
-            "annually": "Annuale"
+            "annually": "Obiettivo annuo (quota 1/12)"
           }
         },
         "amount": {
@@ -1659,8 +1669,10 @@
       },
       "errors": {
         "notFound": "Budget non trovato",
-        "unknown": "Errore sconosciuto"
-      }
+        "unknown": "Non è stato possibile completare l’operazione. I dati del modulo sono conservati: riprova."
+      },
+      "periodHelp": "Per un obiettivo annuo, ogni periodo dispone di 1/12 dell’importo. Le spese indicate riguardano il periodo corrente.",
+      "overlapHelp": "Puoi condividere categorie tra budget: ogni movimento conta una sola volta nel totale delle uscite."
     },
     "Actions": {
       "errors": {
@@ -1812,7 +1824,7 @@
       },
       "errors": {
         "notFound": "Categoria non trovata",
-        "unknown": "Errore sconosciuto"
+        "unknown": "Non è stato possibile completare l’operazione. I dati del modulo sono conservati: riprova."
       }
     },
     "Actions": {

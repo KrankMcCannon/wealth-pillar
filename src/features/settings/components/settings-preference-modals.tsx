@@ -83,23 +83,16 @@ function usePreferenceModalSave(preferenceKey: keyof UserPreferencesUpdate) {
 export function CurrencyPreferenceModal() {
   const t = useTranslations('SettingsContent');
   const { modal, closeModal } = useModalState();
-  const { preferences } = useSettingsModalsContext();
   const { currencyOptions } = usePreferenceOptions();
-  const { isSaving, onSave } = usePreferenceModalSave('currency');
-
-  if (!preferences) return null;
-
   return (
     <SelectionModal
       isOpen={modal === 'settings:currency'}
       onClose={closeModal}
       title={t('currencyModalTitle')}
-      value={preferences.currency}
-      options={currencyOptions}
-      isSaving={isSaving}
-      onSave={(value) =>
-        onSave(value, preferences.currency, t('currencyModalTitle'), currencyOptions)
-      }
+      value="EUR"
+      options={currencyOptions.filter((option) => option.value === 'EUR')}
+      isSaving={false}
+      onSave={async () => closeModal()}
     />
   );
 }

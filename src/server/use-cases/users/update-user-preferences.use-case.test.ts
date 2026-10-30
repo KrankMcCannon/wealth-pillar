@@ -40,13 +40,13 @@ describe('validated user preferences', () => {
   it('normalizes supported languages and preserves false flags', async () => {
     await updateUserPreferencesUseCase('u1', {
       language: ' EN-gb ',
-      currency: 'USD',
+      currency: 'EUR',
       timezone: 'Europe/London',
       notifications_push: false,
     });
     expect(UserPreferencesRepository.update).toHaveBeenCalledWith('u1', {
       language: 'en-US',
-      currency: 'USD',
+      currency: 'EUR',
       timezone: 'Europe/London',
       notifications_push: false,
     });

@@ -75,7 +75,12 @@ export class TransactionsRepository {
       filterConditions.push(eq(transactions.type, options.type));
     }
     if (options?.accountId) {
-      filterConditions.push(eq(transactions.account_id, options.accountId));
+      filterConditions.push(
+        or(
+          eq(transactions.account_id, options.accountId),
+          eq(transactions.to_account_id, options.accountId)
+        )!
+      );
     }
     if (options?.userId) {
       filterConditions.push(eq(transactions.user_id, options.userId));

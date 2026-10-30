@@ -1,15 +1,19 @@
 'use client';
 
+import { parseDecimal } from '@/lib/utils/parse-decimal';
+
 import { useCallback, useMemo } from 'react';
 import { z } from 'zod';
 import { useTranslations } from 'next-intl';
 import {
   createInvestmentAction,
+  deleteInvestmentAction,
   getInvestmentByIdAction,
   updateInvestmentAction,
 } from '@/features/investments/actions/investment-actions';
 import { EntityFormModal, useEntityFormRowReset, useEntityFormSubmit } from '@/components/form';
 import { ModalFooterActions } from '@/components/ui/modal-footer-actions';
+import { useRouter } from '@/i18n/routing';
 import { toast } from '@/hooks/use-toast';
 import { InvestmentFormFields, type InvestmentFormData } from './investment-form-fields';
 import {
@@ -24,16 +28,19 @@ const createInvestmentSchema = (t: ReturnType<typeof useTranslations>) =>
     amount: z
       .string()
       .refine(
-        (val) => !Number.isNaN(Number(val)) && Number(val) > 0,
+        (val) => !Number.isNaN(parseDecimal(val)) && parseDecimal(val) > 0,
         t('validation.amountInvalid')
       ),
     tax_paid: z
       .string()
-      .refine((val) => !Number.isNaN(Number(val)) && Number(val) >= 0, t('validation.taxInvalid')),
+      .refine(
+        (val) => !Number.isNaN(parseDecimal(val)) && parseDecimal(val) >= 0,
+        t('validation.taxInvalid')
+      ),
     shares: z
       .string()
       .refine(
-        (val) => !Number.isNaN(Number(val)) && Number(val) > 0,
+        (val) => !Number.isNaN(parseDecimal(val, 10)) && parseDecimal(val, 10) > 0,
         t('validation.sharesInvalid')
       ),
     created_at: z.string().min(1, t('validation.dateRequired')),
@@ -52,6 +59,7 @@ export default function AddInvestmentModal({
   editId,
 }: Readonly<AddInvestmentModalProps>) {
   const t = useTranslations('Investments.AddModal');
+  const router = useRouter();
   const investmentSchema = useMemo(() => createInvestmentSchema(t), [t]);
   const isEditMode = Boolean(editId);
 
@@ -122,7 +130,8 @@ export default function AddInvestmentModal({
     getSuccessToast,
     errorToast: { title: t('toast.errorTitle') },
     unknownErrorMessage: t('toast.saveError'),
-    closeBeforeSubmit: !isEditMode,
+    closeBeforeSubmit: false,
+    refreshAfterSuccess: () => router.refresh(),
   });
 
   const title = isEditMode ? t('title.edit') : t('title.create');
@@ -139,6 +148,26 @@ export default function AddInvestmentModal({
       repositionInputs={false}
       isLoading={Boolean(editId) && (isLoading || !isReady)}
       onSubmit={handleSubmit}
+      deletion={{
+        enabled: Boolean(editId) && isReady && !loadFailed,
+        title: t('delete.title'),
+        message: t('delete.message', { name: resetValues?.name ?? '' }),
+        confirmText: t('delete.confirm'),
+        cancelText: t('cancelButton'),
+        onDelete: async () => {
+          if (!editId) return;
+          const result = await deleteInvestmentAction(editId);
+          if (result.error) {
+            toast({
+              title: t('toast.errorTitle'),
+              description: t('delete.error'),
+              variant: 'destructive',
+            });
+            throw new Error(result.error);
+          }
+          router.refresh();
+        },
+      }}
       footer={(_, isSubmitting) => (
         <ModalFooterActions
           variant="dual"

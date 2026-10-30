@@ -1,5 +1,7 @@
 'use client';
 
+import { parseDecimal } from '@/lib/utils/parse-decimal';
+
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useWatch, type UseFormReturn } from 'react-hook-form';
 import { useTranslations } from 'next-intl';
@@ -65,7 +67,7 @@ function buildRecurringPayload(
 ): RecurringTransactionSeriesData {
   return {
     description: data.description.trim(),
-    amount: Number.parseFloat(data.amount),
+    amount: parseDecimal(data.amount),
     type: data.type,
     category: data.category,
     frequency: data.frequency,

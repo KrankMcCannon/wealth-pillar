@@ -98,12 +98,14 @@ export function EntityFormModal<T extends FieldValues>({
   });
 
   const { reset } = form;
+  const { isDirty, isSubmitting } = form.formState;
+  const rootError = form.formState.errors.root;
 
   useEffect(() => {
-    if (isOpen && !isLoading) {
+    if (isOpen && !isLoading && !isDirty && !isSubmitting && !rootError) {
       reset(resetValues ?? defaultValues);
     }
-  }, [isOpen, isLoading, resetValues, defaultValues, reset]);
+  }, [isOpen, isLoading, resetValues, defaultValues, reset, isDirty, isSubmitting, rootError]);
 
   const openDeleteDialog = useCallback(() => {
     if (deletion?.enabled) {
@@ -137,7 +139,7 @@ export function EntityFormModal<T extends FieldValues>({
         onOpenChange={onClose}
         title={title}
         {...(description !== undefined ? { description } : {})}
-        disableOutsideClose={disableOutsideClose || isDeleting}
+        disableOutsideClose={disableOutsideClose || isDeleting || form.formState.isSubmitting}
         repositionInputs={repositionInputs}
         isLoading={isLoading}
         {...wrapperProps}

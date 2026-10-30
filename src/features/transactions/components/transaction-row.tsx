@@ -11,16 +11,31 @@ interface TransactionRowProps {
   transaction: Transaction;
   onEditTransaction?: ((transaction: Transaction) => void) | undefined;
   getCategoryLabel: (key: string) => string;
+  accountNames?: Record<string, string> | undefined;
+  selectedAccountId?: string | undefined;
 }
 
 export const TransactionRow = memo(function TransactionRow({
   transaction,
   onEditTransaction,
   getCategoryLabel,
+  accountNames,
+  selectedAccountId,
 }: TransactionRowProps) {
   const t = useTranslations('Transactions.Table');
-  const amountLabel = formatCurrency(Math.abs(transaction.amount));
-  const meta = getCategoryLabel(transaction.category);
+  const isOutgoing =
+    transaction.type === 'expense' ||
+    (transaction.type === 'transfer' && selectedAccountId === transaction.account_id);
+  const signedAmount = isOutgoing ? -Math.abs(transaction.amount) : Math.abs(transaction.amount);
+  const amountLabel = formatCurrency(signedAmount);
+  const direction =
+    transaction.type === 'transfer' && accountNames
+      ? t('transferDirection', {
+          from: accountNames[transaction.account_id] ?? t('accountFallback'),
+          to: accountNames[transaction.to_account_id ?? ''] ?? t('accountFallback'),
+        })
+      : '';
+  const meta = [getCategoryLabel(transaction.category), direction].filter(Boolean).join(' · ');
 
   return (
     <PlainListRow
@@ -28,10 +43,12 @@ export const TransactionRow = memo(function TransactionRow({
       meta={meta}
       onClick={onEditTransaction ? () => onEditTransaction(transaction) : undefined}
       testId={`transaction-row-${transaction.id}`}
-      ariaLabel={t('actions.editAria', {
-        description: transaction.description,
-        amount: amountLabel,
-      })}
+      ariaLabel={
+        t('actions.editAria', {
+          description: transaction.description,
+          amount: amountLabel,
+        }) + (direction ? ' · ' + direction : '')
+      }
     >
       <Amount
         type={
@@ -44,9 +61,7 @@ export const TransactionRow = memo(function TransactionRow({
         size="md"
         emphasis="strong"
       >
-        {transaction.type === 'expense'
-          ? -Math.abs(transaction.amount)
-          : Math.abs(transaction.amount)}
+        {signedAmount}
       </Amount>
     </PlainListRow>
   );

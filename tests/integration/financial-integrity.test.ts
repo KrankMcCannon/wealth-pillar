@@ -743,21 +743,21 @@ describe('preferences persistence against PostgreSQL', () => {
   it('lazily creates and updates only the validated preferences for the target user', async () => {
     const saved = await updateUserPreferencesUseCase(userId, {
       language: 'en',
-      currency: 'USD',
+      currency: 'EUR',
       timezone: 'Europe/London',
       notifications_push: false,
     });
     expect(saved).toMatchObject({
       user_id: userId,
       language: 'en-US',
-      currency: 'USD',
+      currency: 'EUR',
       notifications_push: false,
     });
     expect(await UserPreferencesRepository.getByUserId(userId)).toMatchObject(saved);
   });
   it('does not create or reassign preferences from forged ownership input', async () => {
     await expect(
-      updateUserPreferencesUseCase(userId, { user_id: b, currency: 'USD' })
+      updateUserPreferencesUseCase(userId, { user_id: b, currency: 'EUR' })
     ).rejects.toThrow();
     expect(await UserPreferencesRepository.getByUserId(userId)).toBeNull();
     expect(await UserPreferencesRepository.getByUserId(b)).toBeNull();

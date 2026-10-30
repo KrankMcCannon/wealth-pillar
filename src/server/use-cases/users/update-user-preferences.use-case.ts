@@ -7,7 +7,7 @@ import { getUserPreferencesUseCase } from './get-user-preferences.use-case';
 
 const preferencesUpdateSchema = z
   .strictObject({
-    currency: z.enum(['EUR', 'USD', 'GBP', 'CHF']).optional(),
+    currency: z.literal('EUR').optional(),
     language: z
       .string()
       .trim()

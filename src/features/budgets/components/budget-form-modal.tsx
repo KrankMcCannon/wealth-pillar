@@ -1,5 +1,7 @@
 'use client';
 
+import { parseDecimal } from '@/lib/utils/parse-decimal';
+
 import { useCallback, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { z } from 'zod';
@@ -98,7 +100,7 @@ function BudgetFormModal({
         amount: z
           .string()
           .min(1, t('validation.amountRequired'))
-          .refine((val) => !Number.isNaN(Number.parseFloat(val)) && Number.parseFloat(val) > 0, {
+          .refine((val) => !Number.isNaN(parseDecimal(val)) && parseDecimal(val) > 0, {
             message: t('validation.amountPositive'),
           }),
         type: z.enum(['monthly', 'annually']),

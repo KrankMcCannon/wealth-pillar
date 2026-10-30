@@ -1,5 +1,7 @@
 'use client';
 
+import { parseDecimal } from '@/lib/utils/parse-decimal';
+
 import { useEffect, useMemo, useCallback, useRef } from 'react';
 import { useWatch, type UseFormReturn } from 'react-hook-form';
 import { z } from 'zod';
@@ -47,7 +49,7 @@ const createTransactionSchema = (t: ReturnType<typeof useTranslations>) =>
       amount: z
         .string()
         .min(1, t('validation.amountRequired'))
-        .refine((val) => !Number.isNaN(Number.parseFloat(val)) && Number.parseFloat(val) > 0, {
+        .refine((val) => !Number.isNaN(parseDecimal(val)) && parseDecimal(val) > 0, {
           message: t('validation.amountGreaterThanZero'),
         }),
       type: z.enum(['income', 'expense', 'transfer']),

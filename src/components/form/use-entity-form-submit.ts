@@ -29,7 +29,7 @@ export interface UseEntityFormSubmitOptions<T extends FieldValues, Payload, Resu
   formatErrorDescription?: (error: string, isEditMode: boolean) => string | undefined;
   refreshAfterSuccess?: () => void;
   unknownErrorMessage: string;
-  /** When true (default), modal closes before the server action runs. */
+  /** When true, modal closes before the server action runs. */
   closeBeforeSubmit?: boolean;
 }
 
@@ -51,7 +51,7 @@ export function useEntityFormSubmit<T extends FieldValues, Payload, Result, Hand
   formatErrorDescription,
   refreshAfterSuccess,
   unknownErrorMessage,
-  closeBeforeSubmit = true,
+  closeBeforeSubmit = false,
 }: UseEntityFormSubmitOptions<T, Payload, Result, Handle>) {
   return useCallback(
     async (values: T, form: UseFormReturn<T>) => {
@@ -117,7 +117,13 @@ export function useEntityFormSubmit<T extends FieldValues, Payload, Result, Hand
         });
         refreshAfterSuccess?.();
       } catch (error) {
-        const message = error instanceof Error ? error.message : unknownErrorMessage;
+        const rawMessage = error instanceof Error ? error.message : unknownErrorMessage;
+        const message =
+          /failed to fetch|fetch failed|networkerror|load failed|network request failed/i.test(
+            rawMessage
+          )
+            ? unknownErrorMessage
+            : rawMessage;
 
         if (isEditMode && editId) {
           if (handle !== undefined) {

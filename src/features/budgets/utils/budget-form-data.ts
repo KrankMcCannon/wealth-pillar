@@ -1,3 +1,4 @@
+import { parseDecimal } from '@/lib/utils/parse-decimal';
 import type { Budget } from '@/lib/types';
 import type { BudgetFormData } from '../components/budget-form-fields';
 
@@ -15,7 +16,7 @@ export function mapBudgetToFormData(budget: Budget): BudgetFormData {
 export function buildBudgetPayload(data: BudgetFormData, groupId: string) {
   return {
     description: data.description.trim(),
-    amount: Number.parseFloat(data.amount),
+    amount: parseDecimal(data.amount),
     type: data.type,
     icon: data.icon ?? null,
     categories: data.categories,

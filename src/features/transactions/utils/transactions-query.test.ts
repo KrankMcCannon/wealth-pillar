@@ -91,4 +91,17 @@ describe('matchesAppliedQuery', () => {
     expect(matchesAppliedQuery({ ...transaction, user_id: 'u2' }, applied, '')).toBe(false);
     expect(matchesAppliedQuery({ ...transaction, type: 'income' }, applied, '')).toBe(false);
   });
+  it('includes incoming transfers for the destination account', () => {
+    expect(
+      matchesAppliedQuery(
+        { ...transaction, type: 'transfer', to_account_id: 'acc-2' },
+        {
+          type: 'all',
+          dateRange: 'all',
+          account: 'acc-2',
+        },
+        ''
+      )
+    ).toBe(true);
+  });
 });

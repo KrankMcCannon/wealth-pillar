@@ -75,10 +75,15 @@ export function materializePeriodBudgets(period: BudgetPeriod): Budget[] {
   return parseBudgetsSnapshot(period.budgets_snapshot) ?? [];
 }
 
+/** Annual targets allocate one twelfth to each household budget cycle. */
+export function periodBudgetAmount(budget: Pick<Budget, 'amount' | 'type'>): number {
+  return roundMoney(budget.type === 'annually' ? budget.amount / 12 : budget.amount);
+}
+
 export function allocatedFromBudgets(budgets: Budget[]): number {
   let total = 0;
   for (const budget of budgets) {
-    if (budget.amount > 0) total += budget.amount;
+    if (budget.amount > 0) total += periodBudgetAmount(budget);
   }
   return roundMoney(total);
 }
