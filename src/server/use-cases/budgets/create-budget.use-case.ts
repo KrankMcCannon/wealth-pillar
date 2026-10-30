@@ -1,5 +1,5 @@
 import { after } from 'next/server';
-import { BudgetsRepository, type InsertBudget } from '@/server/repositories/budgets.repository';
+import { BudgetsRepository } from '@/server/repositories/budgets.repository';
 import type { CreateBudgetInput } from './types';
 import type { Budget } from '@/lib/types';
 import { getUserGroupIdUseCase } from '../users/user.use-cases';
@@ -33,7 +33,7 @@ export async function createBudgetUseCase(data: CreateBudgetInput): Promise<Budg
     group_id: groupId,
   };
 
-  const budget = await BudgetsRepository.create(insertData as InsertBudget);
+  const budget = await BudgetsRepository.create(insertData);
 
   after(() => {
     invalidateBudgetCaches({ userId: data.user_id, groupId });

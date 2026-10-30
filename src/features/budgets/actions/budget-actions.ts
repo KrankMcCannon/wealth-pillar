@@ -7,7 +7,7 @@ import { getCurrentUser } from '@/lib/auth/cached-auth';
 import type { CreateBudgetInput } from '@/server/use-cases/budgets/types';
 import { AccessScope } from '@/lib/permissions/access-scope';
 import { isMember } from '@/lib/utils';
-import type { Budget, User } from '@/lib/types';
+import type { Budget } from '@/lib/types';
 import { createBudgetUseCase } from '@/server/use-cases/budgets/create-budget.use-case';
 import { updateBudgetUseCase } from '@/server/use-cases/budgets/update-budget.use-case';
 import { deleteBudgetUseCase } from '@/server/use-cases/budgets/delete-budget.use-case';
@@ -40,7 +40,7 @@ export async function createBudgetAction(
     }
 
     // Permission validation: members can only create for themselves
-    if (isMember(currentUser as unknown as User) && input.user_id !== currentUser.id) {
+    if (isMember(currentUser) && input.user_id !== currentUser.id) {
       return {
         data: null,
         error: t('errors.noPermissionCreateOthers'),
@@ -55,7 +55,7 @@ export async function createBudgetAction(
       };
     }
 
-    if (!AccessScope.for(currentUser as unknown as User).canViewUser(input.user_id)) {
+    if (!AccessScope.for(currentUser).canViewUser(input.user_id)) {
       return {
         data: null,
         error: t('errors.noPermissionUserData'),
@@ -108,7 +108,7 @@ export async function updateBudgetAction(
       };
     }
 
-    const scope = AccessScope.for(currentUser as unknown as User);
+    const scope = AccessScope.for(currentUser);
     if (!scope.canViewOwned(existingBudget)) {
       return {
         data: null,
@@ -117,7 +117,7 @@ export async function updateBudgetAction(
     }
 
     if (input.user_id && input.user_id !== existingBudget.user_id) {
-      if (isMember(currentUser as unknown as User)) {
+      if (isMember(currentUser)) {
         return {
           data: null,
           error: t('errors.cannotReassignAsMember'),
@@ -166,7 +166,7 @@ export async function getBudgetByIdAction(
       return { data: null, error: t('errors.notFound') };
     }
 
-    if (!AccessScope.for(currentUser as unknown as User).canViewOwned(budget)) {
+    if (!AccessScope.for(currentUser).canViewOwned(budget)) {
       return { data: null, error: t('errors.permissionDenied') };
     }
 

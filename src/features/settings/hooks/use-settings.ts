@@ -74,7 +74,7 @@ export function useSettings(
     if (!preferences) return;
 
     startTransition(() => {
-      setOptimisticPreferences({ [key]: value } as Partial<UserPreferences>);
+      setOptimisticPreferences({ [key]: value });
     });
   };
 

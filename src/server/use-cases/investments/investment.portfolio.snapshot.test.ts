@@ -32,7 +32,7 @@ function row(overrides: Partial<InvestmentRow> = {}): InvestmentRow {
     created_at: new Date('2024-01-01T12:00:00Z'),
     updated_at: new Date('2024-01-01T12:00:00Z'),
     ...overrides,
-  } as InvestmentRow;
+  };
 }
 
 describe('buildPortfolioHistoryWithSnapshots', () => {

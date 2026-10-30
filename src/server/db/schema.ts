@@ -325,12 +325,6 @@ export const transactions = pgTable(
       foreignColumns: [users.id],
       name: 'fk_transactions_user_id',
     }).onDelete('cascade'),
-    pgPolicy('Allow all operations on transactions', {
-      as: 'permissive',
-      for: 'all',
-      to: ['public'],
-      using: sql`true`,
-    }),
     pgPolicy('Users can view their own transactions and group transactions', {
       as: 'permissive',
       for: 'select',

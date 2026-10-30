@@ -56,7 +56,7 @@ export const getAllCategoriesUseCase = async (): Promise<Category[]> => {
   );
 
   const categories = await getCachedCategories();
-  return (categories || []) as unknown as Category[];
+  return categories || [];
 };
 
 export const getCategoriesByGroupUseCase = async (groupId: string): Promise<Category[]> => {
@@ -72,12 +72,12 @@ export const getCategoriesByGroupUseCase = async (groupId: string): Promise<Cate
   );
 
   const categories = await getCachedCategories();
-  return (categories || []) as unknown as Category[];
+  return categories || [];
 };
 
 export const getAvailableCategoriesUseCase = async (groupId: string): Promise<Category[]> => {
   if (!groupId?.trim()) throw new Error('Group ID is required');
-  return CategoriesRepository.findAvailable(groupId) as unknown as Promise<Category[]>;
+  return CategoriesRepository.findAvailable(groupId);
 };
 
 export const getCategoryByIdUseCase = async (categoryId: string): Promise<Category> => {
@@ -94,7 +94,7 @@ export const getCategoryByIdUseCase = async (categoryId: string): Promise<Catego
 
   const category = await getCachedCategory();
   if (!category) throw new Error('Category not found');
-  return category as unknown as Category;
+  return category;
 };
 
 export const getCategoryByKeyUseCase = async (key: string): Promise<Category> => {
@@ -108,7 +108,7 @@ export const getCategoryByKeyUseCase = async (key: string): Promise<Category> =>
 
   const category = await getCachedCategory();
   if (!category) throw new Error('Category not found');
-  return category as unknown as Category;
+  return category;
 };
 
 async function ensureUniqueCategoryKey(baseKey: string): Promise<string> {
@@ -148,7 +148,7 @@ export const createCategoryUseCase = async (data: CreateCategoryInput): Promise<
 
   invalidateCategoryCaches({});
 
-  return serialize(category) as unknown as Category;
+  return serialize(category);
 };
 
 export const updateCategoryUseCase = async (

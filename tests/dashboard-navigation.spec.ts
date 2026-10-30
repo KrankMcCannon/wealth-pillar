@@ -17,7 +17,7 @@ test.describe('Dashboard navigation', () => {
     await page.getByRole('link', { name: /Transazioni|Transactions/i }).click();
     await page.waitForURL(/\/transactions/, { timeout: 10000 });
 
-    const stillConnected = await page.evaluate((element) => element.isConnected, navHandle!);
+    const stillConnected = await page.evaluate((element) => element.isConnected, navHandle);
     expect(stillConnected).toBe(true);
   });
 

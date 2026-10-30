@@ -8,6 +8,25 @@ configurazione. La segnalazione UI manuale aggiuntiva è anch’essa corretta.
 
 Nessuna delle 21 segnalazioni originali rimane aperta.
 
+## Daily Review del 30 ottobre 2026 — correzioni nella PR #49
+
+- Database: audit del progetto reale, revoca degli accessi client a schema pubblico,
+  tabelle, viste, sequenze e RPC privilegiate; policy `true` rimossa. Migrazione
+  `0009_server_only_data_access.sql` applicata e verificata su Supabase. I ruoli
+  backend `pool_user` e `service_role` conservano i privilegi necessari.
+  [Dettagli e limiti dell'audit](src/server/db/ACCESS_CONTROL.md).
+- Saldi: ricalcolo in una transazione READ COMMITTED con lock della riga conto prima
+  della lettura del ledger. Il lock coordina gli aggiornamenti incrementali già
+  presenti; cache invalidate dopo il commit. Test PostgreSQL con interleaving
+  forzati per entrate, spese, trasferimenti, modifiche e cancellazioni.
+- CI React: eliminati gli aggiornamenti sincroni negli effetti di ricerca titoli,
+  filtri e ledger; caricamenti derivati dalla richiesta corrente, reset coerenti
+  con la query e risposte obsolete ignorate. L'eccezione TanStack Virtual resta
+  limitata alla chiamata non compatibile con la memoizzazione del React Compiler.
+
+Le correzioni applicative richiedono il merge e deploy della PR #49. Non sono
+necessarie nuove variabili di ambiente; la migrazione DB è idempotente.
+
 ## Correzioni già integrate e deployate
 
 Il deploy è stato confermato dall'utente per i commit `04c4936` e `660b36f`.

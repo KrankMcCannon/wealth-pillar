@@ -966,5 +966,5 @@ export function getIconCountByCategory(): Record<IconCategory, number> {
     counts[icon.category] = (counts[icon.category] || 0) + 1;
   });
 
-  return counts as Record<IconCategory, number>;
+  return counts;
 }

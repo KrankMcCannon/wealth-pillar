@@ -95,7 +95,7 @@ export function enrichPortfolioFromInvestments(
       initialValue,
       totalPaid,
       totalGain,
-    } as EnrichedInvestment;
+    };
   });
 
   const totalPaid = totalInvested + totalTaxPaid;

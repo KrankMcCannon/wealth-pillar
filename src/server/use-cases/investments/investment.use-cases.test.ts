@@ -73,7 +73,7 @@ describe('getInvestmentsOverviewUseCase', () => {
         created_at: new Date('2024-01-01'),
         updated_at: new Date('2024-01-01'),
       },
-    ] as unknown as Awaited<ReturnType<typeof InvestmentRepository.findByUser>>);
+    ]);
 
     vi.mocked(getBatchMarketDataUseCase).mockResolvedValue([
       {

@@ -74,7 +74,7 @@ export function TransactionFilters({
     (value: string) => {
       if (value === 'custom') {
         setCustomRangeOpen(true);
-        onFiltersChange({ ...filters, dateRange: value as DateRangeFilter });
+        onFiltersChange({ ...filters, dateRange: value });
         return;
       }
       setCustomRangeOpen(false);

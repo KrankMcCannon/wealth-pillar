@@ -7,7 +7,12 @@ import { UserPreferencesRepository } from '@/server/repositories/user-preference
 import { AccountsRepository } from '@/server/repositories/accounts.repository';
 import { BudgetPeriodsRepository } from '@/server/repositories/budget-periods.repository';
 import { TransactionsRepository } from '@/server/repositories/transactions.repository';
-import { deleteAccountUseCase } from '@/server/use-cases/accounts/account.use-cases';
+import {
+  deleteAccountUseCase,
+  recalculateAccountBalanceUseCase,
+} from '@/server/use-cases/accounts/account.use-cases';
+import { createTransactionUseCase } from '@/server/use-cases/transactions/create-transaction.use-case';
+import { sumAccountBalanceFromRows } from '@/server/use-cases/transactions/transaction-balance-delta.core';
 import { recalculateClosedPeriodSnapshotUseCase } from '@/server/use-cases/budget-periods/recalculate-closed-period.use-case';
 import { closeBudgetPeriodUseCase } from '@/server/use-cases/budget-periods/close-budget-period.use-case';
 import { createBudgetPeriodUseCase } from '@/server/use-cases/budget-periods/create-budget-period.use-case';
@@ -756,5 +761,157 @@ describe('preferences persistence against PostgreSQL', () => {
     ).rejects.toThrow();
     expect(await UserPreferencesRepository.getByUserId(userId)).toBeNull();
     expect(await UserPreferencesRepository.getByUserId(b)).toBeNull();
+  });
+});
+
+function gate() {
+  return Promise.withResolvers<void>();
+}
+
+async function seedRecalculationLedger() {
+  await AccountsRepository.update(a, { balance: '0' });
+  await AccountsRepository.update(b, { balance: '0' });
+  for (const accountId of [a, b]) {
+    await createTransactionUseCase({
+      description: 'Opening ledger income',
+      amount: 1000,
+      type: 'income',
+      category: 'salary',
+      date: '2026-10-01',
+      account_id: accountId,
+      user_id: userId,
+      group_id: groupId,
+    });
+  }
+}
+
+async function expectBalancesMatchLedger() {
+  for (const accountId of [a, b]) {
+    const rows = await TransactionsRepository.getByAccount(accountId);
+    expect(Number((await AccountsRepository.findById(accountId))?.balance)).toBe(
+      sumAccountBalanceFromRows(accountId, rows)
+    );
+  }
+}
+
+describe('balance recalculation coordinated with ledger mutations', () => {
+  it.each(['income', 'expense', 'transfer-out', 'transfer-in', 'edit', 'delete'] as const)(
+    'keeps the ledger consistent when recalculation precedes %s',
+    async (operation) => {
+      await seedRecalculationLedger();
+      const movement = await createTransactionUseCase({
+        description: 'Movement',
+        amount: 10,
+        type: 'transfer',
+        category: 'transfer',
+        date: '2026-10-02',
+        account_id: a,
+        to_account_id: b,
+        user_id: userId,
+        group_id: groupId,
+      });
+      const accountId = operation === 'transfer-in' ? b : a;
+      const read = gate();
+      const resume = gate();
+      const getByAccount = TransactionsRepository.getByAccount.bind(TransactionsRepository);
+      const spy = vi
+        .spyOn(TransactionsRepository, 'getByAccount')
+        .mockImplementationOnce(async (...args) => {
+          const rows = await getByAccount(...args);
+          read.resolve();
+          await resume.promise;
+          return rows;
+        });
+      const recalculation = recalculateAccountBalanceUseCase(accountId);
+      await read.promise;
+      const mutation =
+        operation === 'edit'
+          ? updateTransactionUseCase(movement.id, { amount: 25 }, { groupId })
+          : operation === 'delete'
+            ? deleteTransactionUseCase(movement.id, { groupId })
+            : createTransactionUseCase({
+                description: 'Concurrent movement',
+                amount: 30,
+                type:
+                  operation === 'income'
+                    ? 'income'
+                    : operation === 'expense'
+                      ? 'expense'
+                      : 'transfer',
+                category: 'food',
+                date: '2026-10-03',
+                account_id: a,
+                to_account_id: operation.startsWith('transfer') ? b : null,
+                user_id: userId,
+                group_id: groupId,
+              });
+      try {
+        // The writer must reach PostgreSQL and wait on our account row lock.
+        // Without the lock it commits and this assertion fails before we release the read.
+        await vi.waitFor(async () => {
+          const [row] = await db.execute(sql`SELECT count(*)::int AS waiting FROM pg_stat_activity
+            WHERE datname = current_database() AND wait_event_type = 'Lock'
+            AND query LIKE 'UPDATE accounts SET balance%'`);
+          expect(row?.waiting).toBeGreaterThan(0);
+        });
+      } finally {
+        resume.resolve();
+        await Promise.all([recalculation, mutation]);
+        spy.mockRestore();
+      }
+      await expectBalancesMatchLedger();
+    }
+  );
+
+  it('reads the committed ledger after waiting for an earlier writer', async () => {
+    await seedRecalculationLedger();
+    const updated = gate();
+    const resume = gate();
+    const update = TransactionsRepository.updateAccountBalance.bind(TransactionsRepository);
+    const writerSpy = vi
+      .spyOn(TransactionsRepository, 'updateAccountBalance')
+      .mockImplementationOnce(async (...args) => {
+        await update(...args);
+        updated.resolve();
+        await resume.promise;
+      });
+    const mutation = createTransactionUseCase({
+      description: 'Concurrent expense',
+      amount: 30,
+      type: 'expense',
+      category: 'food',
+      date: '2026-10-03',
+      account_id: a,
+      user_id: userId,
+      group_id: groupId,
+    });
+    await updated.promise;
+    const recalculation = recalculateAccountBalanceUseCase(a);
+    try {
+      await vi.waitFor(async () => {
+        const [row] = await db.execute(sql`SELECT count(*)::int AS waiting FROM pg_stat_activity
+          WHERE datname = current_database() AND wait_event_type = 'Lock'
+          AND query LIKE '%accounts%for update%'`);
+        expect(row?.waiting).toBeGreaterThan(0);
+      });
+    } finally {
+      resume.resolve();
+      await Promise.all([mutation, recalculation]);
+      writerSpy.mockRestore();
+    }
+    await expectBalancesMatchLedger();
+  });
+
+  it('rolls back and does not invalidate caches if ledger loading fails', async () => {
+    const spy = vi
+      .spyOn(TransactionsRepository, 'getByAccount')
+      .mockRejectedValueOnce(new Error('unavailable'));
+    try {
+      await expect(recalculateAccountBalanceUseCase(a)).rejects.toThrow('unavailable');
+      expect(Number((await AccountsRepository.findById(a))?.balance)).toBe(800);
+      expect(invalidateAccountCaches).not.toHaveBeenCalled();
+    } finally {
+      spy.mockRestore();
+    }
   });
 });

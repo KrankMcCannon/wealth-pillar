@@ -121,10 +121,7 @@ async function fetchAndCacheMarketData(symbol: string): Promise<TimeSeriesEntry[
       }
     }
 
-    const values =
-      timeSeries && timeSeries.length > 0
-        ? normalizeSeriesValues(timeSeries as TimeSeriesEntry[])
-        : [];
+    const values = timeSeries && timeSeries.length > 0 ? normalizeSeriesValues(timeSeries) : [];
 
     if (values.length > 0) {
       await MarketDataRepository.upsert(symbol, values);

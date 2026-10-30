@@ -65,9 +65,7 @@ export async function createGroupUseCase(input: CreateGroupInput): Promise<Group
     is_active: input.isActive ?? true,
   };
 
-  const group = await GroupsRepository.create(
-    createData as Parameters<typeof GroupsRepository.create>[0]
-  );
+  const group = await GroupsRepository.create(createData);
   if (!group) throw new Error('Failed to create group');
 
   revalidateTag(CACHE_TAGS.GROUPS, 'max');

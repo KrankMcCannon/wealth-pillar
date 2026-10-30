@@ -230,9 +230,9 @@ describe('scopeReportsPageData', () => {
 
   const pageData: ReportsPageData = {
     sections: {
-      all: allSection as never,
-      'member-1': memberSection as never,
-      'member-2': { ...memberSection, netFlow: 50, totalWealth: 50 } as never,
+      all: allSection,
+      'member-1': memberSection,
+      'member-2': { ...memberSection, netFlow: 50, totalWealth: 50 },
     },
     periods: [
       { userId: 'member-1', startDate: '2024-01-01', endDate: '2024-01-31' } as never,

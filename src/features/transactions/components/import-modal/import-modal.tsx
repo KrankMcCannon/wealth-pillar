@@ -355,6 +355,8 @@ export default function ImportModal({ isOpen, onClose }: Readonly<ImportModalPro
     [previewRows]
   );
 
+  // TanStack Virtual exposes mutable instance methods; keep this call outside compiler memoization.
+  // eslint-disable-next-line react-hooks/incompatible-library
   const rowVirtualizer = useVirtualizer({
     count: previewRows.length,
     getScrollElement: () => previewScrollRef.current,

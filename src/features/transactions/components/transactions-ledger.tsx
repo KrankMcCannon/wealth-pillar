@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { Search, SlidersHorizontal, Upload, X } from 'lucide-react';
 import { HomeDashboardMain, PageFab } from '@/components/layout';
@@ -60,11 +60,8 @@ export function TransactionsLedger(props: TransactionsLedgerProps) {
   const totalRef = useRef<HTMLDivElement>(null);
   const dayEls = useRef(new Map<string, HTMLElement>());
   const newestDay = dayGroups[0]?.isoDate;
-  const [topDay, setTopDay] = useState<string | undefined>(newestDay);
-
-  useEffect(() => {
-    setTopDay(newestDay);
-  }, [newestDay]);
+  const [visibleDay, setVisibleDay] = useState({ newestDay, day: newestDay });
+  const topDay = visibleDay.newestDay === newestDay ? visibleDay.day : newestDay;
 
   useLayoutEffect(() => {
     let frame = 0;
@@ -78,13 +75,17 @@ export function TransactionsLedger(props: TransactionsLedgerProps) {
         bottoms.set(group.isoDate, el.getBoundingClientRect().bottom);
       }
       const nextDay = pickVisibleLedgerDay(dayGroups, bottoms, line, newestDay);
-      setTopDay((current) => (current === nextDay ? current : nextDay));
+      setVisibleDay((current) =>
+        current.newestDay === newestDay && current.day === nextDay
+          ? current
+          : { newestDay, day: nextDay }
+      );
     };
     const onScroll = () => {
       if (!frame) frame = requestAnimationFrame(update);
     };
     window.addEventListener('scroll', onScroll, { passive: true });
-    update();
+    onScroll();
     return () => {
       window.removeEventListener('scroll', onScroll);
       cancelAnimationFrame(frame);

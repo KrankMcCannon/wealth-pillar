@@ -34,8 +34,7 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
 }
 
 export type OnboardingSubmitResult =
-  | { ok: true }
-  | { ok: false; error: string; categories: Category[]; isOrphanMessage?: boolean };
+  { ok: true } | { ok: false; error: string; categories: Category[]; isOrphanMessage?: boolean };
 
 /**
  * Completa onboarding, invalida cache client e naviga alla home.

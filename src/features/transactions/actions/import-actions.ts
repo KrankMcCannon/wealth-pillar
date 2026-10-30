@@ -2,7 +2,6 @@
 
 import { getCurrentUser } from '@/lib/auth/cached-auth';
 import type { ServiceResult } from '@/lib/types/service-result';
-import type { User } from '@/lib/types';
 import { FinancialResourcePolicy } from '@/server/permissions/financial-resource-policy';
 import {
   prepareImportRowProofs,
@@ -40,7 +39,7 @@ export async function prepareImportAction(input: {
       return { data: null, error: 'Permesso negato' };
     }
 
-    const policy = new FinancialResourcePolicy(currentUser as unknown as User);
+    const policy = new FinancialResourcePolicy(currentUser);
     for (const accountId of new Set(parsed.data.rows.map((row) => row.account_id))) {
       await policy.assertAccount(accountId);
     }
@@ -91,7 +90,7 @@ export async function commitImportAction(input: {
       return { data: null, error: 'Permesso negato' };
     }
 
-    const policy = new FinancialResourcePolicy(currentUser as unknown as User);
+    const policy = new FinancialResourcePolicy(currentUser);
     for (const row of parsed.data.rows) {
       await verifyImportRowProof(row, { userId: currentUser.id, groupId: policy.groupId });
     }

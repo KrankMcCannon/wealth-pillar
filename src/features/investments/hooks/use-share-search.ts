@@ -29,15 +29,30 @@ interface UseShareSearchProps {
 
 export function useShareSearch({ initialValue, onSelect }: UseShareSearchProps = {}) {
   const [searchValue, setSearchValue] = React.useState('');
-  const [results, setResults] = React.useState<AvailableShare[]>([]);
-  const [isLoading, setIsLoading] = React.useState(false);
+  const [searchResponse, setSearchResponse] = React.useState<{
+    key: string;
+    results: AvailableShare[];
+  } | null>(null);
   const [isEnsuring, setIsEnsuring] = React.useState(false);
-  const [hasSearched, setHasSearched] = React.useState(false);
-  const [selectedShare, setSelectedShare] = React.useState<AvailableShare | null>(null);
+  const [selection, setSelection] = React.useState<{
+    value: string;
+    share: AvailableShare | null;
+  } | null>(null);
   const [assetTypes, setAssetTypes] = React.useState<string[]>([]);
   const [selectedAssetType, setSelectedAssetType] = React.useState<string>('all');
 
   const debouncedSearch = useDebouncedValue(searchValue, 200);
+  const trimmedSearch = debouncedSearch.trim();
+  const hasSearched = trimmedSearch.length >= 3;
+  const searchKey = JSON.stringify([trimmedSearch, selectedAssetType]);
+  const isLoading = hasSearched && searchResponse?.key !== searchKey;
+  const results = React.useMemo(
+    () => (hasSearched && searchResponse?.key === searchKey ? searchResponse.results : []),
+    [hasSearched, searchResponse, searchKey]
+  );
+  const normalizedValue =
+    initialValue === undefined ? (selection?.value ?? '') : initialValue.trim();
+  const selectedShare = selection?.value === normalizedValue ? selection.share : null;
 
   // Fetch Asset Types
   React.useEffect(() => {
@@ -55,64 +70,47 @@ export function useShareSearch({ initialValue, onSelect }: UseShareSearchProps =
   React.useEffect(() => {
     let active = true;
 
-    const trimmedSearch = debouncedSearch.trim();
-    if (!trimmedSearch || trimmedSearch.length < 3) {
-      setResults([]);
-      setIsLoading(false);
-      setHasSearched(false);
-      return () => {
-        active = false;
-      };
-    }
-
-    setIsLoading(true);
-    setHasSearched(true);
+    if (!hasSearched) return;
 
     const assetTypeFilter = selectedAssetType === 'all' ? undefined : selectedAssetType;
-    searchSharesAction(trimmedSearch, assetTypeFilter).then((result) => {
-      if (!active) return;
-      setResults(result.data || []);
-      setIsLoading(false);
-    });
+    searchSharesAction(trimmedSearch, assetTypeFilter).then(
+      (result) => {
+        if (active) setSearchResponse({ key: searchKey, results: result.data || [] });
+      },
+      () => {
+        if (active) setSearchResponse({ key: searchKey, results: [] });
+      }
+    );
 
     return () => {
       active = false;
     };
-  }, [debouncedSearch, selectedAssetType]);
+  }, [hasSearched, trimmedSearch, selectedAssetType, searchKey]);
 
   // Initial Value Sync
   React.useEffect(() => {
     let active = true;
-    const normalizedValue = typeof initialValue === 'string' ? initialValue.trim() : '';
+    if (!normalizedValue || selectedShare?.symbol === normalizedValue) return;
 
-    if (!normalizedValue) {
-      setSelectedShare(null);
-      return () => {
-        active = false;
-      };
-    }
-
-    if (selectedShare?.symbol === normalizedValue) {
-      return () => {
-        active = false;
-      };
-    }
-
-    getShareBySymbolAction(normalizedValue).then((result) => {
-      if (!active) return;
-      setSelectedShare(result.data || null);
-    });
+    getShareBySymbolAction(normalizedValue).then(
+      (result) => {
+        if (active) setSelection({ value: normalizedValue, share: result.data || null });
+      },
+      () => {
+        if (active) setSelection({ value: normalizedValue, share: null });
+      }
+    );
 
     return () => {
       active = false;
     };
-  }, [initialValue, selectedShare?.symbol]);
+  }, [normalizedValue, selectedShare?.symbol]);
 
   const handleSelect = React.useCallback(
     (symbol: string) => {
       const match = results.find((share) => share.symbol === symbol);
       if (match) {
-        setSelectedShare(match);
+        setSelection({ value: symbol, share: match });
       }
 
       // Do not block user navigation on external market API latency.
@@ -130,8 +128,7 @@ export function useShareSearch({ initialValue, onSelect }: UseShareSearchProps =
 
   const clearSearch = React.useCallback(() => {
     setSearchValue('');
-    setResults([]);
-    setHasSearched(false);
+    setSearchResponse(null);
   }, []);
 
   return {

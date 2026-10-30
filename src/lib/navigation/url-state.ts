@@ -32,13 +32,7 @@ export const SETTINGS_MODAL_TYPES = [
 ] as const;
 
 export type SettingsModalKind =
-  | 'profile'
-  | 'currency'
-  | 'language'
-  | 'timezone'
-  | 'invite'
-  | 'group'
-  | 'categories';
+  'profile' | 'currency' | 'language' | 'timezone' | 'invite' | 'group' | 'categories';
 
 export function isSettingsModalType(
   modal: string | null

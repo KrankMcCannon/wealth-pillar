@@ -122,7 +122,7 @@ export async function getReportsContextUseCase(groupId: string, groupUserIds?: s
   const normalizedAccounts: Account[] = (allAccounts || []).map((a: Account) => ({
     ...a,
     balance: Number(a.balance),
-  })) as Account[];
+  }));
 
   const filteredUsers =
     groupUserIds && groupUserIds.length > 0

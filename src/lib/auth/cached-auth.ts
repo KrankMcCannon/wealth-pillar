@@ -55,7 +55,7 @@ export const getCurrentUser = cache(async (): Promise<User | null> => {
   }
 
   const user = await getUserByClerkIdUseCase(clerkId);
-  return user as unknown as User | null;
+  return user;
 });
 
 /**
@@ -74,5 +74,5 @@ export const getGroupUsers = cache(async (): Promise<User[]> => {
   }
 
   const groupUsers = await getGroupUsersByGroupIdDeduped(user.group_id);
-  return (groupUsers || []) as unknown as User[];
+  return groupUsers || [];
 });

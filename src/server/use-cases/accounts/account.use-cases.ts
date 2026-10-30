@@ -174,13 +174,26 @@ export const updateAccountUseCase = async (
 export const recalculateAccountBalanceUseCase = async (accountId: string): Promise<Account> => {
   validateId(accountId, 'Account ID');
 
-  const rows = await TransactionsRepository.getByAccount(accountId);
-  const balance = sumAccountBalanceFromRows(accountId, rows);
-  const account = await AccountsRepository.update(accountId, {
-    balance: balance.toFixed(2),
-  });
-
-  if (!account) throw new Error('Failed to update account');
+  const account = await db.transaction(
+    async (tx) => {
+      // Balance deltas UPDATE this same row. Lock before reading the ledger, using
+      // READ COMMITTED so a writer that committed while we waited is included.
+      // Pending ledger writes remain invisible and apply their delta after commit.
+      if (!(await AccountsRepository.findByIdForUpdate(accountId, tx))) {
+        throw new Error('Account not found');
+      }
+      const rows = await TransactionsRepository.getByAccount(accountId, tx);
+      const balance = sumAccountBalanceFromRows(accountId, rows);
+      const updated = await AccountsRepository.update(
+        accountId,
+        { balance: balance.toFixed(2) },
+        tx
+      );
+      if (!updated) throw new Error('Failed to update account');
+      return updated;
+    },
+    { isolationLevel: 'read committed' }
+  );
 
   invalidateAccountCaches({
     accountId,
