@@ -227,8 +227,8 @@ export const transactions = pgTable(
       .where(sql`${table.import_hash} IS NOT NULL`),
     index('idx_transactions_account_date').using(
       'btree',
-      table.account_id.asc().nullsLast().op('date_ops'),
-      table.date.desc().nullsFirst().op('uuid_ops')
+      table.account_id.asc().nullsLast().op('uuid_ops'),
+      table.date.desc().nullsFirst().op('date_ops')
     ),
     index('idx_transactions_account_id').using(
       'btree',
@@ -262,13 +262,13 @@ export const transactions = pgTable(
     index('idx_transactions_type').using('btree', table.type.asc().nullsLast().op('text_ops')),
     index('idx_transactions_user_category').using(
       'btree',
-      table.user_id.asc().nullsLast().op('text_ops'),
-      table.category.asc().nullsLast().op('uuid_ops')
+      table.user_id.asc().nullsLast().op('uuid_ops'),
+      table.category.asc().nullsLast().op('text_ops')
     ),
     index('idx_transactions_user_date').using(
       'btree',
       table.user_id.asc().nullsLast().op('uuid_ops'),
-      table.date.desc().nullsFirst().op('uuid_ops')
+      table.date.desc().nullsFirst().op('date_ops')
     ),
     index('idx_transactions_user_id').using(
       'btree',
@@ -276,7 +276,7 @@ export const transactions = pgTable(
     ),
     index('idx_transactions_user_type').using(
       'btree',
-      table.user_id.asc().nullsLast().op('text_ops'),
+      table.user_id.asc().nullsLast().op('uuid_ops'),
       table.type.asc().nullsLast().op('text_ops')
     ),
     index('transactions_description_trgm_idx').using(
@@ -291,18 +291,18 @@ export const transactions = pgTable(
     index('transactions_group_category_idx').using(
       'btree',
       table.group_id.asc().nullsLast().op('uuid_ops'),
-      table.category.asc().nullsLast().op('uuid_ops')
+      table.category.asc().nullsLast().op('text_ops')
     ),
     index('transactions_group_date_created_id_idx').using(
       'btree',
-      table.group_id.asc().nullsLast().op('date_ops'),
+      table.group_id.asc().nullsLast().op('uuid_ops'),
       table.date.desc().nullsFirst().op('date_ops'),
-      table.created_at.desc().nullsFirst().op('uuid_ops'),
+      table.created_at.desc().nullsFirst().op('timestamptz_ops'),
       table.id.desc().nullsFirst().op('uuid_ops')
     ),
     index('transactions_group_type_idx').using(
       'btree',
-      table.group_id.asc().nullsLast().op('text_ops'),
+      table.group_id.asc().nullsLast().op('uuid_ops'),
       table.type.asc().nullsLast().op('text_ops')
     ),
     index('transactions_group_user_idx').using(
@@ -414,7 +414,7 @@ export const accounts = pgTable(
     id: uuid().defaultRandom().notNull(),
     name: text().notNull(),
     type: text().notNull(),
-    user_ids: uuid('user_ids').array().default(['']).notNull(),
+    user_ids: uuid('user_ids').array().default([]).notNull(),
     group_id: uuid('group_id').notNull(),
     created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
     updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow(),
@@ -565,8 +565,8 @@ export const groupInvitations = pgTable(
     index('idx_group_invitations_email_group_status').using(
       'btree',
       table.email.asc().nullsLast().op('text_ops'),
-      table.group_id.asc().nullsLast().op('text_ops'),
-      table.status.asc().nullsLast().op('uuid_ops')
+      table.group_id.asc().nullsLast().op('uuid_ops'),
+      table.status.asc().nullsLast().op('text_ops')
     ),
     index('idx_group_invitations_group_id').using(
       'btree',
@@ -657,7 +657,7 @@ export const recurringTransactions = pgTable(
     created_at: timestamp('created_at', { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`),
     updated_at: timestamp('updated_at', { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`),
     category: text().notNull(),
-    transaction_ids: uuid('transaction_ids').array().default(['RAY']).notNull(),
+    transaction_ids: uuid('transaction_ids').array().default([]).notNull(),
     due_day: integer('due_day').default(1).notNull(),
     user_ids: text('user_ids').array().notNull(),
   },
@@ -722,7 +722,7 @@ export const groups = pgTable(
     id: uuid().defaultRandom().notNull(),
     name: text().notNull(),
     description: text(),
-    user_ids: uuid('user_ids').array().default(['']).notNull(),
+    user_ids: uuid('user_ids').array().default([]).notNull(),
     plan: jsonb().default({ name: 'Piano Gratuito', type: 'free' }).notNull(),
     is_active: boolean('is_active').default(true).notNull(),
     created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
@@ -839,7 +839,7 @@ export const budgetPeriods = pgTable(
     ),
     index('idx_budget_periods_user_start').using(
       'btree',
-      table.user_id.asc().nullsLast().op('date_ops'),
+      table.user_id.asc().nullsLast().op('uuid_ops'),
       table.start_date.desc().nullsFirst().op('date_ops')
     ),
     foreignKey({

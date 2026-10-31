@@ -14,10 +14,12 @@ export interface TransactionsLedgerProps {
   readonly hasMore: boolean;
   readonly isLoadingMore: boolean;
   readonly isNavigatingFilters: boolean;
+  readonly loadMoreFailed?: boolean;
   readonly onLoadMore: () => void;
   readonly onEditTransaction: (transaction: Transaction) => void;
   readonly onAddTransaction: () => void;
   readonly onImportTransactions: () => void;
+  readonly onClearFilters?: () => void;
   readonly emptyTitle: string;
   readonly emptyDescription: string;
   readonly selectedUserId: string | undefined;
@@ -26,6 +28,7 @@ export interface TransactionsLedgerProps {
 }
 
 export interface RecurringLedgerProps {
+  readonly accountNames?: Record<string, string>;
   readonly series: RecurringTransactionSeries[];
   readonly selectedUserId: string | undefined;
   readonly onCreateRecurringSeries: () => void;

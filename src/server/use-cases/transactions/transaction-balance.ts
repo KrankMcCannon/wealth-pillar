@@ -31,7 +31,7 @@ export async function applyTransactionBalanceUpdate(
   await applyBalanceDeltas(deltas, executor);
 }
 
-async function applyBalanceDeltas(deltas: Map<string, number>, executor?: DbExecutor) {
+export async function applyBalanceDeltas(deltas: Map<string, number>, executor?: DbExecutor) {
   for (const [accountId, delta] of [...deltas].sort(([a], [b]) => a.localeCompare(b))) {
     if (delta === 0) continue;
     await TransactionsRepository.updateAccountBalance(accountId, delta, executor);

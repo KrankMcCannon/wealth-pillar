@@ -108,7 +108,8 @@ export default defineConfig({
   /* Run your local dev server before starting the tests.
    */
   webServer: {
-    command: 'pnpm build && pnpm exec next start --hostname localhost --port 3100',
+    command:
+      'node tests/clean-e2e-cache.mjs && pnpm build && pnpm exec next start --hostname localhost --port 3100',
     wait: { stdout: /Ready in/ },
     env: {
       DATABASE_URL: process.env.DATABASE_URL || 'postgres://127.0.0.1/wealth_pillar_e2e',

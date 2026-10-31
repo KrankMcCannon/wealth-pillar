@@ -15,7 +15,7 @@ describe('transaction-cursor', () => {
     const decoded = decodeTransactionCursor(token);
     expect(decoded).toEqual({
       date: '2024-06-15',
-      createdAt: new Date('2024-06-15T14:30:00.000Z'),
+      createdAt: '2024-06-15T14:30:00.000Z',
       id: '550e8400-e29b-41d4-a716-446655440000',
     });
   });
@@ -35,5 +35,10 @@ describe('transaction-cursor', () => {
   it('returns undefined for invalid tokens', () => {
     expect(decodeTransactionCursor('not-base64!!!')).toBeUndefined();
     expect(decodeTransactionCursor(Buffer.from('{}').toString('base64url'))).toBeUndefined();
+  });
+  it('preserves all PostgreSQL timestamp microseconds', () => {
+    const timestamp = '2026-10-31 12:30:00.123456+00';
+    const token = encodeTransactionCursor({ date: '2026-10-31', created_at: timestamp, id: 'row' });
+    expect(decodeTransactionCursor(token)?.createdAt).toBe(timestamp);
   });
 });

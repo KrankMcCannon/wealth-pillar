@@ -1,6 +1,6 @@
 import { db } from '@/server/db/drizzle';
 import { transactions } from '@/server/db/schema';
-import { and, desc, eq, or, sql, count, inArray, ilike, lt } from 'drizzle-orm';
+import { and, desc, eq, or, sql, count, inArray, ilike, lt, getTableColumns } from 'drizzle-orm';
 import { resolveDb, type DbExecutor } from '@/server/repositories/db-executor';
 
 export interface TransactionScope {
@@ -11,7 +11,7 @@ export interface TransactionScope {
 /** Exclusive lower bound for keyset pagination (same ordering as list: date desc, created_at desc, id desc). */
 export interface TransactionCursorAfter {
   date: string;
-  createdAt: Date;
+  createdAt: string;
   id: string;
 }
 
@@ -95,10 +95,13 @@ export class TransactionsRepository {
       dataConditions.push(
         or(
           lt(transactions.date, cur.date),
-          and(eq(transactions.date, cur.date), lt(transactions.created_at, cur.createdAt)),
           and(
             eq(transactions.date, cur.date),
-            eq(transactions.created_at, cur.createdAt),
+            sql`${transactions.created_at} < ${cur.createdAt}::timestamptz`
+          ),
+          and(
+            eq(transactions.date, cur.date),
+            sql`${transactions.created_at} = ${cur.createdAt}::timestamptz`,
             lt(transactions.id, cur.id)
           )
         )!
@@ -124,7 +127,12 @@ export class TransactionsRepository {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let query: any = dbConn
-      .select()
+      .select({
+        ...getTableColumns(transactions),
+        // JS Date truncates PostgreSQL microseconds. Bulk imports share a
+        // timestamp, so losing precision here can skip every subsequent row.
+        created_at: sql<string>`${transactions.created_at}::text`,
+      })
       .from(transactions)
       .where(listWhere)
       .orderBy(desc(transactions.date), desc(transactions.created_at), desc(transactions.id));

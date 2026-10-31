@@ -1,4 +1,5 @@
 import type { Transaction } from '@/lib/types';
+import { toDateString } from '@/lib/utils/date-utils';
 import type { TransactionFormData } from '../components/transaction-form-fields';
 
 function formatTransactionDate(date: Transaction['date']): string {
@@ -6,7 +7,7 @@ function formatTransactionDate(date: Transaction['date']): string {
     return date.split('T')[0] ?? date;
   }
 
-  return date.toISOString().split('T')[0] ?? '';
+  return toDateString(date);
 }
 
 export function mapTransactionToFormData(transaction: Transaction): TransactionFormData {

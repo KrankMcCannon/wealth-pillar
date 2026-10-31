@@ -10,15 +10,24 @@ interface FilterChipProps {
   className?: string;
   /** Exclusive choice in a radiogroup. Default is a pressed toggle. */
   role?: 'radio';
+  tabIndex?: number;
 }
 
-export function FilterChip({ label, active = false, onClick, className, role }: FilterChipProps) {
+export function FilterChip({
+  label,
+  active = false,
+  onClick,
+  className,
+  role,
+  tabIndex,
+}: FilterChipProps) {
   const isRadio = role === 'radio';
 
   return (
     <button
       type="button"
       onClick={onClick}
+      tabIndex={tabIndex}
       className={cn(
         stitchTransactions.chipBase,
         active ? stitchTransactions.chipActive : stitchTransactions.chipInactive,

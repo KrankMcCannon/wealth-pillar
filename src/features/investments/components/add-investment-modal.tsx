@@ -1,6 +1,7 @@
 'use client';
 
 import { parseDecimal } from '@/lib/utils/parse-decimal';
+import { todayDateString } from '@/lib/utils/date-utils';
 
 import { useCallback, useMemo } from 'react';
 import { z } from 'zod';
@@ -63,6 +64,7 @@ export default function AddInvestmentModal({
   const investmentSchema = useMemo(() => createInvestmentSchema(t), [t]);
   const isEditMode = Boolean(editId);
 
+  const today = todayDateString();
   const createDefaults: InvestmentFormData = useMemo(
     () => ({
       name: '',
@@ -71,9 +73,9 @@ export default function AddInvestmentModal({
       tax_paid: '0',
       shares: '',
       currency: 'EUR',
-      created_at: new Date().toISOString().split('T')[0] as string,
+      created_at: today,
     }),
-    []
+    [today]
   );
 
   const handleLoadError = useCallback(() => {

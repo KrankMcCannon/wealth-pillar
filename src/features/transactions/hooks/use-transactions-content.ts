@@ -3,7 +3,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { useSearchParams } from 'next/navigation';
 import { useIdNameMap } from '@/hooks';
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
-import { defaultFiltersState } from '../components/transaction-filters';
+import { clearAdvancedFilters } from '../components/filters/filter-helpers';
 import type { TransactionFiltersState } from '@/server/use-cases/transactions/transaction.logic';
 import type { Transaction, Budget, Account } from '@/lib/types';
 import { parseReturnTo, withReturnTo } from '@/lib/navigation/return-to';
@@ -54,12 +54,14 @@ export interface UseTransactionsContentReturn {
   handleClearBudgetFilter: () => void;
   hasMore: boolean;
   isLoadingMore: boolean;
+  loadMoreFailed: boolean;
   loadMore: () => Promise<void>;
   listItems: Transaction[];
   accountNames: Record<string, string>;
   handleEditTransaction: (transaction: Transaction) => void;
   openModal: (type: ModalType, id?: string) => void;
   isNavigatingFilters: boolean;
+  handleClearFilters: () => void;
 }
 
 function buildQueryKey(appliedQuery: AppliedTransactionsQuery): string {
@@ -86,6 +88,7 @@ export function useTransactionsContent({
     hasMore: initialHasMore,
     nextCursor: initialNextCursor,
     isLoadingMore: false,
+    loadMoreFailed: false,
   });
   // Adjust this hook's state before rendering children when the server query changes.
   // A pending request retains its old key and cannot append into the new query.
@@ -97,9 +100,10 @@ export function useTransactionsContent({
       hasMore: initialHasMore,
       nextCursor: initialNextCursor,
       isLoadingMore: false,
+      loadMoreFailed: false,
     });
   }
-  const { extraPages, hasMore, nextCursor, isLoadingMore, generation } = pagination;
+  const { extraPages, hasMore, nextCursor, isLoadingMore, loadMoreFailed, generation } = pagination;
   const loadMoreLock = useRef<number | null>(null);
 
   const optimisticOverlay = useOptimisticTransactionStore(
@@ -112,7 +116,8 @@ export function useTransactionsContent({
   const pruneCommitted = useOptimisticTransactionStore((state) => state.pruneCommitted);
 
   const { openModal } = useModalState();
-  const { activeTab, setActiveTab } = useTabState('Transactions');
+  const { activeTab: requestedTab, setActiveTab } = useTabState('Transactions');
+  const activeTab = requestedTab === 'Recurrent' ? 'Recurrent' : 'Transactions';
 
   const urlFilters = useMemo(
     () => appliedQueryToFiltersState(appliedQuery, appliedQuery.q ?? ''),
@@ -146,8 +151,12 @@ export function useTransactionsContent({
   }, [serverList, pruneCommitted]);
 
   const filters = useMemo(
-    () => ({ ...urlFilters, searchQuery: searchDraft }),
-    [urlFilters, searchDraft]
+    () => ({
+      ...urlFilters,
+      searchQuery: searchDraft,
+      ...(searchParams.get('budget') ? { budgetId: searchParams.get('budget')! } : {}),
+    }),
+    [urlFilters, searchDraft, searchParams]
   );
 
   const listItems = useMemo(
@@ -226,9 +235,10 @@ export function useTransactionsContent({
   );
 
   const loadMore = useCallback(async () => {
+    if (searchDraft.trim() !== (appliedQuery.q ?? '').trim() || isNavigating) return;
     if (!hasMore || !nextCursor || isLoadingMore || loadMoreLock.current === generation) return;
     loadMoreLock.current = generation;
-    setPagination((current) => ({ ...current, isLoadingMore: true }));
+    setPagination((current) => ({ ...current, isLoadingMore: true, loadMoreFailed: false }));
     try {
       const listQuery = appliedQueryToListQuery(appliedQuery, searchDraft);
       const result = await loadMoreTransactionsAction({
@@ -236,6 +246,9 @@ export function useTransactionsContent({
         cursor: nextCursor,
       });
       if (result.error || !result.data) {
+        setPagination((current) =>
+          current.generation === generation ? { ...current, loadMoreFailed: true } : current
+        );
         toast({ title: t('loadMoreError'), variant: 'destructive' });
         return;
       }
@@ -251,6 +264,9 @@ export function useTransactionsContent({
           : current
       );
     } catch {
+      setPagination((current) =>
+        current.generation === generation ? { ...current, loadMoreFailed: true } : current
+      );
       toast({ title: t('loadMoreError'), variant: 'destructive' });
     } finally {
       setPagination((current) =>
@@ -258,7 +274,7 @@ export function useTransactionsContent({
       );
       if (loadMoreLock.current === generation) loadMoreLock.current = null;
     }
-  }, [hasMore, nextCursor, isLoadingMore, appliedQuery, searchDraft, t, generation]);
+  }, [hasMore, nextCursor, isLoadingMore, appliedQuery, searchDraft, t, generation, isNavigating]);
 
   const handleUserFilterChange = useCallback(
     (userId: string) => {
@@ -268,15 +284,21 @@ export function useTransactionsContent({
   );
 
   const handleClearBudgetFilter = useCallback(() => {
-    const nextFilters = { ...defaultFiltersState };
-    setSearchDraft('');
+    const nextFilters = clearAdvancedFilters(filters);
     const tab = searchParams.get('tab');
     const query = buildTransactionsQueryString(nextFilters, selectedUserId);
     const qs = tab && tab !== 'Transactions' ? `${query}&tab=${encodeURIComponent(tab)}` : query;
     startNavigation(() => {
       router.push(transactionsHref(qs, searchParams));
     });
-  }, [router, searchParams, selectedUserId, startNavigation, setSearchDraft]);
+  }, [router, searchParams, selectedUserId, startNavigation, filters]);
+
+  const handleClearFilters = useCallback(() => {
+    setSearchDraft('');
+    const tab = searchParams.get('tab');
+    const qs = tab && tab !== 'Transactions' ? `tab=${encodeURIComponent(tab)}` : '';
+    startNavigation(() => router.push(transactionsHref(qs, searchParams)));
+  }, [router, searchParams, startNavigation, setSearchDraft]);
 
   const accountNames = useIdNameMap(accounts);
   const setTransactionEditSeed = useTransactionEditStore((state) => state.setSeed);
@@ -301,11 +323,13 @@ export function useTransactionsContent({
     handleClearBudgetFilter,
     hasMore,
     isLoadingMore,
+    loadMoreFailed,
     loadMore,
     listItems,
     accountNames,
     handleEditTransaction,
     openModal,
-    isNavigatingFilters: isNavigating,
+    isNavigatingFilters: isNavigating || searchDraft.trim() !== (appliedQuery.q ?? '').trim(),
+    handleClearFilters,
   };
 }

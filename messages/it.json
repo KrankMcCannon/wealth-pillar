@@ -720,7 +720,14 @@
       "statusPaused": "In pausa",
       "signIncome": "entrata",
       "signExpense": "uscita",
-      "signTransfer": "trasferimento"
+      "signTransfer": "trasferimento",
+      "monthlyEstimate": "Equivalente mensile delle serie attive. Le frequenze diverse dal mese sono ripartite su base mensile.",
+      "empty": {
+        "active": "Non ci sono serie attive con questa prospettiva. Le serie in pausa restano disponibili in Tutte.",
+        "paused": "Non ci sono serie in pausa con questa prospettiva."
+      },
+      "showAllSeries": "Mostra tutte le serie",
+      "partialDayTotal": "Totale caricato"
     },
     "empty": {
       "title": "Nessuna transazione",
@@ -797,8 +804,8 @@
         "all": "Sempre",
         "today": "Oggi",
         "month": "Mese",
-        "more": "Altre date",
-        "moreAria": "Settimana, anno o intervallo personalizzato"
+        "more": "Personalizzato",
+        "moreAria": "Scegli un intervallo personalizzato"
       },
       "chips": {
         "period": "Periodo",
@@ -818,7 +825,8 @@
         "from": "Dal {date}",
         "until": "Fino al {date}",
         "fromLabel": "Da",
-        "toLabel": "A"
+        "toLabel": "A",
+        "invalidOrder": "La data finale deve essere uguale o successiva a quella iniziale."
       },
       "category": {
         "searchPlaceholder": "Cerca categoria...",
@@ -869,7 +877,9 @@
     "LoadMore": {
       "cta": "Carica altre",
       "loading": "Caricamento…",
-      "end": "Fine elenco"
+      "end": "Fine elenco",
+      "error": "Non siamo riusciti a caricare altri movimenti. Quelli già caricati sono disponibili.",
+      "retry": "Riprova a caricare"
     },
     "Table": {
       "columns": {
@@ -1102,7 +1112,8 @@
         "weekly": "Settimanale",
         "biweekly": "Quindicinale",
         "monthly": "Mensile",
-        "yearly": "Annuale"
+        "yearly": "Annuale",
+        "once": "Una volta"
       },
       "due": {
         "today": "Oggi",
@@ -1111,7 +1122,7 @@
         "inDays": "Tra {count} giorni"
       },
       "status": {
-        "stopped": "Stop"
+        "stopped": "In pausa"
       },
       "nextLabel": "Prossima",
       "actions": {

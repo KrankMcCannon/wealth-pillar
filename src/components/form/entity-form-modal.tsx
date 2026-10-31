@@ -99,13 +99,13 @@ export function EntityFormModal<T extends FieldValues>({
 
   const { reset } = form;
   const { isDirty, isSubmitting } = form.formState;
-  const rootError = form.formState.errors.root;
+  const hasErrors = Object.keys(form.formState.errors).length > 0;
 
   useEffect(() => {
-    if (isOpen && !isLoading && !isDirty && !isSubmitting && !rootError) {
+    if (isOpen && !isLoading && !isDirty && !isSubmitting && !hasErrors) {
       reset(resetValues ?? defaultValues);
     }
-  }, [isOpen, isLoading, resetValues, defaultValues, reset, isDirty, isSubmitting, rootError]);
+  }, [isOpen, isLoading, resetValues, defaultValues, reset, isDirty, isSubmitting, hasErrors]);
 
   const openDeleteDialog = useCallback(() => {
     if (deletion?.enabled) {

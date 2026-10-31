@@ -1,6 +1,7 @@
 'use client';
 
 import { parseDecimal } from '@/lib/utils/parse-decimal';
+import { todayDateString } from '@/lib/utils/date-utils';
 
 import { useEffect, useMemo, useCallback, useRef } from 'react';
 import { useWatch, type UseFormReturn } from 'react-hook-form';
@@ -218,18 +219,19 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
   const title = isEditMode ? t('title.edit') : t('title.create');
   const transactionSchema = useMemo(() => createTransactionSchema(t), [t]);
 
+  const today = todayDateString();
   const createDefaults = useMemo(
     (): TransactionFormData => ({
       description: '',
       amount: '',
       type: 'expense',
       category: '',
-      date: new Date().toISOString().split('T')[0] as string,
+      date: today,
       user_id: defaultFormUserId,
       account_id: '',
       to_account_id: '',
     }),
-    [defaultFormUserId]
+    [defaultFormUserId, today]
   );
 
   const createValues = useMemo(

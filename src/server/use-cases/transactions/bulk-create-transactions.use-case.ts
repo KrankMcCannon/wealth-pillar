@@ -2,6 +2,7 @@ import { db } from '@/server/db/drizzle';
 import { TransactionsRepository } from '@/server/repositories/transactions.repository';
 import type { CommitImportRowInput, BulkImportResult } from '@/lib/import/types';
 import { computeBalanceDeltas } from '@/server/use-cases/transactions/transaction-balance-delta.core';
+import { applyBalanceDeltas } from './transaction-balance';
 import { invalidateTransactionCaches } from '@/lib/utils/cache-utils';
 
 const BULK_CHUNK_SIZE = 500;
@@ -33,31 +34,33 @@ export async function bulkCreateTransactionsUseCase(
 
   const groupId = rows[0]!.group_id;
   const affectedAccounts = new Set<string>();
-  const affectedUsers = new Set<string | null>();
+  // Stable insertion order also prevents competing unique import hashes from
+  // acquiring their index locks in opposite orders, including across chunks.
+  const orderedRows = [...rows].sort(
+    (a, b) => a.account_id.localeCompare(b.account_id) || a.import_hash.localeCompare(b.import_hash)
+  );
 
   let insertedCount = 0;
 
   await db.transaction(async (tx) => {
-    for (let index = 0; index < rows.length; index += BULK_CHUNK_SIZE) {
-      const chunk = rows.slice(index, index + BULK_CHUNK_SIZE).map(toInsertRow);
+    const deltaTotals = new Map<string, number>();
+    for (let index = 0; index < orderedRows.length; index += BULK_CHUNK_SIZE) {
+      const chunk = orderedRows.slice(index, index + BULK_CHUNK_SIZE).map(toInsertRow);
       const inserted = await TransactionsRepository.createMany(chunk, tx);
       insertedCount += inserted.length;
 
-      const deltaTotals = new Map<string, number>();
       for (const transaction of inserted) {
         affectedAccounts.add(transaction.account_id);
-        affectedUsers.add(transaction.user_id ?? null);
 
         const rowDeltas = computeBalanceDeltas(transaction, 1);
         for (const [accountId, delta] of rowDeltas) {
           deltaTotals.set(accountId, (deltaTotals.get(accountId) ?? 0) + delta);
         }
       }
-
-      for (const [accountId, delta] of deltaTotals) {
-        await TransactionsRepository.updateAccountBalance(accountId, delta, tx);
-      }
     }
+    // Acquire account locks once for the entire import, in the same order as
+    // ordinary ledger mutations. Sorting each chunk separately is insufficient.
+    await applyBalanceDeltas(deltaTotals, tx);
   });
 
   for (const accountId of affectedAccounts) {

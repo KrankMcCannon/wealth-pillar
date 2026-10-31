@@ -27,8 +27,9 @@ Setup refuses a nonempty database. It generates tables, checks, indexes and fore
 keys from the application's Drizzle schema and seeds accounts, categories, a paginated
 ledger, recurring transactions and budget periods. Supabase auth helper functions are
 local stubs; these browser tests exercise application permissions, not Supabase RLS.
-The fixture normalizes legacy invalid array defaults/operator classes from the schema
-export, using the column type's PostgreSQL default operator classes.
+Tables and indexes are applied exactly as exported, so invalid defaults and
+incompatible operator classes fail setup. Each run clears the local Next.js build
+cache before building so cached user records cannot refer to a previous fixture.
 
 Every browser receives an isolated context initialized from the setup session.
 Mutation tests edit/delete only their own UUID-tagged transaction. Changes are checked

@@ -49,11 +49,12 @@ export const DateOptions = memo(function DateOptions({
 
   const commitRange = useCallback(
     (startDate: string, endDate: string) => {
-      if (!startDate && !endDate) return;
+      if (startDate && endDate && startDate > endDate) return;
       onDateRangeChange?.(startDate, endDate);
     },
     [onDateRangeChange]
   );
+  const invalidRange = Boolean(customStartDate && customEndDate && customStartDate > customEndDate);
 
   return (
     <div className={transactionStyles.filters.dateSection}>
@@ -96,6 +97,7 @@ export const DateOptions = memo(function DateOptions({
           presentation="inline"
           label={t('customRange.toLabel')}
           value={customEndDate}
+          error={invalidRange ? t('customRange.invalidOrder') : undefined}
           onChange={(end) => {
             setCustomEndDate(end);
             commitRange(customStartDate, end);

@@ -66,4 +66,19 @@ describe('groupByDay', () => {
     const list = groupByDay([tx({ id: '1', amount: 1, type: 'expense', date: '' })], 'en-US');
     expect(list).toEqual([]);
   });
+  it('includes transfers in the selected account daily net, while group net stays neutral', () => {
+    const rows = [
+      tx({
+        id: 't',
+        amount: 100,
+        type: 'transfer',
+        date: '2026-10-31',
+        account_id: 'a',
+        to_account_id: 'b',
+      }),
+    ];
+    expect(groupByDay(rows, 'it', 'a')[0]?.net).toBe(-100);
+    expect(groupByDay(rows, 'it', 'b')[0]?.net).toBe(100);
+    expect(groupByDay(rows, 'it', 'all')[0]?.net).toBe(0);
+  });
 });

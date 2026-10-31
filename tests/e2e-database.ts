@@ -32,9 +32,7 @@ export async function seedE2EDatabase(clerkId: string, email: string) {
       CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql AS $$ SELECT NULL::uuid $$;
       CREATE OR REPLACE FUNCTION auth.jwt() RETURNS jsonb LANGUAGE sql AS $$ SELECT '{}'::jsonb $$;`);
     for (const [statement, name] of tables) {
-      await db.unsafe(
-        statement.replace(/((?:uuid|text)\[\]) DEFAULT '\{[^']*\}'/g, "$1 DEFAULT '{}'")
-      );
+      await db.unsafe(statement);
       if (statement.includes('"id"'))
         await db.unsafe(`CREATE UNIQUE INDEX "e2e_${name}_id" ON "${name}" (id)`);
     }
@@ -45,11 +43,7 @@ export async function seedE2EDatabase(clerkId: string, email: string) {
         (statement.startsWith('ALTER TABLE') && statement.includes('ADD CONSTRAINT')) ||
         /^CREATE (UNIQUE )?INDEX/.test(statement)
       )
-        await db.unsafe(
-          statement.includes('USING btree')
-            ? statement.replace(/\s[a-z0-9_]+_ops\b/g, '')
-            : statement
-        );
+        await db.unsafe(statement);
     }
     const groupId = randomUUID();
     const userId = randomUUID();

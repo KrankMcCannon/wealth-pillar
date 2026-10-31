@@ -199,6 +199,7 @@ describe('useTransactionsContent optimistic merge', () => {
 
     expect(toast).toHaveBeenCalledWith({ title: 'loadMoreError', variant: 'destructive' });
     expect(result.current.isLoadingMore).toBe(false);
+    expect(result.current.loadMoreFailed).toBe(true);
 
     await act(async () => {
       await result.current.loadMore();
@@ -318,5 +319,37 @@ describe('useTransactionsContent optimistic merge', () => {
     });
     expect(result.current.listItems.map((row) => row.id)).toEqual(['server-1']);
     expect(result.current.hasMore).toBe(true);
+  });
+  it('clears budget constraints once while preserving search, type and return context', () => {
+    search = 'budget=b1&type=expense&q=rent&dateRange=month&from=%2Freports';
+    const props = {
+      ...baseProps,
+      transactions: [serverTx],
+      appliedQuery: { type: 'expense' as const, dateRange: 'month' as const, q: 'rent' },
+    };
+    const { result } = renderHook(() => useTransactionsContent(props));
+    act(() => result.current.handleClearBudgetFilter());
+    expect(push).toHaveBeenCalledTimes(1);
+    const href = new URL(push.mock.calls[0]![0], 'https://local.test');
+    expect(href.searchParams.get('q')).toBe('rent');
+    expect(href.searchParams.get('type')).toBe('expense');
+    expect(href.searchParams.get('from')).toBe('/reports');
+    expect(href.searchParams.has('budget')).toBe(false);
+    expect(href.searchParams.has('dateRange')).toBe(false);
+  });
+
+  it('does not paginate a new search using the old cursor', async () => {
+    search = '';
+    const props = {
+      ...baseProps,
+      transactions: [serverTx],
+      hasMore: true,
+      nextCursor: 'old-cursor',
+    };
+    const { result } = renderHook(() => useTransactionsContent(props));
+    act(() => result.current.setFilters({ ...result.current.filters, searchQuery: 'new query' }));
+    await act(async () => result.current.loadMore());
+    expect(loadMoreTransactionsAction).not.toHaveBeenCalled();
+    expect(result.current.isNavigatingFilters).toBe(true);
   });
 });
