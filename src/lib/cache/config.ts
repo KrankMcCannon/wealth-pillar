@@ -223,7 +223,7 @@ export const cacheOptions = {
    */
   recurring: (userId: string) => ({
     revalidate: CACHE_TTL.RECURRING,
-    tags: [CACHE_TAGS.RECURRING_SERIES, `user:${userId}:recurring`],
+    tags: [CACHE_TAGS.TRANSACTIONS, CACHE_TAGS.RECURRING_SERIES, `user:${userId}:recurring`],
   }),
 
   /**
@@ -232,7 +232,7 @@ export const cacheOptions = {
    */
   recurringGroup: (groupId: string) => ({
     revalidate: CACHE_TTL.RECURRING,
-    tags: [CACHE_TAGS.RECURRING_SERIES, `group:${groupId}:recurring`],
+    tags: [CACHE_TAGS.TRANSACTIONS, CACHE_TAGS.RECURRING_SERIES, `group:${groupId}:recurring`],
   }),
 
   /**
@@ -241,7 +241,7 @@ export const cacheOptions = {
    */
   recurringSingle: (seriesId: string) => ({
     revalidate: CACHE_TTL.RECURRING,
-    tags: [CACHE_TAGS.RECURRING_SERIES, CACHE_TAGS.RECURRING(seriesId)],
+    tags: [CACHE_TAGS.TRANSACTIONS, CACHE_TAGS.RECURRING_SERIES, CACHE_TAGS.RECURRING(seriesId)],
   }),
 
   /**

@@ -1,6 +1,15 @@
 import { db } from '@/server/db/drizzle';
 import { recurringTransactions, accounts } from '@/server/db/schema';
-import { eq, arrayOverlaps, arrayContains, and } from 'drizzle-orm';
+import { eq, arrayOverlaps, arrayContains, and, sql, getTableColumns } from 'drizzle-orm';
+
+// The series remains a plan; only actual ledger rows mark an occurrence as recorded.
+// Keep these qualified identifiers literal: Drizzle removes Column qualifiers in a
+// single-table projection, which would bind the correlated id to the inner ledger.
+const recordedDates = sql<string[]>`coalesce((
+  select array_agg(distinct recorded_ledger.date::text)
+  from transactions as recorded_ledger
+  where recorded_ledger.recurring_series_id = recurring_transactions.id
+), ARRAY[]::text[])`;
 
 export class RecurringRepository {
   static async findById(id: string) {
@@ -8,6 +17,7 @@ export class RecurringRepository {
       .select({
         recurring: recurringTransactions,
         account: accounts,
+        recorded_dates: recordedDates,
       })
       .from(recurringTransactions)
       .leftJoin(accounts, eq(recurringTransactions.account_id, accounts.id))
@@ -21,19 +31,20 @@ export class RecurringRepository {
     return {
       ...firstResult?.recurring,
       accounts: firstResult?.account,
+      recorded_dates: firstResult?.recorded_dates,
     };
   }
 
   static async findByUser(userId: string) {
     return await db
-      .select()
+      .select({ ...getTableColumns(recurringTransactions), recorded_dates: recordedDates })
       .from(recurringTransactions)
       .where(arrayContains(recurringTransactions.user_ids, [userId]));
   }
 
   static async findByUserIds(userIds: string[]) {
     return await db
-      .select()
+      .select({ ...getTableColumns(recurringTransactions), recorded_dates: recordedDates })
       .from(recurringTransactions)
       .where(arrayOverlaps(recurringTransactions.user_ids, userIds));
   }
@@ -62,7 +73,7 @@ export class RecurringRepository {
 
   static async findActiveByAccount(accountId: string) {
     return await db
-      .select()
+      .select({ ...getTableColumns(recurringTransactions), recorded_dates: recordedDates })
       .from(recurringTransactions)
       .where(
         and(

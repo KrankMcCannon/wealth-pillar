@@ -30,6 +30,7 @@ export function FilterChip({
       tabIndex={tabIndex}
       className={cn(
         stitchTransactions.chipBase,
+        'motion-reduce:transition-none',
         active ? stitchTransactions.chipActive : stitchTransactions.chipInactive,
         className
       )}

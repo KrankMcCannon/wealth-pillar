@@ -12,6 +12,7 @@
  */
 
 import * as React from 'react';
+import { formatCurrencyLocale } from '@/lib/utils/currency-formatter';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn, formatCurrency, toFiniteMoney } from '@/lib/utils';
 
@@ -51,6 +52,7 @@ export interface AmountProps extends React.HTMLAttributes<HTMLSpanElement>, Amou
   children: number | string;
   /** Format as currency with € symbol */
   currency?: boolean;
+  locale?: string;
 }
 
 export function Amount({
@@ -58,12 +60,17 @@ export function Amount({
   size,
   emphasis,
   currency = true,
+  locale,
   className,
   children,
   ...props
 }: Readonly<AmountProps>) {
   const value = toFiniteMoney(children);
-  const formatted = currency ? formatCurrency(value) : value.toFixed(2);
+  const formatted = currency
+    ? locale
+      ? formatCurrencyLocale(value, locale)
+      : formatCurrency(value)
+    : value.toFixed(2);
 
   return (
     <span className={cn(amountVariants({ type, size, emphasis }), className)} {...props}>

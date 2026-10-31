@@ -115,7 +115,7 @@ export const stitchDashboardShell = {
   bottomNavIconWellActive: 'bg-accent ring-1 ring-inset ring-primary/35',
   bottomNavIcon: 'size-5 shrink-0',
   bottomNavLabel:
-    'max-w-full text-center text-[11px] font-medium leading-tight group-active:font-semibold group-active:text-foreground',
+    'max-w-full hyphens-auto [overflow-wrap:anywhere] text-center text-[11px] font-medium leading-tight group-active:font-semibold group-active:text-foreground',
   bottomNavLabelActive: 'font-semibold text-foreground',
 } as const;
 

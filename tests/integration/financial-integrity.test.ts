@@ -7,6 +7,7 @@ import { updateUserPreferencesUseCase } from '@/server/use-cases/users/update-us
 import { UserPreferencesRepository } from '@/server/repositories/user-preferences.repository';
 import { AccountsRepository } from '@/server/repositories/accounts.repository';
 import { BudgetPeriodsRepository } from '@/server/repositories/budget-periods.repository';
+import { RecurringRepository } from '@/server/repositories/recurring.repository';
 import { TransactionsRepository } from '@/server/repositories/transactions.repository';
 import {
   deleteAccountUseCase,
@@ -1020,4 +1021,34 @@ describe('balance recalculation coordinated with ledger mutations', () => {
       spy.mockRestore();
     }
   });
+});
+
+it('reads recorded recurring dates from actual linked ledger rows', async () => {
+  const seriesId = '00000000-0000-4000-8000-000000000099';
+  await db.execute(sql`CREATE TABLE recurring_transactions (
+    id uuid PRIMARY KEY, description text NOT NULL, amount numeric NOT NULL, type text NOT NULL,
+    category text NOT NULL, frequency text NOT NULL, account_id uuid NOT NULL, user_ids uuid[] NOT NULL,
+    start_date date NOT NULL, end_date date, due_day integer, is_active boolean DEFAULT true,
+    total_executions integer DEFAULT 0, transaction_ids uuid[] DEFAULT '{}',
+    created_at timestamptz DEFAULT now(), updated_at timestamptz DEFAULT now()
+  )`);
+  try {
+    await db.execute(sql`INSERT INTO recurring_transactions (id,description,amount,type,category,frequency,account_id,user_ids,start_date,due_day)
+      VALUES (${seriesId},'Plan',10,'expense','food','monthly',${a},ARRAY[${userId}]::uuid[],'2026-01-01',31)`);
+    await db.execute(sql`INSERT INTO transactions (description,amount,type,category,date,account_id,user_id,group_id,recurring_series_id)
+      VALUES ('Registered',10,'expense','food','2026-10-31',${a},${userId},${groupId},${seriesId}),
+      ('Registered twice',10,'expense','food','2026-10-31',${a},${userId},${groupId},${seriesId}),
+      ('Unlinked',10,'expense','food','2026-11-30',${a},${userId},${groupId},NULL)`);
+    expect((await RecurringRepository.findById(seriesId))?.recorded_dates).toEqual(['2026-10-31']);
+    expect((await RecurringRepository.findByUser(userId))[0]?.recorded_dates).toEqual([
+      '2026-10-31',
+    ]);
+    expect((await RecurringRepository.findByUserIds([userId]))[0]?.recorded_dates).toEqual([
+      '2026-10-31',
+    ]);
+    await db.execute(sql`DELETE FROM transactions WHERE recurring_series_id = ${seriesId}`);
+    expect((await RecurringRepository.findActiveByAccount(a))[0]?.recorded_dates).toEqual([]);
+  } finally {
+    await db.execute(sql`DROP TABLE recurring_transactions`);
+  }
 });

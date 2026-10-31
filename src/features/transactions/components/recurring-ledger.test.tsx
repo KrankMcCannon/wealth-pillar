@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { NuqsTestingAdapter } from 'nuqs/adapters/testing';
+import userEvent from '@testing-library/user-event';
+import { toggleRecurringSeriesActiveAction } from '@/features/recurring/actions/recurring-actions';
+import { toast } from '@/hooks/use-toast';
+import { fireEvent, render as rtlRender, screen, waitFor } from '@testing-library/react';
 import type { RecurringTransactionSeries } from '@/lib/types';
 import { RecurringLedger } from './recurring-ledger';
 import { CompactSegments } from './filter-dock';
@@ -7,13 +11,18 @@ vi.mock('next-intl', () => ({
   useTranslations: () => (key: string) => key,
   useLocale: () => 'en',
 }));
+vi.mock('@/features/recurring/actions/recurring-actions', () => ({
+  toggleRecurringSeriesActiveAction: vi.fn(),
+}));
+vi.mock('@/hooks/use-toast', () => ({ toast: vi.fn() }));
 vi.mock('./sticky-total', () => ({
   StickyTotal: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 vi.mock('@/i18n/routing', () => ({
-  useRouter: () => ({ push: vi.fn() }),
+  useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
   Link: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
+const render = (ui: React.ReactNode) => rtlRender(<NuqsTestingAdapter>{ui}</NuqsTestingAdapter>);
 const series: RecurringTransactionSeries = {
   id: 'series',
   description: 'Insurance',
@@ -73,5 +82,25 @@ describe('Recurring ledger context', () => {
     fireEvent.keyDown(all, { key: 'ArrowRight' });
     expect(select).toHaveBeenCalledWith('expense');
     expect(screen.getByRole('radio', { name: 'Expenses' })).toHaveFocus();
+  });
+});
+
+describe('quick recurring actions', () => {
+  it('keeps the row and reports a failed pause', async () => {
+    const user = userEvent.setup();
+    vi.mocked(toggleRecurringSeriesActiveAction).mockResolvedValueOnce({
+      data: null,
+      error: 'offline',
+    });
+    render(<RecurringLedger {...props} series={[series]} />);
+    await user.click(screen.getByRole('button', { name: 'actions.menuAria' }));
+    await user.click(screen.getByRole('menuitem', { name: 'actions.pause' }));
+    await waitFor(() =>
+      expect(toast).toHaveBeenCalledWith(
+        expect.objectContaining({ title: 'updateError', variant: 'destructive' })
+      )
+    );
+    expect(screen.getByText('Insurance')).toBeVisible();
+    expect(screen.getByRole('button', { name: 'actions.menuAria' })).toBeEnabled();
   });
 });

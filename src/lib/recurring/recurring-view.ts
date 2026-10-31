@@ -1,4 +1,5 @@
 import type { RecurringTransactionSeries } from '@/lib/types';
+import { getRecurringSchedule, type RecurringScheduleStatus } from './recurring-schedule';
 import { calculateDaysUntilDue, calculateRecurringTotals } from './recurring-calculations';
 
 /** Active series due within this many days (including overdue) go in Upcoming. */
@@ -6,6 +7,8 @@ export const UPCOMING_WITHIN_DAYS = 7;
 
 export type DecoratedRecurringSeries = RecurringTransactionSeries & {
   daysUntilDue: number;
+  nextExecutionDate: string | null;
+  scheduleStatus: RecurringScheduleStatus;
 };
 
 export interface RecurringViewModel {
@@ -44,16 +47,23 @@ export function buildRecurringView(
     ? series.filter((item) => item.user_ids.includes(selectedUserId))
     : series;
 
-  const decorated: DecoratedRecurringSeries[] = userFiltered.map((item) => ({
-    ...item,
-    daysUntilDue: calculateDaysUntilDue(item),
-  }));
+  const decorated: DecoratedRecurringSeries[] = userFiltered.map((item) => {
+    const schedule = getRecurringSchedule(item);
+    return {
+      ...item,
+      daysUntilDue: calculateDaysUntilDue(item),
+      nextExecutionDate: schedule.nextDate,
+      scheduleStatus: schedule.status,
+    };
+  });
 
   decorated.sort((a, b) => a.daysUntilDue - b.daysUntilDue);
 
   const filteredSeries = maxItems && maxItems > 0 ? decorated.slice(0, maxItems) : decorated;
 
-  const activeSeries = filteredSeries.filter((item) => item.is_active);
+  const activeSeries = filteredSeries.filter(
+    (item) => item.is_active && !['ended', 'invalid'].includes(item.scheduleStatus)
+  );
   const pausedSeries = filteredSeries.filter((item) => !item.is_active);
   const pausedCount = pausedSeries.length;
   const upcomingSeries = activeSeries.filter((item) => item.daysUntilDue <= UPCOMING_WITHIN_DAYS);

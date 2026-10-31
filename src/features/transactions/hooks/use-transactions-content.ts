@@ -26,7 +26,12 @@ import {
 } from '../utils/transactions-query';
 
 function transactionsHref(qs: string, searchParams: URLSearchParams): string {
-  const href = `/transactions?${qs}`;
+  const params = new URLSearchParams(qs);
+  for (const key of ['recurringStatus', 'recurringSearch', 'recurringAccount']) {
+    const value = searchParams.get(key);
+    if (value && !params.has(key)) params.set(key, value);
+  }
+  const href = `/transactions?${params.toString()}`;
   const from = parseReturnTo(searchParams);
   return from ? withReturnTo(href, from) : href;
 }
@@ -62,6 +67,7 @@ export interface UseTransactionsContentReturn {
   openModal: (type: ModalType, id?: string) => void;
   isNavigatingFilters: boolean;
   handleClearFilters: () => void;
+  applyAdvancedFilters: (filters: TransactionFiltersState) => void;
 }
 
 function buildQueryKey(appliedQuery: AppliedTransactionsQuery): string {
@@ -179,9 +185,9 @@ export function useTransactionsContent({
   }, [searchParams, budgets]);
 
   const pushQuery = useCallback(
-    (nextFilters: TransactionFiltersState, userId?: string) => {
+    (nextFilters: TransactionFiltersState, userId?: string, budgetOverride?: string | null) => {
       const query = buildTransactionsQueryString(nextFilters, userId);
-      const budget = searchParams.get('budget');
+      const budget = budgetOverride === undefined ? searchParams.get('budget') : budgetOverride;
       const tab = searchParams.get('tab');
       const parts = [query];
       if (budget) parts.push(`budget=${encodeURIComponent(budget)}`);
@@ -300,6 +306,13 @@ export function useTransactionsContent({
     startNavigation(() => router.push(transactionsHref(qs, searchParams)));
   }, [router, searchParams, startNavigation, setSearchDraft]);
 
+  const applyAdvancedFilters = useCallback(
+    (next: TransactionFiltersState) => {
+      pushQuery(next, selectedUserId, next.budgetId ?? null);
+    },
+    [pushQuery, selectedUserId]
+  );
+
   const accountNames = useIdNameMap(accounts);
   const setTransactionEditSeed = useTransactionEditStore((state) => state.setSeed);
 
@@ -331,5 +344,6 @@ export function useTransactionsContent({
     openModal,
     isNavigatingFilters: isNavigating || searchDraft.trim() !== (appliedQuery.q ?? '').trim(),
     handleClearFilters,
+    applyAdvancedFilters,
   };
 }

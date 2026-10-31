@@ -4,6 +4,7 @@ import { TransactionRow } from './transaction-row';
 import type { Transaction } from '@/lib';
 
 vi.mock('next-intl', () => ({
+  useLocale: () => 'it',
   useTranslations: () => (key: string, values?: Record<string, unknown>) => {
     if (key === 'actions.editAria' && values) {
       return `Edit ${values.description}`;

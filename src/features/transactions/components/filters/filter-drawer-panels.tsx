@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useCallback, useMemo, useState } from 'react';
+import { memo, useCallback, useMemo, useState, useEffect } from 'react';
 import { Search, Check } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import type { Category, Account } from '@/lib/types';
@@ -32,6 +32,7 @@ interface DateOptionsProps {
   readonly onClose: () => void;
   readonly onDateRangeChange?: (startDate: string, endDate: string) => void;
   readonly presets?: DateRangeFilter[];
+  readonly onValidityChange?: ((valid: boolean) => void) | undefined;
 }
 
 export const DateOptions = memo(function DateOptions({
@@ -41,6 +42,7 @@ export const DateOptions = memo(function DateOptions({
   onSelect,
   onClose,
   onDateRangeChange,
+  onValidityChange,
   presets = DATE_OPTIONS.filter((option) => option !== 'custom'),
 }: DateOptionsProps) {
   const t = useTranslations('Transactions.Filters');
@@ -55,6 +57,9 @@ export const DateOptions = memo(function DateOptions({
     [onDateRangeChange]
   );
   const invalidRange = Boolean(customStartDate && customEndDate && customStartDate > customEndDate);
+  useEffect(() => {
+    onValidityChange?.(!invalidRange);
+  }, [invalidRange, onValidityChange]);
 
   return (
     <div className={transactionStyles.filters.dateSection}>
@@ -156,6 +161,7 @@ const CategoryOptions = memo(function CategoryOptions({
         {/* "All" option */}
         <button
           type="button"
+          aria-pressed={selectedCategoryKey === 'all'}
           onClick={() => {
             onSelect('all');
             onClose();
@@ -173,10 +179,16 @@ const CategoryOptions = memo(function CategoryOptions({
           <span className={transactionStyles.filters.categoryLabel}>{t('category.all')}</span>
         </button>
 
+        {filteredCategories.length === 0 ? (
+          <p role="status" className="text-sm text-muted-foreground">
+            {t('category.noResults')}
+          </p>
+        ) : null}
         {filteredCategories.map((category) => (
           <button
             key={category.key}
             type="button"
+            aria-pressed={selectedCategoryKey === category.key}
             onClick={() => {
               onSelect(category.key);
               onClose();
@@ -244,6 +256,7 @@ const AccountOptions = memo(function AccountOptions({
         {/* "All" option */}
         <button
           type="button"
+          aria-pressed={selectedAccountId === 'all'}
           onClick={() => {
             onSelect('all');
             onClose();
@@ -261,10 +274,16 @@ const AccountOptions = memo(function AccountOptions({
           <span className={transactionStyles.filters.categoryLabel}>{t('account.all')}</span>
         </button>
 
+        {filteredAccounts.length === 0 ? (
+          <p role="status" className="text-sm text-muted-foreground">
+            {t('account.noResults')}
+          </p>
+        ) : null}
         {filteredAccounts.map((account) => (
           <button
             key={account.id}
             type="button"
+            aria-pressed={selectedAccountId === account.id}
             onClick={() => {
               onSelect(account.id);
               onClose();

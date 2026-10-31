@@ -721,13 +721,25 @@
       "signIncome": "entrata",
       "signExpense": "uscita",
       "signTransfer": "trasferimento",
-      "monthlyEstimate": "Equivalente mensile delle serie attive. Le frequenze diverse dal mese sono ripartite su base mensile.",
+      "monthlyEstimate": "Equivalente mensile delle serie attive nel periodo corrente, esclusi gli impegni una tantum. Gli altri intervalli sono ripartiti su base mensile.",
       "empty": {
         "active": "Non ci sono serie attive con questa prospettiva. Le serie in pausa restano disponibili in Tutte.",
-        "paused": "Non ci sono serie in pausa con questa prospettiva."
+        "paused": "Non ci sono serie in pausa con questa prospettiva.",
+        "ended": "Non ci sono serie terminate in questa prospettiva.",
+        "search": "Nessuna ricorrenza corrisponde ai filtri scelti."
       },
       "showAllSeries": "Mostra tutte le serie",
-      "partialDayTotal": "Totale caricato"
+      "partialDayTotal": "Totale caricato",
+      "statusEnded": "Terminate",
+      "recordedToday": "Registrata oggi",
+      "searchSeries": "Cerca ricorrenze",
+      "seriesAccount": "Conto",
+      "allAccounts": "Tutti i conti",
+      "scheduleForecast": "Le date sono previsioni del calendario. I movimenti risultano registrati solo quando sono presenti nelle transazioni.",
+      "undo": "Annulla",
+      "updateError": "Non siamo riusciti ad aggiornare la ricorrenza.",
+      "updateRetry": "La serie resta disponibile. Riprova dal menu.",
+      "needsReview": "Da verificare"
     },
     "empty": {
       "title": "Nessuna transazione",
@@ -830,11 +842,13 @@
       },
       "category": {
         "searchPlaceholder": "Cerca categoria...",
-        "all": "Tutte"
+        "all": "Tutte",
+        "noResults": "Nessuna categoria corrisponde alla ricerca."
       },
       "account": {
         "searchPlaceholder": "Cerca conto...",
-        "all": "Tutti"
+        "all": "Tutti",
+        "noResults": "Nessun conto corrisponde alla ricerca."
       },
       "drawer": {
         "titles": {
@@ -857,7 +871,8 @@
       "clearFilterAria": "Rimuovi filtro {label}",
       "clearAll": "Azzera filtri",
       "showAdvanced": "Filtri avanzati",
-      "hideAdvanced": "Nascondi avanzati"
+      "hideAdvanced": "Nascondi avanzati",
+      "applyFilters": "Mostra risultati"
     },
     "DayList": {
       "empty": {
@@ -1015,7 +1030,23 @@
         "typeExpense": "Uscita",
         "internalTransfer": "Probabile giroconto interno",
         "recurringMatch": "Corrisponde a ricorrente: {description}",
-        "category": "Categoria"
+        "category": "Categoria",
+        "filterStatus": "Filtra righe per stato",
+        "allRows": "Tutte",
+        "selectFiltered": "Seleziona {count} righe filtrate",
+        "deselectFiltered": "Deseleziona righe filtrate",
+        "duplicatesHelp": "Le righe duplicate o escluse non sono selezionabili. Seleziona e deseleziona agiscono su tutte le righe filtrate, anche nelle altre pagine. La categoria si applica a tutte le righe selezionate.",
+        "bulkCategory": "Categoria per {count} righe selezionate",
+        "accountTotals": "Totali selezionati per conto",
+        "rowsCount": "{count} righe",
+        "accountFallback": "Conto",
+        "rowsAria": "Righe dell’anteprima",
+        "noRows": "Nessuna riga per questo stato.",
+        "paginationAria": "Pagine dell’anteprima",
+        "previous": "Precedente",
+        "next": "Successiva",
+        "page": "Pagina {page} di {total}",
+        "includeRowAria": "Riga {row}: includi {description}, {date}, {amount}, {account}"
       },
       "result": {
         "inserted": "{count} transazioni importate",
@@ -1095,13 +1126,13 @@
       },
       "title": "{action} serie ricorrente",
       "description": {
-        "pause": "La serie non genererà più transazioni automatiche",
-        "resume": "La serie riprenderà a generare transazioni automatiche"
+        "pause": "La serie non comparirà tra gli impegni attivi",
+        "resume": "La serie tornerà tra gli impegni attivi"
       },
       "body": {
-        "pauseMain": "La serie ricorrente verrà {action}. Non verranno più create transazioni automatiche finché non la riattiverai.",
+        "pauseMain": "La serie verrà {action}. Le sue scadenze non saranno incluse negli impegni attivi finché non la riattiverai.",
         "pauseSecondary": "Le transazioni già create rimarranno invariate.",
-        "resumeMain": "La serie ricorrente verrà {action}. Riprenderà a generare transazioni automatiche secondo la frequenza impostata."
+        "resumeMain": "La serie verrà {action}. Le date previste torneranno tra gli impegni attivi secondo il calendario impostato."
       },
       "buttons": {
         "cancel": "Annulla"
@@ -1119,7 +1150,8 @@
         "today": "Oggi",
         "tomorrow": "Domani",
         "daysAgo": "{count} giorni fa",
-        "inDays": "Tra {count} giorni"
+        "inDays": "Tra {count} giorni",
+        "unavailable": "Nessuna prossima scadenza"
       },
       "status": {
         "stopped": "In pausa"
@@ -1132,7 +1164,9 @@
         "pauseAria": "Metti in pausa la serie ricorrente",
         "resumeAria": "Riprendi la serie ricorrente",
         "deleteAria": "Elimina la serie ricorrente",
-        "editAria": "Modifica serie ricorrente: {description}, {amount}"
+        "editAria": "Modifica serie ricorrente: {description}, {amount}",
+        "edit": "Modifica",
+        "menuAria": "Azioni per {description}"
       }
     },
     "FormModal": {
@@ -1146,7 +1180,9 @@
         "startDateRequired": "La data di inizio è obbligatoria",
         "dueDayRequired": "Il giorno di addebito è obbligatorio",
         "dueDayRange": "Il giorno deve essere tra 1 e 31",
-        "endDateAfterStart": "La data di fine deve essere successiva alla data di inizio"
+        "endDateAfterStart": "La data di fine deve essere successiva alla data di inizio",
+        "transfersUnavailable": "Scegli Entrata o Uscita: i trasferimenti ricorrenti non sono disponibili.",
+        "weekdayRange": "Scegli un giorno della settimana valido."
       },
       "title": {
         "create": "Nuova Serie Ricorrente",
@@ -1203,6 +1239,9 @@
         "description": {
           "label": "Descrizione",
           "placeholder": "Es. Abbonamento Netflix"
+        },
+        "weekday": {
+          "label": "Giorno della settimana"
         }
       },
       "buttons": {
@@ -1222,6 +1261,21 @@
         "participants": "Chi coinvolge",
         "amounts": "Importi e conto",
         "schedule": "Date"
+      },
+      "transfersUnavailable": "Per i trasferimenti usa una transazione con conto origine e destinazione. Le ricorrenze supportano entrate e uscite.",
+      "weekdays": {
+        "1": "Lunedì",
+        "2": "Martedì",
+        "3": "Mercoledì",
+        "4": "Giovedì",
+        "5": "Venerdì",
+        "6": "Sabato",
+        "7": "Domenica"
+      },
+      "scheduleHelp": {
+        "weekly": "Il primo giorno scelto dalla data iniziale fissa la cadenza di 7 o 14 giorni.",
+        "once": "La scadenza coincide con la data iniziale. Non viene conteggiata nel totale mensile ricorrente.",
+        "monthly": "Se il mese non contiene il giorno scelto, la scadenza cade nell’ultimo giorno del mese."
       }
     }
   },

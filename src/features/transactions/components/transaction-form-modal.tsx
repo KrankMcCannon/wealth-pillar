@@ -1,6 +1,8 @@
 'use client';
 
 import { parseDecimal } from '@/lib/utils/parse-decimal';
+import { useSearchParams } from 'next/navigation';
+import { resolveTransactionCreateContext } from '../utils/create-transaction-context';
 import { todayDateString } from '@/lib/utils/date-utils';
 
 import { useEffect, useMemo, useCallback, useRef } from 'react';
@@ -179,7 +181,7 @@ function TransactionFormModalBody({
 function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionFormModalProps>) {
   const t = useTranslations('Transactions.FormModal');
   const tPage = useTranslations('TransactionsContent');
-  const { groupUsers, groupId, shouldDisableUserField, defaultFormUserId, userFieldHelperText } =
+  const { currentUser, groupUsers, groupId, shouldDisableUserField, userFieldHelperText } =
     useEntityFormPermissions();
   const accounts = useAccounts();
   const categories = useCategories();
@@ -219,27 +221,32 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
   const title = isEditMode ? t('title.edit') : t('title.create');
   const transactionSchema = useMemo(() => createTransactionSchema(t), [t]);
 
+  const searchParams = useSearchParams();
+  const createContext = useMemo(
+    () => resolveTransactionCreateContext(searchParams, currentUser, groupUsers, accounts),
+    [searchParams, currentUser, groupUsers, accounts]
+  );
   const today = todayDateString();
   const createDefaults = useMemo(
     (): TransactionFormData => ({
       description: '',
       amount: '',
-      type: 'expense',
+      type: createContext.type,
       category: '',
       date: today,
-      user_id: defaultFormUserId,
+      user_id: createContext.user_id,
       account_id: '',
       to_account_id: '',
     }),
-    [defaultFormUserId, today]
+    [createContext, today]
   );
 
   const createValues = useMemo(
     (): TransactionFormData => ({
       ...createDefaults,
-      account_id: getDefaultAccountIdForUser(defaultFormUserId, accounts, groupUsers),
+      account_id: createContext.account_id,
     }),
-    [createDefaults, defaultFormUserId, accounts, groupUsers]
+    [createDefaults, createContext]
   );
 
   const handleLoadError = useCallback(() => {

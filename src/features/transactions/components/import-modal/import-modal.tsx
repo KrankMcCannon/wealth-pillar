@@ -1,10 +1,18 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { Upload } from 'lucide-react';
 import { useRouter } from '@/i18n/routing';
-import { useVirtualizer } from '@tanstack/react-virtual';
+import { CategorySelect } from '@/components/form/category-select';
+import { CompactSegments } from '../filter-dock';
+import { formatCurrencyLocale } from '@/lib/utils/currency-formatter';
+import {
+  restorePreviewChoices,
+  setPreviewSelection,
+  summarizeImportSelection,
+  IMPORT_PREVIEW_PAGE_SIZE,
+} from '../../utils/import-preview-state';
 import {
   ModalWrapper,
   ModalBody,
@@ -45,9 +53,6 @@ interface ImportModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
-
-/** Estimated collapsed row height (px) used before the virtualizer measures the real element. */
-const PREVIEW_ROW_ESTIMATED_SIZE = 196;
 
 function mappingUserField(productKey: string): string {
   return `user_${productKey}`;
@@ -139,6 +144,7 @@ function GroupMappingFields({
 
 export default function ImportModal({ isOpen, onClose }: Readonly<ImportModalProps>) {
   const t = useTranslations('Transactions.ImportModal');
+  const locale = useLocale();
   const router = useRouter();
   const currentUser = useRequiredCurrentUser();
   const groupId = useRequiredGroupId();
@@ -153,6 +159,9 @@ export default function ImportModal({ isOpen, onClose }: Readonly<ImportModalPro
   const [result, setResult] = useState<BulkImportResult | null>(null);
   const [isBusy, setIsBusy] = useState(false);
   const [fileName, setFileName] = useState('');
+  const [previewStatus, setPreviewStatus] = useState('all');
+  const [previewPage, setPreviewPage] = useState(0);
+  const previewHeadingRef = useRef<HTMLParagraphElement>(null);
   const previewScrollRef = useRef<HTMLDivElement>(null);
 
   const defaultUserId = currentUser.id;
@@ -175,6 +184,8 @@ export default function ImportModal({ isOpen, onClose }: Readonly<ImportModalPro
     setResult(null);
     setIsBusy(false);
     setFileName('');
+    setPreviewStatus('all');
+    setPreviewPage(0);
     mappingForm.reset({});
   }, [mappingForm]);
 
@@ -194,6 +205,8 @@ export default function ImportModal({ isOpen, onClose }: Readonly<ImportModalPro
       try {
         const parsed = await parseImportFile(file);
         setParseResult(parsed);
+        setPreviewRows([]);
+        setPreviewPage(0);
         const defaults: ProductMappingForm = {};
         for (const group of parsed.groups) {
           defaults[mappingUserField(group.productKey)] = defaultUserId;
@@ -262,16 +275,22 @@ export default function ImportModal({ isOpen, onClose }: Readonly<ImportModalPro
         return;
       }
 
-      setPreviewRows(
-        response.data.map((row) => ({
-          ...row,
-          include: row.includeByDefault,
-          category:
-            matchCategoryHint(categoryHintByRowId.get(row.rowId), categories) ??
-            row.suggestedCategory,
-          user_id: userByRowId.get(row.rowId) ?? defaultUserId,
-        }))
+      const preparedRows: PreviewRow[] = response.data.map((row) => ({
+        ...row,
+        include: row.includeByDefault,
+        category:
+          matchCategoryHint(categoryHintByRowId.get(row.rowId), categories) ??
+          row.suggestedCategory,
+        user_id: userByRowId.get(row.rowId) ?? defaultUserId,
+      }));
+      setPreviewRows((previous) =>
+        restorePreviewChoices(
+          preparedRows,
+          previous,
+          new Set(categories.map((category) => category.key))
+        )
       );
+      setPreviewPage(0);
       setStep('preview');
     } catch (error) {
       toast({
@@ -355,14 +374,22 @@ export default function ImportModal({ isOpen, onClose }: Readonly<ImportModalPro
     [previewRows]
   );
 
-  // TanStack Virtual exposes mutable instance methods; keep this call outside compiler memoization.
-  // eslint-disable-next-line react-hooks/incompatible-library
-  const rowVirtualizer = useVirtualizer({
-    count: previewRows.length,
-    getScrollElement: () => previewScrollRef.current,
-    estimateSize: () => PREVIEW_ROW_ESTIMATED_SIZE,
-    overscan: 8,
-  });
+  const filteredPreview = useMemo(
+    () => previewRows.filter((row) => previewStatus === 'all' || row.status === previewStatus),
+    [previewRows, previewStatus]
+  );
+  const pageCount = Math.max(1, Math.ceil(filteredPreview.length / IMPORT_PREVIEW_PAGE_SIZE));
+  const safePage = Math.min(previewPage, pageCount - 1);
+  const pageRows = filteredPreview.slice(
+    safePage * IMPORT_PREVIEW_PAGE_SIZE,
+    (safePage + 1) * IMPORT_PREVIEW_PAGE_SIZE
+  );
+  const summaries = useMemo(() => summarizeImportSelection(previewRows), [previewRows]);
+  function changePreviewPage(page: number) {
+    setPreviewPage(page);
+    previewScrollRef.current?.scrollTo({ top: 0 });
+    previewHeadingRef.current?.focus();
+  }
 
   return (
     <ModalWrapper
@@ -419,41 +446,146 @@ export default function ImportModal({ isOpen, onClose }: Readonly<ImportModalPro
         ) : null}
 
         {step === 'preview' ? (
-          <div className="flex flex-col gap-3">
-            <p className="text-sm text-muted-foreground">
+          <div className="flex min-w-0 flex-col gap-3">
+            <p
+              ref={previewHeadingRef}
+              tabIndex={-1}
+              className="text-sm text-muted-foreground"
+              role="status"
+            >
               {t('preview.summary', { included: includedCount, total: previewRows.length })}
             </p>
-            <div ref={previewScrollRef} className="max-h-[50vh] overflow-y-auto pr-1">
-              <div
-                style={{
-                  height: rowVirtualizer.getTotalSize(),
-                  position: 'relative',
-                  width: '100%',
-                }}
+            <CompactSegments
+              ariaLabel={t('preview.filterStatus')}
+              selected={previewStatus}
+              onSelect={(status) => {
+                setPreviewStatus(status);
+                changePreviewPage(0);
+              }}
+              options={['all', 'new', 'possible-duplicate', 'duplicate', 'excluded'].map(
+                (status) => ({
+                  key: status,
+                  label: status === 'all' ? t('preview.allRows') : t(`status.${status}`),
+                  count:
+                    status === 'all'
+                      ? previewRows.length
+                      : previewRows.filter((row) => row.status === status).length,
+                })
+              )}
+            />
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="min-h-11"
+                onClick={() =>
+                  setPreviewRows((rows) =>
+                    setPreviewSelection(
+                      rows,
+                      new Set(filteredPreview.map((row) => row.rowId)),
+                      true
+                    )
+                  )
+                }
               >
-                {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-                  const row = previewRows[virtualRow.index];
-                  if (!row) return null;
-                  return (
-                    <div
-                      key={row.rowId}
-                      data-index={virtualRow.index}
-                      ref={rowVirtualizer.measureElement}
-                      className="absolute left-0 top-0 w-full pb-2"
-                      style={{ transform: `translateY(${virtualRow.start}px)` }}
-                    >
-                      <ImportPreviewRow
-                        row={row}
-                        categories={categories}
-                        t={t}
-                        onToggleInclude={handleToggleInclude}
-                        onCategoryChange={handleCategoryChange}
-                      />
-                    </div>
-                  );
-                })}
-              </div>
+                {t('preview.selectFiltered', { count: filteredPreview.length })}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="min-h-11"
+                onClick={() =>
+                  setPreviewRows((rows) =>
+                    setPreviewSelection(
+                      rows,
+                      new Set(filteredPreview.map((row) => row.rowId)),
+                      false
+                    )
+                  )
+                }
+              >
+                {t('preview.deselectFiltered')}
+              </Button>
             </div>
+            <p className="text-sm text-muted-foreground">{t('preview.duplicatesHelp')}</p>
+            {includedCount > 0 ? (
+              <CategorySelect
+                value=""
+                categories={categories}
+                showRecentCategories={false}
+                captionLabel={t('preview.bulkCategory', { count: includedCount })}
+                onValueChange={(category) =>
+                  setPreviewRows((rows) =>
+                    rows.map((row) => (row.include ? { ...row, category } : row))
+                  )
+                }
+              />
+            ) : null}
+            <section
+              aria-label={t('preview.accountTotals')}
+              className="space-y-2 border-y border-border py-3"
+            >
+              {summaries.map((summary) => (
+                <div key={summary.accountId} className="text-sm">
+                  <p className="font-semibold">
+                    {accounts.find((account) => account.id === summary.accountId)?.name ??
+                      t('preview.accountFallback')}{' '}
+                    · {t('preview.rowsCount', { count: summary.count })}
+                  </p>
+                  <p className="tabular-nums">
+                    {t('preview.typeIncome')}: +{formatCurrencyLocale(summary.income, locale)} ·{' '}
+                    {t('preview.typeExpense')}: −{formatCurrencyLocale(summary.expense, locale)}
+                  </p>
+                </div>
+              ))}
+            </section>
+            <div
+              ref={previewScrollRef}
+              className="max-h-[45dvh] overflow-y-auto pr-1"
+              aria-label={t('preview.rowsAria')}
+            >
+              {pageRows.length === 0 ? <p role="status">{t('preview.noRows')}</p> : null}
+              {pageRows.map((row) => (
+                <div key={row.rowId} className="pb-2">
+                  <ImportPreviewRow
+                    row={row}
+                    rowNumber={previewRows.indexOf(row) + 1}
+                    categories={categories}
+                    t={t}
+                    accountName={accounts.find((account) => account.id === row.account_id)?.name}
+                    userName={groupUsers.find((user) => user.id === row.user_id)?.name ?? undefined}
+                    onToggleInclude={handleToggleInclude}
+                    onCategoryChange={handleCategoryChange}
+                  />
+                </div>
+              ))}
+            </div>
+            <nav
+              aria-label={t('preview.paginationAria')}
+              className="flex flex-wrap items-center justify-between gap-2"
+            >
+              <Button
+                type="button"
+                variant="outline"
+                className="min-h-11"
+                disabled={safePage === 0}
+                onClick={() => changePreviewPage(safePage - 1)}
+              >
+                {t('preview.previous')}
+              </Button>
+              <span className="text-sm" role="status">
+                {t('preview.page', { page: safePage + 1, total: pageCount })}
+              </span>
+              <Button
+                type="button"
+                variant="outline"
+                className="min-h-11"
+                disabled={safePage >= pageCount - 1}
+                onClick={() => changePreviewPage(safePage + 1)}
+              >
+                {t('preview.next')}
+              </Button>
+            </nav>
           </div>
         ) : null}
 

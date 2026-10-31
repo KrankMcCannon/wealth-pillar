@@ -8,11 +8,15 @@ export type ToastProps = {
   title?: string;
   description?: string;
   variant?: ToastVariant;
+  action?: { label: string; onClick: () => void };
 };
 
-function showToast({ title, description, variant = 'default' }: ToastProps) {
+function showToast({ title, description, variant = 'default', action }: ToastProps) {
   const message = title ?? description ?? '';
-  const options = title && description ? { description } : undefined;
+  const options =
+    (title && description) || action
+      ? { ...(title && description ? { description } : {}), ...(action ? { action } : {}) }
+      : undefined;
 
   switch (variant) {
     case 'destructive':

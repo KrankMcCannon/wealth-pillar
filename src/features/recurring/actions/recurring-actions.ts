@@ -1,5 +1,7 @@
 'use server';
 
+import { validateRecurringDefinition } from '@/lib/recurring/recurring-validation';
+
 /**
  * Recurring Series Server Actions
  *
@@ -109,7 +111,7 @@ export async function createRecurringSeriesAction(
     }
 
     // Validate input logic
-    const inputError = validateCreateInput(input);
+    const inputError = validateCreateInput(input) ?? validateRecurringDefinition(input);
     if (inputError) return { data: null, error: inputError };
 
     // Validate permissions logic
@@ -247,6 +249,13 @@ export async function updateRecurringSeriesAction(
     const { payload, error: payloadError } = buildUpdatePayload(input);
     if (payloadError) return { data: null, error: payloadError };
     const updatePayload = payload;
+    const pausingExistingSeries =
+      input.is_active === false &&
+      Object.keys(input).every((key) => ['id', 'is_active'].includes(key));
+    const definitionError = pausingExistingSeries
+      ? null
+      : validateRecurringDefinition({ ...oldSeries, ...input });
+    if (definitionError) return { data: null, error: definitionError };
 
     const data = await updateSeriesUseCase(input.id, updatePayload);
     if (!data) {

@@ -61,10 +61,11 @@ export function RecurringFormFields({
         options={[
           { value: 'expense', label: t('typeOptions.expense') },
           { value: 'income', label: t('typeOptions.income') },
-          { value: 'transfer', label: t('typeOptions.transfer') },
         ]}
         disabled={isSubmitting}
       />
+
+      <p className="px-3 text-sm text-muted-foreground">{t('transfersUnavailable')}</p>
 
       <ModalCategoryField
         control={control}

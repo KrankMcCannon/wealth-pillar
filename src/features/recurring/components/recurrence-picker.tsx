@@ -2,6 +2,7 @@
 
 import type { useTranslations } from 'next-intl';
 import type { UseFormReturn } from 'react-hook-form';
+import { useWatch } from 'react-hook-form';
 import { ModalRadioField, ModalTextField } from '@/components/form/modal-fields';
 import type { RecurringFormData } from './recurring-form-schema';
 
@@ -13,6 +14,8 @@ export interface RecurrencePickerProps {
 
 export function RecurrencePicker({ form, t, isSubmitting }: RecurrencePickerProps) {
   const { control } = form;
+  const frequency = useWatch({ control, name: 'frequency' });
+  const weekly = frequency === 'weekly' || frequency === 'biweekly';
 
   return (
     <>
@@ -30,14 +33,36 @@ export function RecurrencePicker({ form, t, isSubmitting }: RecurrencePickerProp
         disabled={isSubmitting}
       />
 
-      <ModalTextField
-        control={control}
-        name="due_day"
-        label={t('fields.dueDay.label')}
-        type="number"
-        placeholder={t('fields.dueDay.placeholder')}
-        disabled={isSubmitting}
-      />
+      {weekly ? (
+        <ModalRadioField
+          control={control}
+          name="due_day"
+          label={t('fields.weekday.label')}
+          options={Array.from({ length: 7 }, (_, index) => ({
+            value: String(index + 1),
+            label: t(`weekdays.${index + 1}`),
+          }))}
+          disabled={isSubmitting}
+        />
+      ) : frequency !== 'once' ? (
+        <ModalTextField
+          control={control}
+          name="due_day"
+          label={t('fields.dueDay.label')}
+          type="number"
+          placeholder={t('fields.dueDay.placeholder')}
+          disabled={isSubmitting}
+        />
+      ) : null}
+      <p className="px-3 text-sm text-muted-foreground">
+        {t(
+          weekly
+            ? 'scheduleHelp.weekly'
+            : frequency === 'once'
+              ? 'scheduleHelp.once'
+              : 'scheduleHelp.monthly'
+        )}
+      </p>
     </>
   );
 }

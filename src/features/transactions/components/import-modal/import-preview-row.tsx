@@ -6,7 +6,9 @@ import { Badge, Checkbox } from '@/components/ui';
 import { CategorySelect } from '@/components/form/category-select';
 import type { Category } from '@/lib/types';
 import type { PrepareImportRowResult } from '@/lib/import';
-import { formatCurrency, formatDateShort, cn } from '@/lib/utils';
+import { canSelectImportRow } from '../../utils/import-preview-state';
+import { formatCurrencyLocale } from '@/lib/utils/currency-formatter';
+import { formatDateShort, cn } from '@/lib/utils';
 import { stitchHome } from '@/styles/home-design-foundation';
 
 export type PreviewRow = PrepareImportRowResult & {
@@ -23,6 +25,9 @@ function statusBadgeVariant(status: PrepareImportRowResult['status']) {
 
 interface ImportPreviewRowProps {
   row: PreviewRow;
+  rowNumber: number;
+  accountName?: string | undefined;
+  userName?: string | undefined;
   categories: Category[];
   t: ReturnType<typeof useTranslations<'Transactions.ImportModal'>>;
   onToggleInclude: (rowId: string, checked: boolean) => void;
@@ -31,6 +36,9 @@ interface ImportPreviewRowProps {
 
 function ImportPreviewRowComponent({
   row,
+  rowNumber,
+  accountName,
+  userName,
   categories,
   t,
   onToggleInclude,
@@ -53,7 +61,14 @@ function ImportPreviewRowComponent({
         <Checkbox
           checked={row.include}
           onCheckedChange={(checked) => onToggleInclude(row.rowId, checked === true)}
-          aria-label={t('preview.includeRow')}
+          aria-label={t('preview.includeRowAria', {
+            row: rowNumber,
+            description: row.description,
+            date: formattedDate,
+            amount: formatCurrencyLocale(row.amount, locale),
+            account: accountName ?? t('preview.accountFallback'),
+          })}
+          disabled={!canSelectImportRow(row)}
           className="mt-0.5"
         />
         <div className="min-w-0 flex-1 space-y-2">
@@ -61,6 +76,9 @@ function ImportPreviewRowComponent({
             <div className="min-w-0 flex-1">
               <p className={stitchHome.rowTitle} title={row.description}>
                 {row.description}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {[accountName, userName].filter(Boolean).join(' · ')}
               </p>
               <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                 <Badge variant={statusBadgeVariant(row.status)}>{t(`status.${row.status}`)}</Badge>
@@ -85,7 +103,7 @@ function ImportPreviewRowComponent({
                   isIncome ? stitchHome.amountIncome : stitchHome.amountExpense
                 )}
               >
-                {formatCurrency(Math.abs(row.amount))}
+                {`${isIncome ? '+' : '−'}${formatCurrencyLocale(Math.abs(row.amount), locale)}`}
               </p>
               <p className="mt-0.5 text-xs text-muted-foreground">{formattedDate}</p>
             </div>
@@ -115,9 +133,5 @@ function ImportPreviewRowComponent({
   );
 }
 
-/**
- * Preview list can hold up to 1500+ rows (see prepareImportSchema max). Memoized so toggling one
- * row's checkbox/category doesn't re-render the others — `previewRows.map` in the parent preserves
- * referential equality for untouched rows, which this relies on.
- */
+/** Memoized rows; preview pages keep a bounded, fully keyboard-accessible DOM. */
 export const ImportPreviewRow = memo(ImportPreviewRowComponent);
