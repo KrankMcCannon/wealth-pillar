@@ -1,5 +1,7 @@
 'use server';
 
+import { updateTag } from 'next/cache';
+import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { runAuthorizedMutation } from '@/lib/server-action/run-authorized-mutation';
 
@@ -14,6 +16,12 @@ import { deleteBudgetUseCase } from '@/server/use-cases/budgets/delete-budget.us
 import { getBudgetByIdUseCase } from '@/server/use-cases/budgets/get-budgets.use-case';
 
 import type { ServiceResult } from '@/lib/types/service-result';
+
+function expireBudgetReadModels(groupId: string | null | undefined, budgetId?: string) {
+  updateTag('budgets');
+  if (groupId) updateTag(`group:${groupId}:budgets`);
+  if (budgetId) updateTag(`budget:${budgetId}`);
+}
 
 async function getBudgetsActionTranslator(locale?: string) {
   if (locale) {
@@ -65,6 +73,7 @@ export async function createBudgetAction(
     const budget = await createBudgetUseCase(input);
 
     if (budget) {
+      expireBudgetReadModels(budget.group_id, budget.id);
       return { data: budget, error: null };
     }
 
@@ -135,6 +144,7 @@ export async function updateBudgetAction(
     const budget = await updateBudgetUseCase(id, input);
 
     if (budget) {
+      expireBudgetReadModels(budget.group_id, budget.id);
       return { data: budget, error: null };
     }
 
@@ -184,10 +194,13 @@ export async function getBudgetByIdAction(
  */
 export async function deleteBudgetAction(
   id: string,
-  locale?: string
+  locale?: string,
+  returnToList = false
 ): Promise<ServiceResult<{ id: string }>> {
   const t = await getBudgetsActionTranslator(locale);
-  return runAuthorizedMutation({
+  let ownerId: string | undefined;
+  let groupId: string | null | undefined;
+  const result = await runAuthorizedMutation({
     unauthenticatedError: t('errors.unauthenticated'),
     authorize: async (currentUser) => {
       const existingBudget = await getBudgetByIdUseCase(id);
@@ -197,6 +210,8 @@ export async function deleteBudgetAction(
       if (!AccessScope.for(currentUser).canViewOwned(existingBudget)) {
         return { data: null, error: t('errors.noPermissionDelete') };
       }
+      ownerId = existingBudget.user_id;
+      groupId = existingBudget.group_id;
       return null;
     },
     mutate: async () => {
@@ -208,4 +223,10 @@ export async function deleteBudgetAction(
     },
     formatError: (error) => (error instanceof Error ? error.message : t('errors.deleteFailed')),
   });
+  if (result.data) {
+    expireBudgetReadModels(groupId, id);
+    if (returnToList && ownerId)
+      redirect(`/${locale === 'en' ? 'en' : 'it'}/budgets?user=${encodeURIComponent(ownerId)}`);
+  }
+  return result;
 }

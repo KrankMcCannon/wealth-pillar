@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useWatch } from 'react-hook-form';
 import { z } from 'zod';
 import { useLocale, useTranslations } from 'next-intl';
 import type { UseFormReturn } from 'react-hook-form';
@@ -46,6 +47,7 @@ function EditClosingDateFields({
   startDateLabel,
   endDateLabel,
   noClosedPeriodAlert,
+  oldEnd,
 }: Readonly<{
   form: UseFormReturn<EditClosingDateFormData>;
   periodStartDate: string | null;
@@ -54,13 +56,24 @@ function EditClosingDateFields({
   startDateLabel: string;
   endDateLabel: string;
   noClosedPeriodAlert: string;
+  oldEnd: string;
 }>) {
+  const next = useWatch({ control: form.control, name: 'end_date' });
+  const ux = useTranslations('Budgets.UX');
+  const locale = useLocale();
+  const format = (date: string) =>
+    DateTime.fromISO(date).isValid
+      ? DateTime.fromISO(date).setLocale(locale).toLocaleString(DateTime.DATE_MED)
+      : date;
   if (!periodStartDate) {
     return <p className="text-sm text-modal-fg-muted">{noClosedPeriodAlert}</p>;
   }
 
   return (
     <div className={formModalStyles.paddedBodyBleed}>
+      <p role="status" className="px-4 text-sm">
+        {ux('closingPreview', { old: format(oldEnd), next: format(next) })}
+      </p>
       {editStart ? (
         <ModalDateField control={form.control} name="start_date" label={startDateLabel} required />
       ) : null}
@@ -262,6 +275,7 @@ function EditClosingDateModal({
           startDateLabel={t('fields.startDate.label')}
           endDateLabel={t('fields.endDate.label')}
           noClosedPeriodAlert={t('noClosedPeriodAlert')}
+          oldEnd={closedPeriod?.end_date ? toDateOnlyString(closedPeriod.end_date) : '—'}
         />
       )}
     </EntityFormModal>

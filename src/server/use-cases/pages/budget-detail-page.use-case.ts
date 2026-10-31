@@ -71,6 +71,7 @@ export function previewGroupedBudgetTransactions(
     preview.push({
       ...group,
       transactions: group.transactions.slice(0, remaining),
+      isPartial: true,
     });
     break;
   }
@@ -165,6 +166,7 @@ async function getCachedBudgetDetailPageData(
   const slim = slimDetailPayload(accounts, categories, budget, budgetTransactions);
 
   return {
+    transactionCount: budgetTransactions.length,
     budget,
     progress,
     activePeriod,

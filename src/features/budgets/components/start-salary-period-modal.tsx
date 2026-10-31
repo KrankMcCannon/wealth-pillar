@@ -9,6 +9,8 @@ import { ModalDateField } from '@/components/form/modal-fields';
 import { ModalFooterActions } from '@/components/ui/modal-footer-actions';
 import { startPeriodAction } from '@/features/budgets';
 import { useRouter } from '@/i18n/routing';
+import { useWatch } from 'react-hook-form';
+import { DateTime } from 'luxon';
 import { todayDateString } from '@/lib/utils/date-utils';
 import type { BudgetPeriod } from '@/lib/types';
 
@@ -20,14 +22,44 @@ interface StartSalaryPeriodModalProps {
   isOpen: boolean;
   onClose: () => void;
   userId: string;
+  userName?: string;
   periodStart: string | null;
   onSuccess?: () => void;
 }
 
+function CyclePreview({
+  form,
+  name,
+  start,
+}: {
+  form: UseFormReturn<StartSalaryPeriodFormData>;
+  name: string;
+  start: string | null;
+}) {
+  const date = useWatch({ control: form.control, name: 'salary_date' });
+  const t = useTranslations('Budgets.UX');
+  const locale = useLocale();
+  const format = (value: string) =>
+    DateTime.fromISO(value).setLocale(locale).toLocaleString(DateTime.DATE_MED);
+  return (
+    <div role="status" className="space-y-2 text-sm">
+      <p>
+        {t('cyclePreview', {
+          name,
+          start: start ? format(start) : '—',
+          end: format(DateTime.fromISO(date).minus({ days: 1 }).toISODate() ?? date),
+          next: format(date),
+        })}
+      </p>
+      {date < todayDateString() ? <p>{t('retro')}</p> : null}
+    </div>
+  );
+}
 function StartSalaryPeriodModal({
   isOpen,
   onClose,
   userId,
+  userName = '',
   periodStart,
   onSuccess,
 }: Readonly<StartSalaryPeriodModalProps>) {
@@ -120,6 +152,7 @@ function StartSalaryPeriodModal({
       {(form) => (
         <>
           <p className="text-sm leading-relaxed text-modal-fg-muted">{t('hint')}</p>
+          <CyclePreview form={form} name={userName} start={periodStart} />
 
           <div className={formModalStyles.paddedBodyBleed}>
             <ModalDateField

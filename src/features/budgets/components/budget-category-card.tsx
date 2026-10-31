@@ -7,7 +7,7 @@ import { Link } from '@/i18n/routing';
 import type { BudgetProgress, Category } from '@/lib/types';
 import { stitchBudgets } from '@/styles/home-design-foundation';
 import { formatCurrencyLocale } from '@/lib/utils/currency-formatter';
-import { BudgetCategoryLucideIcon } from './budget-category-lucide-icon';
+import { Wallet } from 'lucide-react';
 import { BudgetProgressBar } from './budget-progress-bar';
 import {
   getBudgetCategoryStatus,
@@ -30,14 +30,14 @@ export interface BudgetCategoryCardProps {
 
 export function BudgetCategoryCard({
   progress,
-  categories,
+  categories: _categories,
   isSelected,
   href,
   onPress,
 }: Readonly<BudgetCategoryCardProps>) {
   const locale = useLocale();
   const t = useTranslations('Budgets.Page');
-  const categoryKey = progress.categories[0] ?? '';
+  const ux = useTranslations('Budgets.UX');
 
   const status = getBudgetCategoryStatus(progress);
 
@@ -62,20 +62,22 @@ export function BudgetCategoryCard({
     status === 'over' && stitchBudgets.categoryCardOver,
     isSelected && stitchBudgets.categoryCardSelected
   );
-  const ariaLabel = t('categoryCard.ariaOpenDetail', { name: progress.description });
+  const stateLabel =
+    progress.remaining < 0
+      ? ux('over', { amount: formatCurrencyLocale(Math.abs(progress.remaining), locale) })
+      : progress.remaining === 0
+        ? ux('reached')
+        : `${ux('remaining')}: ${remainingFormatted}`;
+  const ariaLabel = `${t('categoryCard.ariaOpenDetail', { name: progress.description })}. ${stateLabel}`;
 
   const body = (
     <>
-      <div className={stitchBudgets.categoryHeaderRow}>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div className={stitchBudgets.categoryTitleRow}>
           <span className={iconWrapClass} aria-hidden>
-            <BudgetCategoryLucideIcon
-              categoryIdentifier={categoryKey}
-              categories={categories}
-              className="h-5 w-5 shrink-0"
-            />
+            <Wallet className="size-5" />
           </span>
-          <h3 className={stitchBudgets.categoryTitle}>{progress.description}</h3>
+          <h3 className="min-w-0 break-words text-base font-semibold">{progress.description}</h3>
         </div>
         <span
           className={cn(
@@ -85,11 +87,18 @@ export function BudgetCategoryCard({
           )}
         >
           {remainingFormatted}
+          <span className="block text-sm font-normal text-muted-foreground">
+            {progress.remaining < 0
+              ? ux('overLabel')
+              : progress.remaining === 0
+                ? ux('reached')
+                : ux('remaining')}
+          </span>
         </span>
       </div>
 
       <p className="text-sm tabular-nums text-muted-foreground">
-        {spentFormatted} {t('categoryCard.of')} {limitFormatted}
+        {ux('spent')}: {spentFormatted} · {ux('limit')}: {limitFormatted}
       </p>
 
       <BudgetProgressBar

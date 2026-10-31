@@ -3,6 +3,7 @@ import type { GroupedBudgetTransaction } from '../budgets/budget-chart.logic';
 import type { Account, Budget, BudgetPeriod, BudgetProgress, Category } from '@/lib/types';
 
 export interface BudgetDetailPageData {
+  transactionCount?: number;
   budget: Budget;
   progress: BudgetProgress;
   activePeriod: BudgetPeriod | null;

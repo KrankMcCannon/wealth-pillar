@@ -4,6 +4,8 @@
 
 Questa consegna contiene un audit e una proposta di organizzazione dei Budget. Le modifiche applicative nella PR collegata completano invece le dodici proposte precedenti sulle Transazioni. Non è stato implementato un redesign Budget senza distinguerlo dall'analisi richiesta.
 
+> Implementazione successiva: tutti gli interventi B01–B20 sono affrontati nel [resoconto di implementazione](2026-10-31-budget-implementation.md), con decisioni di redesign e verifiche. Questo documento conserva le osservazioni iniziali.
+
 ## Raccomandazione
 
 Mantenere **una pagina Budget dedicata al periodo corrente**, **la pagina già esistente di dettaglio della singola busta** e **modali/sheet per creare, modificare e cambiare ciclo**. Rendere visibile il collegamento allo storico già presente nei Rapporti. Non aggiungere ora un tab per un solo grafico: nasconderebbe informazioni utili al controllo corrente e aumenterebbe le destinazioni senza un compito distinto.

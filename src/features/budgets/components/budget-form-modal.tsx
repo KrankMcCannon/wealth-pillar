@@ -17,7 +17,7 @@ import {
   deleteClosedPeriodBudgetAction,
   upsertClosedPeriodBudgetAction,
 } from '@/features/budgets/actions/budget-period-actions';
-import { useRouter } from '@/i18n/routing';
+import { useRouter, usePathname } from '@/i18n/routing';
 import {
   EntityFormModal,
   EntityFormFooter,
@@ -45,12 +45,14 @@ interface BudgetFormModalProps {
 
 function BudgetFormModalBody({
   form,
+  budgets,
   groupUsers,
   categoryOptions,
   shouldDisableUserField,
   userFieldHelperText,
   isSubmitting,
 }: Readonly<{
+  budgets: Budget[];
   form: Parameters<typeof BudgetFormFields>[0]['form'];
   groupUsers: ReturnType<typeof useEntityFormPermissions>['groupUsers'];
   categoryOptions: { value: string; label: string; color: string }[];
@@ -61,6 +63,7 @@ function BudgetFormModalBody({
   return (
     <BudgetFormFields
       form={form}
+      budgets={budgets}
       groupUsers={groupUsers}
       categoryOptions={categoryOptions}
       shouldDisableUserField={shouldDisableUserField}
@@ -81,6 +84,7 @@ function BudgetFormModal({
   const t = useTranslations('Budgets.FormModal');
   const locale = useLocale();
   const router = useRouter();
+  const pathname = usePathname();
   const { groupUsers, groupId, shouldDisableUserField, defaultFormUserId, userFieldHelperText } =
     useEntityFormPermissions();
   const categories = useCategories();
@@ -194,10 +198,11 @@ function BudgetFormModal({
         ? upsertClosedPeriodBudgetAction(periodUserId, periodId, payload, locale, id)
         : updateBudgetAction(id, payload, locale),
     getSuccessToast,
+    refreshAfterSuccess: () => router.refresh(),
     errorToast: { title: t('toast.errorTitle') },
     unknownErrorMessage: t('errors.unknown'),
     ...(isPeriodMode
-      ? { refreshAfterSuccess: () => router.refresh() }
+      ? {}
       : {
           applyCreateOptimistic: (payload) => {
             const tempId = getTempId('temp-budget');
@@ -277,7 +282,7 @@ function BudgetFormModal({
     removeBudget(editId);
     let restored = false;
     try {
-      const result = await deleteBudgetAction(editId, locale);
+      const result = await deleteBudgetAction(editId, locale, pathname.startsWith('/budgets/'));
       if (result.error) {
         addBudget(budget);
         restored = true;
@@ -309,6 +314,7 @@ function BudgetFormModal({
     editId,
     isPeriodMode,
     locale,
+    pathname,
     periodId,
     periodUserId,
     removeBudget,
@@ -352,6 +358,7 @@ function BudgetFormModal({
       {(form) => (
         <BudgetFormModalBody
           form={form}
+          budgets={(isPeriodMode ? periodBudgets : storeBudgets).filter((b) => b.id !== editId)}
           groupUsers={groupUsers}
           categoryOptions={categoryOptions}
           shouldDisableUserField={shouldDisableUserField || isPeriodMode}
