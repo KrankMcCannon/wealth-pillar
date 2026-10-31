@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { deleteRecurringSeriesAction } from './recurring-actions';
+import {
+  createRecurringSeriesAction,
+  updateRecurringSeriesAction,
+  deleteRecurringSeriesAction,
+} from './recurring-actions';
 import type { RecurringTransactionSeries, User } from '@/lib/types';
 
 vi.mock('@/lib/auth/cached-auth', () => ({
@@ -9,12 +13,16 @@ vi.mock('@/lib/auth/cached-auth', () => ({
 vi.mock('@/server/use-cases/recurring/recurring.use-cases', () => ({
   getSeriesByIdUseCase: vi.fn(),
   deleteSeriesUseCase: vi.fn(),
+  createSeriesUseCase: vi.fn(),
+  updateSeriesUseCase: vi.fn(),
 }));
 
 import { getCurrentUser } from '@/lib/auth/cached-auth';
 import {
   getSeriesByIdUseCase,
   deleteSeriesUseCase,
+  createSeriesUseCase,
+  updateSeriesUseCase,
 } from '@/server/use-cases/recurring/recurring.use-cases';
 
 const member = {
@@ -57,5 +65,43 @@ describe('deleteRecurringSeriesAction', () => {
     expect(result.data).toBeNull();
     expect(result.error).toBe('Permesso negato');
     expect(deleteSeriesUseCase).not.toHaveBeenCalled();
+  });
+});
+
+describe('recurring definition guards', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(getCurrentUser).mockResolvedValue(member);
+    vi.mocked(getSeriesByIdUseCase).mockResolvedValue({ ...otherSeries, user_ids: [member.id] });
+  });
+  it('rejects transfers without destination before writing', async () => {
+    const result = await createRecurringSeriesAction({
+      ...otherSeries,
+      user_ids: [member.id],
+      start_date: '2024-01-01',
+      end_date: null,
+      type: 'transfer',
+    });
+    expect(result.error).toContain('conto destinazione');
+    expect(createSeriesUseCase).not.toHaveBeenCalled();
+  });
+  it('rejects invalid weekdays and date ranges on update', async () => {
+    expect(
+      (await updateRecurringSeriesAction({ id: 's2', frequency: 'weekly', due_day: 31 })).error
+    ).toContain('1 e 7');
+    expect(
+      (await updateRecurringSeriesAction({ id: 's2', end_date: '2023-12-31' })).error
+    ).toContain('precedere');
+    expect(updateSeriesUseCase).not.toHaveBeenCalled();
+  });
+  it('allows stopping a legacy transfer but prevents resuming it', async () => {
+    const legacy = { ...otherSeries, user_ids: [member.id], type: 'transfer' as const };
+    vi.mocked(getSeriesByIdUseCase).mockResolvedValue(legacy);
+    vi.mocked(updateSeriesUseCase).mockResolvedValue({ ...legacy, is_active: false });
+    expect((await updateRecurringSeriesAction({ id: 's2', is_active: false })).error).toBeNull();
+    expect((await updateRecurringSeriesAction({ id: 's2', is_active: true })).error).toContain(
+      'conto destinazione'
+    );
+    expect(updateSeriesUseCase).toHaveBeenCalledTimes(1);
   });
 });

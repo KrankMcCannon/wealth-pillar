@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import type { SetStateAction } from 'react';
 import { TransactionsLedger } from './transactions-ledger';
 import type { Transaction } from '@/lib/types';
@@ -7,7 +7,7 @@ import type { TransactionFiltersState } from '@/server/use-cases/transactions/tr
 
 vi.mock('next-intl', () => ({
   useTranslations: () => (key: string) => key,
-  useLocale: () => 'en',
+  useLocale: () => 'it',
 }));
 
 vi.mock('@/hooks/use-infinite-scroll-sentinel', () => ({
@@ -22,11 +22,35 @@ vi.mock('@/i18n/routing', () => ({
 }));
 
 vi.mock('@/features/transactions', () => ({
-  TransactionFilters: () => null,
+  TransactionFilters: ({
+    filters,
+    onFiltersChange,
+  }: {
+    filters: TransactionFiltersState;
+    onFiltersChange: (filters: TransactionFiltersState) => void;
+  }) => (
+    <button onClick={() => onFiltersChange({ ...filters, accountId: 'cash', dateRange: 'month' })}>
+      Draft account
+    </button>
+  ),
 }));
 
 vi.mock('@/components/ui/filters', () => ({
-  FilterDrawer: () => null,
+  FilterDrawer: ({
+    open,
+    children,
+    onOpenChange,
+  }: {
+    open: boolean;
+    children: React.ReactNode;
+    onOpenChange: (open: boolean) => void;
+  }) =>
+    open ? (
+      <div role="dialog">
+        {children}
+        <button onClick={() => onOpenChange(false)}>Cancel draft</button>
+      </div>
+    ) : null,
   FilterChip: ({ label }: { label: string }) => <button type="button">{label}</button>,
 }));
 
@@ -117,6 +141,7 @@ function renderLedger(
   extras: {
     setFilters?: ReturnType<typeof mockSetFilters>;
     onClearBudgetFilter?: () => void;
+    onApplyAdvancedFilters?: (filters: TransactionFiltersState) => void;
     hasMore?: boolean;
   } = {}
 ) {
@@ -139,6 +164,9 @@ function renderLedger(
       emptyTitle="Empty"
       emptyDescription="None"
       selectedUserId={undefined}
+      {...(extras.onApplyAdvancedFilters
+        ? { onApplyAdvancedFilters: extras.onApplyAdvancedFilters }
+        : {})}
       {...(extras.onClearBudgetFilter ? { onClearBudgetFilter: extras.onClearBudgetFilter } : {})}
     />
   );
@@ -188,7 +216,7 @@ describe('TransactionsLedger spendable', () => {
       },
     ]);
     renderLedger();
-    expect(screen.getByText('2.293,07 €')).toBeInTheDocument();
+    expect(screen.getByText(/2293,07\s€/)).toBeInTheDocument();
     mockStoreAccounts.mockReturnValue([]);
   });
 
@@ -215,4 +243,29 @@ describe('TransactionsLedger spendable', () => {
 it('marks an unfinished oldest day total as loaded transactions only', () => {
   renderLedger({}, { hasMore: true });
   expect(screen.getByTestId('day-group-total')).toHaveTextContent('partialDayTotal');
+});
+
+describe('staged advanced filters', () => {
+  it('applies a draft once and discards a cancelled draft', () => {
+    const onApplyAdvancedFilters = vi.fn();
+    const setFilters = mockSetFilters();
+    renderLedger({}, { onApplyAdvancedFilters, setFilters });
+    fireEvent.click(screen.getByRole('button', { name: 'filters' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Draft account' }));
+    expect(onApplyAdvancedFilters).not.toHaveBeenCalled();
+    expect(setFilters).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel draft' }));
+    fireEvent.click(screen.getByRole('button', { name: 'filters' }));
+    fireEvent.click(screen.getByRole('button', { name: 'applyFilters' }));
+    expect(onApplyAdvancedFilters).toHaveBeenCalledWith(
+      expect.not.objectContaining({ accountId: 'cash' })
+    );
+    onApplyAdvancedFilters.mockClear();
+    fireEvent.click(screen.getByRole('button', { name: 'filters' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Draft account' }));
+    fireEvent.click(screen.getByRole('button', { name: 'applyFilters' }));
+    expect(onApplyAdvancedFilters).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({ accountId: 'cash', dateRange: 'month' })
+    );
+  });
 });

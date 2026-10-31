@@ -31,13 +31,15 @@ export function getFrequencyLabel(frequency: RecurringTransactionSeries['frequen
  * Format due date with relative time
  */
 export function formatDueDate(series: RecurringTransactionSeries): string {
+  const date = calculateNextExecutionDate(series);
+  if (!date) return '';
   const daysUntil = calculateDaysUntilDue(series);
 
   if (daysUntil <= 7) {
-    return formatDaysUntil(calculateNextExecutionDate(series));
+    return formatDaysUntil(date);
   }
 
-  return formatDateShort(calculateNextExecutionDate(series));
+  return formatDateShort(date);
 }
 
 /**

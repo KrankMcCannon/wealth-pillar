@@ -124,6 +124,7 @@ export interface RecurringTransactionSeries {
   frequency: TransactionFrequencyType;
   user_ids: string[]; // Array of user IDs who can access this series
   account_id: string;
+  recorded_dates?: string[]; // Date contabili delle esecuzioni registrate, derivate dal ledger.
   transaction_ids?: string[]; // elenco id transazioni generate
 
   // Pianificazione

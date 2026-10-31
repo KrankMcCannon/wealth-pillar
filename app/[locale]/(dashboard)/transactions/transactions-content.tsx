@@ -67,6 +67,7 @@ export default function TransactionsContent({
     openModal,
     isNavigatingFilters,
     handleClearFilters,
+    applyAdvancedFilters,
   } = useTransactionsContent(props);
 
   const setRecurringEditSeed = useRecurringEditStore((state) => state.setSeed);
@@ -109,6 +110,7 @@ export default function TransactionsContent({
         categories,
         filters,
         setFilters,
+        onApplyAdvancedFilters: applyAdvancedFilters,
         hasMore,
         isLoadingMore,
         loadMoreFailed,

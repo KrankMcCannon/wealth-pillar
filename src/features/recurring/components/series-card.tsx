@@ -45,6 +45,7 @@ function getFrequencyLabel(frequency: string, t: ReturnType<typeof useTranslatio
 }
 
 function getDueDateLabel(days: number, t: ReturnType<typeof useTranslations>): string {
+  if (!Number.isFinite(days)) return t('due.unavailable');
   if (days === 0) return t('due.today');
   if (days === 1) return t('due.tomorrow');
   if (days < 0) return t('due.daysAgo', { count: Math.abs(days) });

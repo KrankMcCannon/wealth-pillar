@@ -60,7 +60,7 @@ test('updates its own transaction, cancels deletion and then deletes it persiste
   transaction,
 }) => {
   await page.goto(`/it/transactions?q=${encodeURIComponent(transaction.description)}`);
-  const row = page.getByTestId(`transaction-row-${transaction.id}`);
+  const row = page.locator(`[data-testid="transaction-row-${transaction.id}"]:visible`);
   await expect(row).toBeVisible();
   await row.click();
   const updated = `${transaction.description} Updated`;
@@ -113,4 +113,120 @@ test('keeps both tabs readable on mobile and desktop and recovers from an empty 
   await expect(page.getByText('Nessun risultato con i filtri applicati.')).toBeVisible();
   await page.getByRole('button', { name: 'Azzera filtri', exact: true }).click();
   await expect(page.locator('[data-testid^="transaction-row-"]').first()).toBeVisible();
+});
+
+test('keeps recurring URL filters and supports pause, undo and reload', async ({ page }) => {
+  await page.goto('/it/transactions?tab=Recurrent&recurringSearch=E2E&recurringStatus=active');
+  await expect(page.getByRole('searchbox', { name: 'Cerca ricorrenze' })).toHaveValue('E2E');
+  await page.getByRole('button', { name: 'Azioni per E2E Recurring' }).click();
+  await page.getByRole('menuitem', { name: 'Pausa', exact: true }).click();
+  await expect(page.getByText('E2E Recurring', { exact: true })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Annulla', exact: true }).click();
+  await expect(page.getByText('E2E Recurring', { exact: true })).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole('radio', { name: 'Attivi 1', exact: true })).toBeChecked();
+  await page.getByRole('tab', { name: 'Transazioni', exact: true }).click();
+  await page.getByRole('searchbox').fill('E2E Seed');
+  await expect(page).toHaveURL(/recurringSearch=E2E/);
+  await page.getByRole('tab', { name: 'Ricorrenti', exact: true }).click();
+  await expect(page.getByRole('searchbox', { name: 'Cerca ricorrenze' })).toHaveValue('E2E');
+});
+
+test('keeps 1500 import rows keyboard reachable and retains preview decisions', async ({
+  page,
+}) => {
+  test.setTimeout(90000);
+  await page.goto('/it/transactions');
+  await page.getByRole('button', { name: 'Importa', exact: true }).click();
+  const header =
+    'Tipo,Prodotto,Data di inizio,Data di completamento,Descrizione,Importo,Costo,Valuta,State,Saldo';
+  const rows = Array.from(
+    { length: 1500 },
+    (_, i) =>
+      `Pagamento con carta,Attuale,2026-10-01 12:00:00,2026-10-01 12:00:00,Import Fixture ${i},-1.00,0.00,EUR,COMPLETATO,100.00`
+  );
+  await page.locator('#import-file-input').setInputFiles({
+    name: 'fixture.csv',
+    mimeType: 'text/csv',
+    buffer: Buffer.from([header, ...rows].join('\n')),
+  });
+  await page.getByRole('button', { name: 'Continua', exact: true }).click();
+  await expect(
+    page.getByText("1500 di 1500 righe selezionate per l'import", { exact: true })
+  ).toBeVisible();
+  const checkboxes = page.getByRole('checkbox');
+  await expect(checkboxes).toHaveCount(50);
+  const labels = await checkboxes.evaluateAll((items) =>
+    items.map((item) => item.getAttribute('aria-label'))
+  );
+  expect(new Set(labels).size).toBe(50);
+  await checkboxes.first().focus();
+  await page.keyboard.press('Space');
+  await expect(checkboxes.first()).not.toBeChecked();
+  await page.getByRole('button', { name: 'Indietro', exact: true }).click();
+  await page.getByRole('button', { name: 'Continua', exact: true }).click();
+  await expect(
+    page.getByText("1499 di 1500 righe selezionate per l'import", { exact: true })
+  ).toBeVisible();
+  await expect(checkboxes.first()).not.toBeChecked();
+  await page.getByRole('button', { name: 'Successiva', exact: true }).focus();
+  await page.keyboard.press('Enter');
+  await expect(page.getByText('Pagina 2 di 30', { exact: true })).toBeVisible();
+  await expect(checkboxes).toHaveCount(50);
+  await expect(
+    page.getByText("1499 di 1500 righe selezionate per l'import", { exact: true })
+  ).toBeFocused();
+  await page.getByRole('button', { name: 'Deseleziona righe filtrate', exact: true }).focus();
+  await page.keyboard.press('Enter');
+  await expect(
+    page.getByText("0 di 1500 righe selezionate per l'import", { exact: true })
+  ).toBeVisible();
+  await page.getByRole('button', { name: 'Seleziona 1500 righe filtrate', exact: true }).focus();
+  await page.keyboard.press('Enter');
+  await expect(
+    page.getByText("1500 di 1500 righe selezionate per l'import", { exact: true })
+  ).toBeVisible();
+});
+
+test('reflows in English, dark mode, reduced motion and 200 percent zoom', async ({
+  page,
+}, testInfo) => {
+  await page.emulateMedia({ colorScheme: 'dark', reducedMotion: 'reduce' });
+  await page.addInitScript(() => localStorage.setItem('wp-theme', 'dark'));
+  for (const width of [320, 640]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto('/en/transactions');
+    await expect(page.locator('html')).toHaveClass(/dark/);
+    await expect(page.getByRole('heading', { name: 'Transactions', exact: true })).toBeVisible();
+    if (width === 640)
+      await page.locator('html').evaluate((element) => {
+        element.style.zoom = '2';
+      });
+    await expect(page.locator('[data-testid^="transaction-row-"]').first()).toBeVisible();
+    await expect
+      .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth))
+      .toBe(true);
+    await expect(page.locator('[data-testid^="transaction-row-"]').first()).toContainText(
+      /€\d+\.\d{2}/
+    );
+    const labelsFit = await page
+      .getByRole('navigation', { name: 'Primary navigation' })
+      .locator('a')
+      .evaluateAll((links) =>
+        links.every((link) => {
+          const label = link.querySelector('span:last-child');
+          return (
+            !label || label.getBoundingClientRect().width <= link.getBoundingClientRect().width
+          );
+        })
+      );
+    expect(labelsFit).toBe(true);
+    await page.screenshot({ path: testInfo.outputPath(`transactions-en-dark-${width}.png`) });
+    await page.getByRole('tab', { name: 'Recurring', exact: true }).click();
+    await expect(page.getByText('E2E Recurring', { exact: true })).toBeVisible();
+    await expect
+      .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth))
+      .toBe(true);
+    await page.screenshot({ path: testInfo.outputPath(`recurring-en-dark-${width}.png`) });
+  }
 });

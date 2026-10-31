@@ -13,7 +13,8 @@ import { currentSpendable, spendableByDay } from '@/features/transactions/utils/
 import { pickVisibleLedgerDay } from '@/features/transactions/utils/visible-ledger-day';
 import { getCategoryLabel } from '@/server/use-cases/categories/category.logic';
 import { useInfiniteScrollSentinel } from '@/hooks/use-infinite-scroll-sentinel';
-import { formatCurrency, cn } from '@/lib/utils';
+import { formatCurrencyLocale } from '@/lib/utils/currency-formatter';
+import { cn } from '@/lib/utils';
 import { stitchHome, stitchTransactions } from '@/styles/home-design-foundation';
 import { transactionStyles } from '@/features/transactions/theme/transaction-styles';
 import type { TransactionTypeFilter } from '@/server/use-cases/transactions/transaction.logic';
@@ -32,10 +33,14 @@ export function TransactionsLedger(props: TransactionsLedgerProps) {
   const tLedger = useTranslations('TransactionsContent.Ledger');
   const tFilters = useTranslations('Transactions.Filters');
   const locale = useLocale();
+  const money = (value: number) => formatCurrencyLocale(value, locale);
   const tChips = useTranslations('Transactions.Filters.FilterChips');
   const tLoadMore = useTranslations('Transactions.LoadMore');
   const tTable = useTranslations('Transactions.Table');
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [filtersDraft, setFiltersDraft] = useState(props.filters);
+  const [rangeValid, setRangeValid] = useState(true);
+  const [filterRevision, setFilterRevision] = useState(0);
   const storeAccounts = useAccounts();
   const accounts = storeAccounts.length > 0 ? storeAccounts : props.accounts;
 
@@ -138,7 +143,7 @@ export function TransactionsLedger(props: TransactionsLedgerProps) {
               aria-live="polite"
             >
               {total < 0 ? '−' : ''}
-              {formatCurrency(Math.abs(total))}
+              {money(Math.abs(total))}
             </p>
           </section>
         </StickyTotal>
@@ -146,30 +151,34 @@ export function TransactionsLedger(props: TransactionsLedgerProps) {
 
       <HomeDashboardMain
         id="main-transactions"
-        className="mx-auto max-w-5xl gap-2.5 pt-1.5"
+        className="mx-auto max-w-5xl gap-2.5 pb-[calc(11rem+env(safe-area-inset-bottom))] pt-1.5"
         ariaBusy={props.isNavigatingFilters}
       >
         <FilterDock>
-          <CompactSegments
-            ariaLabel={tLedger('typesAria')}
-            selected={props.filters.type}
-            onSelect={(type: TransactionTypeFilter) => props.setFilters({ ...props.filters, type })}
-            options={[
-              { key: 'all' as const, label: tFilters('typeOptions.all') },
-              { key: 'income' as const, label: tFilters('typeOptions.income') },
-              { key: 'expense' as const, label: tFilters('typeOptions.expense') },
-              { key: 'transfer' as const, label: tFilters('typeOptions.transfer') },
-            ]}
-          />
-          <div className="flex justify-end">
-            <button
-              type="button"
-              onClick={props.onImportTransactions}
-              className={cn(stitchHome.viewAllLink, 'min-h-11 gap-1.5')}
-            >
-              <Upload className="size-4" aria-hidden />
-              <span>{tLedger('importTransactions')}</span>
-            </button>
+          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+            <CompactSegments
+              ariaLabel={tLedger('typesAria')}
+              selected={props.filters.type}
+              onSelect={(type: TransactionTypeFilter) =>
+                props.setFilters({ ...props.filters, type })
+              }
+              options={[
+                { key: 'all' as const, label: tFilters('typeOptions.all') },
+                { key: 'income' as const, label: tFilters('typeOptions.income') },
+                { key: 'expense' as const, label: tFilters('typeOptions.expense') },
+                { key: 'transfer' as const, label: tFilters('typeOptions.transfer') },
+              ]}
+            />
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={props.onImportTransactions}
+                className={cn(stitchHome.viewAllLink, 'min-h-11 gap-1.5')}
+              >
+                <Upload className="size-4" aria-hidden />
+                <span>{tChips('import')}</span>
+              </button>
+            </div>
           </div>
         </FilterDock>
 
@@ -205,7 +214,11 @@ export function TransactionsLedger(props: TransactionsLedgerProps) {
             </div>
             <button
               type="button"
-              onClick={() => setFiltersOpen(true)}
+              onClick={() => {
+                setFiltersDraft(props.filters);
+                setRangeValid(true);
+                setFiltersOpen(true);
+              }}
               className={cn(
                 'relative flex size-11 shrink-0 items-center justify-center rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40',
                 advancedCount > 0
@@ -302,7 +315,7 @@ export function TransactionsLedger(props: TransactionsLedgerProps) {
                     ) : null}
                     <span className={stitchTransactions.dayHeaderTotalValue}>
                       {group.net >= 0 ? '+' : '−'}
-                      {formatCurrency(Math.abs(group.net))}
+                      {money(Math.abs(group.net))}
                     </span>
                   </p>
                 </div>
@@ -364,21 +377,51 @@ export function TransactionsLedger(props: TransactionsLedgerProps) {
         >
           <div className={transactionStyles.filters.drawer.body}>
             <TransactionFilters
-              filters={props.filters}
-              onFiltersChange={(next) => props.setFilters(next)}
+              key={filterRevision}
+              filters={filtersDraft}
+              onFiltersChange={setFiltersDraft}
+              onValidityChange={setRangeValid}
               categories={props.categories}
               accounts={accounts}
-              {...(props.budgetName !== undefined ? { budgetName: props.budgetName } : {})}
+              {...(props.budgetName !== undefined && filtersDraft.budgetId
+                ? { budgetName: props.budgetName }
+                : {})}
               {...(props.onClearBudgetFilter !== undefined
-                ? { onClearBudgetFilter: props.onClearBudgetFilter }
+                ? { onClearBudgetFilter: () => setFiltersDraft(clearAdvancedFilters(filtersDraft)) }
                 : {})}
             />
+          </div>
+          <div className="flex flex-wrap gap-2 border-t border-border p-4">
+            <Button
+              type="button"
+              variant="outline"
+              className="min-h-11 flex-1"
+              onClick={() => {
+                setFiltersDraft(clearAdvancedFilters(filtersDraft));
+                setFilterRevision((revision) => revision + 1);
+                setRangeValid(true);
+              }}
+            >
+              {tFilters('clearAll')}
+            </Button>
+            <Button
+              type="button"
+              className="min-h-11 flex-1"
+              disabled={!rangeValid}
+              onClick={() => {
+                (props.onApplyAdvancedFilters ?? props.setFilters)(filtersDraft);
+                setFiltersOpen(false);
+              }}
+            >
+              {tFilters('applyFilters')}
+            </Button>
           </div>
         </FilterDrawer>
       </HomeDashboardMain>
 
       <PageFab
         onClick={props.onAddTransaction}
+        className="bottom-[calc(6rem+env(safe-area-inset-bottom))]"
         ariaLabel={tTable('empty.addCta')}
         testId="transactions-fab-add"
       />

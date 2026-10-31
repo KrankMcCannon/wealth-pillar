@@ -14,7 +14,9 @@ export function createRecurringSchema(t: ReturnType<typeof useTranslations>) {
         .refine((val) => !Number.isNaN(parseDecimal(val)) && parseDecimal(val) > 0, {
           message: t('validation.amountGreaterThanZero'),
         }),
-      type: z.enum(['income', 'expense', 'transfer']),
+      type: z
+        .enum(['income', 'expense', 'transfer'])
+        .refine((type): boolean => type !== 'transfer', t('validation.transfersUnavailable')),
       category: z.string().min(1, t('validation.categoryRequired')),
       frequency: z.enum(['once', 'weekly', 'biweekly', 'monthly', 'yearly']),
       user_ids: z.array(z.string()).min(1, t('validation.userIdsRequired')),
@@ -26,8 +28,8 @@ export function createRecurringSchema(t: ReturnType<typeof useTranslations>) {
         .min(1, t('validation.dueDayRequired'))
         .refine(
           (val) => {
-            const num = Number.parseInt(val, 10);
-            return !Number.isNaN(num) && num >= 1 && num <= 31;
+            const num = Number(val);
+            return /^\d+$/.test(val) && Number.isInteger(num) && num >= 1 && num <= 31;
           },
           {
             message: t('validation.dueDayRange'),
@@ -35,9 +37,16 @@ export function createRecurringSchema(t: ReturnType<typeof useTranslations>) {
         ),
     })
     .refine(
+      (data) => !['weekly', 'biweekly'].includes(data.frequency) || Number(data.due_day) <= 7,
+      {
+        message: t('validation.weekdayRange'),
+        path: ['due_day'],
+      }
+    )
+    .refine(
       (data) => {
         if (data.end_date && data.start_date) {
-          return new Date(data.end_date) > new Date(data.start_date);
+          return new Date(data.end_date) >= new Date(data.start_date);
         }
         return true;
       },

@@ -15,7 +15,7 @@ import {
   type DateRangeFilter,
 } from '@/server/use-cases/transactions/transaction.logic';
 import { DrawerNested, DrawerContent } from '@/components/ui';
-import { stitchTransactionFilterTriggers } from '@/styles/home-design-foundation';
+import { CompactSegments } from './filter-dock';
 import { transactionStyles } from '@/features/transactions/theme/transaction-styles';
 import {
   defaultFiltersState,
@@ -23,7 +23,6 @@ import {
   getDateLabel,
   hasActiveFilters,
   isPresetDateRange,
-  isQuickPeriodSelected,
   PERIOD_PRESETS,
 } from './filters/filter-helpers';
 import { FilterChipTrigger } from './filters/filter-chip-trigger';
@@ -36,6 +35,7 @@ interface TransactionFiltersProps {
   readonly accounts?: Account[];
   readonly filters: TransactionFiltersState;
   readonly onFiltersChange: (filters: TransactionFiltersState) => void;
+  readonly onValidityChange?: ((valid: boolean) => void) | undefined;
   readonly className?: string | undefined;
   readonly budgetName?: string | undefined;
   readonly onClearBudgetFilter?: (() => void) | undefined;
@@ -46,6 +46,7 @@ export function TransactionFilters({
   accounts,
   filters,
   onFiltersChange,
+  onValidityChange,
   className,
   budgetName,
   onClearBudgetFilter,
@@ -78,6 +79,7 @@ export function TransactionFilters({
         return;
       }
       setCustomRangeOpen(false);
+      onValidityChange?.(true);
       onFiltersChange({
         ...filters,
         dateRange: value as DateRangeFilter,
@@ -85,7 +87,7 @@ export function TransactionFilters({
         endDate: null,
       });
     },
-    [filters, onFiltersChange]
+    [filters, onFiltersChange, onValidityChange]
   );
 
   const handleCustomDateRange = useCallback(
@@ -200,47 +202,15 @@ export function TransactionFilters({
 
       <div className="flex flex-col gap-2">
         <p className="text-xs font-medium text-muted-foreground">{t('chips.period')}</p>
-        <div
-          className={transactionStyles.filters.quickPeriodRow}
-          role="radiogroup"
-          aria-label={t('quickRange.groupAria')}
-        >
-          {PERIOD_PRESETS.map((value) => {
-            const selected = isQuickPeriodSelected(value, filters.dateRange, customRangeOpen);
-            return (
-              <button
-                key={value}
-                type="button"
-                role="radio"
-                onClick={() => handleDateChange(value)}
-                className={cn(
-                  stitchTransactionFilterTriggers.quickPill,
-                  selected
-                    ? stitchTransactionFilterTriggers.quickPillActive
-                    : stitchTransactionFilterTriggers.quickPillIdle
-                )}
-                aria-checked={selected}
-              >
-                {getDateLabel(value, t)}
-              </button>
-            );
-          })}
-          <button
-            type="button"
-            role="radio"
-            onClick={() => setCustomRangeOpen(true)}
-            className={cn(
-              stitchTransactionFilterTriggers.quickPill,
-              customRangeOpen || filters.dateRange === 'custom'
-                ? stitchTransactionFilterTriggers.quickPillActive
-                : stitchTransactionFilterTriggers.quickPillIdle
-            )}
-            aria-checked={customRangeOpen || filters.dateRange === 'custom'}
-            aria-label={t('quickRange.moreAria')}
-          >
-            {moreDateLabel}
-          </button>
-        </div>
+        <CompactSegments
+          ariaLabel={t('quickRange.groupAria')}
+          selected={customRangeOpen ? 'custom' : filters.dateRange}
+          onSelect={handleDateChange}
+          options={[
+            ...PERIOD_PRESETS.map((key) => ({ key, label: getDateLabel(key, t) })),
+            { key: 'custom', label: moreDateLabel },
+          ]}
+        />
 
         {customRangeOpen ? (
           <DateOptions
@@ -251,6 +221,7 @@ export function TransactionFilters({
             onClose={() => undefined}
             onDateRangeChange={handleCustomDateRange}
             presets={[]}
+            onValidityChange={onValidityChange}
           />
         ) : null}
       </div>

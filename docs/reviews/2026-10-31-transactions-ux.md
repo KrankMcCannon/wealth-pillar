@@ -2,6 +2,8 @@
 
 31 ottobre 2026. Base analizzata: `0c3ef8414bb3303f690d1162505739d163a37d5d`, successiva alla revisione quotidiana #9 e alle modifiche della pagina Rapporti. Branch delle correzioni: `codex/transactions-review-2026-10-31`.
 
+> Aggiornamento dopo il merge della PR #52: le dodici proposte qui elencate sono state implementate nella modifica successiva. Vedi [soluzioni e verifiche](2026-10-31-transactions-followups.md). Le sezioni seguenti conservano il riscontro della prima revisione.
+
 ## Esito e perimetro
 
 Corretti i tre problemi della Daily Review #9: date contabili, metadati degli indici PostgreSQL e import concorrenti. La verifica browser ha fatto emergere anche due difetti funzionali riproducibili: paginazione incompleta dopo importazioni con timestamp identici ed errori di validazione cancellati subito dopo l'invio di un form vuoto. Sono stati corretti entrambi.

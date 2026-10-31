@@ -1,9 +1,9 @@
 'use client';
 
 import { Transaction } from '@/lib';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrencyLocale } from '@/lib/utils/currency-formatter';
 import { memo } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { Amount } from '@/components/ui/primitives/amount';
 import { PlainListRow } from '@/components/ui/layout/plain-list-row';
 
@@ -23,11 +23,12 @@ export const TransactionRow = memo(function TransactionRow({
   selectedAccountId,
 }: TransactionRowProps) {
   const t = useTranslations('Transactions.Table');
+  const locale = useLocale();
   const isOutgoing =
     transaction.type === 'expense' ||
     (transaction.type === 'transfer' && selectedAccountId === transaction.account_id);
   const signedAmount = isOutgoing ? -Math.abs(transaction.amount) : Math.abs(transaction.amount);
-  const amountLabel = formatCurrency(signedAmount);
+  const amountLabel = formatCurrencyLocale(signedAmount, locale);
   const direction =
     transaction.type === 'transfer' && accountNames
       ? t('transferDirection', {
@@ -69,6 +70,7 @@ export const TransactionRow = memo(function TransactionRow({
                 ? 'expense'
                 : 'neutral'
           }
+          locale={locale}
           size="md"
           emphasis="strong"
         >

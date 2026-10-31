@@ -720,13 +720,25 @@
       "signIncome": "income",
       "signExpense": "expense",
       "signTransfer": "transfer",
-      "monthlyEstimate": "Monthly equivalent of active series. Other frequencies are converted to a monthly estimate.",
+      "monthlyEstimate": "Monthly equivalent of series active in the current period, excluding one-off items. Other frequencies are converted to a monthly estimate.",
       "empty": {
         "active": "No active series in this view. Paused series are still available under All.",
-        "paused": "No paused series in this view."
+        "paused": "No paused series in this view.",
+        "ended": "No ended series in this view.",
+        "search": "No recurring series match these filters."
       },
       "showAllSeries": "Show all series",
-      "partialDayTotal": "Loaded total"
+      "partialDayTotal": "Loaded total",
+      "statusEnded": "Ended",
+      "recordedToday": "Recorded today",
+      "searchSeries": "Search recurring series",
+      "seriesAccount": "Account",
+      "allAccounts": "All accounts",
+      "scheduleForecast": "Dates are calendar forecasts. A movement is recorded only when it appears in your transactions.",
+      "undo": "Undo",
+      "updateError": "We could not update the recurring series.",
+      "updateRetry": "Your series is still available. Try again from its menu.",
+      "needsReview": "Needs review"
     },
     "empty": {
       "title": "No Transactions",
@@ -829,11 +841,13 @@
       },
       "category": {
         "searchPlaceholder": "Search category...",
-        "all": "All"
+        "all": "All",
+        "noResults": "No categories match your search."
       },
       "account": {
         "searchPlaceholder": "Search account...",
-        "all": "All"
+        "all": "All",
+        "noResults": "No accounts match your search."
       },
       "drawer": {
         "titles": {
@@ -856,7 +870,8 @@
       "clearFilterAria": "Remove {label} filter",
       "clearAll": "Clear all",
       "showAdvanced": "Advanced filters",
-      "hideAdvanced": "Hide advanced"
+      "hideAdvanced": "Hide advanced",
+      "applyFilters": "Show results"
     },
     "DayList": {
       "empty": {
@@ -1014,7 +1029,23 @@
         "typeExpense": "Expense",
         "internalTransfer": "Likely internal transfer",
         "recurringMatch": "Matches recurring: {description}",
-        "category": "Category"
+        "category": "Category",
+        "filterStatus": "Filter rows by status",
+        "allRows": "All",
+        "selectFiltered": "Select {count} filtered rows",
+        "deselectFiltered": "Deselect filtered rows",
+        "duplicatesHelp": "Duplicate or excluded rows cannot be selected. Select and deselect affect all filtered rows, including other pages. Category changes apply to all selected rows.",
+        "bulkCategory": "Category for {count} selected rows",
+        "accountTotals": "Selected totals by account",
+        "rowsCount": "{count} rows",
+        "accountFallback": "Account",
+        "rowsAria": "Preview rows",
+        "noRows": "No rows with this status.",
+        "paginationAria": "Preview pages",
+        "previous": "Previous",
+        "next": "Next",
+        "page": "Page {page} of {total}",
+        "includeRowAria": "Row {row}: include {description}, {date}, {amount}, {account}"
       },
       "result": {
         "inserted": "{count} transactions imported",
@@ -1094,13 +1125,13 @@
       },
       "title": "{action} recurring series",
       "description": {
-        "pause": "The series will stop generating automatic transactions",
-        "resume": "The series will resume generating automatic transactions"
+        "pause": "The series will be removed from active commitments",
+        "resume": "The series will return to active commitments"
       },
       "body": {
-        "pauseMain": "The recurring series will be {action}. No automatic transactions will be generated until you reactivate it.",
+        "pauseMain": "The series will be {action}. Its due dates will be excluded from active commitments until you resume it.",
         "pauseSecondary": "Already created transactions will remain unchanged.",
-        "resumeMain": "The recurring series will be {action}. It will resume generating automatic transactions based on the configured frequency."
+        "resumeMain": "The series will be {action}. Forecast dates will return to active commitments according to its schedule."
       },
       "buttons": {
         "cancel": "Cancel"
@@ -1118,7 +1149,8 @@
         "today": "Today",
         "tomorrow": "Tomorrow",
         "daysAgo": "{count} days ago",
-        "inDays": "In {count} days"
+        "inDays": "In {count} days",
+        "unavailable": "No upcoming due date"
       },
       "status": {
         "stopped": "Paused"
@@ -1131,7 +1163,9 @@
         "pauseAria": "Pause recurring series",
         "resumeAria": "Resume recurring series",
         "deleteAria": "Delete recurring series",
-        "editAria": "Edit recurring series: {description}, {amount}"
+        "editAria": "Edit recurring series: {description}, {amount}",
+        "edit": "Edit",
+        "menuAria": "Actions for {description}"
       }
     },
     "FormModal": {
@@ -1145,7 +1179,9 @@
         "startDateRequired": "Start date is required",
         "dueDayRequired": "Billing day is required",
         "dueDayRange": "Day must be between 1 and 31",
-        "endDateAfterStart": "End date must be after start date"
+        "endDateAfterStart": "End date must be after start date",
+        "transfersUnavailable": "Choose Income or Expense. Recurring transfers are not available.",
+        "weekdayRange": "Choose a valid weekday."
       },
       "title": {
         "create": "New recurring series",
@@ -1202,6 +1238,9 @@
         "description": {
           "label": "Description",
           "placeholder": "e.g. Netflix subscription"
+        },
+        "weekday": {
+          "label": "Weekday"
         }
       },
       "buttons": {
@@ -1221,6 +1260,21 @@
         "participants": "Who it applies to",
         "amounts": "Amount and account",
         "schedule": "Dates"
+      },
+      "transfersUnavailable": "For transfers, use a transaction with a source and destination account. Recurring series support income and expenses.",
+      "weekdays": {
+        "1": "Monday",
+        "2": "Tuesday",
+        "3": "Wednesday",
+        "4": "Thursday",
+        "5": "Friday",
+        "6": "Saturday",
+        "7": "Sunday"
+      },
+      "scheduleHelp": {
+        "weekly": "The first selected weekday on or after the start date anchors the 7 or 14 day interval.",
+        "once": "The due date is the start date. One-off items are excluded from recurring monthly totals.",
+        "monthly": "If the selected day is missing from a month, the due date falls on its last day."
       }
     }
   },
