@@ -31,40 +31,48 @@ export function BudgetPeriodHeader({
   const locale = useLocale();
 
   const periodLabel = periodStart
-    ? `${formatDateShort(periodStart, locale)} – ${
-        periodEnd ? formatDateShort(periodEnd, locale) : tHome('periodOngoing')
+    ? `${formatDateShort(periodStart, locale) + ' ' + String(periodStart).slice(0, 4)} – ${
+        periodEnd
+          ? formatDateShort(periodEnd, locale) + ' ' + String(periodEnd).slice(0, 4)
+          : tHome('periodOngoing')
       }`
     : tHome('periodOngoing');
 
   return (
-    <div className={stitchBudgets.periodHeader}>
-      <p className={stitchBudgets.periodHeaderDates}>
+    <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-card p-3">
+      <p className="flex min-w-0 items-center gap-2 text-sm font-semibold">
         <CalendarDays className={stitchBudgets.periodHeaderIcon} aria-hidden />
-        <span className="truncate">{periodLabel}</span>
+        <span className="break-words">{periodLabel}</span>
       </p>
 
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button
-            type="button"
-            className={stitchBudgets.overflowTrigger}
-            aria-label={t('periodActionsAria')}
-            disabled={disabled}
-          >
-            <MoreVertical className="h-5 w-5" aria-hidden />
-          </button>
-        </DropdownMenuTrigger>
+      <div className="flex shrink-0 items-center gap-1">
+        <button
+          type="button"
+          className="min-h-11 rounded-lg px-2 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-ring"
+          disabled={disabled}
+          onClick={onStartSalaryPeriod}
+        >
+          {t('startSalaryPeriod')}
+        </button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              className={stitchBudgets.overflowTrigger}
+              aria-label={t('periodActionsAria')}
+              disabled={disabled}
+            >
+              <MoreVertical className="h-5 w-5" aria-hidden />
+            </button>
+          </DropdownMenuTrigger>
 
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem className="min-h-11" onSelect={onStartSalaryPeriod}>
-            {t('startSalaryPeriod')}
-          </DropdownMenuItem>
-
-          <DropdownMenuItem className="min-h-11" onSelect={onEditClosingDate}>
-            {t('editClosingDate')}
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem className="min-h-11" onSelect={onEditClosingDate}>
+              {t('editClosingDate')}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     </div>
   );
 }

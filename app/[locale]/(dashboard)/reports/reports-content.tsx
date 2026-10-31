@@ -1,6 +1,7 @@
 'use client';
 
 import { use, useCallback, useMemo, useOptimistic, useState, useTransition } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useFormatter, useTranslations } from 'next-intl';
 import { ChevronDown } from 'lucide-react';
 import { useRouter, usePathname } from '@/i18n/routing';
@@ -83,7 +84,8 @@ export default function ReportsContent({
     (value: ReportsScope) => setScopeState({ applied: initialScope, value }),
     [initialScope]
   );
-  const [insightsOpen, setInsightsOpen] = useState(false);
+  const searchParams = useSearchParams();
+  const [insightsOpen, setInsightsOpen] = useState(searchParams.get('periods') === 'open');
 
   const syncScopeToUrl = useCallback(
     (scope: ReportsScope) => {
@@ -239,6 +241,7 @@ export default function ReportsContent({
           />
 
           <details
+            id="budget-periods"
             className={stitchHome.scanSection}
             open={insightsOpen}
             onToggle={(event) => setInsightsOpen(event.currentTarget.open)}

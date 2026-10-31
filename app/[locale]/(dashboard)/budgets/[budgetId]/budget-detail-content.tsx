@@ -4,13 +4,16 @@ import { use, useMemo } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { HomeDashboardMain } from '@/components/layout/home-dashboard-layout';
 import { usePageHeader } from '@/hooks/use-page-header';
+import { BudgetIncludedCategories } from '@/features/budgets/components/budget-included-categories';
+import { Wallet } from 'lucide-react';
 import { BudgetCategoryLucideIcon } from '@/features/budgets/components/budget-category-lucide-icon';
 import { getBudgetCategoryStatus } from '@/features/budgets/components/budget-category-card';
 import { BudgetProgressBar } from '@/features/budgets/components/budget-progress-bar';
 import { TransactionDayList } from '@/features/transactions';
 import { useTransactionEditStore } from '@/features/transactions/stores/transaction-edit-store';
 import { useModalState } from '@/lib/navigation/url-state';
-import { toDateTime } from '@/lib/utils/date-utils';
+import { useEntityFormPermissions } from '@/components/form';
+import { toDateTime, formatDateShort } from '@/lib/utils/date-utils';
 import { formatCurrencyLocale } from '@/lib/utils/currency-formatter';
 import type { User } from '@/lib/types';
 import type { BudgetDetailPageData } from '@/server/use-cases/pages/budget-detail-page.types';
@@ -37,16 +40,25 @@ export default function BudgetDetailContent({ pageDataPromise }: BudgetDetailCon
   } = pageData;
 
   const t = useTranslations('Budgets.Detail');
+  const ux = useTranslations('Budgets.UX');
+  const { groupUsers: users } = useEntityFormPermissions();
+  const owner = users.find((u) => u.id === budget.user_id)?.name ?? '';
+  const shown = groupedTransactions.reduce((sum, g) => sum + g.transactions.length, 0);
+  const count = pageData.transactionCount ?? shown;
   const locale = useLocale();
   const { openModal } = useModalState();
   const setTransactionEditSeed = useTransactionEditStore((state) => state.setSeed);
 
   const status = getBudgetCategoryStatus(progress);
-  const categoryKey = progress.categories[0] ?? '';
 
   const formattedGroups = useMemo(
-    () => formatGroupedTransactionsForClient(groupedTransactions, locale),
-    [groupedTransactions, locale]
+    () =>
+      formatGroupedTransactionsForClient(groupedTransactions, locale).map((g, i) => ({
+        ...g,
+        formattedDate:
+          g.formattedDate + (groupedTransactions[i]?.isPartial ? ` · ${ux('partialDay')}` : ''),
+      })),
+    [groupedTransactions, locale, ux]
   );
 
   const viewAllHref = useMemo(() => {
@@ -81,9 +93,23 @@ export default function BudgetDetailContent({ pageDataPromise }: BudgetDetailCon
 
   return (
     <>
-      <HomeDashboardMain id="main-budget-detail">
+      <HomeDashboardMain
+        id="main-budget-detail"
+        className="mx-auto max-w-3xl pb-[calc(11rem+env(safe-area-inset-bottom))]"
+      >
         <div className={stitchBudgets.mainStack}>
-          <div className="flex justify-end">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <p className="font-semibold">{ux('context', { name: owner })}</p>
+              <p className="text-sm text-muted-foreground">
+                {ux('current')} ·{' '}
+                {periodStart
+                  ? formatDateShort(periodStart, locale) + ' ' + periodStart.slice(0, 4)
+                  : '—'}{' '}
+                –{' '}
+                {periodEnd ? formatDateShort(periodEnd, locale) + ' ' + periodEnd.slice(0, 4) : '—'}
+              </p>
+            </div>
             <button
               type="button"
               className={stitchHome.viewAllLink}
@@ -97,13 +123,17 @@ export default function BudgetDetailContent({ pageDataPromise }: BudgetDetailCon
             <div className={stitchBudgets.categoryHeaderRow}>
               <div className={stitchBudgets.categoryTitleRow}>
                 <span className={iconWrapClass} aria-hidden>
-                  <BudgetCategoryLucideIcon
-                    categoryIdentifier={categoryKey}
-                    categories={categories}
-                    className="h-5 w-5 shrink-0"
-                  />
+                  <Wallet className="size-5" />
                 </span>
-                <h2 className={stitchBudgets.categoryTitle}>{budget.description}</h2>
+                <h2 className="text-base font-semibold">
+                  {progress.remaining < 0
+                    ? ux('over', {
+                        amount: formatCurrencyLocale(Math.abs(progress.remaining), locale),
+                      })
+                    : progress.remaining === 0
+                      ? ux('reached')
+                      : ux('remaining')}
+                </h2>
               </div>
               <p
                 className={cn(
@@ -130,6 +160,7 @@ export default function BudgetDetailContent({ pageDataPromise }: BudgetDetailCon
             />
           </section>
 
+          <BudgetIncludedCategories keys={budget.categories} categories={categories} />
           {categoryBreakdown.length > 0 ? (
             <section className={stitchHome.scanSection} aria-labelledby="budget-categories-heading">
               <h2 id="budget-categories-heading" className={stitchHome.scanSectionTitle}>
@@ -157,6 +188,7 @@ export default function BudgetDetailContent({ pageDataPromise }: BudgetDetailCon
             </section>
           ) : null}
 
+          <p className="text-sm text-muted-foreground">{ux('preview', { shown, total: count })}</p>
           <TransactionDayList
             groupedTransactions={formattedGroups}
             categories={categories}
@@ -164,7 +196,7 @@ export default function BudgetDetailContent({ pageDataPromise }: BudgetDetailCon
             emptyTitle={t('transactions.emptyTitle')}
             emptyDescription={t('transactions.emptyDescription')}
             showViewAll
-            viewAllLabel={t('transactions.viewAll')}
+            viewAllLabel={ux('viewAll', { count })}
             viewAllHref={viewAllHref}
             onEditTransaction={(transaction) => {
               setTransactionEditSeed(transaction);

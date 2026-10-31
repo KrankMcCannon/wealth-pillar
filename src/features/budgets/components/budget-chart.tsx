@@ -1,14 +1,8 @@
-/**
- * BudgetChart — andamento cumulativo delle spese nel periodo (tutti i budget; skin Stitch dark).
- */
-
 'use client';
-
-import { useId, useMemo } from 'react';
+import { useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { stitchBudgets, stitchBudgetsChartSvg } from '@/styles/home-design-foundation';
 import { formatCurrencyLocale } from '@/lib/utils/currency-formatter';
-
+import { formatDateShort } from '@/lib/utils/date-utils';
 export interface ChartDataPoint {
   x: number;
   y: number;
@@ -16,146 +10,103 @@ export interface ChartDataPoint {
   date: string;
   isFuture: boolean;
 }
-
 export interface BudgetChartProps {
   spent: number;
   chartData: ChartDataPoint[] | null;
 }
-
 export function BudgetChart({ spent, chartData }: Readonly<BudgetChartProps>) {
   const t = useTranslations('Budgets.Chart');
+  const ux = useTranslations('Budgets.UX');
   const locale = useLocale();
-  const titleId = useId().replace(/:/g, '');
-  const descId = useId().replace(/:/g, '');
-  const labelledBy = `${titleId} ${descId}`;
-
-  const generatePath = (points: ChartDataPoint[]): string => {
-    if (points.length === 0) return '';
-
-    const visiblePoints = points.filter((p) => !p.isFuture);
-    if (visiblePoints.length === 0) return '';
-
-    return visiblePoints
-      .map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`)
-      .join(' ');
-  };
-
-  const visiblePoints = chartData?.filter((p) => !p.isFuture) || [];
-  const lastPoint = visiblePoints.at(-1);
-  const path = chartData ? generatePath(chartData) : '';
-  const hasLine = Boolean(chartData && chartData.length > 0 && lastPoint);
-
-  const visibleDayLabels = useMemo(() => {
-    if (!chartData || !hasLine) return [];
-
-    const visible = chartData.filter((p) => !p.isFuture);
-    const totalVisible = visible.length;
-    if (totalVisible === 0) return [];
-
-    const slots: { index: number; dayOfMonth: number; x: number }[] = [];
-
-    for (let index = 0; index < totalVisible; index++) {
-      const point = visible[index];
-      if (!point) continue;
-      const dayOfMonth = new Date(point.date).getDate();
-      const showDay =
-        index === 0 ||
-        index === totalVisible - 1 ||
-        (totalVisible > 7 && index % Math.ceil(totalVisible / 5) === 0);
-
-      if (showDay) {
-        slots.push({ index, dayOfMonth, x: point.x });
-      }
-    }
-
-    return slots;
-  }, [chartData, hasLine]);
-
+  const points = (chartData ?? []).filter((p) => !p.isFuture);
+  const [selected, setSelected] = useState<number | null>(null);
+  const index = Math.min(selected ?? points.length - 1, points.length - 1);
+  const point = points[index];
+  const min = Math.min(0, ...points.map((p) => p.amount));
+  const max = Math.max(1, ...points.map((p) => p.amount));
+  const day = (value: string) => Date.parse(value.slice(0, 10));
+  const first = day(points[0]?.date ?? '2000-01-01');
+  const span = Math.max(1, day(points.at(-1)?.date ?? '2000-01-01') - first);
+  const x = (i: number) => 12 + ((day(points[i]!.date) - first) / span) * 326;
+  const y = (n: number) => 160 - ((n - min) / (max - min)) * 130;
+  const money = (n: number) => formatCurrencyLocale(n, locale);
   return (
-    <section aria-label={t('sectionAriaLabel')}>
-      <div className={stitchBudgets.detailChartCard}>
-        <div className={stitchBudgets.detailChartHeader}>
-          <div>
-            <p className={stitchBudgets.detailChartHeaderLabel}>{t('spentLabel')}</p>
-            <p className={stitchBudgets.detailChartHeaderAmount}>
-              {formatCurrencyLocale(spent, locale)}
-            </p>
+    <section aria-label={t('sectionAriaLabel')} className="min-w-0 space-y-3">
+      <p className="text-sm text-muted-foreground">{t('spentLabel')}</p>
+      <p className="font-display text-2xl tabular-nums">{money(spent)}</p>
+      <p className="max-w-prose text-sm text-muted-foreground">{ux('recorded')}</p>
+      {point ? (
+        <>
+          <div className="flex justify-between text-sm tabular-nums">
+            <span>{money(min)}</span>
+            <span>{money(max)}</span>
           </div>
-        </div>
-
-        {!hasLine ? <p className={stitchBudgets.detailChartEmpty}>{t('emptyState')}</p> : null}
-
-        <div className={stitchBudgets.detailChartSvgWrap}>
           <svg
-            className={stitchBudgets.detailChartSvg}
             viewBox="0 0 350 180"
-            preserveAspectRatio="xMidYMid meet"
-            role={hasLine ? 'img' : undefined}
-            aria-hidden={hasLine ? undefined : true}
-            aria-labelledby={hasLine ? labelledBy : undefined}
+            className="w-full max-h-44 text-primary"
+            role="img"
+            aria-label={`${ux('cumulative')}: ${money(spent)}`}
           >
-            {hasLine ? (
-              <>
-                <title id={titleId}>{t('svgTitle')}</title>
-                <desc id={descId}>{t('svgDescription')}</desc>
-              </>
-            ) : null}
-
-            <line
-              x1="0"
-              y1="179.5"
-              x2="350"
-              y2="179.5"
-              stroke={stitchBudgetsChartSvg.gridLine}
-              strokeWidth="1"
-              strokeOpacity={0.85}
+            <line x1="12" x2="338" y1={y(0)} y2={y(0)} stroke="currentColor" opacity="0.2" />
+            <polyline
+              points={points.map((p, i) => `${x(i)},${y(p.amount)}`).join(' ')}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
             />
-
-            {[25, 50, 75].map((percent) => (
-              <line
-                key={percent}
-                x1="0"
-                y1={180 - percent * 1.8}
-                x2="350"
-                y2={180 - percent * 1.8}
-                stroke={stitchBudgetsChartSvg.gridLine}
-                strokeWidth="1"
-              />
-            ))}
-
-            {hasLine && lastPoint ? (
-              <>
-                <path
-                  d={`${path} L ${lastPoint.x} 180 L 0 180 Z`}
-                  className={stitchBudgetsChartSvg.areaFillClass}
-                />
-                <path
-                  d={path}
-                  fill="none"
-                  stroke={stitchBudgetsChartSvg.lineStroke}
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <circle
-                  cx={lastPoint.x}
-                  cy={lastPoint.y}
-                  r="4"
-                  fill={stitchBudgetsChartSvg.dotFill}
-                />
-              </>
-            ) : null}
+            <circle cx={x(index)} cy={y(point.amount)} r="4" fill="currentColor" />
           </svg>
-
-          {visibleDayLabels.length > 0 ? (
-            <div className={stitchBudgets.detailChartDayRow} aria-hidden="true">
-              {visibleDayLabels.map(({ index, dayOfMonth }) => (
-                <span key={`day-${index}`}>{dayOfMonth}</span>
-              ))}
-            </div>
-          ) : null}
-        </div>
-      </div>
+          <div className="flex justify-between gap-3 text-sm">
+            <span>{formatDateShort(points[0]!.date, locale)}</span>
+            <span>{formatDateShort(points.at(-1)!.date, locale)}</span>
+          </div>
+          <label className="flex flex-col gap-2 text-sm">
+            {ux('chartDay')}
+            <input
+              type="range"
+              min="0"
+              max={points.length - 1}
+              value={index}
+              onChange={(e) => setSelected(Number(e.target.value))}
+              className="min-h-11 w-full accent-primary"
+              aria-valuetext={`${formatDateShort(point.date, locale)}: ${money(point.amount)}`}
+            />
+          </label>
+          <p role="status" className="tabular-nums">
+            {formatDateShort(point.date, locale)} · {money(point.amount)}
+          </p>
+          <details>
+            <summary className="min-h-11 cursor-pointer py-3 text-sm font-semibold">
+              {ux('data')}
+            </summary>
+            <table className="w-full text-sm">
+              <caption className="sr-only">{ux('cumulative')}</caption>
+              <thead>
+                <tr>
+                  <th scope="col" className="py-2 text-left">
+                    {ux('date')}
+                  </th>
+                  <th scope="col" className="text-right">
+                    {ux('cumulative')}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {points.map((p) => (
+                  <tr key={p.date} className="border-t border-border">
+                    <th scope="row" className="py-2 text-left font-normal">
+                      {formatDateShort(p.date, locale)} {p.date.slice(0, 4)}
+                    </th>
+                    <td className="text-right tabular-nums">{money(p.amount)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </details>
+        </>
+      ) : (
+        <p role="status">{t('emptyState')}</p>
+      )}
     </section>
   );
 }

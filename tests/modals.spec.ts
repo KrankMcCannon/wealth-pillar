@@ -35,13 +35,7 @@ test.describe('entity modals (mobile)', () => {
   test('budget-close-period opens drawer from budgets page', async ({ page }) => {
     await page.goto('/it/budgets');
 
-    const periodActions = page.getByRole('button', { name: /azioni del periodo|period actions/i });
-    await expect(periodActions).toBeVisible();
-
-    await periodActions.click();
-    const closePeriodItem = page.getByRole('menuitem', { name: /chiudi periodo|close period/i });
-    await expect(closePeriodItem).toBeVisible({ timeout: 5000 });
-    await closePeriodItem.click();
+    await page.getByRole('button', { name: /nuovo ciclo|new cycle/i }).click();
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 });
     await expect(page.locator('[data-vaul-drawer]')).toBeVisible();
   });

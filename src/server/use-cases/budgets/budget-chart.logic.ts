@@ -13,6 +13,7 @@ export interface ChartDataPoint {
 }
 
 export interface GroupedBudgetTransaction {
+  isPartial?: boolean;
   date: string;
   transactions: Transaction[];
   total: number;

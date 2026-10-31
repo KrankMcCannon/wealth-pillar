@@ -1,8 +1,9 @@
 'use client';
 
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import type { UserBudgetSummary } from '@/lib/types';
 import { stitchBudgets } from '@/styles/home-design-foundation';
+import { cn } from '@/lib/utils';
 import { formatCurrencyLocale } from '@/lib/utils/currency-formatter';
 
 export interface BudgetsSummaryHeroProps {
@@ -24,6 +25,7 @@ function splitCurrencyParts(formatted: string): { main: string; rest: string } {
 
 export function BudgetsSummaryHero({ summary, labels }: Readonly<BudgetsSummaryHeroProps>) {
   const locale = useLocale();
+  const ux = useTranslations('Budgets.UX');
   const availableFormatted = formatCurrencyLocale(summary.totalRemaining, locale);
   const budgetFormatted = formatCurrencyLocale(summary.totalBudget, locale);
   const spentFormatted = formatCurrencyLocale(summary.totalSpent, locale);
@@ -36,10 +38,25 @@ export function BudgetsSummaryHero({ summary, labels }: Readonly<BudgetsSummaryH
       </h2>
       <div className={stitchBudgets.heroInner}>
         <div className={stitchBudgets.heroPrimaryBlock}>
-          <span className={stitchBudgets.heroEyebrow}>{labels.totalAvailable}</span>
+          <span className={stitchBudgets.heroEyebrow}>
+            {summary.totalRemaining < 0
+              ? ux('overLabel')
+              : summary.totalRemaining === 0
+                ? ux('reached')
+                : labels.totalAvailable}
+          </span>
           <div className={stitchBudgets.heroAmountRow}>
-            <span className={stitchBudgets.heroAmount}>{main}</span>
-            {rest ? <span className={stitchBudgets.heroAmountCents}>{rest}</span> : null}
+            <span
+              className={cn(
+                stitchBudgets.heroAmount,
+                summary.totalRemaining < 0 ? 'text-expense' : 'text-foreground'
+              )}
+            >
+              {main}
+            </span>
+            {rest ? (
+              <span className="text-sm font-medium tabular-nums text-muted-foreground">{rest}</span>
+            ) : null}
           </div>
         </div>
 
