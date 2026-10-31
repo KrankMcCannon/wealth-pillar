@@ -32,7 +32,7 @@
           "type": "uuid[]",
           "primaryKey": false,
           "notNull": true,
-          "default": "'{\"\"}'"
+          "default": "'{}'"
         },
         "group_id": {
           "name": "group_id",
@@ -485,7 +485,7 @@
               "isExpression": false,
               "asc": true,
               "nulls": "last",
-              "opclass": "date_ops"
+              "opclass": "uuid_ops"
             },
             {
               "expression": "start_date",
@@ -950,14 +950,14 @@
               "isExpression": false,
               "asc": true,
               "nulls": "last",
-              "opclass": "text_ops"
+              "opclass": "uuid_ops"
             },
             {
               "expression": "status",
               "isExpression": false,
               "asc": true,
               "nulls": "last",
-              "opclass": "uuid_ops"
+              "opclass": "text_ops"
             }
           ],
           "isUnique": false,
@@ -1103,7 +1103,7 @@
           "type": "uuid[]",
           "primaryKey": false,
           "notNull": true,
-          "default": "'{\"\"}'"
+          "default": "'{}'"
         },
         "plan": {
           "name": "plan",
@@ -1780,7 +1780,7 @@
           "type": "uuid[]",
           "primaryKey": false,
           "notNull": true,
-          "default": "'{\"RAY\"}'"
+          "default": "'{}'"
         },
         "due_day": {
           "name": "due_day",
@@ -2049,14 +2049,14 @@
               "isExpression": false,
               "asc": true,
               "nulls": "last",
-              "opclass": "date_ops"
+              "opclass": "uuid_ops"
             },
             {
               "expression": "date",
               "isExpression": false,
               "asc": false,
               "nulls": "first",
-              "opclass": "uuid_ops"
+              "opclass": "date_ops"
             }
           ],
           "isUnique": false,
@@ -2215,14 +2215,14 @@
               "isExpression": false,
               "asc": true,
               "nulls": "last",
-              "opclass": "text_ops"
+              "opclass": "uuid_ops"
             },
             {
               "expression": "category",
               "isExpression": false,
               "asc": true,
               "nulls": "last",
-              "opclass": "uuid_ops"
+              "opclass": "text_ops"
             }
           ],
           "isUnique": false,
@@ -2245,7 +2245,7 @@
               "isExpression": false,
               "asc": false,
               "nulls": "first",
-              "opclass": "uuid_ops"
+              "opclass": "date_ops"
             }
           ],
           "isUnique": false,
@@ -2277,7 +2277,7 @@
               "isExpression": false,
               "asc": true,
               "nulls": "last",
-              "opclass": "text_ops"
+              "opclass": "uuid_ops"
             },
             {
               "expression": "type",
@@ -2346,7 +2346,7 @@
               "isExpression": false,
               "asc": true,
               "nulls": "last",
-              "opclass": "uuid_ops"
+              "opclass": "text_ops"
             }
           ],
           "isUnique": false,
@@ -2362,7 +2362,7 @@
               "isExpression": false,
               "asc": true,
               "nulls": "last",
-              "opclass": "date_ops"
+              "opclass": "uuid_ops"
             },
             {
               "expression": "date",
@@ -2376,7 +2376,7 @@
               "isExpression": false,
               "asc": false,
               "nulls": "first",
-              "opclass": "uuid_ops"
+              "opclass": "timestamptz_ops"
             },
             {
               "expression": "id",
@@ -2399,7 +2399,7 @@
               "isExpression": false,
               "asc": true,
               "nulls": "last",
-              "opclass": "text_ops"
+              "opclass": "uuid_ops"
             },
             {
               "expression": "type",

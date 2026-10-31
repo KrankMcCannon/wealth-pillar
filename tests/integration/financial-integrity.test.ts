@@ -1,6 +1,7 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { setTimeout as delay } from 'node:timers/promises';
 import { sql } from 'drizzle-orm';
+import { decodeTransactionCursor, encodeTransactionCursor } from '@/lib/utils/transaction-cursor';
 import { db } from '@/server/db/drizzle';
 import { updateUserPreferencesUseCase } from '@/server/use-cases/users/update-user-preferences.use-case';
 import { UserPreferencesRepository } from '@/server/repositories/user-preferences.repository';
@@ -137,6 +138,26 @@ beforeEach(async () => {
 afterEach(() => {
   vi.restoreAllMocks();
   vi.unstubAllEnvs();
+});
+
+it('paginates every imported row when created_at timestamps share microseconds', async () => {
+  await db.execute(sql`INSERT INTO transactions (description, amount, type, category, date, account_id, user_id, group_id, created_at)
+    SELECT 'Bulk row ' || n, 1, 'expense', 'food', '2026-10-31', ${a}, ${userId}, ${groupId}, '2026-10-31 12:00:00.123456+00'::timestamptz
+    FROM generate_series(1, 125) n`);
+  const ids: string[] = [];
+  let cursor: ReturnType<typeof decodeTransactionCursor>;
+  for (let page = 0; page < 6; page++) {
+    const window = await TransactionsRepository.getByGroup(groupId, {
+      limit: 30,
+      countTotal: false,
+      ...(cursor ? { cursorAfter: cursor } : {}),
+    });
+    ids.push(...window.data.map((row: { id: string }) => row.id));
+    if (!window.hasMore) break;
+    cursor = decodeTransactionCursor(encodeTransactionCursor(window.data.at(-1)));
+  }
+  expect(ids).toHaveLength(125);
+  expect(new Set(ids).size).toBe(125);
 });
 
 describe('account deletion against PostgreSQL', () => {
@@ -416,6 +437,73 @@ async function commitPrepared(rows: PreparedImportRowInput[]) {
 }
 
 describe('idempotent CSV imports against the real partial unique index', () => {
+  const importRows = (prefix: string, firstAccount: string, secondAccount: string) =>
+    Array.from({ length: 502 }, (_, index) => ({
+      rowId: `${prefix}-${index}`,
+      description: `Import ${prefix} ${index}`,
+      amount: 1,
+      type: 'expense' as const,
+      category: 'food',
+      date: '2026-10-31',
+      account_id: index < 501 ? firstAccount : secondAccount,
+      user_id: userId,
+      group_id: groupId,
+      import_hash: `${prefix}-${index}`,
+    }));
+
+  it('commits concurrent multi-chunk imports with reversed account orders without deadlocks', async () => {
+    await db.execute(
+      sql`CREATE FUNCTION delay_import_balance() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN PERFORM pg_sleep(0.03); RETURN NEW; END $$`
+    );
+    await db.execute(
+      sql`CREATE TRIGGER delay_import_balance BEFORE UPDATE ON accounts FOR EACH ROW EXECUTE FUNCTION delay_import_balance()`
+    );
+    try {
+      const results = await Promise.all([
+        bulkCreateTransactionsUseCase(importRows('forward', a, b)),
+        bulkCreateTransactionsUseCase(importRows('reverse', b, a)),
+      ]);
+      expect(results).toEqual([
+        { inserted: 502, skipped: 0 },
+        { inserted: 502, skipped: 0 },
+      ]);
+      expect(Number((await AccountsRepository.findById(a))?.balance)).toBe(298);
+      expect(Number((await AccountsRepository.findById(b))?.balance)).toBe(198);
+    } finally {
+      await db.execute(sql`DROP TRIGGER delay_import_balance ON accounts`);
+      await db.execute(sql`DROP FUNCTION delay_import_balance()`);
+    }
+  });
+
+  it('deduplicates overlapping multi-chunk imports submitted in reverse row order', async () => {
+    const rows = importRows('overlap', a, b);
+    const results = await Promise.all([
+      bulkCreateTransactionsUseCase(rows),
+      bulkCreateTransactionsUseCase([...rows].reverse()),
+    ]);
+    expect(results.reduce((sum, result) => sum + result.inserted, 0)).toBe(502);
+    expect(results.reduce((sum, result) => sum + result.skipped, 0)).toBe(502);
+    expect(Number((await AccountsRepository.findById(a))?.balance)).toBe(299);
+    expect(Number((await AccountsRepository.findById(b))?.balance)).toBe(699);
+  });
+
+  it('rolls back every chunk and every balance after a late account update failure', async () => {
+    const update = TransactionsRepository.updateAccountBalance.bind(TransactionsRepository);
+    vi.spyOn(TransactionsRepository, 'updateAccountBalance').mockImplementation(
+      async (id, delta, executor) => {
+        if (id === b) throw new Error('late account update failure');
+        await update(id, delta, executor);
+      }
+    );
+    await expect(bulkCreateTransactionsUseCase(importRows('rollback', a, b))).rejects.toThrow(
+      'late account update failure'
+    );
+    const [count] = await db.execute(sql`SELECT count(*)::int AS count FROM transactions`);
+    expect(count?.count).toBe(0);
+    expect(Number((await AccountsRepository.findById(a))?.balance)).toBe(800);
+    expect(Number((await AccountsRepository.findById(b))?.balance)).toBe(700);
+  });
+
   it('inserts once, skips a repeat, and inserts only new rows in a mixed import', async () => {
     const rows = await prepareImportRowProofs(
       [coffee, { ...coffee, rowId: 'refund', description: 'Refund', type: 'income', amount: 20 }],

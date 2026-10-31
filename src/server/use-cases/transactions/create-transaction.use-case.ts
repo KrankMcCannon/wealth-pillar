@@ -3,6 +3,7 @@ import { TransactionsRepository } from '@/server/repositories/transactions.repos
 import type { CreateTransactionInput } from '@/server/use-cases/transactions/types';
 import type { Transaction } from '@/lib/types';
 import { serialize } from '@/lib/utils/serializer';
+import { toDateTime } from '@/lib/utils/date-utils';
 import {
   validateId,
   validateRequiredString,
@@ -28,14 +29,15 @@ export async function createTransactionUseCase(data: CreateTransactionInput): Pr
     }
   }
 
-  const transactionDate = typeof data.date === 'string' ? new Date(data.date) : data.date;
+  const transactionDate = toDateTime(data.date);
+  if (!transactionDate?.isValid) throw new Error('Invalid transaction date');
 
   const insertData = {
     description,
     amount: data.amount.toString(),
     type: data.type,
     category: data.category,
-    date: transactionDate.toISOString().slice(0, 10),
+    date: transactionDate.toISODate()!,
     user_id: data.user_id || null,
     account_id: data.account_id,
     to_account_id: data.to_account_id || null,

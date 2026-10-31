@@ -24,6 +24,7 @@ import {
   getAdvancedFiltersCount,
   clearAdvancedFilters,
   hasActiveFilters,
+  getDateChipLabel,
 } from './filters/filter-helpers';
 import type { TransactionsLedgerProps } from './transactions-workspace-props';
 
@@ -39,8 +40,8 @@ export function TransactionsLedger(props: TransactionsLedgerProps) {
   const accounts = storeAccounts.length > 0 ? storeAccounts : props.accounts;
 
   const dayGroups = useMemo(
-    () => groupByDay(props.transactions, locale),
-    [props.transactions, locale]
+    () => groupByDay(props.transactions, locale, props.filters.accountId),
+    [props.transactions, locale, props.filters.accountId]
   );
   const spendableNow = useMemo(
     () =>
@@ -92,7 +93,9 @@ export function TransactionsLedger(props: TransactionsLedgerProps) {
     };
   }, [dayGroups, newestDay]);
 
-  const atNewestDay = !topDay || topDay === newestDay;
+  // A member's list omits other members' movements on shared accounts, so it
+  // cannot reconstruct those accounts' historical balances.
+  const atNewestDay = Boolean(props.selectedUserId) || !topDay || topDay === newestDay;
   const total = atNewestDay ? spendableNow : (spendableAtDay.get(topDay) ?? spendableNow);
   const asOfGroup = dayGroups.find((group) => group.isoDate === topDay);
   const caption = atNewestDay
@@ -103,7 +106,11 @@ export function TransactionsLedger(props: TransactionsLedgerProps) {
 
   const sentinelRef = useRef<HTMLDivElement>(null);
   useInfiniteScrollSentinel(sentinelRef, {
-    enabled: props.hasMore && props.transactions.length > 0,
+    enabled:
+      props.hasMore &&
+      props.transactions.length > 0 &&
+      !props.isNavigatingFilters &&
+      !props.loadMoreFailed,
     hasMore: props.hasMore,
     isLoading: props.isLoadingMore,
     onLoadMore: props.onLoadMore,
@@ -125,8 +132,8 @@ export function TransactionsLedger(props: TransactionsLedgerProps) {
             </p>
             <p
               className={cn(
-                'mt-0.5 text-[32px] font-semibold tabular-nums leading-none tracking-[-0.03em]',
-                total >= 0 ? stitchHome.amountIncome : stitchHome.amountExpense
+                'mt-0.5 font-display text-[32px] font-semibold tabular-nums leading-none tracking-[-0.03em]',
+                total >= 0 ? 'text-foreground' : stitchHome.amountExpense
               )}
               aria-live="polite"
             >
@@ -137,7 +144,11 @@ export function TransactionsLedger(props: TransactionsLedgerProps) {
         </StickyTotal>
       ) : null}
 
-      <HomeDashboardMain id="main-transactions" className="gap-2.5 pt-1.5">
+      <HomeDashboardMain
+        id="main-transactions"
+        className="mx-auto max-w-5xl gap-2.5 pt-1.5"
+        ariaBusy={props.isNavigatingFilters}
+      >
         <FilterDock>
           <CompactSegments
             ariaLabel={tLedger('typesAria')}
@@ -170,7 +181,7 @@ export function TransactionsLedger(props: TransactionsLedgerProps) {
                 aria-hidden
               />
               <Input
-                type="text"
+                type="search"
                 enterKeyHint="search"
                 autoComplete="off"
                 value={props.filters.searchQuery}
@@ -185,7 +196,7 @@ export function TransactionsLedger(props: TransactionsLedgerProps) {
                 <button
                   type="button"
                   onClick={() => props.setFilters({ ...props.filters, searchQuery: '' })}
-                  className="absolute right-2 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+                  className="absolute right-0 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
                   aria-label={tFilters('clearSearchAria')}
                 >
                   <X className="size-4" aria-hidden />
@@ -201,7 +212,8 @@ export function TransactionsLedger(props: TransactionsLedgerProps) {
                   ? 'border border-transparent bg-accent text-foreground ring-1 ring-inset ring-primary/35'
                   : 'border border-border/35 bg-muted/80 text-muted-foreground hover:text-foreground'
               )}
-              aria-pressed={advancedCount > 0}
+              aria-haspopup="dialog"
+              aria-expanded={filtersOpen}
               aria-label={
                 advancedCount > 0
                   ? tChips('filtersActiveAria', { count: advancedCount })
@@ -217,17 +229,40 @@ export function TransactionsLedger(props: TransactionsLedgerProps) {
             </button>
           </div>
           {advancedCount > 0 ? (
-            <button
-              type="button"
-              onClick={() => {
-                props.setFilters(clearAdvancedFilters(props.filters));
-                props.onClearBudgetFilter?.();
-              }}
-              className={transactionStyles.filters.clearAll}
-            >
-              <X className={transactionStyles.filters.clearAllIcon} aria-hidden />
-              <span>{tFilters('clearAll')}</span>
-            </button>
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-sm text-muted-foreground">
+                {[
+                  props.filters.dateRange !== 'all'
+                    ? getDateChipLabel(props.filters, tFilters)
+                    : '',
+                  props.filters.accountId && props.filters.accountId !== 'all'
+                    ? props.accountNames[props.filters.accountId]
+                    : '',
+                  props.filters.categoryKey !== 'all'
+                    ? getCategoryLabel(props.categories, props.filters.categoryKey)
+                    : '',
+                  props.filters.categoryKeys?.length
+                    ? tFilters('budget.categoriesCount', {
+                        count: props.filters.categoryKeys.length,
+                      })
+                    : '',
+                  props.budgetName,
+                ]
+                  .filter(Boolean)
+                  .join(' · ')}
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  if (props.onClearBudgetFilter) props.onClearBudgetFilter();
+                  else props.setFilters(clearAdvancedFilters(props.filters));
+                }}
+                className={transactionStyles.filters.clearAll}
+              >
+                <X className={transactionStyles.filters.clearAllIcon} aria-hidden />
+                <span>{tFilters('clearAll')}</span>
+              </button>
+            </div>
           ) : null}
         </div>
 
@@ -235,6 +270,14 @@ export function TransactionsLedger(props: TransactionsLedgerProps) {
           <div className={cn(stitchTransactions.emptyState, 'mt-3')} role="status">
             <p className={stitchTransactions.emptyTitle}>{props.emptyTitle}</p>
             <p className={stitchTransactions.emptyDescription}>{props.emptyDescription}</p>
+            <Button
+              type="button"
+              variant="outline"
+              className="mt-3 min-h-11"
+              onClick={props.onClearFilters ?? props.onAddTransaction}
+            >
+              {props.onClearFilters ? tTable('empty.clearFilters') : tTable('empty.addCta')}
+            </Button>
           </div>
         ) : (
           <div
@@ -252,6 +295,11 @@ export function TransactionsLedger(props: TransactionsLedgerProps) {
                 <div className={stitchTransactions.dayHeaderRow}>
                   <h3 className={stitchTransactions.dayHeaderTitle}>{group.formattedDate}</h3>
                   <p className={stitchTransactions.dayHeaderTotalRow} data-testid="day-group-total">
+                    {props.hasMore && group.isoDate === dayGroups.at(-1)?.isoDate ? (
+                      <span className="mr-1.5 text-xs text-muted-foreground">
+                        {tLedger('partialDayTotal')}
+                      </span>
+                    ) : null}
                     <span className={stitchTransactions.dayHeaderTotalValue}>
                       {group.net >= 0 ? '+' : '−'}
                       {formatCurrency(Math.abs(group.net))}
@@ -276,8 +324,13 @@ export function TransactionsLedger(props: TransactionsLedgerProps) {
           </div>
         )}
 
-        {props.hasMore && props.transactions.length > 0 ? (
+        {props.hasMore && props.transactions.length > 0 && !props.isNavigatingFilters ? (
           <div className="flex flex-col items-center gap-3 pt-2">
+            {props.loadMoreFailed ? (
+              <p role="alert" className="text-sm text-expense">
+                {tLoadMore('error')}
+              </p>
+            ) : null}
             <div ref={sentinelRef} className="h-px w-full" aria-hidden />
             <Button
               type="button"
@@ -292,13 +345,13 @@ export function TransactionsLedger(props: TransactionsLedgerProps) {
                   {tLoadMore('loading')}
                 </>
               ) : (
-                tLoadMore('cta')
+                tLoadMore(props.loadMoreFailed ? 'retry' : 'cta')
               )}
             </Button>
           </div>
         ) : null}
 
-        {!props.hasMore && props.transactions.length > 0 ? (
+        {!props.hasMore && props.transactions.length > 0 && !props.isNavigatingFilters ? (
           <p className="py-4 text-center text-sm text-muted-foreground" role="status">
             {tLoadMore('end')}
           </p>

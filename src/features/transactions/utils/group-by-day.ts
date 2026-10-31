@@ -1,6 +1,8 @@
 import type { Transaction } from '@/lib/types';
 import { TransactionLogic } from '@/lib/utils/transaction-logic';
 import { formatDateSmart, toDateTime } from '@/lib/utils/date-utils';
+import { computeBalanceDeltas } from '@/server/use-cases/transactions/transaction-balance-delta.core';
+import { roundMoney } from '@/lib/utils/money';
 
 export interface DayGroup {
   isoDate: string;
@@ -11,7 +13,11 @@ export interface DayGroup {
   net: number;
 }
 
-export function groupByDay(transactions: Transaction[], locale: string): DayGroup[] {
+export function groupByDay(
+  transactions: Transaction[],
+  locale: string,
+  accountId?: string
+): DayGroup[] {
   const grouped: Record<string, Transaction[]> = {};
 
   for (const tx of transactions) {
@@ -31,7 +37,15 @@ export function groupByDay(transactions: Transaction[], locale: string): DayGrou
       transactions: txs,
       income: dailyTotals[iso]?.income ?? 0,
       expense: dailyTotals[iso]?.expense ?? 0,
-      net: (dailyTotals[iso]?.income ?? 0) - (dailyTotals[iso]?.expense ?? 0),
+      net: roundMoney(
+        (dailyTotals[iso]?.income ?? 0) -
+          (dailyTotals[iso]?.expense ?? 0) +
+          (accountId && accountId !== 'all'
+            ? txs
+                .filter((tx) => tx.type === 'transfer')
+                .reduce((sum, tx) => sum + (computeBalanceDeltas(tx, 1).get(accountId) ?? 0), 0)
+            : 0)
+      ),
     }))
     .sort((a, b) => new Date(b.isoDate).getTime() - new Date(a.isoDate).getTime());
 }

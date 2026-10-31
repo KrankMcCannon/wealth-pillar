@@ -719,7 +719,14 @@
       "statusPaused": "Paused",
       "signIncome": "income",
       "signExpense": "expense",
-      "signTransfer": "transfer"
+      "signTransfer": "transfer",
+      "monthlyEstimate": "Monthly equivalent of active series. Other frequencies are converted to a monthly estimate.",
+      "empty": {
+        "active": "No active series in this view. Paused series are still available under All.",
+        "paused": "No paused series in this view."
+      },
+      "showAllSeries": "Show all series",
+      "partialDayTotal": "Loaded total"
     },
     "empty": {
       "title": "No Transactions",
@@ -796,8 +803,8 @@
         "all": "Any time",
         "today": "Today",
         "month": "Month",
-        "more": "More dates",
-        "moreAria": "Choose week, year, or custom range"
+        "more": "Custom",
+        "moreAria": "Choose a custom date range"
       },
       "chips": {
         "period": "Period",
@@ -817,7 +824,8 @@
         "from": "From {date}",
         "until": "Until {date}",
         "fromLabel": "From",
-        "toLabel": "To"
+        "toLabel": "To",
+        "invalidOrder": "The end date must be on or after the start date."
       },
       "category": {
         "searchPlaceholder": "Search category...",
@@ -868,7 +876,9 @@
     "LoadMore": {
       "cta": "Load more",
       "loading": "Loading…",
-      "end": "End of list"
+      "end": "End of list",
+      "error": "We could not load more transactions. Your loaded transactions are still available.",
+      "retry": "Try loading again"
     },
     "Table": {
       "columns": {
@@ -1101,7 +1111,8 @@
         "weekly": "Weekly",
         "biweekly": "Biweekly",
         "monthly": "Monthly",
-        "yearly": "Yearly"
+        "yearly": "Yearly",
+        "once": "Once"
       },
       "due": {
         "today": "Today",
@@ -1110,7 +1121,7 @@
         "inDays": "In {count} days"
       },
       "status": {
-        "stopped": "Stopped"
+        "stopped": "Paused"
       },
       "nextLabel": "Next",
       "actions": {

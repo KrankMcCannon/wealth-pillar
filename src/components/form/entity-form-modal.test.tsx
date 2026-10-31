@@ -107,3 +107,32 @@ it('preserves edited fields when optimistic data is rolled back', async () => {
   rerender(view('Rolled back server value'));
   expect(input).toHaveValue('User draft');
 });
+
+it('keeps validation errors visible after submitting a pristine form', async () => {
+  const user = userEvent.setup();
+  const submit = vi.fn();
+  render(
+    <EntityFormModal
+      isOpen
+      onClose={() => {}}
+      title="Validate"
+      schema={schema}
+      defaultValues={{ name: '' }}
+      resetValues={{ name: '' }}
+      onSubmit={submit}
+      footer={() => <button type="submit">Save</button>}
+    >
+      {(form) => (
+        <>
+          <input aria-label="Name" {...form.register('name')} />
+          {form.formState.errors.name?.message ? (
+            <p role="alert">{form.formState.errors.name.message}</p>
+          ) : null}
+        </>
+      )}
+    </EntityFormModal>
+  );
+  await user.click(screen.getByRole('button', { name: 'Save' }));
+  expect(await screen.findByRole('alert')).toHaveTextContent('Required');
+  expect(submit).not.toHaveBeenCalled();
+});

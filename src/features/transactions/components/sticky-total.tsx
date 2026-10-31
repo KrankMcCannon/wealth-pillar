@@ -57,12 +57,12 @@ export function StickyTotal({
       <div
         ref={barRef}
         className={cn(
-          'z-30 border-b border-border/22 bg-background px-4 py-2',
+          'z-30 border-b border-border/22 bg-background py-2',
           pinned ? 'fixed inset-x-0' : 'relative'
         )}
         style={pinned ? { top: APP_HEADER_PX } : undefined}
       >
-        {children}
+        <div className="mx-auto w-full max-w-5xl px-4">{children}</div>
       </div>
     </>
   );

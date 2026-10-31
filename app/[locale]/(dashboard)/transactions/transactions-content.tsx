@@ -59,12 +59,14 @@ export default function TransactionsContent({
     handleClearBudgetFilter,
     hasMore,
     isLoadingMore,
+    loadMoreFailed,
     loadMore,
     listItems,
     accountNames,
     handleEditTransaction,
     openModal,
     isNavigatingFilters,
+    handleClearFilters,
   } = useTransactionsContent(props);
 
   const setRecurringEditSeed = useRecurringEditStore((state) => state.setSeed);
@@ -109,11 +111,15 @@ export default function TransactionsContent({
         setFilters,
         hasMore,
         isLoadingMore,
+        loadMoreFailed,
         isNavigatingFilters,
         onLoadMore: loadMore,
         onEditTransaction: handleEditTransaction,
         onAddTransaction: () => openModal('transaction'),
         onImportTransactions: () => openModal('import'),
+        ...(hasActiveFilters || (selectedUserId && currentUser.role !== 'member')
+          ? { onClearFilters: handleClearFilters }
+          : {}),
         emptyTitle: t('empty.title'),
         emptyDescription: hasActiveFilters
           ? t('empty.noFilterResults')
@@ -127,6 +133,7 @@ export default function TransactionsContent({
         ...(selectedBudget ? { onClearBudgetFilter: handleClearBudgetFilter } : {}),
       }}
       recurring={{
+        accountNames,
         selectedUserId,
         onCreateRecurringSeries: () => openModal('recurring'),
         onEditRecurringSeries: handleEditRecurringSeries,

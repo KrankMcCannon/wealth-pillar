@@ -117,6 +117,7 @@ function renderLedger(
   extras: {
     setFilters?: ReturnType<typeof mockSetFilters>;
     onClearBudgetFilter?: () => void;
+    hasMore?: boolean;
   } = {}
 ) {
   const setFilters = extras.setFilters ?? mockSetFilters();
@@ -128,7 +129,7 @@ function renderLedger(
       categories={[]}
       filters={{ ...filters, ...filterOverrides }}
       setFilters={setFilters}
-      hasMore={false}
+      hasMore={extras.hasMore ?? false}
       isLoadingMore={false}
       isNavigatingFilters={false}
       onLoadMore={vi.fn()}
@@ -155,7 +156,8 @@ describe('TransactionsLedger filter button', () => {
     renderLedger({ dateRange: 'month', accountId: 'a1' });
     const button = screen.getByRole('button', { name: 'filtersActiveAria' });
     expect(button).toHaveTextContent('2');
-    expect(button).toHaveAttribute('aria-pressed', 'true');
+    expect(button).toHaveAttribute('aria-haspopup', 'dialog');
+    expect(button).toHaveAttribute('aria-expanded', 'false');
   });
 
   it('clears advanced filters from the ledger toolbar', () => {
@@ -166,13 +168,7 @@ describe('TransactionsLedger filter button', () => {
       { setFilters, onClearBudgetFilter }
     );
     screen.getByRole('button', { name: 'clearAll' }).click();
-    expect(setFilters).toHaveBeenCalledWith(
-      expect.objectContaining({
-        dateRange: 'all',
-        searchQuery: 'rent',
-        type: 'expense',
-      })
-    );
+    expect(setFilters).not.toHaveBeenCalled();
     expect(onClearBudgetFilter).toHaveBeenCalled();
   });
 });
@@ -214,4 +210,9 @@ describe('TransactionsLedger spendable', () => {
     expect(screen.queryByText('2.293,07 €')).toBeNull();
     mockStoreAccounts.mockReturnValue([]);
   });
+});
+
+it('marks an unfinished oldest day total as loaded transactions only', () => {
+  renderLedger({}, { hasMore: true });
+  expect(screen.getByTestId('day-group-total')).toHaveTextContent('partialDayTotal');
 });

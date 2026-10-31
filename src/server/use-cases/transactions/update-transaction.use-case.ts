@@ -3,6 +3,7 @@ import { TransactionsRepository } from '@/server/repositories/transactions.repos
 import type { UpdateTransactionInput } from '@/server/use-cases/transactions/types';
 import type { Transaction } from '@/lib/types';
 import { serialize } from '@/lib/utils/serializer';
+import { toDateTime } from '@/lib/utils/date-utils';
 import { invalidateTransactionUpdateCaches } from '@/lib/utils/cache-utils';
 import { applyTransactionBalanceUpdate } from '@/server/use-cases/transactions/transaction-balance';
 import type { TransactionScope } from '@/server/repositories/transactions.repository';
@@ -20,8 +21,9 @@ export async function updateTransactionUseCase(
   if (data.type !== undefined) updateData.type = data.type;
   if (data.category !== undefined) updateData.category = data.category;
   if (data.date !== undefined) {
-    const d = typeof data.date === 'string' ? new Date(data.date) : data.date;
-    updateData.date = d.toISOString().slice(0, 10);
+    const date = toDateTime(data.date);
+    if (!date?.isValid) throw new Error('Invalid transaction date');
+    updateData.date = date.toISODate()!;
   }
   if (data.user_id !== undefined) updateData.user_id = data.user_id;
   if (data.account_id !== undefined) updateData.account_id = data.account_id;

@@ -2,7 +2,8 @@
 
 import { Suspense } from 'react';
 import { useTranslations } from 'next-intl';
-import { PageTabsSticky } from '@/components/shared/page-tabs';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { stitchPageTabs } from '@/styles/home-design-foundation';
 import UserSelector from '@/components/shared/user-selector';
 import type { RecurringTransactionSeries, User } from '@/lib/types';
 import { TransactionsLedger } from './transactions-ledger';
@@ -33,32 +34,36 @@ export function TransactionsWorkspace({
   const t = useTranslations('TransactionsContent');
 
   return (
-    <>
-      <PageTabsSticky
-        value={activeTab}
-        onValueChange={onTabChange}
-        ariaLabel={t('tabsAria')}
-        items={[
-          { value: 'Transactions', label: t('tabs.transactions') },
-          { value: 'Recurrent', label: t('tabs.recurrent') },
-        ]}
-        leading={
-          <UserSelector
-            hideTitle
-            currentUser={currentUser}
-            users={groupUsers}
-            value={selectedUserId ?? 'all'}
-            onChange={onUserFilterChange}
-          />
-        }
-      />
-      {activeTab === 'Recurrent' ? (
+    <Tabs value={activeTab} onValueChange={onTabChange} className="gap-0">
+      <div className={stitchPageTabs.stickyBar}>
+        <div className={`${stitchPageTabs.stickyStack} mx-auto max-w-5xl`}>
+          <div className={stitchPageTabs.leading}>
+            <UserSelector
+              hideTitle
+              currentUser={currentUser}
+              users={groupUsers}
+              value={selectedUserId ?? 'all'}
+              onChange={onUserFilterChange}
+            />
+          </div>
+          <TabsList className={stitchPageTabs.list} aria-label={t('tabsAria')}>
+            <TabsTrigger value="Transactions" className={stitchPageTabs.trigger}>
+              {t('tabs.transactions')}
+            </TabsTrigger>
+            <TabsTrigger value="Recurrent" className={stitchPageTabs.trigger}>
+              {t('tabs.recurrent')}
+            </TabsTrigger>
+          </TabsList>
+        </div>
+      </div>
+      <TabsContent value="Recurrent" className="mt-0">
         <Suspense fallback={<RecurringLedgerFallback />}>
           <RecurringLedgerWithSeries {...recurring} seriesPromise={seriesPromise} />
         </Suspense>
-      ) : (
+      </TabsContent>
+      <TabsContent value="Transactions" className="mt-0">
         <TransactionsLedger {...ledger} />
-      )}
-    </>
+      </TabsContent>
+    </Tabs>
   );
 }

@@ -35,7 +35,12 @@ export const TransactionRow = memo(function TransactionRow({
           to: accountNames[transaction.to_account_id ?? ''] ?? t('accountFallback'),
         })
       : '';
-  const meta = [getCategoryLabel(transaction.category), direction].filter(Boolean).join(' · ');
+  const meta = [
+    getCategoryLabel(transaction.category),
+    direction || accountNames?.[transaction.account_id],
+  ]
+    .filter(Boolean)
+    .join(' · ');
 
   return (
     <PlainListRow
@@ -50,19 +55,26 @@ export const TransactionRow = memo(function TransactionRow({
         }) + (direction ? ' · ' + direction : '')
       }
     >
-      <Amount
-        type={
-          transaction.type === 'income'
-            ? 'income'
-            : transaction.type === 'expense'
-              ? 'expense'
-              : 'neutral'
-        }
-        size="md"
-        emphasis="strong"
-      >
-        {signedAmount}
-      </Amount>
+      <span className="inline-flex items-baseline gap-0.5">
+        {transaction.type === 'transfer' && (!selectedAccountId || selectedAccountId === 'all') ? (
+          <span aria-hidden>↔</span>
+        ) : !isOutgoing ? (
+          <span aria-hidden>+</span>
+        ) : null}
+        <Amount
+          type={
+            transaction.type === 'income'
+              ? 'income'
+              : transaction.type === 'expense'
+                ? 'expense'
+                : 'neutral'
+          }
+          size="md"
+          emphasis="strong"
+        >
+          {signedAmount}
+        </Amount>
+      </span>
     </PlainListRow>
   );
 });

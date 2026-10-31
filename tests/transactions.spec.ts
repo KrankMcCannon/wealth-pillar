@@ -59,7 +59,7 @@ test('updates its own transaction, cancels deletion and then deletes it persiste
   page,
   transaction,
 }) => {
-  await page.goto('/it/transactions');
+  await page.goto(`/it/transactions?q=${encodeURIComponent(transaction.description)}`);
   const row = page.getByTestId(`transaction-row-${transaction.id}`);
   await expect(row).toBeVisible();
   await row.click();
@@ -83,4 +83,34 @@ test('updates its own transaction, cancels deletion and then deletes it persiste
   await expect(confirmation).toBeHidden();
   await page.reload();
   await expect(row).toHaveCount(0);
+});
+
+test('keeps both tabs readable on mobile and desktop and recovers from an empty search', async ({
+  page,
+}, testInfo) => {
+  for (const width of [390, 1280]) {
+    await page.setViewportSize({ width, height: 844 });
+    await page.goto('/it/transactions');
+    await expect(page.getByRole('tabpanel', { name: 'Transazioni', exact: true })).toBeVisible();
+    await expect(page.locator('[data-testid^="transaction-row-"]').first()).toBeVisible();
+    await expect
+      .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth))
+      .toBe(true);
+    await expect(page.getByRole('heading', { name: 'Transazioni', exact: true })).toBeVisible();
+    await expect(page.getByText('Totale caricato', { exact: true })).toBeVisible();
+    await page.screenshot({ path: testInfo.outputPath(`transactions-${width}.png`) });
+    await page.getByRole('tab', { name: 'Ricorrenti', exact: true }).click();
+    await expect(page.getByText(/Mensile.*E2E Account/)).toBeVisible();
+    await page.getByRole('radio', { name: 'In pausa 0', exact: true }).click();
+    await expect(
+      page.getByText('Non ci sono serie in pausa con questa prospettiva.')
+    ).toBeVisible();
+    await page.getByRole('button', { name: 'Mostra tutte le serie', exact: true }).click();
+    await page.screenshot({ path: testInfo.outputPath(`recurring-${width}.png`) });
+  }
+  await page.getByRole('tab', { name: 'Transazioni', exact: true }).click();
+  await page.getByRole('searchbox').fill('NoSuchTransactionUnique');
+  await expect(page.getByText('Nessun risultato con i filtri applicati.')).toBeVisible();
+  await page.getByRole('button', { name: 'Azzera filtri', exact: true }).click();
+  await expect(page.locator('[data-testid^="transaction-row-"]').first()).toBeVisible();
 });

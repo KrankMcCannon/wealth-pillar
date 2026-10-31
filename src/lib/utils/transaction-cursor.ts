@@ -40,7 +40,7 @@ export function encodeTransactionCursor(row: {
 export function decodeTransactionCursor(token: string):
   | {
       date: string;
-      createdAt: Date;
+      createdAt: string;
       id: string;
     }
   | undefined {
@@ -59,7 +59,7 @@ export function decodeTransactionCursor(token: string):
     const createdAt = new Date(parsed.c);
     if (Number.isNaN(createdAt.getTime())) return undefined;
     if (!/^\d{4}-\d{2}-\d{2}$/.test(parsed.d)) return undefined;
-    return { date: parsed.d, createdAt, id: parsed.i };
+    return { date: parsed.d, createdAt: parsed.c, id: parsed.i };
   } catch {
     return undefined;
   }

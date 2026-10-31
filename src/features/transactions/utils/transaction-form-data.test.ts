@@ -52,4 +52,12 @@ describe('mapTransactionToFormData', () => {
       to_account_id: '',
     });
   });
+  it('preserves Rome midnight calendar dates when reopening Date-valued transactions', () => {
+    expect(
+      mapTransactionToFormData({ ...baseTransaction, date: new Date('2026-07-14T22:30:00Z') }).date
+    ).toBe('2026-07-15');
+    expect(mapTransactionToFormData({ ...baseTransaction, date: '2026-07-15' }).date).toBe(
+      '2026-07-15'
+    );
+  });
 });
