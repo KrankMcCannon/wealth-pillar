@@ -25,6 +25,7 @@ import {
   getReportsTransactionsUseCase,
 } from '@/server/use-cases/reports/reports.use-cases';
 import { getReportsPageDataUseCase } from '@/server/use-cases/pages/reports-page.use-case';
+import { getCurrentReportingWindow } from '@/features/reports/utils/reporting-window';
 import type { Budget, User } from '@/lib/types';
 import { updateTransactionUseCase } from '@/server/use-cases/transactions/update-transaction.use-case';
 import { deleteTransactionUseCase } from '@/server/use-cases/transactions/delete-transaction.use-case';
@@ -674,8 +675,25 @@ describe('complete period totals independently of report windows', () => {
       customEnd: '2024-05-25',
     });
     expect(first.sections.all.expenses).toBe(10);
-    expect(first.periods[0]).toMatchObject({ allocated: 100, spendableSpent: 50, remaining: 50 });
-    expect(second.periods).toEqual(first.periods);
+    expect(first.periods).toEqual([]);
+    expect(second.periods).toEqual([]);
+    const context = await getReportsContextUseCase(groupId, [userId]);
+    const firstDetails = await getReportsPeriodSummariesUseCase(
+      groupId,
+      context.periods,
+      context.accounts,
+      context.budgets,
+      getCurrentReportingWindow('custom', first.currentWindow)
+    );
+    const secondDetails = await getReportsPeriodSummariesUseCase(
+      groupId,
+      context.periods,
+      context.accounts,
+      context.budgets,
+      getCurrentReportingWindow('custom', second.currentWindow)
+    );
+    expect(firstDetails[0]).toMatchObject({ allocated: 100, spendableSpent: 50, remaining: 50 });
+    expect(secondDetails).toEqual(firstDetails);
   });
 
   it('loads the whole period across month boundaries', async () => {

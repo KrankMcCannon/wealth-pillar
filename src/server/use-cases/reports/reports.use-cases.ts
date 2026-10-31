@@ -210,13 +210,36 @@ export function calculatePeriodSummariesUseCase(
   const now = new Date();
   const liveByUser = liveBudgetsByUserId(budgets);
   const summaries: ReportPeriodSummary[] = [];
+  // Parse each ledger date once. Binary bounds avoid rescanning all historical rows
+  // for every period; overlapping periods still receive their complete ledger.
+  const dated = transactions
+    .flatMap((tx) => {
+      const time = toDateTime(tx.date)?.toMillis();
+      return time != null && Number.isFinite(time) ? [{ tx, time }] : [];
+    })
+    .sort((a, b) => a.time - b.time);
+  const bound = (time: number, inclusive: boolean) => {
+    let low = 0;
+    let high = dated.length;
+    while (low < high) {
+      const mid = (low + high) >>> 1;
+      if (dated[mid]!.time < time || (inclusive && dated[mid]!.time === time)) low = mid + 1;
+      else high = mid;
+    }
+    return low;
+  };
 
   for (const period of periods) {
     const [start, end] = parsePeriodDates(period, now);
     const periodBudgets = resolvePeriodBudgets(period, liveByUser.get(period.user_id) ?? []);
     const totals = calculateEnvelopePeriodTotals(
       periodBudgets,
-      transactions,
+      dated
+        .slice(
+          bound(start.startOf('day').toMillis(), false),
+          bound(end.endOf('day').toMillis(), true)
+        )
+        .map((row) => row.tx),
       start,
       end,
       accounts,

@@ -16,6 +16,7 @@ import {
   getReportsContextUseCase,
   getReportsTransactionsUseCase,
   getReportsPeriodSummariesUseCase,
+  resolveYtdBudgetStart,
 } from '../reports/reports.use-cases';
 import { getReportsPageDataUseCase } from './reports-page.use-case';
 
@@ -65,18 +66,28 @@ describe('getReportsPageDataUseCase', () => {
     expect(result.transactionsTruncated).toBe(true);
   });
 
-  it('loads complete budget summaries separately from the report transaction list', async () => {
-    await getReportsPageDataUseCase('g1', ['u1'], admin, {
+  it('does not load hidden budget summaries on the main report path', async () => {
+    const result = await getReportsPageDataUseCase('g1', ['u1'], admin, {
       preset: 'custom',
       customStart: '2024-05-20',
       customEnd: '2024-05-25',
     });
-    expect(getReportsPeriodSummariesUseCase).toHaveBeenCalledWith('g1', [], [], [], {
-      start: expect.any(Date),
-      end: expect.any(Date),
-    });
-    const reportWindow = vi.mocked(getReportsPeriodSummariesUseCase).mock.calls[0]![4];
-    const comparisonUnion = vi.mocked(getReportsTransactionsUseCase).mock.calls[0]![1];
-    expect(comparisonUnion.startDate.getTime()).toBeLessThan(reportWindow.start.getTime());
+    expect(getReportsPeriodSummariesUseCase).not.toHaveBeenCalled();
+    expect(result.periods).toEqual([]);
+    expect(result.currentWindow).toEqual({ start: '2024-05-20', end: '2024-05-25' });
+    expect(result.comparisonWindow).toEqual({ start: '2024-05-14', end: '2024-05-19' });
+  });
+
+  it('returns the actual budget-anchored YTD bounds for drill-down links', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 9, 30, 12));
+    vi.mocked(resolveYtdBudgetStart).mockReturnValueOnce(new Date(2025, 11, 15));
+    try {
+      const result = await getReportsPageDataUseCase('g1', ['u1'], admin, { preset: 'ytd' });
+      expect(result.currentWindow).toEqual({ start: '2025-12-15', end: '2026-10-30' });
+      expect(result.comparisonWindow).toEqual({ start: '2024-12-15', end: '2025-10-30' });
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

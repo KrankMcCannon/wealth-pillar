@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { TopExpensesRanking } from './top-expenses-ranking';
 import type { TopExpenseRow } from './top-expenses-ranking';
 
@@ -48,6 +48,27 @@ const transport: TopExpenseRow = {
 };
 
 describe('TopExpensesRanking', () => {
+  it('expands the remaining categories with working drill-down links and can collapse again', () => {
+    const extra = { ...food, id: 'extra', key: 'health', name: 'Health', total: 10 };
+    render(
+      <TopExpensesRanking
+        items={[food, housing, transport, extra]}
+        periodExpenses={100}
+        hrefForCategory={(key) => `/transactions?category=${key}&startDate=2026-01-01`}
+      />
+    );
+    const toggle = screen.getByRole('button', { name: 'showAll' });
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByRole('link', { name: /Health/ })).toBeNull();
+    fireEvent.click(toggle);
+    expect(screen.getByRole('link', { name: /Health/ })).toHaveAttribute(
+      'href',
+      '/transactions?category=health&startDate=2026-01-01'
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'showLess' }));
+    expect(screen.queryByRole('link', { name: /Health/ })).toBeNull();
+  });
+
   it('renders the empty well when there are no items', () => {
     render(<TopExpensesRanking items={[]} periodExpenses={100} />);
     expect(screen.getByText('empty')).toBeTruthy();

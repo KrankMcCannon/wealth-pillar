@@ -64,6 +64,7 @@ export function computeCategoryStats(
   const t1 = window.end.getTime();
   const accountMap = accountsToMap(accounts);
   const categoryMap = new Map(categories.map((c) => [c.id, c]));
+  const categoryByKey = new Map(categories.map((c) => [c.key.toLowerCase(), c]));
   const statsMap = new Map<
     string,
     { id: string; key: string; name: string; type: string; total: number; color: string }
@@ -73,9 +74,7 @@ export function computeCategoryStats(
     if (amount <= 0) return;
     const catId = tx.category;
     let catKey = catId;
-    const category =
-      categoryMap.get(catId) ||
-      Array.from(categoryMap.values()).find((c) => c.key.toLowerCase() === catId.toLowerCase());
+    const category = categoryMap.get(catId) || categoryByKey.get(catId.toLowerCase());
     if (category) catKey = category.id;
 
     if (!statsMap.has(catKey)) {

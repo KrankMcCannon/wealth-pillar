@@ -402,7 +402,15 @@
     "headerTitle": "Reports",
     "incompleteData": "Some transactions fall outside this calculation. Totals may be partial.",
     "insightsTitle": "More detail",
-    "insightsDescription": "Accounts and budget periods when you need a deeper view."
+    "insightsDescription": "Accounts and budget periods when you need a deeper view.",
+    "updating": "Updating report…",
+    "previousData": "Data still refers to {range}.",
+    "periodLabel": "Period: {range}",
+    "comparisonRange": "Comparison: {range}",
+    "detailsLoading": "Loading budget periods…",
+    "detailsError": "We couldn’t load budget periods. Please try again.",
+    "retry": "Try again",
+    "scopeLabel": "Report member"
   },
   "Reports": {
     "TimeFilter": {
@@ -412,11 +420,14 @@
       "ytd": "This year",
       "yearly": "12 months",
       "custom": "Other",
-      "customTitle": "Choose dates",
+      "customTitle": "Choose a period",
       "from": "From",
       "to": "To",
       "apply": "Show",
-      "invalidRange": "The end date must be on or after the start date."
+      "invalidRange": "The end date must be on or after the start date.",
+      "last_year": "Last year",
+      "last_month": "Last month",
+      "quickRanges": "More periods"
     },
     "Hero": {
       "srHeading": "Period summary",
@@ -445,7 +456,9 @@
       "incomeOffset": "Reduces the budget",
       "remainingCategories": "{count, plural, one {# more category} other {# more categories}}",
       "remainingSpending": "Remaining spending",
-      "openCategoryAria": "{name}, {amount}, {percent}% of spending"
+      "openCategoryAria": "{name}, {amount}, {percent}% of spending",
+      "showAll": "Show all categories",
+      "showLess": "Show fewer"
     },
     "AccountBreakdown": {
       "title": "Where the money sits",
@@ -2039,5 +2052,11 @@
       "selectorAria": "Icon selector",
       "selectorTitle": "Icon Selector"
     }
+  },
+  "TransactionsError": {
+    "title": "We couldn’t load your transactions",
+    "description": "Loading failed. Your transactions have not been deleted. Please try again.",
+    "retry": "Try again",
+    "home": "Back to home"
   }
 }

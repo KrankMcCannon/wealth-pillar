@@ -10,6 +10,7 @@ import { CalendarPanel } from './calendar-panel';
 
 export interface MobileCalendarDrawerProps {
   value: string;
+  defaultMonth?: string | undefined;
   onChange: (date: string) => void;
   isOpen: boolean;
   onClose: () => void;
@@ -17,6 +18,7 @@ export interface MobileCalendarDrawerProps {
 
 export function MobileCalendarDrawer({
   value,
+  defaultMonth,
   onChange,
   isOpen,
   onClose,
@@ -32,7 +34,12 @@ export function MobileCalendarDrawer({
       repositionInputs
       className="min-h-0 overflow-hidden"
     >
-      <CalendarPanel value={value} onChange={onChange} onClose={onClose} />
+      <CalendarPanel
+        defaultMonth={defaultMonth}
+        value={value}
+        onChange={onChange}
+        onClose={onClose}
+      />
     </ModalWrapper>
   );
 }

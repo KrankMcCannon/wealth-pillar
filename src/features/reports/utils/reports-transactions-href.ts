@@ -2,6 +2,7 @@ import { format } from 'date-fns';
 import {
   getCurrentReportingWindow,
   type ReportsTimePreset,
+  type ReportsDateRange,
 } from '@/features/reports/utils/reporting-window';
 import { defaultFiltersState } from '@/features/transactions/components/filters/filter-helpers';
 import { buildTransactionsQueryString } from '@/features/transactions/utils/transactions-query';
@@ -69,8 +70,15 @@ export function buildReportsCategoryTransactionsHref(input: {
   scope: ReportsScope;
   categoryKey: string;
   now?: Date;
+  window?: ReportsDateRange;
 }): string {
-  const window = getCurrentReportingWindow(input.preset, input.customRange, input.now);
+  const resolved = input.window
+    ? null
+    : getCurrentReportingWindow(input.preset, input.customRange, input.now);
+  const window = input.window ?? {
+    start: format(resolved!.start, 'yyyy-MM-dd'),
+    end: format(resolved!.end, 'yyyy-MM-dd'),
+  };
   const qs = buildTransactionsQueryString(
     {
       ...defaultFiltersState,
@@ -79,8 +87,8 @@ export function buildReportsCategoryTransactionsHref(input: {
       dateRange: 'custom',
       categoryKey: input.categoryKey,
       accountId: 'all',
-      startDate: format(window.start, 'yyyy-MM-dd'),
-      endDate: format(window.end, 'yyyy-MM-dd'),
+      startDate: window.start,
+      endDate: window.end,
     },
     input.scope === 'all' ? undefined : input.scope
   );
@@ -93,13 +101,20 @@ export function buildReportsReserveTransactionsHref(input: {
   customRange: { start: string; end: string } | null;
   scope: ReportsScope;
   now?: Date;
+  window?: ReportsDateRange;
 }): string {
-  const window = getCurrentReportingWindow(input.preset, input.customRange, input.now);
+  const resolved = input.window
+    ? null
+    : getCurrentReportingWindow(input.preset, input.customRange, input.now);
+  const window = input.window ?? {
+    start: format(resolved!.start, 'yyyy-MM-dd'),
+    end: format(resolved!.end, 'yyyy-MM-dd'),
+  };
   const params = new URLSearchParams();
   params.set('type', 'transfer');
   params.set('dateRange', 'custom');
-  params.set('startDate', format(window.start, 'yyyy-MM-dd'));
-  params.set('endDate', format(window.end, 'yyyy-MM-dd'));
+  params.set('startDate', window.start);
+  params.set('endDate', window.end);
   if (input.scope !== 'all') params.set('user', input.scope);
   return `/transactions?${params.toString()}`;
 }

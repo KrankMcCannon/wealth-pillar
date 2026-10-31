@@ -402,7 +402,15 @@
     "headerTitle": "Rapporti",
     "incompleteData": "Alcuni movimenti non rientrano nel calcolo. I totali possono essere parziali.",
     "insightsTitle": "Approfondimenti",
-    "insightsDescription": "Conti e periodi budget, quando ti serve più dettaglio."
+    "insightsDescription": "Conti e periodi budget, quando ti serve più dettaglio.",
+    "updating": "Aggiornamento del rapporto…",
+    "previousData": "Dati ancora riferiti a {range}.",
+    "periodLabel": "Periodo: {range}",
+    "comparisonRange": "Confronto: {range}",
+    "detailsLoading": "Caricamento dei periodi budget…",
+    "detailsError": "Non siamo riusciti a caricare i periodi budget. Riprova.",
+    "retry": "Riprova",
+    "scopeLabel": "Persona del rapporto"
   },
   "Reports": {
     "TimeFilter": {
@@ -412,11 +420,14 @@
       "ytd": "Quest’anno",
       "yearly": "12 mesi",
       "custom": "Altro",
-      "customTitle": "Scegli le date",
+      "customTitle": "Scegli il periodo",
       "from": "Da",
       "to": "A",
       "apply": "Mostra",
-      "invalidRange": "La data finale deve essere successiva o uguale alla data iniziale."
+      "invalidRange": "La data finale deve essere successiva o uguale alla data iniziale.",
+      "last_year": "Anno scorso",
+      "last_month": "Mese scorso",
+      "quickRanges": "Altri periodi"
     },
     "Hero": {
       "srHeading": "Riepilogo del periodo",
@@ -445,7 +456,9 @@
       "incomeOffset": "Riduce il budget",
       "remainingCategories": "{count, plural, one {# altra categoria} other {# altre categorie}}",
       "remainingSpending": "Altre spese",
-      "openCategoryAria": "{name}, {amount}, {percent}% delle uscite"
+      "openCategoryAria": "{name}, {amount}, {percent}% delle uscite",
+      "showAll": "Mostra tutte le categorie",
+      "showLess": "Mostra meno"
     },
     "AccountBreakdown": {
       "title": "Dove sta il denaro",
@@ -2040,5 +2053,11 @@
       "selectorAria": "Selettore icone",
       "selectorTitle": "Selettore Icone"
     }
+  },
+  "TransactionsError": {
+    "title": "Non siamo riusciti a caricare i movimenti",
+    "description": "Il caricamento non è riuscito. I movimenti non sono stati cancellati. Riprova.",
+    "retry": "Riprova",
+    "home": "Torna alla home"
   }
 }

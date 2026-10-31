@@ -19,6 +19,20 @@ function parseHref(href: string) {
 }
 
 describe('buildReportsCategoryTransactionsHref', () => {
+  it('uses the effective server window for YTD category and reserve links', () => {
+    const window = { start: '2023-12-15', end: '2024-06-15' };
+    const input = { preset: 'ytd' as const, customRange: null, scope: 'member-9', window, now };
+    for (const href of [
+      buildReportsCategoryTransactionsHref({ ...input, categoryKey }),
+      buildReportsReserveTransactionsHref(input),
+    ]) {
+      const url = parseHref(href);
+      expect(url.searchParams.get('startDate')).toBe(window.start);
+      expect(url.searchParams.get('endDate')).toBe(window.end);
+      expect(url.searchParams.get('user')).toBe('member-9');
+    }
+  });
+
   const presets: ReportsTimePreset[] = ['yearly', 'ytd', 'monthly', 'weekly'];
 
   it.each(presets)(

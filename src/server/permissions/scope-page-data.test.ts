@@ -242,6 +242,8 @@ describe('scopeReportsPageData', () => {
     preset: 'monthly',
     comparisonLabelKey: 'vsLastMonth',
     transactionsTruncated: false,
+    currentWindow: { start: '2024-01-01', end: '2024-01-31' },
+    comparisonWindow: null,
   };
 
   it('forces members to their own report section', () => {

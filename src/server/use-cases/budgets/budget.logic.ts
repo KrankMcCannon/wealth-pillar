@@ -217,13 +217,12 @@ export function calculateBudgetsWithProgress(
 ): BudgetProgress[] {
   const validBudgets = budgets.filter((b) => b.amount > 0);
 
+  // Resolve dates once per period instead of once per envelope.
+  const periodTransactions = periodStart
+    ? filterTransactionsByPeriod(transactions, periodStart, periodEnd)
+    : [];
   return validBudgets.map((budget) => {
-    const budgetTransactions = filterTransactionsForBudget(
-      transactions,
-      budget,
-      periodStart,
-      periodEnd
-    );
+    const budgetTransactions = filterByCategories(periodTransactions, budget.categories);
     return calculateBudgetProgress(budget, budgetTransactions, accounts, userId ?? budget.user_id);
   });
 }

@@ -1,7 +1,7 @@
 'use client';
 
-import { use, useCallback, useMemo, useState, useTransition } from 'react';
-import { useTranslations } from 'next-intl';
+import { use, useCallback, useMemo, useOptimistic, useState, useTransition } from 'react';
+import { useFormatter, useTranslations } from 'next-intl';
 import { ChevronDown } from 'lucide-react';
 import { useRouter, usePathname } from '@/i18n/routing';
 import { HomeDashboardMain } from '@/components/layout';
@@ -16,14 +16,17 @@ import { ReportsHero } from '@/features/reports/components/reports-hero';
 import { ReserveSection } from '@/features/reports/components/reserve-section';
 import { TopExpensesRanking } from '@/features/reports/components/top-expenses-ranking';
 import { AccountBreakdownSection } from '@/features/reports/components/account-breakdown-section';
-import { BudgetPeriodSection } from '@/features/reports/components/budget-period-section';
+import { ReportPeriodsDetails } from '@/features/reports/components/report-periods-details';
 import {
   buildReportsCategoryTransactionsHref,
   buildReportsPeriodHref,
   buildReportsReserveTransactionsHref,
   buildReportsSearchQuery,
 } from '@/features/reports/utils/reports-transactions-href';
-import type { ReportsTimePreset } from '@/features/reports/utils/reporting-window';
+import type {
+  ReportsDateRange,
+  ReportsTimePreset,
+} from '@/features/reports/utils/reporting-window';
 
 interface ReportsContentProps {
   currentUser: User;
@@ -51,6 +54,13 @@ export default function ReportsContent({
 
   const t = useTranslations('ReportsContent');
   const tHero = useTranslations('Reports.Hero');
+  const formatter = useFormatter();
+  const formatRange = (range: ReportsDateRange) =>
+    formatter.dateTimeRange(
+      new Date(`${range.start}T12:00:00`),
+      new Date(`${range.end}T12:00:00`),
+      { day: 'numeric', month: 'short', year: 'numeric' }
+    );
 
   const preset = initialPreset;
   const customRange = useMemo(
@@ -60,6 +70,8 @@ export default function ReportsContent({
         : null,
     [initialCustomStart, initialCustomEnd]
   );
+  const appliedTime = useMemo(() => ({ preset, customRange }), [preset, customRange]);
+  const [requestedTime, setRequestedTime] = useOptimistic(appliedTime);
   const [scopeState, setScopeState] = useState({
     applied: initialScope,
     value: initialScope ?? data.defaultScope,
@@ -97,10 +109,11 @@ export default function ReportsContent({
         scope: selectedScope,
       });
       startTransition(() => {
-        router.push(query ? `${pathname}?${query}` : pathname);
+        setRequestedTime({ preset: nextPreset, customRange: nextCustom });
+        router.push(query ? `${pathname}?${query}` : pathname, { scroll: false });
       });
     },
-    [pathname, preset, customRange, selectedScope, router]
+    [pathname, preset, customRange, selectedScope, router, setRequestedTime]
   );
 
   const handlePresetChange = useCallback(
@@ -128,11 +141,6 @@ export default function ReportsContent({
       ? data.sections.all
       : (data.sections[selectedScope] ?? data.sections.all);
 
-  const scopedPeriods = useMemo(() => {
-    if (selectedScope === 'all') return data.periods;
-    return data.periods.filter((p) => p.userId === selectedScope);
-  }, [data.periods, selectedScope]);
-
   const userSelectorValue = selectedScope === 'all' ? 'all' : selectedScope;
   const here = pathWithoutReturnTo(
     '/reports',
@@ -146,23 +154,44 @@ export default function ReportsContent({
   return (
     <div className="flex min-h-0 w-full flex-col">
       <ReportsTimeFilter
-        value={preset}
+        value={requestedTime.preset}
         onChange={handlePresetChange}
-        customRange={customRange}
+        customRange={requestedTime.customRange}
         onCustomApply={(start, end) => {
           pushTimeParams({ preset: 'custom', customStart: start, customEnd: end });
         }}
       >
-        <UserSelector
-          hideTitle
-          currentUser={currentUser}
-          users={groupUsers}
-          value={userSelectorValue}
-          onChange={handleScopeChange}
-          showAllOption
-        />
+        <fieldset disabled={isPending} aria-label={t('scopeLabel')}>
+          <UserSelector
+            hideTitle
+            currentUser={currentUser}
+            users={groupUsers}
+            value={userSelectorValue}
+            onChange={handleScopeChange}
+            showAllOption
+          />
+        </fieldset>
       </ReportsTimeFilter>
 
+      <div
+        className="px-4 py-2 text-sm text-muted-foreground"
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        <span>
+          {isPending ? t('updating') : t('periodLabel', { range: formatRange(data.currentWindow) })}
+        </span>
+        {isPending ? (
+          <span className="mt-1 block">
+            {t('previousData', { range: formatRange(data.currentWindow) })}
+          </span>
+        ) : data.comparisonWindow ? (
+          <span className="mt-1 block">
+            {t('comparisonRange', { range: formatRange(data.comparisonWindow) })}
+          </span>
+        ) : null}
+      </div>
       <HomeDashboardMain id="main-reports" ariaBusy={isPending} className="pt-2">
         <div className={stitchReports.sectionStack}>
           {data.transactionsTruncated ? (
@@ -189,6 +218,7 @@ export default function ReportsContent({
                   customRange,
                   scope: selectedScope,
                   categoryKey,
+                  window: data.currentWindow,
                 }),
                 here
               )
@@ -202,6 +232,7 @@ export default function ReportsContent({
                 preset,
                 customRange,
                 scope: selectedScope,
+                window: data.currentWindow,
               }),
               here
             )}
@@ -234,8 +265,10 @@ export default function ReportsContent({
                   totalWealth={section.totalWealth}
                 />
 
-                <BudgetPeriodSection
-                  periods={scopedPeriods}
+                <ReportPeriodsDetails
+                  key={`${data.currentWindow.start}:${data.currentWindow.end}`}
+                  window={data.currentWindow}
+                  scope={selectedScope}
                   users={groupUsers}
                   viewerId={currentUser.id}
                   hrefForPeriod={(period) =>
