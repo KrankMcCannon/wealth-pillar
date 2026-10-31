@@ -52,7 +52,8 @@ export async function loadReportPeriodsAction(
       error: null,
     };
   } catch (error) {
-    console.error('[Report periods] Load failed', error);
+    const errorType = error instanceof Error ? error.name : typeof error;
+    console.error('[Report periods] Load failed', { errorType });
     return { data: null, error: 'UNAVAILABLE' };
   }
 }
