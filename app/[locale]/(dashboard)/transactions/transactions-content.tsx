@@ -117,7 +117,9 @@ export default function TransactionsContent({
         onEditTransaction: handleEditTransaction,
         onAddTransaction: () => openModal('transaction'),
         onImportTransactions: () => openModal('import'),
-        ...(hasActiveFilters || selectedUserId ? { onClearFilters: handleClearFilters } : {}),
+        ...(hasActiveFilters || (selectedUserId && currentUser.role !== 'member')
+          ? { onClearFilters: handleClearFilters }
+          : {}),
         emptyTitle: t('empty.title'),
         emptyDescription: hasActiveFilters
           ? t('empty.noFilterResults')
