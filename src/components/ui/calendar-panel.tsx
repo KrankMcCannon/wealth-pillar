@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useMemo, useState } from 'react';
-import { addMonths, format, isValid, startOfYear, subMonths } from 'date-fns';
+import { addMonths, format, isValid, parseISO, subMonths } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { calendarDrawerStyles } from '@/lib/styles/calendar-drawer.styles';
 import { MonthGrid, MonthHeader, WeekdayLabels } from './primitives/date-drawer';
@@ -12,6 +12,7 @@ export interface CalendarPanelProps {
   onClose: () => void;
   className?: string | undefined;
   compact?: boolean | undefined;
+  defaultMonth?: string | undefined;
 }
 
 export function CalendarPanel({
@@ -20,13 +21,18 @@ export function CalendarPanel({
   onClose,
   className,
   compact = false,
+  defaultMonth,
 }: Readonly<CalendarPanelProps>) {
   const selectedDate = useMemo(
-    () => (value && isValid(new Date(value)) ? new Date(value) : undefined),
+    () => (value && isValid(parseISO(value)) ? parseISO(value) : undefined),
     [value]
   );
 
-  const [currentMonth, setCurrentMonth] = useState(() => selectedDate || startOfYear(new Date()));
+  const [currentMonth, setCurrentMonth] = useState(
+    () =>
+      selectedDate ||
+      (defaultMonth && isValid(parseISO(defaultMonth)) ? parseISO(defaultMonth) : new Date())
+  );
 
   const handlePrevious = useCallback(() => {
     setCurrentMonth((prev) => subMonths(prev, 1));

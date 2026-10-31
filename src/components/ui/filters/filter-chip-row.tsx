@@ -7,7 +7,7 @@ interface FilterChipRowProps {
   children: ReactNode;
   'aria-label'?: string;
   className?: string;
-  role?: 'toolbar' | 'radiogroup';
+  role?: 'toolbar' | 'radiogroup' | 'group';
 }
 
 export function FilterChipRow({

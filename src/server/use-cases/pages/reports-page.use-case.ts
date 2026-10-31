@@ -1,10 +1,9 @@
 import { cacheLife, cacheTag } from 'next/cache';
-import { endOfDay, startOfDay, subYears } from 'date-fns';
+import { endOfDay, format, startOfDay, subYears } from 'date-fns';
 import { CACHE_TAGS } from '@/lib/cache/config';
 import {
   getReportsContextUseCase,
   getReportsTransactionsUseCase,
-  getReportsPeriodSummariesUseCase,
   resolveYtdBudgetStart,
   type ReportPeriodSummary,
 } from '../reports/reports.use-cases';
@@ -19,6 +18,7 @@ import {
   unionReportingWindows,
   DEFAULT_REPORTS_PRESET,
   type ReportsTimePreset,
+  type ReportsDateRange,
 } from '@/features/reports/utils/reporting-window';
 import type { User } from '@/lib/types';
 import { scopeReportsPageData } from '@/server/permissions/scope-page-data';
@@ -39,6 +39,8 @@ export interface ReportsPageData {
   preset: ReportsTimePreset;
   comparisonLabelKey: 'vsLastMonth' | 'vsLastWeek' | 'vsLastYear' | 'vsPreviousRange';
   transactionsTruncated: boolean;
+  currentWindow: ReportsDateRange;
+  comparisonWindow: ReportsDateRange | null;
 }
 
 async function getCachedReportsPageData(
@@ -60,7 +62,7 @@ async function getCachedReportsPageData(
       ? { start: params.customStart, end: params.customEnd }
       : null;
 
-  const { accounts, periods, categories, users, budgets } = await getReportsContextUseCase(
+  const { accounts, periods, categories, users } = await getReportsContextUseCase(
     groupId,
     groupUserIds
   );
@@ -82,13 +84,13 @@ async function getCachedReportsPageData(
   }
 
   const fetchWindow = unionReportingWindows(currentWindow, comparisonWindow);
-  const [{ transactions, hasMore: transactionsTruncated }, filteredPeriods] = await Promise.all([
-    getReportsTransactionsUseCase(groupId, {
+  const { transactions, hasMore: transactionsTruncated } = await getReportsTransactionsUseCase(
+    groupId,
+    {
       startDate: fetchWindow.start,
       endDate: fetchWindow.end,
-    }),
-    getReportsPeriodSummariesUseCase(groupId, periods, accounts, budgets, currentWindow),
-  ]);
+    }
+  );
 
   const sections: ReportsPageData['sections'] = {
     all: buildReportsSectionViewModel(
@@ -117,21 +119,32 @@ async function getCachedReportsPageData(
     params.memberUserId && userIds.includes(params.memberUserId) ? params.memberUserId : 'all';
 
   const comparisonLabelKey =
-    preset === 'monthly'
+    preset === 'monthly' || preset === 'last_month'
       ? 'vsLastMonth'
       : preset === 'weekly'
         ? 'vsLastWeek'
-        : preset === 'yearly' || preset === 'ytd'
+        : preset === 'yearly' || preset === 'ytd' || preset === 'last_year'
           ? 'vsLastYear'
           : 'vsPreviousRange';
 
   return {
     sections,
-    periods: filteredPeriods,
+    // Period summaries are loaded by the authenticated details action on demand.
+    periods: [],
     defaultScope,
     preset,
     comparisonLabelKey,
     transactionsTruncated,
+    currentWindow: {
+      start: format(currentWindow.start, 'yyyy-MM-dd'),
+      end: format(currentWindow.end, 'yyyy-MM-dd'),
+    },
+    comparisonWindow: comparisonWindow
+      ? {
+          start: format(comparisonWindow.start, 'yyyy-MM-dd'),
+          end: format(comparisonWindow.end, 'yyyy-MM-dd'),
+        }
+      : null,
   };
 }
 
@@ -141,6 +154,14 @@ export async function getReportsPageDataUseCase(
   currentUser: User,
   params: ReportsPageParams = {}
 ): Promise<ReportsPageData> {
-  const data = await getCachedReportsPageData(groupId, groupUserIds, params);
-  return scopeReportsPageData(data, currentUser);
+  // The selected member changes presentation only, not the cached financial dataset.
+  const { memberUserId, ...financialParams } = params;
+  const data = await getCachedReportsPageData(groupId, groupUserIds, financialParams);
+  return scopeReportsPageData(
+    {
+      ...data,
+      defaultScope: memberUserId && groupUserIds.includes(memberUserId) ? memberUserId : 'all',
+    },
+    currentUser
+  );
 }

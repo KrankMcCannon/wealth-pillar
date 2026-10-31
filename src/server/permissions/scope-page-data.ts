@@ -111,6 +111,8 @@ export function scopeReportsPageData(data: ReportsPageData, currentUser: User): 
     preset: data.preset,
     comparisonLabelKey: data.comparisonLabelKey,
     transactionsTruncated: data.transactionsTruncated,
+    currentWindow: data.currentWindow,
+    comparisonWindow: data.comparisonWindow,
   };
 }
 

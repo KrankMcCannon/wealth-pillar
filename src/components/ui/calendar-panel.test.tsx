@@ -16,6 +16,21 @@ vi.mock('next-intl', () => ({
 }));
 
 describe('CalendarPanel', () => {
+  it('starts empty fields in the current month', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 9, 30, 12));
+    render(<CalendarPanel value="" onChange={() => {}} onClose={() => {}} />);
+    expect(screen.getByRole('button', { name: /Select October 15, 2026/i })).toBeInTheDocument();
+    vi.useRealTimers();
+  });
+
+  it('starts an empty end date in the requested start month', () => {
+    render(
+      <CalendarPanel value="" defaultMonth="2025-04-05" onChange={() => {}} onClose={() => {}} />
+    );
+    expect(screen.getByRole('button', { name: /Select April 15, 2025/i })).toBeInTheDocument();
+  });
+
   it('does not render day-selection shortcuts', () => {
     render(<CalendarPanel value="2026-06-10" onChange={() => {}} onClose={() => {}} />);
 

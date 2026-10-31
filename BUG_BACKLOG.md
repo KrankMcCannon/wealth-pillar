@@ -118,3 +118,31 @@ sono solo locali: [istruzioni](tests/README.md).
   DELETE atomico vincolato all’utente autenticato; cache aggiornate dopo il successo.
 
 Non sono richieste migrazioni o nuove variabili di ambiente.
+
+## Report e flussi: correzioni del 31 ottobre 2026
+
+- Riepiloghi dei periodi budget caricati solo aprendo Approfondimenti, tramite
+  azione autenticata con gruppo ricavato dalla sessione e periodi limitati al membro.
+  Errori locali al pannello e Riprova lasciano disponibile il rapporto principale.
+- Date del ledger elaborate una volta e movimenti indicizzati per intervallo;
+  il filtro temporale dei budget non viene ripetuto per ogni busta. Snapshot storici,
+  categorie sovrapposte e quota annuale di 1/12 mantengono le regole esistenti.
+- Selezione temporale ottimistica, stato Aggiornamento annunciato e periodo dei
+  dati precedenti esplicito durante l'attesa. Navigazione senza salto dello scroll.
+- Confronto custom con lo stesso numero di giorni di calendario, inclusi cambi
+  dell'ora legale; anni mobili contigui senza giorno condiviso. Date invalide
+  rifiutate invece di essere reinterpretate come il mese corrente.
+- Intervallo effettivo del server condiviso da riepiloghi, categorie e Riserva,
+  compreso Quest'anno quando segue il periodo budget iniziato a dicembre.
+- Calendari vuoti aperti sul mese corrente; data finale proposta sul mese iniziale.
+  Date custom visibili sul filtro e intervalli corrente/confronto sempre esplicitati.
+- Anno scorso e Mese scorso disponibili nel selettore esteso, senza aggiungere
+  nuovi chip alla barra principale. Tutte le categorie espandibili con link ai movimenti.
+- Gli errori dei Movimenti e dei metadati vengono propagati alla pagina di errore,
+  con Riprova che rinnova i dati; nessuna risposta vuota di successo viene creata
+  per nascondere un errore nella cache.
+
+Confronto locale sullo stesso dataset sintetico: 5.000 movimenti, 12 periodi,
+5 budget, circa 6.418 ms prima e 276 ms dopo, con risultati identici.
+La misura riguarda il calcolo, non la latenza di produzione o i Core Web Vitals.
+Nessuna migrazione o nuova variabile di produzione è richiesta.

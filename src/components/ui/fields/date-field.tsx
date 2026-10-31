@@ -20,6 +20,7 @@ import { cn } from '@/lib/utils';
 
 export interface DateFieldProps {
   value: string;
+  defaultMonth?: string | undefined;
   onChange: (value: string) => void;
   error?: string | undefined;
   required?: boolean | undefined;
@@ -68,6 +69,7 @@ export function overlayRectForTrigger(
 
 export function DateField({
   value,
+  defaultMonth,
   onChange,
   error,
   label,
@@ -183,7 +185,13 @@ export function DateField({
                 event.stopPropagation();
               }}
             >
-              <CalendarPanel compact value={value} onChange={onChange} onClose={closeCalendar} />
+              <CalendarPanel
+                compact
+                defaultMonth={defaultMonth}
+                value={value}
+                onChange={onChange}
+                onClose={closeCalendar}
+              />
             </div>
           </>,
           document.body
@@ -197,6 +205,7 @@ export function DateField({
       {presentation === 'drawer' ? (
         <MobileCalendarDrawer
           value={value}
+          defaultMonth={defaultMonth}
           onChange={onChange}
           isOpen={isOpen}
           onClose={closeCalendar}

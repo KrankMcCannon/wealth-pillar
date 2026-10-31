@@ -65,15 +65,6 @@ export type AppliedTransactionsQuery = {
   categories?: string;
 };
 
-async function safeFetch<T>(promise: Promise<T>, fallback: T): Promise<T> {
-  try {
-    return await promise;
-  } catch (e) {
-    console.error(`[TransactionsPageUseCase] Fetch failed:`, e);
-    return fallback;
-  }
-}
-
 const LIST_QUERY_TYPES = ['all', 'income', 'expense', 'transfer'] as const;
 
 export function parseTransactionsListType(
@@ -219,16 +210,10 @@ async function getCachedTransactionsListData(
   const fetchBudgets = Boolean(query.budget?.trim());
 
   const [transactionResult, categories, accounts, budgets] = await Promise.all([
-    safeFetch(getTransactionsByGroupUseCase(groupId, repoOptions), {
-      data: [] as Transaction[],
-      total: 0,
-      hasMore: false,
-    }),
-    safeFetch(getAllCategoriesDeduped(), [] as Category[]),
-    safeFetch(getAccountsByGroupDeduped(groupId), [] as Account[]),
-    fetchBudgets
-      ? safeFetch(getBudgetsByGroupUseCase(groupId), [] as Budget[])
-      : Promise.resolve([] as Budget[]),
+    getTransactionsByGroupUseCase(groupId, repoOptions),
+    getAllCategoriesDeduped(),
+    getAccountsByGroupDeduped(groupId),
+    fetchBudgets ? getBudgetsByGroupUseCase(groupId) : Promise.resolve([] as Budget[]),
   ]);
 
   const rows = transactionResult.data;

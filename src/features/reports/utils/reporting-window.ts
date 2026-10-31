@@ -1,7 +1,11 @@
 import {
   addDays,
+  differenceInCalendarDays,
   endOfDay,
   endOfMonth,
+  endOfYear,
+  isValid,
+  parseISO,
   startOfDay,
   startOfMonth,
   startOfWeek,
@@ -12,9 +16,18 @@ import {
   subYears,
 } from 'date-fns';
 
-export type ReportsTimePreset = 'monthly' | 'weekly' | 'ytd' | 'yearly' | 'custom';
+export type ReportsTimePreset =
+  'monthly' | 'weekly' | 'ytd' | 'yearly' | 'custom' | 'last_year' | 'last_month';
 
-export const REPORTS_PRESET_OPTIONS = ['yearly', 'ytd', 'monthly', 'weekly', 'custom'] as const;
+export const REPORTS_PRESET_OPTIONS = [
+  'yearly',
+  'ytd',
+  'monthly',
+  'weekly',
+  'custom',
+  'last_year',
+  'last_month',
+] as const;
 
 export const DEFAULT_REPORTS_PRESET: ReportsTimePreset = 'yearly';
 
@@ -30,6 +43,22 @@ export interface DateWindow {
   end: Date;
 }
 
+export interface ReportsDateRange {
+  start: string;
+  end: string;
+}
+
+export function isValidReportsRange(range: ReportsDateRange | null): range is ReportsDateRange {
+  return Boolean(
+    range &&
+    /^\d{4}-\d{2}-\d{2}$/.test(range.start) &&
+    /^\d{4}-\d{2}-\d{2}$/.test(range.end) &&
+    isValid(parseISO(range.start)) &&
+    isValid(parseISO(range.end)) &&
+    range.start <= range.end
+  );
+}
+
 function startOfIsoWeek(d: Date): Date {
   return startOfWeek(d, { weekStartsOn: 1 });
 }
@@ -42,10 +71,19 @@ export function getCurrentReportingWindow(
 ): DateWindow {
   const end = endOfDay(now);
 
-  if (preset === 'custom' && custom?.start && custom?.end) {
-    const s = startOfDay(new Date(custom.start));
-    const e = endOfDay(new Date(custom.end));
-    if (s.getTime() <= e.getTime()) return { start: s, end: e };
+  if (preset === 'custom') {
+    if (!isValidReportsRange(custom)) throw new Error('Invalid report date range');
+    return { start: startOfDay(parseISO(custom.start)), end: endOfDay(parseISO(custom.end)) };
+  }
+
+  if (preset === 'last_year') {
+    const previous = subYears(now, 1);
+    return { start: startOfYear(previous), end: endOfYear(previous) };
+  }
+
+  if (preset === 'last_month') {
+    const previous = subMonths(now, 1);
+    return { start: startOfMonth(previous), end: endOfMonth(previous) };
   }
 
   if (preset === 'monthly') {
@@ -63,8 +101,8 @@ export function getCurrentReportingWindow(
   }
 
   if (preset === 'yearly') {
-    // Rolling year: today - 1 year -> today.
-    return { start: startOfDay(subYears(now, 1)), end };
+    // Inclusive rolling year ending today, with no shared boundary day.
+    return { start: startOfDay(addDays(subYears(now, 1), 1)), end };
   }
 
   return { start: startOfDay(startOfMonth(now)), end };
@@ -96,11 +134,22 @@ export function getComparisonReportingWindow(
   now = new Date()
 ): DateWindow | null {
   if (preset === 'custom') {
-    const ms = current.end.getTime() - current.start.getTime();
-    if (ms < 0) return null;
-    const prevEnd = subDays(current.start, 1);
-    const prevStart = new Date(prevEnd.getTime() - ms);
-    return { start: startOfDay(prevStart), end: endOfDay(prevEnd) };
+    const days = differenceInCalendarDays(current.end, current.start) + 1;
+    if (days < 1) return null;
+    return {
+      start: startOfDay(subDays(current.start, days)),
+      end: endOfDay(subDays(current.start, 1)),
+    };
+  }
+
+  if (preset === 'last_year') {
+    const previous = subYears(current.start, 1);
+    return { start: startOfYear(previous), end: endOfYear(previous) };
+  }
+
+  if (preset === 'last_month') {
+    const previous = subMonths(current.start, 1);
+    return { start: startOfMonth(previous), end: endOfMonth(previous) };
   }
 
   if (preset === 'monthly') {
@@ -140,7 +189,8 @@ export function getComparisonReportingWindow(
   }
 
   if (preset === 'yearly') {
-    return { start: startOfDay(subYears(now, 2)), end: endOfDay(subYears(now, 1)) };
+    const previousEnd = subDays(current.start, 1);
+    return { start: startOfDay(addDays(subYears(previousEnd, 1), 1)), end: endOfDay(previousEnd) };
   }
 
   return null;

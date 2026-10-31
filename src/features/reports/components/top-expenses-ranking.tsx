@@ -1,5 +1,7 @@
 'use client';
 
+import { useId, useState } from 'react';
+import { Button } from '@/components/ui/button';
 import { ChevronRight } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/routing';
@@ -12,7 +14,7 @@ import type { ReportsTopExpenseRow } from '@/server/use-cases/reports/report.log
 
 export type TopExpenseRow = ReportsTopExpenseRow;
 
-/** Named rows on mobile; the rest folds into a remaining summary. Server still returns the full top 8. */
+/** Keep the first scan short; all remaining categories can be expanded on demand. */
 const RANKING_VISIBLE = 3;
 
 interface TopExpensesRankingProps {
@@ -107,20 +109,23 @@ export function TopExpensesRanking({
   hrefForCategory,
 }: TopExpensesRankingProps) {
   const t = useTranslations('Reports.TopExpenses');
+  const [expanded, setExpanded] = useState(false);
+  const listId = useId();
+  const canExpand = items.length > RANKING_VISIBLE;
   const { format: formatMoney } = useFormatCurrency();
   const outflowTotal = roundMoney(
     items.filter((row) => row.total > 0).reduce((sum, row) => sum + row.total, 0)
   );
   const hasCredits = items.some((row) => row.total < 0);
   const shareBase = hasCredits && outflowTotal > 0 ? outflowTotal : periodExpenses;
-  const visible = items.slice(0, RANKING_VISIBLE);
-  const foldedItems = items.slice(RANKING_VISIBLE);
+  const visible = expanded ? items : items.slice(0, RANKING_VISIBLE);
+  const foldedItems = expanded ? [] : items.slice(RANKING_VISIBLE);
   const folded = roundMoney(foldedItems.reduce((sum, row) => sum + row.total, 0));
   const leftover = roundMoney(periodExpenses - items.reduce((sum, row) => sum + row.total, 0));
   const remainingTotal = roundMoney(folded + leftover);
   const showEmpty = items.length === 0 || periodExpenses <= 0;
   const showRemaining = !showEmpty && remainingTotal > 0;
-  const remainingCount = items.length - RANKING_VISIBLE;
+  const remainingCount = expanded ? 0 : items.length - RANKING_VISIBLE;
   const remainingLabel =
     remainingCount > 0
       ? t('remainingCategories', { count: remainingCount })
@@ -142,7 +147,7 @@ export function TopExpensesRanking({
       <h3 id="reports-top-expenses-heading" className={stitchHome.scanSectionTitle}>
         {t('title')}
       </h3>
-      <div className="flex flex-col">
+      <div id={listId} className="flex flex-col">
         {visible.map((row) => {
           const href = hrefForCategory?.(row.key);
           const percent = spendSharePercent(Math.abs(row.total), shareBase);
@@ -190,6 +195,17 @@ export function TopExpensesRanking({
           </div>
         ) : null}
       </div>
+      {canExpand ? (
+        <Button
+          variant="ghost"
+          className="mt-2 min-h-11 text-muted-foreground"
+          aria-expanded={expanded}
+          aria-controls={listId}
+          onClick={() => setExpanded((value) => !value)}
+        >
+          {expanded ? t('showLess') : t('showAll')}
+        </Button>
+      ) : null}
     </section>
   );
 }

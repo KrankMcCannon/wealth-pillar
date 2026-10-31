@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
-import { usePathname } from '@/i18n/routing';
+import { usePathname, useRouter } from '@/i18n/routing';
 import { Link } from '@/i18n/routing';
 import { HomeDashboardMain } from '@/components/layout';
 import { RouteEmptyState } from '@/components/shared/route-empty-state';
@@ -12,6 +12,7 @@ const ROUTE_ERROR_NAMESPACE: Record<string, string> = {
   accounts: 'AccountsError',
   budgets: 'BudgetsError',
   reports: 'ReportsError',
+  transactions: 'TransactionsError',
 };
 
 function resolveErrorNamespace(pathname: string): string {
@@ -29,6 +30,7 @@ export default function LocaleError({
   reset: () => void;
 }>) {
   const pathname = usePathname();
+  const router = useRouter();
   const namespace = useMemo(() => resolveErrorNamespace(pathname), [pathname]);
   const t = useTranslations(namespace);
 
@@ -43,7 +45,14 @@ export default function LocaleError({
   return (
     <HomeDashboardMain id="main-locale-error">
       <RouteEmptyState title={t('title')} description={t('description')}>
-        <button type="button" onClick={() => reset()} className={stitchSurface.primaryCta}>
+        <button
+          type="button"
+          onClick={() => {
+            router.refresh();
+            reset();
+          }}
+          className={stitchSurface.primaryCta}
+        >
           {t('retry')}
         </button>
         <Link href="/" className={stitchTransactions.emptyCtaSecondary}>
