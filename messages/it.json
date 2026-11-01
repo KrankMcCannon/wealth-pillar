@@ -96,7 +96,13 @@
       "emptySystem": "Nessuna categoria predefinita",
       "loadError": "Impossibile caricare le categorie.",
       "retry": "Riprova",
-      "loading": "Caricamento categorie…"
+      "loading": "Caricamento categorie…",
+      "searchPlaceholder": "Cerca categorie…",
+      "filterLabel": "Mostra categorie",
+      "allFilter": "Tutte",
+      "groupFilter": "Gruppo",
+      "systemFilter": "Generali",
+      "noResults": "Nessuna categoria corrisponde alla ricerca."
     },
     "Preferences": {
       "title": "Preferenze",

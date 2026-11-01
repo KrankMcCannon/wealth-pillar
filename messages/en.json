@@ -96,7 +96,13 @@
       "emptySystem": "No default categories",
       "loadError": "Could not load categories.",
       "retry": "Try again",
-      "loading": "Loading categories…"
+      "loading": "Loading categories…",
+      "searchPlaceholder": "Search categories…",
+      "filterLabel": "Show categories",
+      "allFilter": "All",
+      "groupFilter": "Group",
+      "systemFilter": "System",
+      "noResults": "No categories match your search."
     },
     "Preferences": {
       "title": "Preferences",
