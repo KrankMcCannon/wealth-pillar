@@ -141,15 +141,10 @@ async function ReferenceDataGate({
   children: React.ReactNode;
 }) {
   type GroupAccounts = Awaited<ReturnType<typeof getAccountsByGroupDeduped>>;
-  type AllCategories = Awaited<ReturnType<typeof getAllCategoriesDeduped>>;
 
   const [accounts, categories, usedCategoryKeys] = await Promise.all([
     withTimeout(getAccountsByGroupDeduped(groupId), 1500, [] as GroupAccounts),
-    withTimeout(
-      getAllCategoriesDeduped(currentUser.group_id ?? undefined),
-      1200,
-      [] as AllCategories
-    ),
+    getAllCategoriesDeduped(currentUser.group_id ?? undefined),
     withTimeout(getUsedCategoryKeysByGroupUseCase(groupId), 1500, [] as string[]),
   ]);
 

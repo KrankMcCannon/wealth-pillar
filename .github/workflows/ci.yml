@@ -17,7 +17,7 @@ concurrency:
 jobs:
   plan:
     name: Select affected tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     outputs:
       unit: ${{ steps.selection.outputs.unit }}
@@ -25,11 +25,11 @@ jobs:
       integration: ${{ steps.selection.outputs.integration }}
       has_integration: ${{ steps.selection.outputs.has_integration }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v6
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: pnpm
@@ -43,7 +43,7 @@ jobs:
 
   checks:
     name: Static checks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
@@ -55,13 +55,13 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - id: keys
         run: node scripts/ci/cache-keys.mjs
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         id: eslint_cache
         with:
           path: .eslintcache
           key: ${{ steps.keys.outputs.eslint_key }}
           restore-keys: ${{ steps.keys.outputs.eslint_prefix }}
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         id: types_cache
         with:
           path: tsconfig.tsbuildinfo
@@ -79,7 +79,7 @@ jobs:
     needs: plan
     if: ${{ needs.plan.outputs.has_unit == 'true' }}
     name: Unit (${{ matrix.project }})
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     strategy:
       fail-fast: false
@@ -101,7 +101,7 @@ jobs:
     needs: plan
     if: ${{ needs.plan.outputs.has_integration == 'true' }}
     name: PostgreSQL integration
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     services:
       postgres:
@@ -131,7 +131,7 @@ jobs:
 
   build:
     name: Production build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
@@ -143,7 +143,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - id: keys
         run: node scripts/ci/cache-keys.mjs
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         id: next_cache
         with:
           path: .next/cache
@@ -163,10 +163,10 @@ jobs:
     name: Quality
     if: ${{ always() }}
     needs: [plan, checks, unit, integration, build]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 2
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Require every validation to pass
         env:
           RESULTS: ${{ toJSON(needs) }}

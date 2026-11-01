@@ -80,6 +80,7 @@ export function FormSelect({
     >
       <SelectPrimitive.Trigger
         type="button"
+        aria-label={captionLabel ?? resolvedPlaceholder}
         disabled={disabled}
         className={cn(s.selectorTrigger, className)}
       >

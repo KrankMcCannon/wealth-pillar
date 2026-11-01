@@ -902,3 +902,87 @@ export const categoryUsageStats = pgView('category_usage_stats', {
   .as(
     sql`WITH budget_categories AS ( SELECT jsonb_array_elements_text(budgets.categories) AS category_key FROM budgets ), transaction_categories AS ( SELECT transactions.category AS category_key FROM transactions WHERE transactions.category IS NOT NULL ) SELECT c.id, c.key, c.label, c.icon, c.color, COALESCE(budget_usage.usage_count, 0::bigint) + COALESCE(transaction_usage.usage_count, 0::bigint) AS total_usage, COALESCE(budget_usage.usage_count, 0::bigint) AS budget_usage, COALESCE(transaction_usage.usage_count, 0::bigint) AS transaction_usage FROM categories c LEFT JOIN ( SELECT budget_categories.category_key, count(*) AS usage_count FROM budget_categories GROUP BY budget_categories.category_key) budget_usage ON c.key = budget_usage.category_key LEFT JOIN ( SELECT transaction_categories.category_key, count(*) AS usage_count FROM transaction_categories GROUP BY transaction_categories.category_key) transaction_usage ON c.key = transaction_usage.category_key::text`
   );
+
+// Device secrets never leave the server. Only their SHA-256 digests are stored.
+export const bankConnections = pgTable(
+  'bank_connections',
+  {
+    id: uuid().defaultRandom().primaryKey(),
+    user_id: uuid()
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    group_id: uuid()
+      .notNull()
+      .references(() => groups.id, { onDelete: 'cascade' }),
+    account_id: uuid()
+      .notNull()
+      .references(() => accounts.id, { onDelete: 'cascade' }),
+    name: text().notNull(),
+    provider: text().notNull().default('revolut'),
+    token_hash: text().notNull().unique(),
+    default_category: text().notNull(),
+    auto_import: boolean().notNull().default(false),
+    revoked_at: timestamp({ withTimezone: true }),
+    last_used_at: timestamp({ withTimezone: true }),
+    rate_window: timestamp({ withTimezone: true }).notNull().defaultNow(),
+    rate_count: integer().notNull().default(0),
+    created_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index('bank_connections_owner').on(table.user_id, table.group_id)]
+).enableRLS();
+
+export const bankNotificationEvents = pgTable(
+  'bank_notification_events',
+  {
+    id: uuid().defaultRandom().primaryKey(),
+    connection_id: uuid()
+      .notNull()
+      .references(() => bankConnections.id, { onDelete: 'cascade' }),
+    group_id: uuid()
+      .notNull()
+      .references(() => groups.id, { onDelete: 'cascade' }),
+    user_id: uuid()
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    account_id: uuid()
+      .notNull()
+      .references(() => accounts.id, { onDelete: 'cascade' }),
+    fingerprint: text().notNull(),
+    payload: jsonb().$type<import('@/lib/bank-notifications/parser').BankNotification | null>(),
+    parsed: jsonb().$type<import('@/lib/bank-notifications/parser').ParsedNotification | null>(),
+    category: text(),
+    status: text().notNull().default('pending'),
+    reason: text(),
+    transaction_id: uuid(),
+    received_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('bank_notification_identity').on(table.account_id, table.fingerprint),
+    index('bank_notification_inbox').on(table.user_id, table.group_id, table.received_at),
+    check('bank_notification_status', sql`${table.status} IN ('pending','imported','ignored')`),
+  ]
+).enableRLS();
+
+export const bankMerchantRules = pgTable(
+  'bank_merchant_rules',
+  {
+    id: uuid().defaultRandom().primaryKey(),
+    group_id: uuid()
+      .notNull()
+      .references(() => groups.id, { onDelete: 'cascade' }),
+    user_id: uuid()
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    provider: text().notNull(),
+    merchant: text().notNull(),
+    category: text().notNull(),
+  },
+  (table) => [
+    uniqueIndex('bank_merchant_rule_identity').on(
+      table.group_id,
+      table.user_id,
+      table.provider,
+      table.merchant
+    ),
+  ]
+).enableRLS();

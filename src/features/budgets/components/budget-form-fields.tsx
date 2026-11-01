@@ -131,7 +131,7 @@ export function BudgetFormFields({
               .map((b) => b.description);
             return {
               ...option,
-              label: names.length ? `${option.label} · ${names.join(', ')}` : option.label,
+              description: names.length ? names.join(', ') : '',
             };
           })}
           shape="chips"

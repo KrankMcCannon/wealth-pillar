@@ -6,6 +6,7 @@ import type { User } from '@/lib/types';
 import { ModalMultiSelectField } from './modal-multi-select-field';
 
 vi.mock('next-intl', () => ({
+  useLocale: () => 'en',
   useTranslations: () => (key: string, values?: Record<string, unknown>) => {
     if (key === 'currentUser') return '(You)';
     if (key === 'placeholder') return 'Select users';
@@ -22,6 +23,7 @@ vi.mock('@/i18n/routing', () => ({
 }));
 
 vi.mock('@/components/ui/modal-wrapper', () => ({
+  ModalFooter: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   ModalWrapper: ({
     isOpen,
     title,
@@ -110,7 +112,7 @@ describe('ModalMultiSelectField chips', () => {
   it('renders a selector row instead of an inline chip card', () => {
     render(<CategoryForm />);
 
-    expect(screen.getByRole('button', { name: /Categories/i })).toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: /Categories/i })).toBeInTheDocument();
     expect(screen.getByText('Food')).toBeInTheDocument();
     expect(screen.queryByTestId('modal-multi-select-chips')).not.toBeInTheDocument();
     expect(document.querySelector('[data-slot="field"]')).not.toBeInTheDocument();
@@ -120,13 +122,12 @@ describe('ModalMultiSelectField chips', () => {
     const user = userEvent.setup();
     render(<CategoryForm />);
 
-    await user.click(screen.getByRole('button', { name: /Categories/i }));
-    expect(screen.getByTestId('modal-multi-select-chips')).toHaveClass('flex-1', 'overflow-hidden');
-    expect(screen.getByTestId('modal-multi-select-chips').firstElementChild).toHaveClass('px-4');
-    expect(screen.getByTestId('modal-multi-select-chips').firstElementChild).not.toHaveClass(
-      'sticky'
+    await user.click(screen.getByRole('combobox', { name: /Categories/i }));
+    expect(screen.getByRole('listbox', { name: 'Categories' })).toHaveAttribute(
+      'aria-multiselectable',
+      'true'
     );
-    expect(screen.getByTestId('modal-multi-select-list')).toHaveClass('overflow-y-auto', 'flex-1');
+    expect(screen.getByRole('searchbox')).toBeInTheDocument();
     await user.click(screen.getByText('Rent'));
     expect(screen.getByText('Food, Rent')).toBeInTheDocument();
   });
