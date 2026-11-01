@@ -24,7 +24,6 @@ export function OnboardingStepProfile({
   loading,
   accounts,
   accountTypeOptions,
-  accountTypeDescriptions,
   updateAccountField,
   setAccountAsDefault,
   addAccount,
@@ -32,13 +31,6 @@ export function OnboardingStepProfile({
 }: Readonly<OnboardingStepProfileProps>) {
   return (
     <div className={onboardingStyles.form.section}>
-      {accounts.length > 1 && (
-        <div className={onboardingStyles.accounts.infoBanner}>
-          <p className={onboardingStyles.label}>{t('fields.accounts.defaultTitle')}</p>
-          <p className={onboardingStyles.accounts.infoText}>{t('fields.accounts.defaultInfo')}</p>
-        </div>
-      )}
-
       {accounts.map((account, index) => {
         const nameId = `account-name-${account.id}`;
         return (
@@ -69,6 +61,7 @@ export function OnboardingStepProfile({
                     <Star
                       className={`${onboardingStyles.accounts.defaultIcon} ${account.isDefault ? onboardingStyles.accounts.defaultIconFilled : ''}`}
                     />
+                    {account.isDefault ? <span>{t('fields.accounts.defaultBadge')}</span> : null}
                   </button>
                 )}
               </div>
@@ -78,7 +71,7 @@ export function OnboardingStepProfile({
                   type="button"
                   onClick={() => removeAccount(index)}
                   className={onboardingStyles.deleteButton}
-                  aria-label={t('fields.accounts.cardTitle', { index: index + 1 })}
+                  aria-label={t('fields.accounts.removeAccountAria', { index: index + 1 })}
                   disabled={loading}
                 >
                   <Trash2 className={onboardingStyles.accounts.deleteIcon} />
@@ -107,7 +100,6 @@ export function OnboardingStepProfile({
               options={accountTypeOptions.map((option) => ({
                 value: option.value,
                 label: option.label,
-                description: accountTypeDescriptions[option.value],
               }))}
             />
           </div>

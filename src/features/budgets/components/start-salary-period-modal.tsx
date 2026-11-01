@@ -39,18 +39,26 @@ function CyclePreview({
   const date = useWatch({ control: form.control, name: 'salary_date' });
   const t = useTranslations('Budgets.UX');
   const locale = useLocale();
-  const format = (value: string) =>
-    DateTime.fromISO(value).setLocale(locale).toLocaleString(DateTime.DATE_MED);
+  const format = (value: string) => {
+    const parsed = DateTime.fromISO(value);
+    return parsed.isValid ? parsed.setLocale(locale).toLocaleString(DateTime.DATE_MED) : '—';
+  };
   return (
-    <div role="status" className="space-y-2 text-sm">
-      <p>
-        {t('cyclePreview', {
-          name,
-          start: start ? format(start) : '—',
-          end: format(DateTime.fromISO(date).minus({ days: 1 }).toISODate() ?? date),
-          next: format(date),
-        })}
-      </p>
+    <div role="status" className="space-y-3 border-t border-border/40 pt-3 text-sm">
+      {name ? <p className="font-medium">{name}</p> : null}
+      <dl className="space-y-2">
+        <div className="flex flex-wrap justify-between gap-x-3 gap-y-1">
+          <dt className="text-muted-foreground">{t('previousPeriod')}</dt>
+          <dd className="tabular-nums">
+            {start ? format(start) : '—'} –{' '}
+            {format(DateTime.fromISO(date).minus({ days: 1 }).toISODate() ?? date)}
+          </dd>
+        </div>
+        <div className="flex flex-wrap justify-between gap-x-3 gap-y-1">
+          <dt className="text-muted-foreground">{t('nextPeriod')}</dt>
+          <dd className="font-medium tabular-nums">{format(date)}</dd>
+        </div>
+      </dl>
       {date < todayDateString() ? <p>{t('retro')}</p> : null}
     </div>
   );
@@ -132,7 +140,6 @@ function StartSalaryPeriodModal({
       isOpen={isOpen}
       onClose={handleClose}
       title={t('title')}
-      description={t('description')}
       schema={schema}
       defaultValues={defaultValues}
       resetValues={defaultValues}
@@ -151,9 +158,6 @@ function StartSalaryPeriodModal({
     >
       {(form) => (
         <>
-          <p className="text-sm leading-relaxed text-modal-fg-muted">{t('hint')}</p>
-          <CyclePreview form={form} name={userName} start={periodStart} />
-
           <div className={formModalStyles.paddedBodyBleed}>
             <ModalDateField
               control={form.control}
@@ -162,6 +166,7 @@ function StartSalaryPeriodModal({
               required
             />
           </div>
+          <CyclePreview form={form} name={userName} start={periodStart} />
         </>
       )}
     </EntityFormModal>

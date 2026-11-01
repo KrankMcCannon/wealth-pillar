@@ -5,7 +5,8 @@ import type { ReportPeriodSummary } from '@/server/use-cases/reports/reports.use
 import { consumeReportsScrollY } from '@/features/reports/utils/reports-view-state';
 
 vi.mock('next-intl', () => ({
-  useTranslations: () => (key: string) => key,
+  useTranslations: () => (key: string) => (key === 'periodOngoing' ? 'Ongoing' : key),
+  useLocale: () => 'en',
 }));
 
 vi.mock('@/i18n/routing', () => ({
@@ -73,7 +74,7 @@ describe('BudgetPeriodSection', () => {
     );
 
     expect(screen.getByRole('heading', { name: 'title' })).toBeTruthy();
-    expect(screen.getByRole('heading', { name: '1–30 Sep' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: '1 Sep – 30 Sep' })).toBeTruthy();
     expect(screen.queryByText('budget')).toBeNull();
     expect(screen.queryByText('reserve')).toBeNull();
     expect(screen.getByText('€4000 − €3345.97')).toBeTruthy();
@@ -111,7 +112,13 @@ describe('BudgetPeriodSection', () => {
           { id: 'u2', name: 'Sam' },
         ]}
         periods={[
-          period({ id: 'p2', name: '1–30 Aug', userId: 'u2', startDate: '2026-08-01' }),
+          period({
+            id: 'p2',
+            name: '1–30 Aug',
+            userId: 'u2',
+            startDate: '2026-08-01',
+            endDate: '2026-08-30',
+          }),
           period({ id: 'p1', name: '1–30 Sep', userId: 'u1' }),
         ]}
       />
@@ -124,10 +131,10 @@ describe('BudgetPeriodSection', () => {
     ]);
     expect(screen.getByRole('group', { name: 'Alex' })).toBeTruthy();
     expect(screen.getByRole('group', { name: 'Sam' })).toBeTruthy();
-    expect(screen.queryByRole('heading', { name: '1–30 Sep' })).toBeNull();
-    expect(screen.queryByRole('heading', { name: '1–30 Aug' })).toBeNull();
-    expect(screen.getByText('1–30 Sep')).toBeTruthy();
-    expect(screen.getByText('1–30 Aug')).toBeTruthy();
+    expect(screen.queryByRole('heading', { name: '1 Sep – 30 Sep' })).toBeNull();
+    expect(screen.queryByRole('heading', { name: '1 Aug – 30 Aug' })).toBeNull();
+    expect(screen.getByText('1 Sep – 30 Sep')).toBeTruthy();
+    expect(screen.getByText('1 Aug – 30 Aug')).toBeTruthy();
   });
 
   it('keeps a personal timeline when two periods belong to the same user', () => {
@@ -136,13 +143,19 @@ describe('BudgetPeriodSection', () => {
         users={[{ id: 'u1', name: 'Alex' }]}
         periods={[
           period({ id: 'p1', name: '1–30 Sep', userId: 'u1' }),
-          period({ id: 'p2', name: '1–30 Aug', userId: 'u1', startDate: '2026-08-01' }),
+          period({
+            id: 'p2',
+            name: '1–30 Aug',
+            userId: 'u1',
+            startDate: '2026-08-01',
+            endDate: '2026-08-30',
+          }),
         ]}
       />
     );
 
-    expect(screen.getByRole('heading', { name: '1–30 Sep' })).toBeTruthy();
-    expect(screen.getByRole('heading', { name: '1–30 Aug' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: '1 Sep – 30 Sep' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: '1 Aug – 30 Aug' })).toBeTruthy();
     expect(screen.queryByRole('heading', { name: 'Alex' })).toBeNull();
     expect(screen.queryByRole('group', { name: 'Alex' })).toBeNull();
   });
@@ -152,7 +165,14 @@ describe('BudgetPeriodSection', () => {
       <BudgetPeriodSection
         hrefForPeriod={(row) => `/reports/periods/${row.id}`}
         periods={[
-          period({ id: 'closed-1', name: '1–30 Aug', userId: 'u1', isOpen: false }),
+          period({
+            id: 'closed-1',
+            name: '1–30 Aug',
+            userId: 'u1',
+            isOpen: false,
+            startDate: '2026-08-01',
+            endDate: '2026-08-30',
+          }),
           period({
             id: 'open-1',
             name: '1 Sep – Present',
@@ -163,6 +183,7 @@ describe('BudgetPeriodSection', () => {
           period({
             id: 'active-generated-u1',
             name: 'Synthetic',
+            startDate: '2026-10-01',
             userId: 'u1',
             isOpen: true,
           }),
@@ -173,11 +194,11 @@ describe('BudgetPeriodSection', () => {
     const links = screen.getAllByRole('link', { name: 'openPeriodAria' });
     expect(links).toHaveLength(2);
     expect(links[0]).toHaveAttribute('href', '/reports/periods/closed-1');
-    expect(links[0]).toContainElement(screen.getByText('1–30 Aug'));
+    expect(links[0]).toContainElement(screen.getByText('1 Aug – 30 Aug'));
     expect(links[1]).toHaveAttribute('href', '/reports/periods/open-1');
-    expect(links[1]).toContainElement(screen.getByText('1 Sep – Present'));
-    expect(screen.queryByRole('link', { name: 'Synthetic' })).toBeNull();
-    expect(screen.getByText('Synthetic')).toBeTruthy();
+    expect(links[1]).toContainElement(screen.getByText('1 Sep – Ongoing'));
+    expect(screen.queryByRole('link', { name: '1 Oct – Ongoing' })).toBeNull();
+    expect(screen.getByText('1 Oct – Ongoing')).toBeTruthy();
   });
 
   it('collapses every person by default and toggles their periods', () => {
@@ -189,7 +210,13 @@ describe('BudgetPeriodSection', () => {
           { id: 'u2', name: 'Sam' },
         ]}
         periods={[
-          period({ id: 'p2', name: '1–30 Aug', userId: 'u2', startDate: '2026-08-01' }),
+          period({
+            id: 'p2',
+            name: '1–30 Aug',
+            userId: 'u2',
+            startDate: '2026-08-01',
+            endDate: '2026-08-30',
+          }),
           period({ id: 'p1', name: '1–30 Sep', userId: 'u1' }),
         ]}
       />
@@ -211,7 +238,16 @@ describe('BudgetPeriodSection', () => {
     render(
       <BudgetPeriodSection
         hrefForPeriod={(row) => `/reports/periods/${row.id}`}
-        periods={[period({ id: 'closed-1', name: '1–30 Aug', userId: 'u1', isOpen: false })]}
+        periods={[
+          period({
+            id: 'closed-1',
+            name: '1–30 Aug',
+            userId: 'u1',
+            isOpen: false,
+            startDate: '2026-08-01',
+            endDate: '2026-08-30',
+          }),
+        ]}
       />
     );
 

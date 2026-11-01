@@ -1,7 +1,7 @@
 {
   "Auth": {
     "productIntro": {
-      "title": "Household finances, in one place.",
+      "title": "Your finances, together.",
       "subtitle": "Know what you can spend today and keep accounts, budgets, reserve, and investments in the same picture.",
       "trustNote": "Personal sign-in and group roles keep each member's perspective clear."
     },
@@ -68,9 +68,9 @@
   },
   "SettingsContent": {
     "headerTitle": "Settings",
-    "currencyModalTitle": "Accounting currency: EUR",
-    "languageModalTitle": "Select Language",
-    "timezoneModalTitle": "Select Timezone"
+    "currencyModalTitle": "Currency",
+    "languageModalTitle": "Language",
+    "timezoneModalTitle": "Time zone"
   },
   "SettingsSections": {
     "Profile": {
@@ -128,7 +128,8 @@
       "currentBadge": "Current",
       "cancelButton": "Cancel",
       "saveButton": "Save preference",
-      "savingButton": "Saving..."
+      "savingButton": "Saving...",
+      "closeButton": "Close"
     },
     "InviteMember": {
       "validation": {
@@ -272,7 +273,7 @@
     "currency": {
       "EUR": {
         "label": "Euro (€)",
-        "description": "Accounts and budgets use euros. No currency conversion is performed."
+        "description": "The app uses euros (EUR)."
       },
       "USD": {
         "label": "US Dollar ($)",
@@ -394,21 +395,21 @@
   },
   "AccountsError": {
     "title": "We couldn’t load your accounts",
-    "description": "Something interrupted loading your accounts — it’s usually temporary. Check your internet connection, then tap Try again. If it keeps happening, wait a minute and retry; your data stays safe on our side.",
+    "description": "Unable to load accounts. Check your connection and try again.",
     "retry": "Try again",
     "home": "Back to home"
   },
   "ReportsContent": {
     "headerTitle": "Reports",
     "incompleteData": "Some transactions fall outside this calculation. Totals may be partial.",
-    "insightsTitle": "More detail",
+    "insightsTitle": "Accounts and budget periods",
     "insightsDescription": "Accounts and budget periods when you need a deeper view.",
     "updating": "Updating report…",
     "previousData": "Data still refers to {range}.",
-    "periodLabel": "Period: {range}",
+    "periodLabel": "{range}",
     "comparisonRange": "Comparison: {range}",
     "detailsLoading": "Loading budget periods…",
-    "detailsError": "We couldn’t load budget periods. Please try again.",
+    "detailsError": "Periods unavailable. Try again.",
     "retry": "Try again",
     "scopeLabel": "Report member"
   },
@@ -490,7 +491,7 @@
     "PeriodDetail": {
       "metricsTitle": "Period totals",
       "snapshotUpToDate": "Totals match the transactions.",
-      "snapshotOutOfDate": "Saved totals no longer match the transactions in this period.",
+      "snapshotOutOfDate": "Transactions have changed. Update the totals.",
       "savedColumn": "Saved",
       "liveColumn": "Live",
       "spendLabel": "Spend",
@@ -515,7 +516,8 @@
         "deleteSuccessDescription": "The previous period is active again.",
         "deleteErrorTitle": "Could not delete period",
         "deleteErrorDescription": "The period was not changed."
-      }
+      },
+      "allocatedLabel": "Allocated"
     }
   },
   "InvestmentsPage": {
@@ -531,8 +533,8 @@
     "tabLoading": "Loading section…",
     "newInvestment": "New Investment",
     "tabs": {
-      "personal": "Personal Investments",
-      "sandbox": "Scenario simulation"
+      "personal": "Portfolio",
+      "sandbox": "Simulator"
     }
   },
   "Investments": {
@@ -547,8 +549,8 @@
       "allocationLabel": "Allocation",
       "currentValueLabel": "Current Value",
       "portfolioHeroHint": "Total market value of your positions today",
-      "marketDataFreshness": "Prices updated {date} · not real-time data",
-      "marketDataFreshnessUnknown": "Market prices are not real-time",
+      "marketDataFreshness": "Prices as of {date}",
+      "marketDataFreshnessUnknown": "Prices unavailable",
       "analyticsTitle": "Portfolio analysis",
       "analyticsDescription": "Allocation, performance history, and benchmark comparison",
       "investedLabel": "Invested",
@@ -574,7 +576,7 @@
       "changeUp": "up {amount} ({percent})",
       "changeDown": "down {amount} ({percent})",
       "empty": "No holdings yet",
-      "emptyDescription": "Add your first investment with the + button.",
+      "emptyDescription": "Your holdings will appear here.",
       "columns": {
         "instrument": "Instrument",
         "shares": "Shares",
@@ -613,15 +615,16 @@
     },
     "SandboxTab": {
       "title": "Scenario simulation",
-      "description": "Estimate how a lump sum could grow over time. Figures are illustrative, not advice.",
+      "description": "Illustrative simulation, not a forecast or financial advice.",
       "chartDataSummary": "Forecast from {startYear} to {endYear}. Projected final value {value}.",
       "fields": {
         "initialAmount": "Initial Amount (€)",
-        "annualReturn": "Assumed Annual Return (%)",
+        "annualReturn": "Assumed annual return (%)",
         "annualReturnPlaceholder": "e.g. 5",
-        "annualReturnHint": "Enter your own return assumption. Wealth Pillar does not estimate future returns."
+        "annualReturnHint": "Enter your own return assumption. Wealth Pillar does not estimate future returns.",
+        "durationYears": "Duration (years)"
       },
-      "rateRequired": "Enter an assumed return to see the simulation.",
+      "rateRequired": "Enter a return to see the simulation.",
       "valueSeriesLabel": "Value"
     },
     "ShareSelector": {
@@ -661,7 +664,7 @@
       },
       "fields": {
         "name": "Name",
-        "symbol": "Symbol",
+        "symbol": "Ticker symbol",
         "symbolHelper": "Exchange ticker (e.g. AAPL). Used for market prices.",
         "investedAmount": "Invested amount",
         "taxesPaid": "Taxes paid",
@@ -710,7 +713,7 @@
       "importTransactions": "Import transactions",
       "typesAria": "Filter by type",
       "usersAria": "Filter by member",
-      "monthlyNet": "Net / month",
+      "monthlyNet": "Estimated monthly balance",
       "monthlyEarn": "In / month",
       "monthlySpend": "Out / month",
       "statusAria": "Series status",
@@ -720,7 +723,7 @@
       "signIncome": "income",
       "signExpense": "expense",
       "signTransfer": "transfer",
-      "monthlyEstimate": "Monthly equivalent of series active in the current period, excluding one-off items. Other frequencies are converted to a monthly estimate.",
+      "monthlyEstimate": "Active series, excluding one-off payments.",
       "empty": {
         "active": "No active series in this view. Paused series are still available under All.",
         "paused": "No paused series in this view.",
@@ -734,7 +737,7 @@
       "searchSeries": "Search recurring series",
       "seriesAccount": "Account",
       "allAccounts": "All accounts",
-      "scheduleForecast": "Dates are calendar forecasts. A movement is recorded only when it appears in your transactions.",
+      "scheduleForecast": "Scheduled payments, awaiting recording.",
       "undo": "Undo",
       "updateError": "We could not update the recurring series.",
       "updateRetry": "Your series is still available. Try again from its menu.",
@@ -891,7 +894,7 @@
     "LoadMore": {
       "cta": "Load more",
       "loading": "Loading…",
-      "end": "End of list",
+      "end": "All transactions loaded",
       "error": "We could not load more transactions. Your loaded transactions are still available.",
       "retry": "Try loading again"
     },
@@ -1012,7 +1015,7 @@
       "upload": {
         "title": "Choose file",
         "cta": "Select statement file",
-        "hint": "Supported: Revolut account statement, Credem lista movimenti, household expense list"
+        "hint": "CSV or Excel · Revolut and Credem"
       },
       "mapping": {
         "fileLabel": "{file} · detected format: {format}",
@@ -1032,9 +1035,9 @@
         "category": "Category",
         "filterStatus": "Filter rows by status",
         "allRows": "All",
-        "selectFiltered": "Select {count} filtered rows",
-        "deselectFiltered": "Deselect filtered rows",
-        "duplicatesHelp": "Duplicate or excluded rows cannot be selected. Select and deselect affect all filtered rows, including other pages. Category changes apply to all selected rows.",
+        "selectFiltered": "Select all ({count})",
+        "deselectFiltered": "Deselect all",
+        "duplicatesHelp": "Selection includes every page of the current filter. Duplicate and excluded rows cannot be selected.",
         "bulkCategory": "Category for {count} selected rows",
         "accountTotals": "Selected totals by account",
         "rowsCount": "{count} rows",
@@ -1274,7 +1277,7 @@
       "scheduleHelp": {
         "weekly": "The first selected weekday on or after the start date anchors the 7 or 14 day interval.",
         "once": "The due date is the start date. One-off items are excluded from recurring monthly totals.",
-        "monthly": "If the selected day is missing from a month, the due date falls on its last day."
+        "monthly": "Shorter months use the last available day."
       }
     }
   },
@@ -1567,8 +1570,8 @@
         "saved": "Saved"
       },
       "noActivePeriodAlert": "No active period. Start a new period to track budget spending.",
-      "closePeriodSalaryHint": "Pick an end date on the day before your salary is credited: that keeps the budget period aligned with your cash flow so the next period can start on payday.",
-      "editClosingDateHint": "Adjust the closing date of your most recent budget period. The active period start date will shift accordingly.",
+      "closePeriodSalaryHint": "The new period starts the day after closing.",
+      "editClosingDateHint": "The active period’s start date updates accordingly.",
       "editDatesHint": "Neighboring periods stay consecutive. Totals of the changed periods are recalculated.",
       "noClosedPeriodAlert": "No closed period available to edit.",
       "buttons": {
@@ -1589,16 +1592,16 @@
       "sectionDetailsTitle": "Budget and period",
       "sectionDetailsSubtitle": "Progress, trend, and linked transactions",
       "hero": {
-        "totalAvailable": "Available in envelopes",
-        "totalSpent": "Envelope utilization",
-        "totalAssigned": "Assigned",
+        "totalAvailable": "Budget remaining",
+        "totalSpent": "spent",
+        "totalAssigned": "allocated",
         "outOf": "of {total}",
         "srHeading": "Budget summary",
-        "envelopeHelp": "Envelopes may share categories: one expense can use several envelopes. The chart counts each movement only once."
+        "envelopeHelp": "An expense can count towards several budgets. Spending history counts it once."
       },
       "closePeriod": "Close period",
       "editClosingDate": "Adjust last closing date",
-      "startSalaryPeriod": "New cycle",
+      "startSalaryPeriod": "New period",
       "salaryPeriodSuccess": "New period started from the salary credit date.",
       "periodActionsAria": "Period actions",
       "periodCloseSuccess": "Period closed. The next period has started.",
@@ -1625,17 +1628,17 @@
         "viewAll": "View all"
       },
       "emptyState": {
-        "title": "No budget available",
+        "title": "No budgets yet",
         "description": "Create your first budget to get started",
         "createButton": "Create budget"
       }
     },
     "SalaryPeriod": {
-      "title": "New salary cycle",
+      "title": "New period",
       "description": "Start a new period when your salary has actually been credited.",
       "hint": "Confirm the actual credit date. The current period will close on the previous day and the new period will start from this date. Nothing renews automatically.",
-      "dateLabel": "Salary credit date",
-      "submit": "Start new period",
+      "dateLabel": "Payday",
+      "submit": "Start period",
       "cancel": "Cancel",
       "successTitle": "New cycle started",
       "successDescription": "Your budget is now aligned with the new salary credit.",
@@ -1696,7 +1699,7 @@
           "label": "Budget type",
           "options": {
             "monthly": "Monthly",
-            "annually": "Annual target (1/12 per period)"
+            "annually": "Annual"
           }
         },
         "amount": {
@@ -1861,33 +1864,38 @@
       "reached": "Limit reached",
       "spent": "Spent",
       "limit": "Limit",
-      "history": "Period history",
-      "envelopes": "Your envelopes",
-      "trend": "Period trend",
+      "history": "History",
+      "envelopes": "Budgets",
+      "trend": "Spending history",
       "method": "How to read these amounts",
       "missing": "Summary unavailable. Reload the page to retry.",
       "retry": "Reload",
       "included": "Included categories ({count})",
       "findCategory": "Search included categories",
       "none": "No categories found.",
-      "preview": "Latest {shown} of {total} transactions. Day totals also include movements not shown.",
-      "viewAll": "View all {count} transactions",
-      "shared": "Categories shared with: {names}. Envelope usage can count a movement more than once; net spending counts it once.",
+      "preview": "{shown} of {total} transactions · full daily totals",
+      "viewAll": "View all ({count})",
+      "shared": "Categories shared with: {names}.",
       "annual": "Annual target",
-      "allocation": "{annual} per year → {cycle} per cycle, even when cycle length changes. This is a budget allowance, not money transferred to savings.",
+      "allocation": "{cycle} per period · {annual} per year",
       "chartDay": "Day to inspect",
       "data": "Daily data",
       "date": "Date",
       "cumulative": "Cumulative net spending",
       "recorded": "Recorded movements only; future days are not a forecast.",
       "cyclePreview": "Close the period for {name} from {start} to {end}. The new cycle starts on {next}. Summaries will be updated.",
-      "retro": "This date is in the past: check which movements will change period.",
+      "retro": "Past date: transactions will be assigned to the correct period.",
       "closingPreview": "Previous closing date: {old}. New closing date: {next}. Summaries and the boundary with the adjacent period will be updated.",
-      "sort": "Envelope order",
-      "priority": "Needs attention first",
+      "sort": "Sort budgets",
+      "priority": "Needs attention",
       "alphabetical": "Name",
-      "partialDay": "part of day shown · full day total",
-      "overLabel": "Limit exceeded"
+      "partialDay": "partial · full total",
+      "overLabel": "Limit exceeded",
+      "sharedTitle": "Shared categories",
+      "previousPeriod": "Closing period",
+      "nextPeriod": "New start date",
+      "dateChange": "{field}: {old} → {next}",
+      "datesEffect": "Adjacent periods and their totals will be updated."
     }
   },
   "Categories": {
@@ -2023,7 +2031,9 @@
         "nameLabel": "Account name",
         "namePlaceholder": "Main checking account",
         "typeLabel": "Type",
-        "typePlaceholder": "Select account type"
+        "typePlaceholder": "Select account type",
+        "defaultBadge": "Default",
+        "removeAccountAria": "Remove account {index}"
       },
       "budgets": {
         "skipTitle": "You can skip this step",

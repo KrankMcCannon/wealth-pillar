@@ -28,7 +28,6 @@ export function AssetAllocationCard({ data, className }: AssetAllocationCardProp
     <section className={cn(stitchInvestments.chartCard, className)}>
       <div className={stitchInvestments.chartCardHeader}>
         <h2 className={stitchInvestments.chartCardTitle}>{t('assetAllocation')}</h2>
-        <p className={stitchInvestments.chartCardDescription}>{t('portfolioHeroHint')}</p>
       </div>
       <div className={stitchInvestments.chartCardContent}>
         <div className="relative h-[225px] w-full">

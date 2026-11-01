@@ -15,7 +15,7 @@ export type ChoiceRadiosProps = {
   onChange: (value: string) => void;
   options: readonly ChoiceRadioOption[];
   label: string;
-  variant?: 'rows' | 'cards';
+  variant?: 'rows' | 'cards' | 'segments';
   disabled?: boolean | undefined;
   errorId?: string | undefined;
   invalid?: boolean | undefined;
@@ -36,6 +36,7 @@ export function ChoiceRadios({
   padded = true,
 }: Readonly<ChoiceRadiosProps>) {
   const isCards = variant === 'cards';
+  const isSegments = variant === 'segments';
 
   return (
     <fieldset
@@ -48,7 +49,8 @@ export function ChoiceRadios({
         role="radiogroup"
         aria-label={label}
         className={cn(
-          isCards ? s.choice.cards : s.choice.rows,
+          isSegments ? s.choice.segments : isCards ? s.choice.cards : s.choice.rows,
+          isSegments && !padded && 'mx-0',
           !padded && (isCards ? s.choice.cardsFlush : '[&>label]:px-0')
         )}
       >
@@ -79,8 +81,10 @@ export function ChoiceRadios({
             <label
               key={option.value}
               className={cn(
-                isCards ? s.choice.card : s.choice.row,
+                isSegments ? s.choice.segment : isCards ? s.choice.card : s.choice.row,
+                isSegments && selected && s.choice.segmentSelected,
                 selected && isCards && s.choice.cardSelected,
+                'has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring',
                 disabled && 'pointer-events-none opacity-45'
               )}
             >
@@ -96,7 +100,11 @@ export function ChoiceRadios({
                   option.description ? `${option.label}, ${option.description}` : option.label
                 }
               />
-              {isCards ? (
+              {isSegments ? (
+                <span className="min-w-0 whitespace-nowrap text-sm font-semibold leading-snug">
+                  {option.label}
+                </span>
+              ) : isCards ? (
                 <>
                   {radioMark}
                   {text}

@@ -53,22 +53,18 @@ export function AccountFormFields({
     {
       value: 'payroll',
       label: t('accountTypes.payroll'),
-      description: t('fields.type.descriptions.payroll'),
     },
     {
       value: 'cash',
       label: t('accountTypes.cash'),
-      description: t('fields.type.descriptions.cash'),
     },
     {
       value: 'investments',
       label: t('accountTypes.investments'),
-      description: t('fields.type.descriptions.investments'),
     },
     {
       value: 'savings',
       label: t('accountTypes.savings'),
-      description: t('fields.type.descriptions.savings'),
     },
   ] as const;
 
@@ -101,19 +97,22 @@ export function AccountFormFields({
         name="liquidity"
         label={t('fields.liquidity.label')}
         options={liquidityOptions}
+        variant="segments"
         disabled={isSubmitting}
       />
 
-      <ModalMultiSelectField
-        control={control}
-        name="user_ids"
-        label={t('fields.owner.label')}
-        options={groupUsers.map((u) => ({ value: u.id, label: u.name ?? '' }))}
-        shape="rows"
-        users={groupUsers}
-        currentUserId={currentUserId}
-        disabled={shouldDisableUserField || isSubmitting}
-      />
+      {groupUsers.length > 1 && !shouldDisableUserField ? (
+        <ModalMultiSelectField
+          control={control}
+          name="user_ids"
+          label={t('fields.owner.label')}
+          options={groupUsers.map((u) => ({ value: u.id, label: u.name ?? '' }))}
+          shape="rows"
+          users={groupUsers}
+          currentUserId={currentUserId}
+          disabled={shouldDisableUserField || isSubmitting}
+        />
+      ) : null}
 
       <ModalCheckboxField
         control={control}

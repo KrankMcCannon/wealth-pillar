@@ -100,9 +100,8 @@ export default function BudgetDetailContent({ pageDataPromise }: BudgetDetailCon
         <div className={stitchBudgets.mainStack}>
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
-              <p className="font-semibold">{ux('context', { name: owner })}</p>
+              {users.length > 1 ? <p className="text-sm font-medium">{owner}</p> : null}
               <p className="text-sm text-muted-foreground">
-                {ux('current')} ·{' '}
                 {periodStart
                   ? formatDateShort(periodStart, locale) + ' ' + periodStart.slice(0, 4)
                   : '—'}{' '}
@@ -119,17 +118,15 @@ export default function BudgetDetailContent({ pageDataPromise }: BudgetDetailCon
             </button>
           </div>
 
-          <section className={stitchBudgets.categoryCard} aria-label={t('summaryAria')}>
+          <section className="flex flex-col gap-3 py-2" aria-label={t('summaryAria')}>
             <div className={stitchBudgets.categoryHeaderRow}>
               <div className={stitchBudgets.categoryTitleRow}>
                 <span className={iconWrapClass} aria-hidden>
                   <Wallet className="size-5" />
                 </span>
-                <h2 className="text-base font-semibold">
+                <h2 className="text-sm font-medium text-muted-foreground">
                   {progress.remaining < 0
-                    ? ux('over', {
-                        amount: formatCurrencyLocale(Math.abs(progress.remaining), locale),
-                      })
+                    ? ux('overLabel')
                     : progress.remaining === 0
                       ? ux('reached')
                       : ux('remaining')}
@@ -137,12 +134,12 @@ export default function BudgetDetailContent({ pageDataPromise }: BudgetDetailCon
               </div>
               <p
                 className={cn(
-                  stitchBudgets.spentStrong,
+                  'font-display text-3xl font-semibold tabular-nums tracking-tight',
                   progress.remaining < 0 && 'text-expense',
                   status === 'fixed' && 'text-warning'
                 )}
               >
-                {formatCurrencyLocale(progress.remaining, locale)}
+                {formatCurrencyLocale(Math.abs(progress.remaining), locale)}
               </p>
             </div>
             <p className="text-sm tabular-nums text-muted-foreground">
@@ -188,7 +185,11 @@ export default function BudgetDetailContent({ pageDataPromise }: BudgetDetailCon
             </section>
           ) : null}
 
-          <p className="text-sm text-muted-foreground">{ux('preview', { shown, total: count })}</p>
+          {shown < count ? (
+            <p className="text-sm text-muted-foreground">
+              {ux('preview', { shown, total: count })}
+            </p>
+          ) : null}
           <TransactionDayList
             groupedTransactions={formattedGroups}
             categories={categories}

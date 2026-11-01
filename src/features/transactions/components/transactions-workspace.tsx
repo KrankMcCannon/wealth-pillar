@@ -46,14 +46,16 @@ export function TransactionsWorkspace({
               onChange={onUserFilterChange}
             />
           </div>
-          <TabsList className={stitchPageTabs.list} aria-label={t('tabsAria')}>
-            <TabsTrigger value="Transactions" className={stitchPageTabs.trigger}>
-              {t('tabs.transactions')}
-            </TabsTrigger>
-            <TabsTrigger value="Recurrent" className={stitchPageTabs.trigger}>
-              {t('tabs.recurrent')}
-            </TabsTrigger>
-          </TabsList>
+          <div className={stitchPageTabs.wrap}>
+            <TabsList className={stitchPageTabs.list} aria-label={t('tabsAria')}>
+              <TabsTrigger value="Transactions" className={stitchPageTabs.trigger}>
+                {t('tabs.transactions')}
+              </TabsTrigger>
+              <TabsTrigger value="Recurrent" className={stitchPageTabs.trigger}>
+                {t('tabs.recurrent')}
+              </TabsTrigger>
+            </TabsList>
+          </div>
         </div>
       </div>
       <TabsContent value="Recurrent" className="mt-0">

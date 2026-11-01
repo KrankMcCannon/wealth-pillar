@@ -1,7 +1,7 @@
 {
   "Auth": {
     "productIntro": {
-      "title": "Le finanze di casa, in un solo posto.",
+      "title": "Le tue finanze, insieme.",
       "subtitle": "Sai quanto puoi spendere oggi e tieni conti, budget, riserva e investimenti nello stesso quadro.",
       "trustNote": "Accesso personale e ruoli del gruppo mantengono chiara la prospettiva di ogni membro."
     },
@@ -68,9 +68,9 @@
   },
   "SettingsContent": {
     "headerTitle": "Impostazioni",
-    "currencyModalTitle": "Valuta contabile: EUR",
-    "languageModalTitle": "Seleziona Lingua",
-    "timezoneModalTitle": "Seleziona Fuso Orario"
+    "currencyModalTitle": "Valuta",
+    "languageModalTitle": "Lingua",
+    "timezoneModalTitle": "Fuso orario"
   },
   "SettingsSections": {
     "Profile": {
@@ -128,7 +128,8 @@
       "currentBadge": "Attuale",
       "cancelButton": "Annulla",
       "saveButton": "Salva preferenza",
-      "savingButton": "Salvataggio..."
+      "savingButton": "Salvataggio...",
+      "closeButton": "Chiudi"
     },
     "InviteMember": {
       "validation": {
@@ -272,7 +273,7 @@
     "currency": {
       "EUR": {
         "label": "Euro (€)",
-        "description": "Conti e budget sono espressi in euro. Non vengono effettuate conversioni."
+        "description": "La valuta dell’app è l’euro (EUR)."
       },
       "USD": {
         "label": "Dollaro Americano ($)",
@@ -394,21 +395,21 @@
   },
   "AccountsError": {
     "title": "Non siamo riusciti a caricare i tuoi conti",
-    "description": "Qualcosa ha interrotto il caricamento, di solito è temporaneo. Controlla la connessione e tocca Riprova. Se continua, attendi un minuto e riprova: i dati restano al sicuro lato server.",
+    "description": "Impossibile caricare i conti. Controlla la connessione e riprova.",
     "retry": "Riprova",
     "home": "Torna alla home"
   },
   "ReportsContent": {
     "headerTitle": "Rapporti",
     "incompleteData": "Alcuni movimenti non rientrano nel calcolo. I totali possono essere parziali.",
-    "insightsTitle": "Approfondimenti",
+    "insightsTitle": "Conti e periodi budget",
     "insightsDescription": "Conti e periodi budget, quando ti serve più dettaglio.",
     "updating": "Aggiornamento del rapporto…",
     "previousData": "Dati ancora riferiti a {range}.",
-    "periodLabel": "Periodo: {range}",
+    "periodLabel": "{range}",
     "comparisonRange": "Confronto: {range}",
     "detailsLoading": "Caricamento dei periodi budget…",
-    "detailsError": "Non siamo riusciti a caricare i periodi budget. Riprova.",
+    "detailsError": "Periodi non disponibili. Riprova.",
     "retry": "Riprova",
     "scopeLabel": "Persona del rapporto"
   },
@@ -490,7 +491,7 @@
     "PeriodDetail": {
       "metricsTitle": "Totali del periodo",
       "snapshotUpToDate": "I totali coincidono con le transazioni.",
-      "snapshotOutOfDate": "I totali salvati non coincidono più con le transazioni di questo periodo.",
+      "snapshotOutOfDate": "I movimenti sono cambiati. Aggiorna i totali.",
       "savedColumn": "Salvato",
       "liveColumn": "Attuale",
       "spendLabel": "Spesa",
@@ -515,7 +516,8 @@
         "deleteSuccessDescription": "Il periodo precedente è di nuovo attivo.",
         "deleteErrorTitle": "Impossibile eliminare il periodo",
         "deleteErrorDescription": "Il periodo non è stato modificato."
-      }
+      },
+      "allocatedLabel": "Assegnato"
     }
   },
   "InvestmentsPage": {
@@ -531,8 +533,8 @@
     "tabLoading": "Caricamento sezione…",
     "newInvestment": "Nuovo Investimento",
     "tabs": {
-      "personal": "Investimenti",
-      "sandbox": "Simulazione"
+      "personal": "Portafoglio",
+      "sandbox": "Simulatore"
     }
   },
   "Investments": {
@@ -543,9 +545,9 @@
       "totalReturn": "Rendimento totale",
       "today": "Oggi",
       "assetAllocation": "Ripartizione asset",
-      "marketDataFreshness": "Prezzi aggiornati {date} · dati non in tempo reale",
-      "marketDataFreshnessUnknown": "Prezzi di mercato non in tempo reale",
-      "analyticsTitle": "Analisi portafoglio",
+      "marketDataFreshness": "Prezzi al {date}",
+      "marketDataFreshnessUnknown": "Prezzi non disponibili",
+      "analyticsTitle": "Analisi del portafoglio",
       "analyticsDescription": "Allocazione, andamento e confronto con un indice",
       "assetsLabel": "Asset",
       "allocationLabel": "Allocazione",
@@ -574,7 +576,7 @@
       "changeUp": "in utile di {amount} ({percent})",
       "changeDown": "in perdita di {amount} ({percent})",
       "empty": "Ancora nessuna posizione",
-      "emptyDescription": "Aggiungi il tuo primo investimento con il pulsante +.",
+      "emptyDescription": "Le tue posizioni appariranno qui.",
       "columns": {
         "instrument": "Titolo",
         "shares": "Quote",
@@ -613,16 +615,16 @@
     },
     "SandboxTab": {
       "title": "Simulazione scenari",
-      "description": "Stima come potrebbe crescere un capitale nel tempo. Solo a titolo illustrativo, non è un consiglio finanziario.",
+      "description": "Simulazione illustrativa, non una previsione o un consiglio finanziario.",
       "chartDataSummary": "Previsione dal {startYear} al {endYear}. Valore finale stimato {value}.",
       "fields": {
         "initialAmount": "Importo iniziale (€)",
-        "annualReturn": "Rendimento annuo ipotetico (%)",
+        "annualReturn": "Rendimento annuo ipotizzato (%)",
         "annualReturnPlaceholder": "Es. 5",
         "annualReturnHint": "Inserisci tu l'ipotesi di rendimento: Wealth Pillar non stima i rendimenti futuri.",
         "durationYears": "Durata (anni)"
       },
-      "rateRequired": "Inserisci un rendimento ipotetico per vedere la simulazione.",
+      "rateRequired": "Inserisci un rendimento per vedere la simulazione.",
       "valueSeriesLabel": "Valore"
     },
     "ShareSelector": {
@@ -662,7 +664,7 @@
       },
       "fields": {
         "name": "Nome",
-        "symbol": "Simbolo",
+        "symbol": "Simbolo di borsa",
         "symbolHelper": "Ticker di borsa (es. AAPL). Usato per i prezzi di mercato.",
         "investedAmount": "Importo investito",
         "taxesPaid": "Tasse pagate",
@@ -711,7 +713,7 @@
       "importTransactions": "Importa movimenti",
       "typesAria": "Filtra per tipo",
       "usersAria": "Filtra per membro",
-      "monthlyNet": "Netto / mese",
+      "monthlyNet": "Saldo mensile stimato",
       "monthlyEarn": "Entrate / mese",
       "monthlySpend": "Uscite / mese",
       "statusAria": "Stato serie",
@@ -721,7 +723,7 @@
       "signIncome": "entrata",
       "signExpense": "uscita",
       "signTransfer": "trasferimento",
-      "monthlyEstimate": "Equivalente mensile delle serie attive nel periodo corrente, esclusi gli impegni una tantum. Gli altri intervalli sono ripartiti su base mensile.",
+      "monthlyEstimate": "Serie attive, escluse le scadenze una tantum.",
       "empty": {
         "active": "Non ci sono serie attive con questa prospettiva. Le serie in pausa restano disponibili in Tutte.",
         "paused": "Non ci sono serie in pausa con questa prospettiva.",
@@ -735,7 +737,7 @@
       "searchSeries": "Cerca ricorrenze",
       "seriesAccount": "Conto",
       "allAccounts": "Tutti i conti",
-      "scheduleForecast": "Le date sono previsioni del calendario. I movimenti risultano registrati solo quando sono presenti nelle transazioni.",
+      "scheduleForecast": "Scadenze previste, da registrare nei movimenti.",
       "undo": "Annulla",
       "updateError": "Non siamo riusciti ad aggiornare la ricorrenza.",
       "updateRetry": "La serie resta disponibile. Riprova dal menu.",
@@ -892,7 +894,7 @@
     "LoadMore": {
       "cta": "Carica altre",
       "loading": "Caricamento…",
-      "end": "Fine elenco",
+      "end": "Tutte le transazioni caricate",
       "error": "Non siamo riusciti a caricare altri movimenti. Quelli già caricati sono disponibili.",
       "retry": "Riprova a caricare"
     },
@@ -1013,7 +1015,7 @@
       "upload": {
         "title": "Scegli file",
         "cta": "Seleziona estratto conto",
-        "hint": "Supportati: estratto Revolut, lista movimenti Credem, elenco spese"
+        "hint": "CSV o Excel · Revolut e Credem"
       },
       "mapping": {
         "fileLabel": "{file} · formato rilevato: {format}",
@@ -1033,9 +1035,9 @@
         "category": "Categoria",
         "filterStatus": "Filtra righe per stato",
         "allRows": "Tutte",
-        "selectFiltered": "Seleziona {count} righe filtrate",
-        "deselectFiltered": "Deseleziona righe filtrate",
-        "duplicatesHelp": "Le righe duplicate o escluse non sono selezionabili. Seleziona e deseleziona agiscono su tutte le righe filtrate, anche nelle altre pagine. La categoria si applica a tutte le righe selezionate.",
+        "selectFiltered": "Seleziona tutte ({count})",
+        "deselectFiltered": "Deseleziona tutte",
+        "duplicatesHelp": "La selezione include tutte le pagine del filtro. Duplicati ed esclusi non sono selezionabili.",
         "bulkCategory": "Categoria per {count} righe selezionate",
         "accountTotals": "Totali selezionati per conto",
         "rowsCount": "{count} righe",
@@ -1185,8 +1187,8 @@
         "weekdayRange": "Scegli un giorno della settimana valido."
       },
       "title": {
-        "create": "Nuova Serie Ricorrente",
-        "edit": "Modifica Serie Ricorrente"
+        "create": "Nuova serie ricorrente",
+        "edit": "Modifica serie ricorrente"
       },
       "errors": {
         "notFound": "Serie ricorrente non trovata",
@@ -1245,8 +1247,8 @@
         }
       },
       "buttons": {
-        "saveChanges": "Salva Modifiche",
-        "createSeries": "Crea Serie",
+        "saveChanges": "Salva modifiche",
+        "createSeries": "Crea serie",
         "cancel": "Annulla"
       },
       "toast": {
@@ -1275,7 +1277,7 @@
       "scheduleHelp": {
         "weekly": "Il primo giorno scelto dalla data iniziale fissa la cadenza di 7 o 14 giorni.",
         "once": "La scadenza coincide con la data iniziale. Non viene conteggiata nel totale mensile ricorrente.",
-        "monthly": "Se il mese non contiene il giorno scelto, la scadenza cade nell’ultimo giorno del mese."
+        "monthly": "Nei mesi più corti si usa l’ultimo giorno disponibile."
       }
     }
   },
@@ -1568,8 +1570,8 @@
         "saved": "Risparmiato"
       },
       "noActivePeriodAlert": "Nessun periodo attivo. Inizia un nuovo periodo per tracciare le spese del budget.",
-      "closePeriodSalaryHint": "Scegli come data di fine il giorno precedente all'accredito dello stipendio: così il periodo budget resta allineato al flusso di cassa e il nuovo periodo può iniziare dal giorno della busta paga.",
-      "editClosingDateHint": "Modifica la data di chiusura dell'ultimo periodo budget. La data di inizio del periodo attivo verrà aggiornata di conseguenza.",
+      "closePeriodSalaryHint": "Il nuovo periodo inizierà il giorno dopo la chiusura.",
+      "editClosingDateHint": "La data iniziale del periodo attivo si aggiorna di conseguenza.",
       "editDatesHint": "I periodi vicini restano consecutivi. I totali dei periodi modificati vengono ricalcolati.",
       "noClosedPeriodAlert": "Nessun periodo chiuso disponibile da modificare.",
       "buttons": {
@@ -1590,16 +1592,16 @@
       "sectionDetailsTitle": "Budget e periodo",
       "sectionDetailsSubtitle": "Progressi, andamento e transazioni collegate",
       "hero": {
-        "totalAvailable": "Disponibilità delle buste",
-        "totalSpent": "Utilizzo delle buste",
-        "totalAssigned": "Assegnato",
+        "totalAvailable": "Budget rimanente",
+        "totalSpent": "spesi",
+        "totalAssigned": "assegnati",
         "outOf": "su {total}",
         "srHeading": "Riepilogo budget",
-        "envelopeHelp": "Le buste possono condividere categorie: la stessa spesa può impegnare più buste. Il grafico conta invece ogni movimento una sola volta."
+        "envelopeHelp": "Una spesa può incidere su più budget. Nell’andamento delle spese viene contata una sola volta."
       },
       "closePeriod": "Chiudi periodo",
       "editClosingDate": "Modifica ultima chiusura",
-      "startSalaryPeriod": "Nuovo ciclo",
+      "startSalaryPeriod": "Nuovo periodo",
       "periodActionsAria": "Azioni del periodo",
       "periodCloseSuccess": "Periodo chiuso.",
       "salaryPeriodSuccess": "Nuovo periodo iniziato dalla data di accredito dello stipendio.",
@@ -1626,17 +1628,17 @@
         "viewAll": "Vedi tutte"
       },
       "emptyState": {
-        "title": "Nessun budget disponibile",
+        "title": "Nessun budget",
         "description": "Crea il tuo primo budget per iniziare",
         "createButton": "Crea budget"
       }
     },
     "SalaryPeriod": {
-      "title": "Nuovo ciclo stipendio",
+      "title": "Nuovo periodo",
       "description": "Inizia un nuovo periodo quando lo stipendio è stato realmente accreditato.",
       "hint": "Conferma la data effettiva dell'accredito. Il periodo corrente verrà chiuso al giorno precedente e il nuovo periodo inizierà da questa data. Non avviene alcun rinnovo automatico.",
-      "dateLabel": "Data accredito stipendio",
-      "submit": "Inizia nuovo periodo",
+      "dateLabel": "Data di accredito",
+      "submit": "Inizia periodo",
       "cancel": "Annulla",
       "successTitle": "Nuovo ciclo iniziato",
       "successDescription": "Il budget è ora allineato al nuovo accredito.",
@@ -1685,8 +1687,8 @@
         "userRequired": "L'utente è obbligatorio"
       },
       "title": {
-        "create": "Nuovo Budget",
-        "edit": "Modifica Budget"
+        "create": "Nuovo budget",
+        "edit": "Modifica budget"
       },
       "fields": {
         "user": {
@@ -1697,7 +1699,7 @@
           "label": "Tipo budget",
           "options": {
             "monthly": "Mensile",
-            "annually": "Obiettivo annuo (quota 1/12)"
+            "annually": "Annuale"
           }
         },
         "amount": {
@@ -1726,7 +1728,7 @@
       },
       "buttons": {
         "save": "Salva modifiche",
-        "create": "Crea Budget",
+        "create": "Crea budget",
         "cancel": "Annulla",
         "confirmChanges": "Salva modifiche",
         "deleteBudget": "Elimina"
@@ -1862,33 +1864,38 @@
       "reached": "Limite raggiunto",
       "spent": "Speso",
       "limit": "Limite",
-      "history": "Storico periodi",
-      "envelopes": "Le tue buste",
-      "trend": "Andamento del periodo",
+      "history": "Storico",
+      "envelopes": "Budget",
+      "trend": "Andamento spese",
       "method": "Come leggere questi importi",
       "missing": "Riepilogo non disponibile. Ricarica la pagina per riprovare.",
       "retry": "Ricarica",
       "included": "Categorie incluse ({count})",
       "findCategory": "Cerca categorie incluse",
       "none": "Nessuna categoria trovata.",
-      "preview": "Ultime {shown} transazioni di {total}. I totali giornalieri includono anche i movimenti non mostrati.",
-      "viewAll": "Vedi tutte le {count} transazioni",
-      "shared": "Categorie condivise con: {names}. L’utilizzo delle buste può contare lo stesso movimento più volte; le uscite nette lo contano una sola volta.",
+      "preview": "{shown} di {total} transazioni · totali giornalieri completi",
+      "viewAll": "Vedi tutte ({count})",
+      "shared": "Categorie condivise con: {names}.",
       "annual": "Obiettivo annuo",
-      "allocation": "{annual} all’anno → {cycle} per ciclo, anche se la durata del ciclo cambia. È una quota di budget, non un accantonamento sul conto.",
+      "allocation": "{cycle} per periodo · {annual} all’anno",
       "chartDay": "Giorno da consultare",
       "data": "Dati giornalieri",
       "date": "Data",
       "cumulative": "Uscite nette cumulative",
       "recorded": "Solo movimenti registrati; i giorni futuri non sono una previsione.",
       "cyclePreview": "Chiudi il periodo di {name} dal {start} al {end}. Il nuovo ciclo inizia il {next}. I riepiloghi saranno aggiornati.",
-      "retro": "La data è nel passato: controlla i movimenti che cambieranno periodo.",
+      "retro": "Data nel passato: i movimenti saranno riassegnati al periodo corretto.",
       "closingPreview": "Chiusura precedente: {old}. Nuova chiusura: {next}. Verranno aggiornati i riepiloghi e il confine con il periodo adiacente.",
-      "sort": "Ordine buste",
-      "priority": "Prima le buste da controllare",
+      "sort": "Ordina budget",
+      "priority": "Da controllare",
       "alphabetical": "Nome",
-      "partialDay": "giornata mostrata in parte · totale completo",
-      "overLabel": "Limite superato"
+      "partialDay": "parziale · totale completo",
+      "overLabel": "Limite superato",
+      "sharedTitle": "Categorie condivise",
+      "previousPeriod": "Chiusura periodo",
+      "nextPeriod": "Nuovo inizio",
+      "dateChange": "{field}: {old} → {next}",
+      "datesEffect": "I periodi adiacenti e i relativi totali verranno aggiornati."
     }
   },
   "Categories": {
@@ -1901,8 +1908,8 @@
         "colorInvalid": "Formato colore non valido"
       },
       "title": {
-        "create": "Nuova Categoria",
-        "edit": "Modifica Categoria"
+        "create": "Nuova categoria",
+        "edit": "Modifica categoria"
       },
       "fields": {
         "label": {
@@ -1919,7 +1926,7 @@
       },
       "buttons": {
         "save": "Salva modifiche",
-        "create": "Crea Categoria",
+        "create": "Crea categoria",
         "cancel": "Annulla",
         "delete": "Elimina categoria"
       },
@@ -2024,7 +2031,9 @@
         "nameLabel": "Nome del conto",
         "namePlaceholder": "Conto corrente principale",
         "typeLabel": "Tipologia",
-        "typePlaceholder": "Seleziona il tipo di conto"
+        "typePlaceholder": "Seleziona il tipo di conto",
+        "defaultBadge": "Predefinito",
+        "removeAccountAria": "Rimuovi conto {index}"
       },
       "budgets": {
         "skipTitle": "Puoi saltare questo passaggio",

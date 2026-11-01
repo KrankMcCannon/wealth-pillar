@@ -85,9 +85,6 @@ export function BenchmarkChart({
           <p id={titleId} className={stitchInvestments.chartCardTitle}>
             {t('title')}
           </p>
-          <p className={stitchInvestments.chartCardDescription}>
-            {t('description', { index: currentIndex })}
-          </p>
         </div>
         <ShareSelector value={currentIndex} onChange={onBenchmarkChange} />
       </div>

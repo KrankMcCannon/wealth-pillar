@@ -58,7 +58,6 @@ export function InvestmentHistoryChart({ data }: Readonly<InvestmentHistoryChart
         <p id={titleId} className={stitchInvestments.chartCardTitle}>
           {t('title')}
         </p>
-        <p className={stitchInvestments.chartCardDescription}>{t('description')}</p>
       </div>
       <div className={stitchInvestments.chartCardContent}>
         {srSummary ? (

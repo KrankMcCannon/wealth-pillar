@@ -57,6 +57,7 @@ export function RecurringFormFields({
       <ModalRadioField
         control={control}
         name="type"
+        variant="segments"
         label={t('fields.type.label')}
         options={[
           { value: 'expense', label: t('typeOptions.expense') },
@@ -64,8 +65,6 @@ export function RecurringFormFields({
         ]}
         disabled={isSubmitting}
       />
-
-      <p className="px-3 text-sm text-muted-foreground">{t('transfersUnavailable')}</p>
 
       <ModalCategoryField
         control={control}
@@ -94,16 +93,18 @@ export function RecurringFormFields({
 
       <ModalDateField control={control} name="end_date" label={t('fields.endDate.label')} />
 
-      <ModalMultiSelectField
-        control={control}
-        name="user_ids"
-        label={t('fields.users.label')}
-        options={groupUsers.map((u) => ({ value: u.id, label: u.name ?? '' }))}
-        shape="rows"
-        users={groupUsers}
-        currentUserId={currentUserId}
-        disabled={isSubmitting}
-      />
+      {groupUsers.length > 1 ? (
+        <ModalMultiSelectField
+          control={control}
+          name="user_ids"
+          label={t('fields.users.label')}
+          options={groupUsers.map((u) => ({ value: u.id, label: u.name ?? '' }))}
+          shape="rows"
+          users={groupUsers}
+          currentUserId={currentUserId}
+          disabled={isSubmitting}
+        />
+      ) : null}
 
       <RecurrencePicker form={form} t={t} isSubmitting={isSubmitting} />
     </>

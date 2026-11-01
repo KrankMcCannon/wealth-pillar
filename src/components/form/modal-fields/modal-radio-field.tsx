@@ -12,7 +12,7 @@ export interface ModalRadioFieldProps<T extends FieldValues> {
   label: string;
   options: readonly ModalRadioOption[];
   disabled?: boolean | undefined;
-  variant?: 'rows' | 'cards';
+  variant?: 'rows' | 'cards' | 'segments';
 }
 
 export function ModalRadioField<T extends FieldValues>({

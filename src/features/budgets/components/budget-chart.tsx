@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { formatCurrencyLocale } from '@/lib/utils/currency-formatter';
 import { formatDateShort } from '@/lib/utils/date-utils';
+import { SectionDisclosure } from '@/components/shared/section-disclosure';
 export interface ChartDataPoint {
   x: number;
   y: number;
@@ -34,7 +35,6 @@ export function BudgetChart({ spent, chartData }: Readonly<BudgetChartProps>) {
     <section aria-label={t('sectionAriaLabel')} className="min-w-0 space-y-3">
       <p className="text-sm text-muted-foreground">{t('spentLabel')}</p>
       <p className="font-display text-2xl tabular-nums">{money(spent)}</p>
-      <p className="max-w-prose text-sm text-muted-foreground">{ux('recorded')}</p>
       {point ? (
         <>
           <div className="flex justify-between text-sm tabular-nums">
@@ -75,10 +75,7 @@ export function BudgetChart({ spent, chartData }: Readonly<BudgetChartProps>) {
           <p role="status" className="tabular-nums">
             {formatDateShort(point.date, locale)} · {money(point.amount)}
           </p>
-          <details>
-            <summary className="min-h-11 cursor-pointer py-3 text-sm font-semibold">
-              {ux('data')}
-            </summary>
+          <SectionDisclosure label={ux('data')}>
             <table className="w-full text-sm">
               <caption className="sr-only">{ux('cumulative')}</caption>
               <thead>
@@ -102,7 +99,7 @@ export function BudgetChart({ spent, chartData }: Readonly<BudgetChartProps>) {
                 ))}
               </tbody>
             </table>
-          </details>
+          </SectionDisclosure>
         </>
       ) : (
         <p role="status">{t('emptyState')}</p>

@@ -7,6 +7,7 @@ interface FilterChipProps {
   label: string;
   active?: boolean;
   onClick?: () => void;
+  disabled?: boolean;
   className?: string;
   /** Exclusive choice in a radiogroup. Default is a pressed toggle. */
   role?: 'radio';
@@ -17,6 +18,7 @@ export function FilterChip({
   label,
   active = false,
   onClick,
+  disabled,
   className,
   role,
   tabIndex,
@@ -27,10 +29,11 @@ export function FilterChip({
     <button
       type="button"
       onClick={onClick}
+      disabled={disabled}
       tabIndex={tabIndex}
       className={cn(
         stitchTransactions.chipBase,
-        'motion-reduce:transition-none',
+        'disabled:pointer-events-none disabled:opacity-50 motion-reduce:transition-none',
         active ? stitchTransactions.chipActive : stitchTransactions.chipInactive,
         className
       )}

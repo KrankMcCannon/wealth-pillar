@@ -21,7 +21,7 @@ export const stitchSurface = {
 /** Fixed page FAB — single source for home ActionMenu trigger and page-local add buttons. */
 export const stitchFab = {
   pageAdd:
-    'fixed bottom-24 right-5 z-30 flex h-14 w-14 min-h-11 min-w-11 items-center justify-center rounded-2xl border-0 bg-foreground text-background shadow-lg transition-transform hover:scale-105 hover:bg-foreground/90 active:scale-95 motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/25',
+    'fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] right-[max(1.25rem,calc((100vw-64rem)/2+1rem))] z-30 flex h-14 w-14 min-h-11 min-w-11 items-center justify-center rounded-2xl border-0 bg-foreground text-background shadow-lg transition-transform hover:scale-105 hover:bg-foreground/90 active:scale-95 motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/25',
   pageAddIcon: 'size-7',
 } as const;
 
@@ -52,8 +52,7 @@ export const stitchHome = {
   budgetRowAvatar:
     'flex size-9 shrink-0 items-center justify-center rounded-full border border-border/30 bg-muted text-sm font-bold text-foreground',
   fab: stitchFab.pageAdd,
-  balanceSection:
-    'flex flex-col gap-1 overflow-hidden rounded-2xl border border-border/20 bg-card px-4 py-3 shadow-sm',
+  balanceSection: 'flex min-w-0 flex-col gap-2 py-3',
   listRow:
     'flex items-center justify-between gap-3 rounded-xl bg-muted/90 px-3 py-2 text-left ring-1 ring-inset ring-border/40 transition-colors hover:bg-accent',
   listRowInteractive:
@@ -103,8 +102,7 @@ export const stitchPeopleChip = {
 export const stitchDashboardShell = {
   pageBackground: 'bg-background',
   /** z-[48]: sopra toolbar sticky (z-30) e contenuti, sotto overlay dialog desktop (z-50) e drawer (z-150). */
-  stickyHeader:
-    'fixed top-0 left-0 right-0 z-[48] border-b border-border/22 bg-background shadow-sm',
+  stickyHeader: 'fixed top-0 left-0 right-0 z-[48] border-b border-border/40 bg-background',
   bottomBar: 'fixed bottom-0 left-0 right-0 z-[48] border-t border-border/22 bg-background',
   bottomBarPad: 'px-2 pt-1.5 pb-[calc(theme(spacing.1)+env(safe-area-inset-bottom))]',
   bottomNav: 'mx-auto grid max-w-xl grid-cols-5 items-stretch',
@@ -121,13 +119,12 @@ export const stitchDashboardShell = {
 
 /** Capsule page tabs (Transazioni/Ricorrenti, Investimenti/Sandbox). */
 export const stitchPageTabs = {
-  wrap: 'px-2',
-  list: 'grid h-12 w-full min-w-0 max-w-full grid-cols-2 place-items-center gap-1 rounded-full border border-border/35 bg-card p-1 shadow-md',
+  wrap: 'px-4',
+  list: 'grid w-full min-w-0 max-w-full grid-cols-2 gap-1 rounded-xl bg-muted p-1',
   trigger:
-    'inline-flex h-9 min-w-0 w-full items-center justify-center truncate rounded-full px-2 text-[13px] font-semibold tracking-wide text-muted-foreground shadow-none transition-all duration-200 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35 data-[state=active]:bg-accent data-[state=active]:text-foreground data-[state=active]:ring-1 data-[state=active]:ring-inset data-[state=active]:ring-primary/35 data-[state=active]:translate-y-0 motion-reduce:transition-none',
-  stickyBar:
-    'sticky z-30 w-full min-w-0 overflow-x-hidden border-b border-border/22 bg-background pb-2 pt-1',
-  stickyStack: 'flex flex-col gap-1.5 pt-1',
+    'inline-flex min-h-11 min-w-0 w-full items-center justify-center rounded-lg px-2 py-2 text-sm font-semibold text-muted-foreground shadow-none transition-colors duration-200 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm motion-reduce:transition-none',
+  stickyBar: 'relative z-30 w-full min-w-0 border-b border-border/40 bg-background py-3',
+  stickyStack: 'mx-auto flex max-w-5xl flex-col gap-2',
   leading: 'px-4',
 } as const;
 
@@ -137,14 +134,14 @@ export const stitchPageTabs = {
 export const stitchBudgets = {
   /** Spaziatura hero → lista. */
   mainStack: 'flex flex-col gap-5 pt-1',
-  heroSection: `${stitchSurface.card} relative overflow-hidden p-4`,
+  heroSection: 'relative min-w-0 py-2',
   heroInner: 'relative z-[1]',
   heroTopRow: 'flex items-end justify-between gap-3',
   heroPrimaryBlock: 'min-w-0 flex-1 flex flex-col gap-1',
   heroEyebrow: 'text-xs font-medium text-muted-foreground',
   heroAmountRow: 'mt-0.5 flex flex-wrap items-baseline gap-x-1 gap-y-0.5',
   heroAmount:
-    'font-display text-[28px] font-semibold tabular-nums leading-none tracking-[-0.02em] text-income',
+    'font-display text-[36px] font-semibold tabular-nums leading-tight tracking-[-0.03em] text-foreground [overflow-wrap:anywhere]',
   heroAmountCents: 'text-sm font-medium tabular-nums text-income/80',
   heroAmountBudget: 'text-sm font-medium tabular-nums text-primary',
   heroSpentBlock:
@@ -230,14 +227,13 @@ export const stitchBudgetsChartSvg = {
 export const stitchInvestments = {
   mainStack: 'flex flex-col gap-5 pt-1',
   heroSection: stitchBudgets.heroSection,
-  heroInner: 'relative z-[1] flex gap-3',
+  heroInner: 'relative z-[1] flex flex-col gap-3 sm:flex-row sm:justify-between',
   heroPrimaryColumn: 'flex min-w-0 flex-1 flex-col justify-between gap-1',
-  heroReturnColumn:
-    'flex shrink-0 flex-col items-start justify-between gap-1 border-l border-border/25 pl-3 text-left',
+  heroReturnColumn: 'flex min-w-0 flex-col items-start gap-1 text-left',
   heroEyebrow: 'text-xs font-medium text-muted-foreground',
   heroAmountRow: 'flex flex-wrap items-baseline gap-x-1 gap-y-0.5',
   heroAmount:
-    'font-display text-[28px] font-semibold tabular-nums leading-none tracking-[-0.02em] text-foreground',
+    'font-display text-[36px] font-semibold tabular-nums leading-tight tracking-[-0.03em] text-foreground [overflow-wrap:anywhere]',
   heroAmountCents: 'text-sm font-medium tabular-nums text-primary/80',
   heroReturnValueRow: 'flex items-center justify-start gap-1',
   heroReturnValue: 'text-[15px] font-semibold tabular-nums leading-tight text-income',
@@ -393,7 +389,7 @@ export const stitchRecurring = {
 export const stitchReports = {
   /** No `-mx-4` bleed: negative margin can widen past the viewport, cause horizontal scroll on `body`, and break `fixed` header/bottom bar on iOS Safari. */
   stickyFilterBar:
-    'sticky z-30 flex w-full flex-col gap-1.5 border-b border-border/25 bg-background px-4 py-1.5',
+    'sticky top-[var(--app-header-height)] z-30 mx-auto flex w-full max-w-5xl flex-col gap-2 border-b border-border/40 bg-background px-4 py-3',
   chipRow: 'flex gap-1 overflow-x-auto pb-0.5 scrollbar-hide',
   sectionStack: 'flex flex-col gap-5 pt-0',
   incompleteNotice:
@@ -415,7 +411,7 @@ export const stitchReports = {
   rankingCard: `${stitchSurface.card} p-3`,
   rankingRow: 'relative space-y-1 py-1',
   rankingRowLink:
-    'relative block space-y-1 rounded-md px-0 py-1 text-left transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45',
+    'relative block min-h-11 space-y-1 rounded-md py-2 text-left transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45',
   rankingRowHeader: 'flex items-end justify-between gap-2',
   rankingIconWrap:
     'flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted/90 text-muted-foreground',
@@ -530,7 +526,7 @@ export const stitchSettings = {
     'flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/12 text-primary',
   rowIcon: 'size-4 shrink-0 text-primary',
   rowLabel: 'truncate text-base font-medium text-foreground',
-  rowValue: 'shrink-0 text-sm text-muted-foreground',
+  rowValue: 'min-w-0 max-w-[12rem] break-words text-right text-sm text-muted-foreground',
   rowChevron: 'size-4 shrink-0 text-muted-foreground',
   profileCard: 'flex flex-row items-center gap-3 rounded-xl border border-border/25 bg-card p-3',
   profileAvatar:

@@ -48,7 +48,6 @@ export function BudgetFormFields({
   groupUsers,
   categoryOptions,
   shouldDisableUserField,
-  userFieldHelperText,
   isSubmitting,
 }: BudgetFormFieldsProps) {
   const t = useTranslations('Budgets.FormModal');
@@ -118,10 +117,9 @@ export function BudgetFormFields({
           name="type"
           label={t('fields.type.label')}
           options={typeOptions}
+          variant="segments"
           disabled={isSubmitting}
         />
-
-        <p className="px-4 text-sm text-muted-foreground">{t('periodHelp')}</p>
 
         <ModalMultiSelectField
           control={control}
@@ -144,29 +142,28 @@ export function BudgetFormFields({
           <p className="px-4 text-sm text-muted-foreground" role="status">
             {ux('shared', { names: shared.map((b) => b.description).join(', ') })}
           </p>
-        ) : (
-          <p className="px-4 text-sm text-muted-foreground">{t('overlapHelp')}</p>
-        )}
+        ) : null}
 
-        {userOptions.length <= 5 ? (
-          <ModalRadioField
-            control={control}
-            name="user_id"
-            label={t('fields.user.label')}
-            options={userOptions}
-            disabled={shouldDisableUserField || isSubmitting}
-          />
-        ) : (
-          <ModalSelectField
-            control={control}
-            name="user_id"
-            label={t('fields.user.label')}
-            options={userOptions}
-            placeholder={t('fields.user.placeholder')}
-            disabled={shouldDisableUserField || isSubmitting}
-            {...(userFieldHelperText !== undefined ? { hint: userFieldHelperText } : {})}
-          />
-        )}
+        {userOptions.length > 1 && !shouldDisableUserField ? (
+          userOptions.length <= 5 ? (
+            <ModalRadioField
+              control={control}
+              name="user_id"
+              label={t('fields.user.label')}
+              options={userOptions}
+              disabled={shouldDisableUserField || isSubmitting}
+            />
+          ) : (
+            <ModalSelectField
+              control={control}
+              name="user_id"
+              label={t('fields.user.label')}
+              options={userOptions}
+              placeholder={t('fields.user.placeholder')}
+              disabled={shouldDisableUserField || isSubmitting}
+            />
+          )
+        ) : null}
       </div>
     </>
   );

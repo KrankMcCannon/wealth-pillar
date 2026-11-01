@@ -1,8 +1,7 @@
 import { stitchHome, stitchSurface } from '@/styles/home-design-foundation';
 
 export const onboardingStyles = {
-  container:
-    'flex min-h-0 flex-1 w-full max-w-md mx-auto flex-col animate-in fade-in slide-in-from-bottom-2 duration-200',
+  container: 'mx-auto flex min-h-0 w-full max-w-md flex-1 flex-col',
   header: {
     container: 'flex shrink-0 flex-col gap-3 px-4 pt-4 pb-3',
     content: 'flex items-start gap-3',
@@ -18,7 +17,7 @@ export const onboardingStyles = {
   cardHeader: 'flex items-center justify-between',
   cardTitle: 'text-sm font-semibold text-foreground',
   deleteButton:
-    'text-muted-foreground transition-colors hover:text-destructive disabled:opacity-50',
+    'flex size-11 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50',
   addButton:
     'flex w-full items-center justify-center gap-2 rounded-xl border border-border/30 bg-primary px-4 py-3 font-medium text-primary-foreground transition-colors hover:bg-primary/90',
   backButton:
@@ -42,7 +41,8 @@ export const onboardingStyles = {
   accounts: {
     infoBanner: 'rounded-lg border border-border/25 bg-muted/35 p-3',
     infoText: 'mt-1 text-xs text-muted-foreground',
-    defaultToggle: 'ml-2 rounded p-1 transition-colors',
+    defaultToggle:
+      'inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-lg px-2 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
     defaultActive: 'bg-warning/15 text-warning',
     defaultInactive: 'text-muted-foreground hover:bg-muted/80 hover:text-foreground',
     defaultIcon: 'size-4',

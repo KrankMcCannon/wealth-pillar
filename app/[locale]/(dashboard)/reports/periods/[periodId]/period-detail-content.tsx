@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils';
 import { pathWithoutReturnTo, withReturnTo } from '@/lib/navigation/return-to';
 import { stitchHome, stitchReports, stitchSurface } from '@/styles/home-design-foundation';
 import { useFormatCurrency } from '@/features/reports/hooks/use-format-currency';
+import { formatPeriodLabel } from '@/features/reports/utils/format-period-label';
 import { TopExpensesRanking } from '@/features/reports/components/top-expenses-ranking';
 import {
   buildPeriodTransactionsHref,
@@ -80,6 +81,7 @@ export default function PeriodDetailContent({
   const pageData = use(pageDataPromise);
   const t = useTranslations('Reports.PeriodDetail');
   const tPeriods = useTranslations('Reports.BudgetPeriods');
+  const tHome = useTranslations('Budgets.HomeSection');
   const locale = useLocale();
   const router = useRouter();
   const { format: formatMoney } = useFormatCurrency();
@@ -112,7 +114,7 @@ export default function PeriodDetailContent({
   );
 
   usePageHeader({
-    title: pageData.summary.name,
+    title: formatPeriodLabel(pageData.summary, locale, tHome('periodOngoing')),
     backHref,
   });
 
@@ -192,11 +194,22 @@ export default function PeriodDetailContent({
                 {remainingSigned}
               </span>
             </div>
-            <p className="text-sm tabular-nums text-muted-foreground">
-              {`${formatMoney(pageData.summary.allocated)} − ${formatMoney(pageData.summary.spendableSpent)}`}
-            </p>
+            <dl className="mt-2 grid grid-cols-2 gap-3">
+              <div>
+                <dt className="text-sm text-muted-foreground">{t('allocatedLabel')}</dt>
+                <dd className="font-semibold tabular-nums">
+                  {formatMoney(pageData.summary.allocated)}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-sm text-muted-foreground">{t('spendLabel')}</dt>
+                <dd className="font-semibold tabular-nums">
+                  {formatMoney(pageData.summary.spendableSpent)}
+                </dd>
+              </div>
+            </dl>
             {pageData.summary.isOpen ? null : pageData.snapshotMatchesLive ? (
-              <p id="period-snapshot-status" className={stitchReports.periodStatus} role="status">
+              <p id="period-snapshot-status" className="sr-only" role="status">
                 {t('snapshotUpToDate')}
               </p>
             ) : (
@@ -276,7 +289,7 @@ export default function PeriodDetailContent({
           ) : null}
 
           <div className={stitchReports.periodActions}>
-            {!pageData.summary.isOpen ? (
+            {!pageData.summary.isOpen && !pageData.snapshotMatchesLive ? (
               <button
                 type="button"
                 className={stitchSurface.primaryCta}

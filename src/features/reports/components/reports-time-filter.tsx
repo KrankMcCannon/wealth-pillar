@@ -8,6 +8,7 @@ import { stitchReports, stitchTransactions } from '@/styles/home-design-foundati
 import { FilterChip, FilterChipRow, FilterDrawer } from '@/components/ui/filters';
 import { Button } from '@/components/ui/button';
 import { DateField } from '@/components/ui/fields/date-field';
+import { useMounted } from '@/hooks/use-mounted';
 import {
   isValidReportsRange,
   type ReportsTimePreset,
@@ -30,6 +31,7 @@ export function ReportsTimeFilter({
 }: ReportsTimeFilterProps) {
   const t = useTranslations('Reports.TimeFilter');
   const formatter = useFormatter();
+  const mounted = useMounted();
   const [customOpen, setCustomOpen] = useState(false);
   const [draftStart, setDraftStart] = useState(customRange?.start ?? '');
   const [draftEnd, setDraftEnd] = useState(customRange?.end ?? '');
@@ -78,11 +80,13 @@ export function ReportsTimeFilter({
               key={p.id}
               label={t(p.labelKey)}
               active={value === p.id}
+              disabled={!mounted}
               onClick={() => onChange(p.id)}
             />
           ))}
           <button
             type="button"
+            disabled={!mounted}
             aria-pressed={extendedActive}
             aria-haspopup="dialog"
             aria-expanded={customOpen}

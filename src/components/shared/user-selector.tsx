@@ -103,7 +103,7 @@ const UserSelector = memo(
       return null;
     }
 
-    if (users.length === 1) {
+    if (users.length <= 1) {
       return null;
     }
 
@@ -120,6 +120,31 @@ const UserSelector = memo(
           aria-labelledby={hideTitle ? undefined : headingId}
           className={userSelectorStyles.list}
           style={userSelectorStyles.listStyle}
+          onKeyDown={(event) => {
+            if (
+              !['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(
+                event.key
+              )
+            )
+              return;
+            event.preventDefault();
+            const index = membersList.findIndex((member) => member.id === currentSelection);
+            const next =
+              event.key === 'Home'
+                ? 0
+                : event.key === 'End'
+                  ? membersList.length - 1
+                  : (index +
+                      (event.key === 'ArrowRight' || event.key === 'ArrowDown' ? 1 : -1) +
+                      membersList.length) %
+                    membersList.length;
+            const member = membersList[next];
+            if (!member) return;
+            handleMemberClick(member.id);
+            event.currentTarget
+              .querySelectorAll<HTMLButtonElement>('[role="radio"]')
+              [next]?.focus();
+          }}
         >
           {membersList.map((member) => {
             const isSelected = currentSelection === member.id;
@@ -130,6 +155,7 @@ const UserSelector = memo(
                 key={member.id}
                 type="button"
                 role="radio"
+                tabIndex={isSelected ? 0 : -1}
                 onClick={() => handleMemberClick(member.id)}
                 className={cn(
                   userSelectorStyles.item.base,

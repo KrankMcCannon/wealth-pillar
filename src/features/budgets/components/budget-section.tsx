@@ -40,18 +40,19 @@ export const BudgetSection = ({ budgetsByUser, selectedViewUserId }: BudgetSecti
         <h2 id="home-budget-heading" className={stitchHome.scanSectionTitle}>
           {t('budgetTitle')}
         </h2>
-        <Link href="/budgets" className={cn(stitchHome.viewAllLink, 'min-w-0')}>
-          {t('budgetViewAll')}
-        </Link>
+        {budgetEntries.length > 0 ? (
+          <Link href="/budgets" className={cn(stitchHome.viewAllLink, 'min-w-0')}>
+            {t('budgetViewAll')}
+          </Link>
+        ) : null}
       </div>
 
       {budgetEntries.length === 0 ? (
         <div className="flex flex-col gap-1">
           <p className="text-sm text-foreground">{t('budgetEmpty')}</p>
-          <p className="text-sm text-muted-foreground">{t('budgetEmptyBody')}</p>
           <Link
             href="/budgets"
-            className="inline-flex min-h-10 w-fit items-center text-sm font-semibold text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45"
+            className="inline-flex min-h-11 w-fit items-center text-sm font-semibold text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45"
           >
             {t('budgetSet')}
           </Link>

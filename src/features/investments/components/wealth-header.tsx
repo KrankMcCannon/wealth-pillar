@@ -26,13 +26,6 @@ function formatMarketFreshness(value: string | null | undefined, locale: string)
   }).format(date);
 }
 
-function splitCurrencyParts(formatted: string): { main: string; rest: string } {
-  const trimmed = formatted.trim();
-  const match = /^([\s\S]*?)([,.]\d{2})\s*(\S*)$/.exec(trimmed);
-  if (!match) return { main: trimmed, rest: '' };
-  return { main: (match[1] ?? '').trim(), rest: `${match[2]} ${match[3] ?? ''}`.trim() };
-}
-
 export function WealthHeader({
   totalValue,
   trendAmount = 0,
@@ -49,7 +42,6 @@ export function WealthHeader({
   const totalFormatted =
     totalValue == null ? t('valuationUnavailable') : formatCurrencyLocale(totalValue, locale);
   const returnFormatted = formatCurrencyLocale(Math.abs(trendAmount ?? 0), locale);
-  const { main, rest } = splitCurrencyParts(totalFormatted);
   const percentLabel = `${Math.abs(trendPercentage ?? 0).toFixed(2)}%`;
   const returnWithPercent = `${isPositive ? '+' : '-'}${returnFormatted} (${percentLabel})`;
   const freshness = formatMarketFreshness(marketDataUpdatedAt, locale);
@@ -65,9 +57,8 @@ export function WealthHeader({
                 totalValue == null ? 'text-lg text-muted-foreground' : stitchInvestments.heroAmount
               }
             >
-              {main}
+              {totalFormatted}
             </span>
-            {rest ? <span className={stitchInvestments.heroAmountCents}>{rest}</span> : null}
           </div>
         </div>
 

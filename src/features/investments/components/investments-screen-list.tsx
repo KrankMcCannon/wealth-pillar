@@ -143,7 +143,6 @@ function InvestmentsScreenListInner({ holdings }: Readonly<InvestmentsScreenList
             <TrendingUp className="size-6" strokeWidth={1.25} aria-hidden />
           </div>
           <p className={stitchInvestments.emptyTitle}>{tList('empty')}</p>
-          <p className={stitchInvestments.emptyDescription}>{tList('emptyDescription')}</p>
           <div className={stitchInvestments.emptyActions}>
             <button
               type="button"

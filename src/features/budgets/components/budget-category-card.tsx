@@ -7,7 +7,7 @@ import { Link } from '@/i18n/routing';
 import type { BudgetProgress, Category } from '@/lib/types';
 import { stitchBudgets } from '@/styles/home-design-foundation';
 import { formatCurrencyLocale } from '@/lib/utils/currency-formatter';
-import { Wallet } from 'lucide-react';
+import { ChevronRight, Wallet } from 'lucide-react';
 import { BudgetProgressBar } from './budget-progress-bar';
 import {
   getBudgetCategoryStatus,
@@ -72,7 +72,7 @@ export function BudgetCategoryCard({
 
   const body = (
     <>
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex items-start justify-between gap-3">
         <div className={stitchBudgets.categoryTitleRow}>
           <span className={iconWrapClass} aria-hidden>
             <Wallet className="size-5" />
@@ -81,6 +81,7 @@ export function BudgetCategoryCard({
         </div>
         <span
           className={cn(
+            'shrink-0 text-right',
             stitchBudgets.spentStrong,
             status === 'over' && 'text-expense',
             status === 'fixed' && 'text-warning'
@@ -97,9 +98,12 @@ export function BudgetCategoryCard({
         </span>
       </div>
 
-      <p className="text-sm tabular-nums text-muted-foreground">
-        {ux('spent')}: {spentFormatted} · {ux('limit')}: {limitFormatted}
-      </p>
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-sm tabular-nums text-muted-foreground">
+          {ux('spent')}: {spentFormatted} · {ux('limit')}: {limitFormatted}
+        </p>
+        <ChevronRight className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+      </div>
 
       <BudgetProgressBar
         percent={progress.percentage}

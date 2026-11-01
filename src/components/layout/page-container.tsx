@@ -2,7 +2,7 @@ import { cn } from '@/lib';
 import { stitchDashboardShell } from '@/styles/home-design-foundation';
 
 const pageContainerStyles = {
-  container: `relative flex w-full min-h-0 flex-col overflow-x-hidden ${stitchDashboardShell.pageBackground} pt-[64px]`,
+  container: `relative flex min-h-dvh w-full flex-col ${stitchDashboardShell.pageBackground} pt-[var(--app-header-height)]`,
 } as const;
 
 interface PageContainerProps {

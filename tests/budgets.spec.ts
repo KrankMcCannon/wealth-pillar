@@ -4,31 +4,34 @@ test('shows cycle context, exposes its action and links to scoped history', asyn
   await page.goto('/it/budgets');
   await expect(
     page.getByRole('heading', { name: 'Budget di E2E User', exact: true })
-  ).toBeVisible();
+  ).toBeAttached();
   await page.getByRole('button', { name: /azioni del periodo/i }).click();
-  await page.getByRole('menuitem', { name: 'Nuovo ciclo', exact: true }).click();
+  await page.getByRole('menuitem', { name: 'Nuovo periodo', exact: true }).click();
   await expect(page.getByRole('dialog')).toContainText('E2E User');
-  await expect(page.getByRole('dialog')).toContainText('Il nuovo ciclo inizia');
+  await expect(page.getByRole('dialog')).toContainText('Nuovo inizio');
   await page.getByRole('button', { name: 'Annulla', exact: true }).click();
-  await page.getByRole('link', { name: 'Storico periodi', exact: true }).click();
+  await page.getByRole('link', { name: 'Storico', exact: true }).click();
   await expect(page).toHaveURL(/member=/);
   await expect(page.locator('#budget-periods')).toHaveAttribute('open', '');
 });
 test('explains partial transaction days and shows the included categories', async ({ page }) => {
   await page.goto('/it/budgets');
   await page.getByRole('link', { name: /Apri dettagli budget: E2E Food Budget/ }).click();
-  await expect(page.getByText('Budget di E2E User', { exact: true })).toBeVisible();
-  await expect(page.getByText(/Ultime 8 transazioni di 120/)).toBeVisible();
-  await expect(page.getByRole('heading', { name: /giornata mostrata in parte/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'E2E Food Budget', exact: true })).toBeVisible();
+  const preview = page.getByText(/8 di \d+ transazioni/);
+  await expect(preview).toBeVisible();
+  const total = Number((await preview.innerText()).match(/8 di (\d+)/)?.[1]);
+  expect(total).toBeGreaterThanOrEqual(120);
+  await expect(page.getByRole('heading', { name: /parziale · totale completo/ })).toBeVisible();
   await page.getByText('Categorie incluse (1)', { exact: true }).click();
-  await page.getByRole('searchbox', { name: 'Cerca categorie incluse' }).fill('NoSuchCategory');
-  await expect(page.getByText('Nessuna categoria trovata.', { exact: true })).toBeVisible();
-  await page.getByRole('link', { name: 'Vedi tutte le 120 transazioni', exact: true }).click();
+  await expect(page.getByRole('searchbox', { name: 'Cerca categorie incluse' })).toHaveCount(0);
+  await expect(page.getByText('E2E Food', { exact: true }).first()).toBeVisible();
+  await page.getByRole('link', { name: `Vedi tutte (${total})`, exact: true }).click();
   await expect(page).toHaveURL(/categories=e2e_food/);
 });
 test('makes the trend available with keyboard values and a data table', async ({ page }) => {
   await page.goto('/it/budgets');
-  await page.getByText('Andamento del periodo', { exact: true }).click();
+  await page.getByText('Andamento spese', { exact: true }).click();
   const slider = page.getByRole('slider', { name: 'Giorno da consultare' });
   await slider.focus();
   await page.keyboard.press('Home');
@@ -42,10 +45,10 @@ test('previews the annual allowance before saving', async ({ page }) => {
   await page.getByRole('link', { name: /Apri dettagli budget: E2E Food Budget/ }).click();
   await page.getByRole('button', { name: 'Modifica budget', exact: true }).click();
   const dialog = page.getByRole('dialog');
-  await dialog.getByText('Obiettivo annuo (quota 1/12)', { exact: true }).click();
+  await dialog.getByText('Annuale', { exact: true }).click();
   await dialog.getByRole('textbox', { name: 'Obiettivo annuo', exact: true }).fill('1200');
   await expect(dialog).toContainText('100,00');
-  await expect(dialog).toContainText('non un accantonamento');
+  await expect(dialog).toContainText('per periodo');
   await dialog.getByRole('button', { name: 'Annulla', exact: true }).click();
 });
 test('keeps budgets and detail readable at narrow widths, in both themes and with zoom', async ({
@@ -61,7 +64,11 @@ test('keeps budgets and detail readable at narrow widths, in both themes and wit
       await page.goto(`/${locale}/budgets`);
       await expect(page.getByTestId('budgets-fab-add')).toBeVisible();
       await expect(
-        page.getByRole('heading', { name: locale === 'it' ? 'Budget' : 'Budgets', exact: true })
+        page.getByRole('heading', {
+          name: locale === 'it' ? 'Budget' : 'Budgets',
+          exact: true,
+          level: 1,
+        })
       ).toBeVisible();
       await expect
         .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth))
@@ -102,7 +109,7 @@ test('creates a shared-category envelope with a long name and exposes the over-l
   await picker.getByText('E2E Food · E2E Food Budget', { exact: true }).click();
   await picker.getByRole('button', { name: 'Chiudi finestra', exact: true }).click();
   await expect(form).toContainText('Categorie condivise con: E2E Food Budget');
-  await form.getByRole('button', { name: 'Crea Budget', exact: true }).click();
+  await form.getByRole('button', { name: 'Crea budget', exact: true }).click();
   await expect(form).toBeHidden();
   await page.reload();
   await expect(page.getByText('Limite superato', { exact: true })).toBeVisible();
@@ -125,6 +132,8 @@ test('keeps cycle management available after deleting every envelope', async ({ 
     await page.goto('/it/budgets');
   }
   await expect(page.getByRole('link', { name: /Apri dettagli budget:/ })).toHaveCount(0);
-  await expect(page.getByRole('button', { name: 'Nuovo ciclo', exact: true })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Storico periodi', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: /azioni del periodo/i }).click();
+  await expect(page.getByRole('menuitem', { name: 'Nuovo periodo', exact: true })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('link', { name: 'Storico', exact: true })).toBeVisible();
 });

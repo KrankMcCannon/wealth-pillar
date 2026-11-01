@@ -14,7 +14,7 @@ test.describe('Dashboard navigation', () => {
     const navHandle = await navElement.elementHandle();
     expect(navHandle).not.toBeNull();
 
-    await page.getByRole('link', { name: /Transazioni|Transactions/i }).click();
+    await navElement.getByRole('link', { name: /Transazioni|Transactions/i }).click();
     await page.waitForURL(/\/transactions/, { timeout: 10000 });
 
     const stillConnected = await page.evaluate((element) => element.isConnected, navHandle);
@@ -25,7 +25,10 @@ test.describe('Dashboard navigation', () => {
     await page.goto('/it/home');
     await page.waitForLoadState('domcontentloaded');
 
-    await page.getByRole('link', { name: /Budget|Budgets/i }).click();
+    await page
+      .getByRole('navigation', { name: 'Navigazione principale' })
+      .getByRole('link', { name: /Budget|Budgets/i })
+      .click();
 
     await expect(page).toHaveURL(/\/budgets/, { timeout: 10000 });
     await expect(page.getByRole('navigation').first()).toBeVisible();

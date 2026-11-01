@@ -48,6 +48,7 @@ function EditClosingDateFields({
   endDateLabel,
   noClosedPeriodAlert,
   oldEnd,
+  oldStart,
 }: Readonly<{
   form: UseFormReturn<EditClosingDateFormData>;
   periodStartDate: string | null;
@@ -57,8 +58,12 @@ function EditClosingDateFields({
   endDateLabel: string;
   noClosedPeriodAlert: string;
   oldEnd: string;
+  oldStart: string;
 }>) {
-  const next = useWatch({ control: form.control, name: 'end_date' });
+  const [nextStart, nextEnd] = useWatch({
+    control: form.control,
+    name: ['start_date', 'end_date'],
+  });
   const ux = useTranslations('Budgets.UX');
   const locale = useLocale();
   const format = (date: string) =>
@@ -71,14 +76,34 @@ function EditClosingDateFields({
 
   return (
     <div className={formModalStyles.paddedBodyBleed}>
-      <p role="status" className="px-4 text-sm">
-        {ux('closingPreview', { old: format(oldEnd), next: format(next) })}
-      </p>
       {editStart ? (
         <ModalDateField control={form.control} name="start_date" label={startDateLabel} required />
       ) : null}
       {editEnd ? (
         <ModalDateField control={form.control} name="end_date" label={endDateLabel} required />
+      ) : null}
+      {(editStart && nextStart !== oldStart) || (editEnd && nextEnd !== oldEnd) ? (
+        <div role="status" className="space-y-2 px-4 py-3 text-sm text-muted-foreground">
+          {editStart && nextStart !== oldStart ? (
+            <p>
+              {ux('dateChange', {
+                field: startDateLabel,
+                old: format(oldStart),
+                next: format(nextStart),
+              })}
+            </p>
+          ) : null}
+          {editEnd && nextEnd !== oldEnd ? (
+            <p>
+              {ux('dateChange', {
+                field: endDateLabel,
+                old: format(oldEnd),
+                next: format(nextEnd),
+              })}
+            </p>
+          ) : null}
+          <p>{ux('datesEffect')}</p>
+        </div>
       ) : null}
     </div>
   );
@@ -245,7 +270,6 @@ function EditClosingDateModal({
       isOpen={isOpen}
       onClose={handleClose}
       title={usesPeriodDatesAction ? t('buttons.editDates') : t('buttons.editClosingDate')}
-      description={usesPeriodDatesAction ? t('editDatesHint') : t('editClosingDateHint')}
       schema={schema}
       defaultValues={defaultValues}
       resetValues={defaultValues}
@@ -276,6 +300,7 @@ function EditClosingDateModal({
           endDateLabel={t('fields.endDate.label')}
           noClosedPeriodAlert={t('noClosedPeriodAlert')}
           oldEnd={closedPeriod?.end_date ? toDateOnlyString(closedPeriod.end_date) : '—'}
+          oldStart={periodStartDate ?? ''}
         />
       )}
     </EntityFormModal>
