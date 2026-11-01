@@ -7,6 +7,16 @@
 
 ## Migrations
 
+- **Recurring frequencies (1 November 2026):**
+  [`0005_recurring_frequencies.sql`](./drizzle/0005_recurring_frequencies.sql) has
+  journal index/snapshot 5. Apply only this migration through Supabase's migration
+  API for this release; the live Drizzle journal is empty, so a generic
+  `pnpm db:migrate` would also attempt historical migrations. The script uses a
+  transaction, `NOWAIT`, local timeouts, compatibility checks and row fingerprints.
+  It changes no rows and is safe to replay. The guarded manual rollback refuses to
+  invalidate `once`/`biweekly` records. See the
+  [deployment and rollback runbook](../../../docs/releases/recurring-frequency-migration.md).
+
 - **Access control:** [audit e verifica del 30 ottobre 2026](ACCESS_CONTROL.md).
   `0009_server_only_data_access.sql` chiude gli accessi client allo schema pubblico,
   preservando i due ruoli backend; è già applicata al progetto Supabase.

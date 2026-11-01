@@ -1,3 +1,5 @@
+import { PortfolioSnapshotRepository } from './portfolio-snapshot.repository';
+import { financialDateKey } from '@/lib/utils/financial-date';
 import { db } from '@/server/db/drizzle';
 import { investments } from '@/server/db/schema';
 import { eq, and, inArray, sql } from 'drizzle-orm';
@@ -55,24 +57,53 @@ export class InvestmentRepository {
   }
 
   static async create(data: typeof investments.$inferInsert) {
-    const records = await db.insert(investments).values(data).returning();
-    return records.length > 0 ? records[0] : null;
+    return db.transaction(async (tx) => {
+      const [row] = await tx.insert(investments).values(data).returning();
+      if (row)
+        await PortfolioSnapshotRepository.deleteFrom(
+          row.user_id,
+          financialDateKey(row.created_at ?? new Date()),
+          tx
+        );
+      return row ?? null;
+    });
   }
 
-  static async update(id: string, data: Partial<typeof investments.$inferInsert>) {
-    const records = await db
-      .update(investments)
-      .set({ ...data, updated_at: new Date() })
-      .where(eq(investments.id, id))
-      .returning();
-    return records.length > 0 ? records[0] : null;
+  static async update(id: string, data: Partial<typeof investments.$inferInsert>, userId: string) {
+    return db.transaction(async (tx) => {
+      const [previous] = await tx
+        .select()
+        .from(investments)
+        .where(and(eq(investments.id, id), eq(investments.user_id, userId)))
+        .for('update');
+      if (!previous) return null;
+      const [row] = await tx
+        .update(investments)
+        .set({ ...data, user_id: userId, updated_at: new Date() })
+        .where(and(eq(investments.id, id), eq(investments.user_id, userId)))
+        .returning();
+      if (row) {
+        const first = financialDateKey(previous.created_at ?? new Date());
+        const next = financialDateKey(row.created_at ?? new Date());
+        await PortfolioSnapshotRepository.deleteFrom(userId, first < next ? first : next, tx);
+      }
+      return row ?? null;
+    });
   }
 
   static async delete(id: string, userId: string) {
-    const records = await db
-      .delete(investments)
-      .where(and(eq(investments.id, id), eq(investments.user_id, userId)))
-      .returning();
-    return records.length > 0 ? records[0] : null;
+    return db.transaction(async (tx) => {
+      const [row] = await tx
+        .delete(investments)
+        .where(and(eq(investments.id, id), eq(investments.user_id, userId)))
+        .returning();
+      if (row)
+        await PortfolioSnapshotRepository.deleteFrom(
+          userId,
+          financialDateKey(row.created_at ?? new Date()),
+          tx
+        );
+      return row ?? null;
+    });
   }
 }

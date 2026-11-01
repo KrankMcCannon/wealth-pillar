@@ -12,6 +12,10 @@ import type { CreateTransactionInput } from '@/server/use-cases/transactions/typ
 import { AccessScope } from '@/lib/permissions/access-scope';
 import { FinancialResourcePolicy } from '@/server/permissions/financial-resource-policy';
 import { isMember } from '@/lib/utils';
+import type {
+  TransactionMutationResult,
+  TransactionDeleteResult,
+} from '@/lib/types/financial-mutation';
 import type { User, Transaction } from '@/lib/types';
 import {
   createTransactionSchema,
@@ -29,7 +33,7 @@ import {
  */
 export async function createTransactionAction(
   input: CreateTransactionInput
-): Promise<ServiceResult<Transaction>> {
+): Promise<ServiceResult<TransactionMutationResult>> {
   try {
     const currentUser = await getCurrentUser();
     const gate = assertCanActOnUser(currentUser, input.user_id ?? undefined);
@@ -64,7 +68,7 @@ export async function createTransactionAction(
 export async function updateTransactionAction(
   id: string,
   input: Partial<CreateTransactionInput>
-): Promise<ServiceResult<Transaction>> {
+): Promise<ServiceResult<TransactionMutationResult>> {
   try {
     // Authentication check (cached per request)
     const currentUser = await getCurrentUser();
@@ -204,7 +208,9 @@ export async function loadMoreTransactionsAction(input: LoadMoreTransactionsInpu
   }
 }
 
-export async function deleteTransactionAction(id: string): Promise<ServiceResult<{ id: string }>> {
+export async function deleteTransactionAction(
+  id: string
+): Promise<ServiceResult<TransactionDeleteResult>> {
   try {
     // Authentication check (cached per request)
     const currentUser = await getCurrentUser();
@@ -236,9 +242,9 @@ export async function deleteTransactionAction(id: string): Promise<ServiceResult
       return { data: null, error: 'Permesso negato' };
     }
 
-    await deleteTransactionUseCase(id, repoScope);
+    const data = await deleteTransactionUseCase(id, repoScope);
 
-    return { data: { id }, error: null };
+    return { data, error: null };
   } catch (error) {
     return {
       data: null,

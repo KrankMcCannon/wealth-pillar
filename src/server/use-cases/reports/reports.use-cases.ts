@@ -1,3 +1,4 @@
+import { financialDateTime } from '@/lib/utils/financial-date';
 import type { Account, Budget, BudgetPeriod, Transaction, User } from '@/lib/types';
 import { formatDateShort, toDateString, toDateTime } from '@/lib/utils';
 import { REPORTS_TRANSACTIONS_LIMIT } from '@/server/db/query-limits';
@@ -73,7 +74,7 @@ export function resolveYtdBudgetStart(
   periods: BudgetPeriod[],
   now: Date = new Date()
 ): Date | null {
-  const yearStartMs = new Date(now.getFullYear(), 0, 1).getTime();
+  const yearStartMs = financialDateTime(now).startOf('year').toMillis();
   let earliest: number | null = null;
 
   for (const period of periods) {

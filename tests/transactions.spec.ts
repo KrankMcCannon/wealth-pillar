@@ -3,7 +3,7 @@ import { test, expect } from './fixtures';
 
 test('shows the seeded ledger and loads another page', async ({ page }) => {
   await page.goto('/it/transactions');
-  await expect(page.getByTestId('transactions-fab-add')).toBeVisible();
+  await expect(page.locator('[data-testid="transactions-fab-add"]:visible')).toBeVisible();
   const rows = page.locator('[data-testid^="transaction-row-"]');
   await expect(rows.first()).toBeVisible();
   const before = await rows.count();
@@ -33,7 +33,7 @@ test('deep-links to the recurring tab with real seeded content', async ({ page }
 
 test('requires valid input in the transaction form', async ({ page }) => {
   await page.goto('/it/transactions');
-  await page.getByTestId('transactions-fab-add').click();
+  await page.locator('[data-testid="transactions-fab-add"]:visible').click();
   const dialog = page.getByRole('dialog');
   await expect(dialog.getByRole('radiogroup', { name: 'Tipo' })).toBeVisible();
   await dialog.getByRole('button', { name: 'Crea transazione', exact: true }).click();
@@ -42,8 +42,13 @@ test('requires valid input in the transaction form', async ({ page }) => {
 
 test('creates a transaction and keeps it after a reload', async ({ page }) => {
   const description = `E2E Created ${randomUUID()}`;
+  await page.goto('/it/budgets');
+  const budget = page.getByRole('link', { name: /Apri dettagli budget: E2E Food Budget/ });
+  await expect(budget).toContainText('120,00');
+  await page.goto('/it/accounts');
+  await expect(page.getByRole('main')).toContainText('10.000,00');
   await page.goto('/it/transactions');
-  await page.getByTestId('transactions-fab-add').click();
+  await page.locator('[data-testid="transactions-fab-add"]:visible').click();
   const dialog = page.getByRole('dialog');
   await dialog.getByLabel('Descrizione', { exact: true }).fill(description);
   await dialog.locator('input[placeholder="0,00"]').fill('10');
@@ -52,7 +57,15 @@ test('creates a transaction and keeps it after a reload', async ({ page }) => {
   await dialog.getByRole('button', { name: 'Crea transazione', exact: true }).click();
   await expect(dialog).toBeHidden();
   await page.reload();
-  await expect(page.getByText(description, { exact: true })).toBeVisible();
+  await expect(
+    page.locator('[data-testid^="transaction-row-"]:visible').filter({ hasText: description })
+  ).toHaveCount(1);
+  await page.goto('/it/budgets');
+  await expect(budget).toContainText(/Speso:\s*130,00/);
+  await page.goto('/it/home');
+  await expect(page.getByRole('main')).toContainText('9.990,00');
+  await page.goto('/it/accounts');
+  await expect(page.getByRole('main')).toContainText('9.990,00');
 });
 
 test('updates its own transaction, cancels deletion and then deletes it persistently', async ({
@@ -69,7 +82,7 @@ test('updates its own transaction, cancels deletion and then deletes it persiste
   await dialog.getByRole('button', { name: 'Salva transazione', exact: true }).click();
   await expect(dialog).toBeHidden();
   await page.reload();
-  await expect(page.getByText(updated, { exact: true })).toBeVisible();
+  await expect(row).toContainText(updated);
   await row.click();
   await page.getByTestId('transaction-form-delete').click();
   const confirmation = page

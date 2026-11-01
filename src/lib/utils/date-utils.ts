@@ -54,11 +54,11 @@ export function toDateTime(date: DateInput): DateTime | null {
     }
 
     // Try ISO format with timezone
-    let dt = DateTime.fromISO(date);
+    let dt = DateTime.fromISO(date, { zone: 'Europe/Rome' });
     if (dt.isValid) return dt;
 
     // Try SQL format
-    dt = DateTime.fromSQL(date);
+    dt = DateTime.fromSQL(date, { zone: 'Europe/Rome' });
     if (dt.isValid) return dt;
   }
 

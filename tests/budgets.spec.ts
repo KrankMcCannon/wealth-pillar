@@ -5,7 +5,8 @@ test('shows cycle context, exposes its action and links to scoped history', asyn
   await expect(
     page.getByRole('heading', { name: 'Budget di E2E User', exact: true })
   ).toBeVisible();
-  await page.getByRole('button', { name: 'Nuovo ciclo', exact: true }).click();
+  await page.getByRole('button', { name: /azioni del periodo/i }).click();
+  await page.getByRole('menuitem', { name: 'Nuovo ciclo', exact: true }).click();
   await expect(page.getByRole('dialog')).toContainText('E2E User');
   await expect(page.getByRole('dialog')).toContainText('Il nuovo ciclo inizia');
   await page.getByRole('button', { name: 'Annulla', exact: true }).click();

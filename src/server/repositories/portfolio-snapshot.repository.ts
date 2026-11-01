@@ -1,8 +1,20 @@
+import { resolveDb, type DbExecutor } from './db-executor';
 import { db } from '@/server/db/drizzle';
 import { portfolioValueSnapshots } from '@/server/db/schema';
 import { and, eq, gte, inArray, lte } from 'drizzle-orm';
 
 export class PortfolioSnapshotRepository {
+  static async deleteFrom(userId: string, date: string, executor: DbExecutor) {
+    await resolveDb(executor)
+      .delete(portfolioValueSnapshots)
+      .where(
+        and(
+          eq(portfolioValueSnapshots.user_id, userId),
+          gte(portfolioValueSnapshots.snapshot_date, date)
+        )
+      );
+  }
+
   static async findByUserIds(userIds: string[]) {
     if (userIds.length === 0) return [];
     return await db

@@ -105,9 +105,10 @@ export async function updateInvestmentUseCase(
     currency_rate: data.currency_rate?.toString(),
     tax_paid: data.tax_paid?.toString(),
     net_earn: data.net_earn?.toString(),
+    created_at: data.created_at ? new Date(data.created_at) : undefined,
   } as Partial<typeof investments.$inferInsert>;
 
-  return await InvestmentRepository.update(id, updateData);
+  return await InvestmentRepository.update(id, updateData, userId);
 }
 
 export async function getInvestmentByIdForUserUseCase(id: string, userId: string) {

@@ -1,7 +1,7 @@
 import { db } from '@/server/db/drizzle';
 import { TransactionsRepository } from '@/server/repositories/transactions.repository';
 import type { CreateTransactionInput } from '@/server/use-cases/transactions/types';
-import type { Transaction } from '@/lib/types';
+import type { TransactionMutationResult } from '@/lib/types/financial-mutation';
 import { serialize } from '@/lib/utils/serializer';
 import { toDateTime } from '@/lib/utils/date-utils';
 import {
@@ -13,7 +13,9 @@ import {
 import { invalidateTransactionCaches } from '@/lib/utils/cache-utils';
 import { applyTransactionBalanceAdjustments } from '@/server/use-cases/transactions/transaction-balance';
 
-export async function createTransactionUseCase(data: CreateTransactionInput): Promise<Transaction> {
+export async function createTransactionUseCase(
+  data: CreateTransactionInput
+): Promise<TransactionMutationResult> {
   const description = validateRequiredString(data.description, 'Description');
   validatePositiveNumber(data.amount, 'Amount');
   validateEnum(data.type, ['income', 'expense', 'transfer'] as const, 'Transaction type');
@@ -49,7 +51,11 @@ export async function createTransactionUseCase(data: CreateTransactionInput): Pr
     const created = await TransactionsRepository.create(insertData, tx);
     if (!created) throw new Error('Failed to create transaction');
     await applyTransactionBalanceAdjustments(created, 1, tx);
-    return created;
+    const accountBalances = await TransactionsRepository.getAccountBalances(
+      [created.account_id, ...(created.to_account_id ? [created.to_account_id] : [])],
+      tx
+    );
+    return { ...created, accountBalances };
   });
 
   invalidateTransactionCaches({
@@ -62,5 +68,5 @@ export async function createTransactionUseCase(data: CreateTransactionInput): Pr
   return serialize({
     ...transaction,
     amount: Number(transaction.amount),
-  }) as Transaction;
+  }) as TransactionMutationResult;
 }

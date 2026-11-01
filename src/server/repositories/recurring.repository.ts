@@ -1,6 +1,31 @@
 import { db } from '@/server/db/drizzle';
 import { recurringTransactions, accounts } from '@/server/db/schema';
-import { eq, arrayOverlaps, arrayContains, and, sql, getTableColumns } from 'drizzle-orm';
+import { eq, arrayOverlaps, arrayContains, and, sql, getTableColumns, exists } from 'drizzle-orm';
+
+export interface RecurringScope {
+  groupId: string;
+  userId?: string;
+}
+
+function seriesConditions(id: string, scope?: RecurringScope) {
+  return and(
+    eq(recurringTransactions.id, id),
+    scope
+      ? exists(
+          db
+            .select({ id: accounts.id })
+            .from(accounts)
+            .where(
+              and(
+                eq(accounts.id, recurringTransactions.account_id),
+                eq(accounts.group_id, scope.groupId)
+              )
+            )
+        )
+      : undefined,
+    scope?.userId ? arrayContains(recurringTransactions.user_ids, [scope.userId]) : undefined
+  );
+}
 
 // The series remains a plan; only actual ledger rows mark an occurrence as recorded.
 // Keep these qualified identifiers literal: Drizzle removes Column qualifiers in a
@@ -12,7 +37,7 @@ const recordedDates = sql<string[]>`coalesce((
 ), ARRAY[]::text[])`;
 
 export class RecurringRepository {
-  static async findById(id: string) {
+  static async findById(id: string, scope?: RecurringScope) {
     const results = await db
       .select({
         recurring: recurringTransactions,
@@ -21,7 +46,7 @@ export class RecurringRepository {
       })
       .from(recurringTransactions)
       .leftJoin(accounts, eq(recurringTransactions.account_id, accounts.id))
-      .where(eq(recurringTransactions.id, id));
+      .where(seriesConditions(id, scope));
 
     if (results.length === 0) return null;
 
@@ -54,19 +79,23 @@ export class RecurringRepository {
     return results.length > 0 ? results[0] : null;
   }
 
-  static async update(id: string, data: Partial<typeof recurringTransactions.$inferInsert>) {
+  static async update(
+    id: string,
+    data: Partial<typeof recurringTransactions.$inferInsert>,
+    scope?: RecurringScope
+  ) {
     const results = await db
       .update(recurringTransactions)
       .set({ ...data, updated_at: new Date() })
-      .where(eq(recurringTransactions.id, id))
+      .where(seriesConditions(id, scope))
       .returning();
     return results.length > 0 ? results[0] : null;
   }
 
-  static async delete(id: string) {
+  static async delete(id: string, scope?: RecurringScope) {
     const results = await db
       .delete(recurringTransactions)
-      .where(eq(recurringTransactions.id, id))
+      .where(seriesConditions(id, scope))
       .returning();
     return results.length > 0 ? results[0] : null;
   }

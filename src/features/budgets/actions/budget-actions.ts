@@ -1,6 +1,5 @@
 'use server';
 
-import { updateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { runAuthorizedMutation } from '@/lib/server-action/run-authorized-mutation';
@@ -8,6 +7,7 @@ import { runAuthorizedMutation } from '@/lib/server-action/run-authorized-mutati
 import { getCurrentUser } from '@/lib/auth/cached-auth';
 import type { CreateBudgetInput } from '@/server/use-cases/budgets/types';
 import { AccessScope } from '@/lib/permissions/access-scope';
+import { FinancialResourcePolicy } from '@/server/permissions/financial-resource-policy';
 import { isMember } from '@/lib/utils';
 import type { Budget } from '@/lib/types';
 import { createBudgetUseCase } from '@/server/use-cases/budgets/create-budget.use-case';
@@ -16,12 +16,6 @@ import { deleteBudgetUseCase } from '@/server/use-cases/budgets/delete-budget.us
 import { getBudgetByIdUseCase } from '@/server/use-cases/budgets/get-budgets.use-case';
 
 import type { ServiceResult } from '@/lib/types/service-result';
-
-function expireBudgetReadModels(groupId: string | null | undefined, budgetId?: string) {
-  updateTag('budgets');
-  if (groupId) updateTag(`group:${groupId}:budgets`);
-  if (budgetId) updateTag(`budget:${budgetId}`);
-}
 
 async function getBudgetsActionTranslator(locale?: string) {
   if (locale) {
@@ -70,10 +64,11 @@ export async function createBudgetAction(
       };
     }
 
-    const budget = await createBudgetUseCase(input);
+    const policy = new FinancialResourcePolicy(currentUser);
+    await policy.assertUsers([input.user_id]);
+    const budget = await createBudgetUseCase({ ...input, group_id: policy.groupId });
 
     if (budget) {
-      expireBudgetReadModels(budget.group_id, budget.id);
       return { data: budget, error: null };
     }
 
@@ -107,7 +102,10 @@ export async function updateBudgetAction(
     }
 
     // Get existing budget to verify ownership
-    const existingBudget = await getBudgetByIdUseCase(id);
+    const policy = new FinancialResourcePolicy(currentUser);
+    const existingBudget = await getBudgetByIdUseCase(id, policy.resourceScope);
+    policy.assertGroup(existingBudget.group_id);
+    if (input.group_id !== undefined) policy.assertGroup(input.group_id);
 
     // Verify budget has a user_id
     if (!existingBudget || !existingBudget.user_id) {
@@ -141,10 +139,10 @@ export async function updateBudgetAction(
       }
     }
 
-    const budget = await updateBudgetUseCase(id, input);
+    await policy.assertUsers([input.user_id ?? existingBudget.user_id]);
+    const budget = await updateBudgetUseCase(id, input, policy.resourceScope);
 
     if (budget) {
-      expireBudgetReadModels(budget.group_id, budget.id);
       return { data: budget, error: null };
     }
 
@@ -171,7 +169,9 @@ export async function getBudgetByIdAction(
       return { data: null, error: t('errors.unauthenticated') };
     }
 
-    const budget = await getBudgetByIdUseCase(id);
+    const policy = new FinancialResourcePolicy(currentUser);
+    const budget = await getBudgetByIdUseCase(id, policy.resourceScope);
+    policy.assertGroup(budget.group_id);
     if (!budget?.user_id) {
       return { data: null, error: t('errors.notFound') };
     }
@@ -199,11 +199,12 @@ export async function deleteBudgetAction(
 ): Promise<ServiceResult<{ id: string }>> {
   const t = await getBudgetsActionTranslator(locale);
   let ownerId: string | undefined;
-  let groupId: string | null | undefined;
   const result = await runAuthorizedMutation({
     unauthenticatedError: t('errors.unauthenticated'),
     authorize: async (currentUser) => {
-      const existingBudget = await getBudgetByIdUseCase(id);
+      const policy = new FinancialResourcePolicy(currentUser);
+      const existingBudget = await getBudgetByIdUseCase(id, policy.resourceScope);
+      policy.assertGroup(existingBudget.group_id);
       if (!existingBudget?.user_id) {
         return { data: null, error: t('errors.userMissing') };
       }
@@ -211,11 +212,11 @@ export async function deleteBudgetAction(
         return { data: null, error: t('errors.noPermissionDelete') };
       }
       ownerId = existingBudget.user_id;
-      groupId = existingBudget.group_id;
       return null;
     },
-    mutate: async () => {
-      const result = await deleteBudgetUseCase(id);
+    mutate: async (currentUser) => {
+      const policy = new FinancialResourcePolicy(currentUser);
+      const result = await deleteBudgetUseCase(id, policy.resourceScope);
       if (!result) {
         throw new Error(t('errors.deleteFailed'));
       }
@@ -223,10 +224,7 @@ export async function deleteBudgetAction(
     },
     formatError: (error) => (error instanceof Error ? error.message : t('errors.deleteFailed')),
   });
-  if (result.data) {
-    expireBudgetReadModels(groupId, id);
-    if (returnToList && ownerId)
-      redirect(`/${locale === 'en' ? 'en' : 'it'}/budgets?user=${encodeURIComponent(ownerId)}`);
-  }
+  if (result.data && returnToList && ownerId)
+    redirect(`/${locale === 'en' ? 'en' : 'it'}/budgets?user=${encodeURIComponent(ownerId)}`);
   return result;
 }

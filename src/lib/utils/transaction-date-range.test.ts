@@ -1,3 +1,4 @@
+import { financialDateTime } from './financial-date';
 import { describe, it, expect } from 'vitest';
 import {
   isTransactionDateInFilterRange,
@@ -13,8 +14,8 @@ describe('resolveTransactionDateRangeBounds', () => {
 
   it('returns same-day bounds for today', () => {
     const { startDate, endDate } = resolveTransactionDateRangeBounds('today', undefined, now);
-    expect(startDate?.getHours()).toBe(0);
-    expect(endDate?.getHours()).toBe(23);
+    expect(startDate && financialDateTime(startDate).hour).toBe(0);
+    expect(endDate && financialDateTime(endDate).hour).toBe(23);
   });
 
   it('returns rolling week bounds', () => {

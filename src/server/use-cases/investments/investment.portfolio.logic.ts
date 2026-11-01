@@ -1,3 +1,4 @@
+import { financialDateKey } from '@/lib/utils/financial-date';
 import {
   buildSeriesIndex,
   getCloseForDate,
@@ -55,10 +56,10 @@ export function enrichPortfolioFromInvestments(
     const shares = Number(inv.shares_acquired);
 
     const symbolData = seriesIndex[symbolKey];
-    const livePrice = getCloseForDate(symbolData, normalizeDateKey(new Date()));
+    const livePrice = getCloseForDate(symbolData, financialDateKey(new Date()));
     const currentValue = livePrice == null ? null : livePrice * currencyRate * shares;
 
-    const creationDateKey = normalizeDateKey(inv.created_at || new Date());
+    const creationDateKey = financialDateKey(inv.created_at || new Date());
     const initialPrice = getCloseForDate(symbolData, creationDateKey);
     const initialValue = initialPrice == null ? null : initialPrice * currencyRate * shares;
 
@@ -86,7 +87,7 @@ export function enrichPortfolioFromInvestments(
       priceDate:
         symbolData?.findLast(
           (point) =>
-            point.date <= normalizeDateKey(new Date()) &&
+            point.date <= financialDateKey(new Date()) &&
             Number.isFinite(point.close) &&
             point.close > 0
         )?.date ?? null,
@@ -133,9 +134,9 @@ export function buildPortfolioHistory(
   seriesIndex: SeriesIndex
 ): { date: string; value: number }[] {
   if (rows.length === 0) return [];
-  const today = normalizeDateKey(new Date());
+  const today = financialDateKey(new Date());
   const lots = rows.map((row) => ({
-    start: normalizeDateKey(row.created_at ?? new Date()),
+    start: financialDateKey(row.created_at ?? new Date()),
     symbol: row.symbol.toUpperCase(),
     units: Number(row.shares_acquired) * (Number(row.currency_rate) || 1),
   }));
@@ -171,101 +172,59 @@ export function buildPortfolioHistory(
   return history;
 }
 
-function todayDateKey(): string {
-  return new Date().toISOString().split('T')[0] ?? '';
-}
-
-function yesterdayDateKey(): string {
-  const d = new Date();
-  d.setUTCDate(d.getUTCDate() - 1);
-  return d.toISOString().split('T')[0] ?? '';
-}
-
-function mergeSnapshotsByDate(
-  snapshots: Array<{ snapshot_date: string; value: string | number }>
-): Map<string, number> {
-  const merged = new Map<string, number>();
-  for (const row of snapshots) {
-    const dateKey = row.snapshot_date;
-    const value = Number(row.value);
-    merged.set(dateKey, (merged.get(dateKey) ?? 0) + value);
-  }
-  return merged;
-}
-
+/**
+ * Reads never write projections. Mutations atomically discard snapshots from the
+ * first changed accounting day. Available quotes rebuild those points in memory;
+ * earlier, unaffected snapshots preserve history outside the quote window.
+ */
 export async function buildPortfolioHistoryWithSnapshots(
   userIds: string[],
   rows: InvestmentRow[],
   seriesIndex: SeriesIndex
 ): Promise<{ date: string; value: number }[]> {
-  if (rows.length === 0) return [];
-
-  const todayKey = todayDateKey();
-  const yesterdayKey = yesterdayDateKey();
-  const rowsByUser = new Map<string, InvestmentRow[]>();
-
-  for (const row of rows) {
-    const list = rowsByUser.get(row.user_id) ?? [];
-    list.push(row);
-    rowsByUser.set(row.user_id, list);
-  }
-
-  const existingSnapshots = await PortfolioSnapshotRepository.findByUserIds(userIds);
-  const snapshotsToPersist: Array<{ user_id: string; snapshot_date: string; value: string }> = [];
-
-  for (const userId of userIds) {
-    const userRows = rowsByUser.get(userId) ?? [];
-    if (userRows.length === 0) continue;
-
-    const userSnapshots = existingSnapshots.filter((s) => s.user_id === userId);
-    const latestSnapshotDate = userSnapshots.reduce<string | null>((max, snap) => {
-      if (!max || snap.snapshot_date > max) return snap.snapshot_date;
-      return max;
-    }, null);
-
-    const fullHistory = buildPortfolioHistory(userRows, seriesIndex);
-    const closedHistory = fullHistory.filter(
-      (point) => point.date <= yesterdayKey && point.date > (latestSnapshotDate ?? '')
-    );
-
-    for (const point of closedHistory) {
-      snapshotsToPersist.push({
-        user_id: userId,
-        snapshot_date: point.date,
-        value: point.value.toFixed(2),
-      });
+  if (!rows.length) return [];
+  const snapshots = await PortfolioSnapshotRepository.findByUserIds(userIds);
+  const byUser = new Map<string, Map<string, number>>();
+  const starts = new Map<string, string>();
+  const dates = new Set<string>();
+  const today = financialDateKey(new Date());
+  for (const userId of new Set(userIds)) {
+    const lots = rows.filter((row) => row.user_id === userId);
+    if (!lots.length) continue;
+    const start = lots.reduce((first, lot) => {
+      const day = financialDateKey(lot.created_at ?? new Date());
+      return day < first ? day : first;
+    }, today);
+    starts.set(userId, start);
+    const points = new Map<string, number>();
+    for (const point of snapshots.filter((row) => row.user_id === userId)) {
+      if (
+        point.snapshot_date >= start &&
+        point.snapshot_date < today &&
+        Number.isFinite(Number(point.value))
+      ) {
+        points.set(point.snapshot_date, Number(point.value));
+      }
     }
+    for (const point of buildPortfolioHistory(lots, seriesIndex))
+      points.set(point.date, point.value);
+    for (const day of points.keys()) dates.add(day);
+    byUser.set(userId, points);
   }
-
-  if (snapshotsToPersist.length > 0) {
-    await PortfolioSnapshotRepository.upsertMany(snapshotsToPersist);
+  const result: { date: string; value: number }[] = [];
+  for (const date of [...dates].sort()) {
+    let value = 0;
+    let complete = true;
+    for (const [userId, points] of byUser) {
+      if (starts.get(userId)! > date) continue;
+      const point = points.get(date);
+      if (point === undefined) {
+        complete = false;
+        break;
+      }
+      value += point;
+    }
+    if (complete) result.push({ date, value });
   }
-
-  const allSnapshots = await PortfolioSnapshotRepository.findByUserIds(userIds);
-  const merged = mergeSnapshotsByDate(allSnapshots);
-  const present = new Set(
-    allSnapshots.map((snapshot) => `${snapshot.user_id}:${snapshot.snapshot_date}`)
-  );
-  for (const date of merged.keys()) {
-    // A group total is unavailable if any user holding assets that day has no snapshot.
-    const complete = rows.every(
-      (row) =>
-        normalizeDateKey(row.created_at ?? new Date()) > date ||
-        present.has(`${row.user_id}:${date}`)
-    );
-    if (!complete) merged.delete(date);
-  }
-
-  if (merged.size === 0) {
-    return buildPortfolioHistory(rows, seriesIndex);
-  }
-
-  const liveToday = buildPortfolioHistory(rows, seriesIndex).find((p) => p.date === todayKey);
-  if (liveToday && liveToday.value > 0) {
-    merged.set(todayKey, liveToday.value);
-  }
-
-  return [...merged.entries()]
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([date, value]) => ({ date, value }));
+  return result;
 }

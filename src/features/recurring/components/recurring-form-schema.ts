@@ -1,3 +1,4 @@
+import { RECURRING_FREQUENCIES } from '@/lib/recurring/frequencies';
 import { parseDecimal } from '@/lib/utils/parse-decimal';
 import type { useTranslations } from 'next-intl';
 import { z } from 'zod';
@@ -18,7 +19,7 @@ export function createRecurringSchema(t: ReturnType<typeof useTranslations>) {
         .enum(['income', 'expense', 'transfer'])
         .refine((type): boolean => type !== 'transfer', t('validation.transfersUnavailable')),
       category: z.string().min(1, t('validation.categoryRequired')),
-      frequency: z.enum(['once', 'weekly', 'biweekly', 'monthly', 'yearly']),
+      frequency: z.enum(RECURRING_FREQUENCIES),
       user_ids: z.array(z.string()).min(1, t('validation.userIdsRequired')),
       account_id: z.string().min(1, t('validation.accountRequired')),
       start_date: z.string().min(1, t('validation.startDateRequired')),

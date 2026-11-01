@@ -19,6 +19,18 @@ export class FinancialResourcePolicy {
     if (groupId !== this.groupId) throw new Error('Permesso negato');
   }
 
+  get resourceScope(): { groupId: string; userId?: string } {
+    return {
+      groupId: this.groupId,
+      ...(!this.scope.isAdmin ? { userId: this.scope.viewerId } : {}),
+    };
+  }
+
+  async assertRecurring(input: { account_id: string; user_ids: string[] }): Promise<void> {
+    await this.assertUsers(input.user_ids);
+    await this.assertAccount(input.account_id);
+  }
+
   async assertUsers(userIds: string[]): Promise<void> {
     if (!userIds.length || userIds.some((id) => !this.scope.canViewUser(id))) {
       throw new Error('Permesso negato');

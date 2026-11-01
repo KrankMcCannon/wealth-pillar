@@ -2,7 +2,8 @@
 
 The `CI` workflow runs on PRs to `master`, pushes to `master`, and manual runs.
 Feature-branch pushes do not duplicate PR runs. Static checks and build always run
-in parallel with test selection. Unit and integration runners start only when the
+in parallel with test selection. Static checks also run the accounting-calendar regressions
+under UTC, Europe/Rome and America/Los_Angeles, including report links and year boundaries. Unit and integration runners start only when the
 planner selects files for them. A skipped integration job does not start PostgreSQL.
 
 ## Selecting affected tests

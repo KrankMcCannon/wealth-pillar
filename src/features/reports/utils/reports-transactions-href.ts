@@ -1,4 +1,4 @@
-import { format } from 'date-fns';
+import { financialDateKey } from '@/lib/utils/financial-date';
 import {
   getCurrentReportingWindow,
   type ReportsTimePreset,
@@ -76,8 +76,8 @@ export function buildReportsCategoryTransactionsHref(input: {
     ? null
     : getCurrentReportingWindow(input.preset, input.customRange, input.now);
   const window = input.window ?? {
-    start: format(resolved!.start, 'yyyy-MM-dd'),
-    end: format(resolved!.end, 'yyyy-MM-dd'),
+    start: financialDateKey(resolved!.start),
+    end: financialDateKey(resolved!.end),
   };
   const qs = buildTransactionsQueryString(
     {
@@ -107,8 +107,8 @@ export function buildReportsReserveTransactionsHref(input: {
     ? null
     : getCurrentReportingWindow(input.preset, input.customRange, input.now);
   const window = input.window ?? {
-    start: format(resolved!.start, 'yyyy-MM-dd'),
-    end: format(resolved!.end, 'yyyy-MM-dd'),
+    start: financialDateKey(resolved!.start),
+    end: financialDateKey(resolved!.end),
   };
   const params = new URLSearchParams();
   params.set('type', 'transfer');

@@ -1,14 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Budget } from '@/lib/types';
 
-const afterCallbacks: Array<() => void> = [];
-
-vi.mock('next/server', () => ({
-  after: (fn: () => void) => {
-    afterCallbacks.push(fn);
-  },
-}));
-
 vi.mock('@/server/repositories/budgets.repository', () => ({
   BudgetsRepository: {
     getById: vi.fn(),
@@ -48,25 +40,21 @@ const updated: Budget = { ...existing, amount: 250, description: 'Groceries' };
 
 describe('updateBudgetUseCase', () => {
   beforeEach(() => {
-    afterCallbacks.length = 0;
     vi.clearAllMocks();
     vi.mocked(BudgetsRepository.getById).mockResolvedValue(existing);
     vi.mocked(BudgetsRepository.update).mockResolvedValue(updated);
   });
 
-  it('writes only the live budget row and defers cache invalidation', async () => {
+  it('writes the live budget row and expires caches before returning', async () => {
     const result = await updateBudgetUseCase('b1', { description: 'Groceries', amount: 250 });
 
     expect(result).toEqual(updated);
     expect(BudgetsRepository.update).toHaveBeenCalledWith(
       'b1',
-      expect.objectContaining({ description: 'Groceries', amount: '250' })
+      expect.objectContaining({ description: 'Groceries', amount: '250' }),
+      undefined
     );
     expect(BudgetPeriodsRepository.update).not.toHaveBeenCalled();
-    expect(invalidateBudgetCaches).not.toHaveBeenCalled();
-
-    afterCallbacks.forEach((fn) => fn());
-
     expect(invalidateBudgetCaches).toHaveBeenCalledWith({
       budgetId: 'b1',
       userId: 'u1',

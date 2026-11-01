@@ -1,4 +1,7 @@
-import { RecurringRepository } from '@/server/repositories/recurring.repository';
+import {
+  RecurringRepository,
+  type RecurringScope,
+} from '@/server/repositories/recurring.repository';
 import { recurringTransactions } from '@/server/db/schema';
 import { getUsersByGroupUseCase, getUserGroupIdUseCase } from '../users/user.use-cases';
 import { cached } from '@/lib/cache';
@@ -50,15 +53,18 @@ export async function getSeriesByGroupUseCase(
   return await getCachedSeries();
 }
 
-export async function getSeriesByIdUseCase(seriesId: string): Promise<RecurringTransactionSeries> {
+export async function getSeriesByIdUseCase(
+  seriesId: string,
+  scope?: RecurringScope
+): Promise<RecurringTransactionSeries> {
   if (!seriesId?.trim()) throw new Error('Series ID is required');
 
   const getCachedSeries = cached(
     async () => {
-      const series = await RecurringRepository.findById(seriesId);
+      const series = await RecurringRepository.findById(seriesId, scope);
       return serialize(series) as unknown as RecurringTransactionSeries | null;
     },
-    recurringCacheKeys.byId(seriesId),
+    [...recurringCacheKeys.byId(seriesId), scope?.groupId ?? 'all', scope?.userId ?? 'all'],
     cacheOptions.recurringSingle(seriesId)
   );
 
@@ -103,14 +109,17 @@ export async function createSeriesUseCase(
 
 export async function updateSeriesUseCase(
   id: string,
-  data: RecurringUpdate
+  data: RecurringUpdate,
+  scope?: RecurringScope
 ): Promise<RecurringTransactionSeries> {
   const updatePayload = {
     ...data,
     amount: data.amount !== undefined ? data.amount.toString() : undefined,
   } as Partial<typeof recurringTransactions.$inferInsert>;
 
-  const series = await RecurringRepository.update(id, updatePayload);
+  const previous = await RecurringRepository.findById(id, scope);
+  if (!previous) throw new Error('Recurring series not found');
+  const series = await RecurringRepository.update(id, updatePayload, scope);
   if (!series) throw new Error('Failed to update series');
 
   let groupId: string | undefined;
@@ -124,18 +133,18 @@ export async function updateSeriesUseCase(
 
   invalidateRecurringCaches({
     seriesId: id,
-    userIds: series.user_ids,
+    userIds: [...new Set([...(previous.user_ids ?? []), ...(series.user_ids ?? [])])],
     groupId,
   });
 
   return serialize(series) as unknown as RecurringTransactionSeries;
 }
 
-export async function deleteSeriesUseCase(id: string): Promise<void> {
-  const series = await RecurringRepository.findById(id);
+export async function deleteSeriesUseCase(id: string, scope?: RecurringScope): Promise<void> {
+  const series = await RecurringRepository.findById(id, scope);
   if (!series) return;
 
-  await RecurringRepository.delete(id);
+  if (!(await RecurringRepository.delete(id, scope))) throw new Error('Recurring series not found');
 
   let groupId: string | undefined;
   if (series.user_ids && series.user_ids.length > 0 && typeof series.user_ids[0] === 'string') {

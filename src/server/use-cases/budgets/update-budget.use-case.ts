@@ -1,10 +1,17 @@
-import { after } from 'next/server';
-import { BudgetsRepository, type UpdateBudget } from '@/server/repositories/budgets.repository';
+import {
+  BudgetsRepository,
+  type UpdateBudget,
+  type BudgetScope,
+} from '@/server/repositories/budgets.repository';
 import type { UpdateBudgetInput } from './types';
 import type { Budget } from '@/lib/types';
 import { invalidateBudgetCaches } from '@/lib/utils/cache-utils';
 
-export async function updateBudgetUseCase(id: string, data: UpdateBudgetInput): Promise<Budget> {
+export async function updateBudgetUseCase(
+  id: string,
+  data: UpdateBudgetInput,
+  scope?: BudgetScope
+): Promise<Budget> {
   if (!id || id.trim() === '') {
     throw new Error('Budget ID is required');
   }
@@ -27,7 +34,7 @@ export async function updateBudgetUseCase(id: string, data: UpdateBudgetInput): 
     throw new Error('User ID cannot be empty');
   }
 
-  const existing = await BudgetsRepository.getById(id);
+  const existing = await BudgetsRepository.getById(id, scope);
   if (!existing) {
     throw new Error('Budget not found');
   }
@@ -41,18 +48,16 @@ export async function updateBudgetUseCase(id: string, data: UpdateBudgetInput): 
   if (data.categories !== undefined) updateData.categories = data.categories;
   if (data.user_id !== undefined) updateData.user_id = data.user_id;
 
-  const updatedBudget = await BudgetsRepository.update(id, updateData);
+  const updatedBudget = await BudgetsRepository.update(id, updateData, scope);
 
-  after(() => {
-    invalidateBudgetCaches({
-      budgetId: id,
-      userId: existing.user_id,
-      groupId: existing.group_id || undefined,
-    });
-    if (data.user_id && data.user_id !== existing.user_id) {
-      invalidateBudgetCaches({ userId: data.user_id });
-    }
+  invalidateBudgetCaches({
+    budgetId: id,
+    userId: existing.user_id,
+    groupId: existing.group_id || undefined,
   });
+  if (data.user_id && data.user_id !== existing.user_id) {
+    invalidateBudgetCaches({ userId: data.user_id });
+  }
 
   return updatedBudget;
 }

@@ -1,9 +1,11 @@
 import type { Account, Transaction } from '@/lib/types';
-import { transactions } from '@/server/db/schema';
 import type { DateWindow } from '../reports/report.logic';
 import type { DbExecutor } from '@/server/repositories/db-executor';
 import { AccountsRepository } from '@/server/repositories/accounts.repository';
-import { TransactionsRepository } from '@/server/repositories/transactions.repository';
+import {
+  TransactionsRepository,
+  type TransactionLedgerRow,
+} from '@/server/repositories/transactions.repository';
 import { UsersRepository } from '@/server/repositories/users.repository';
 
 /** Complete group ledger for financial calculations, independent of display pagination. */
@@ -16,19 +18,17 @@ export async function loadPeriodLiquidityData(
   const resolved = groupId?.trim() || (await UsersRepository.findById(userId))?.group_id || '';
   if (!resolved) throw new Error('Group ID is required');
 
-  const [result, accounts] = await Promise.all([
-    TransactionsRepository.getByGroup(
-      resolved,
-      { ...(window ? { startDate: window.start, endDate: window.end } : {}), countTotal: false },
-      executor
-    ),
-    AccountsRepository.findByGroup(resolved, executor),
-  ]);
-
-  if (result.hasMore) throw new Error('Cannot calculate a snapshot from an incomplete ledger');
+  const accounts = await AccountsRepository.findByGroup(resolved, executor);
+  const rows: TransactionLedgerRow[] = [];
+  for await (const page of TransactionsRepository.scanByGroup(
+    resolved,
+    window ? { startDate: window.start, endDate: window.end } : {},
+    executor
+  ))
+    rows.push(...page);
 
   return {
-    transactions: result.data.map((row: typeof transactions.$inferSelect) => ({
+    transactions: rows.map((row) => ({
       ...row,
       amount: Number(row.amount),
     })) as Transaction[],

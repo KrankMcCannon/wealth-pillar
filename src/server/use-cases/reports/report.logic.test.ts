@@ -1,3 +1,4 @@
+import { financialDateTime } from '@/lib/utils/financial-date';
 import { describe, it, expect } from 'vitest';
 import {
   sumIncomeExpenseInWindow,
@@ -8,8 +9,8 @@ import {
 import type { Account, Category, Transaction } from '@/lib/types';
 
 const window = {
-  start: new Date('2024-06-01'),
-  end: new Date('2024-06-30T23:59:59'),
+  start: financialDateTime('2024-06-01').startOf('day').toJSDate(),
+  end: financialDateTime('2024-06-30').endOf('day').toJSDate(),
 };
 
 describe('sumIncomeExpenseInWindow', () => {

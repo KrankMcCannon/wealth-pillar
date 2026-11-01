@@ -1,3 +1,4 @@
+import { financialDateKey } from '@/lib/utils/financial-date';
 import type { Account, Category, Transaction } from '@/lib/types';
 import { resolveAccountLiquidity } from '@/lib/utils/account-classification';
 import type { NetSavingsResult } from '@/server/ledger';
@@ -36,10 +37,10 @@ export function sumIncomeExpenseInWindow(
   userId?: string,
   accounts: Account[] = []
 ): { income: number; expenses: number } {
-  const t0 = window.start.getTime();
-  const t1 = window.end.getTime();
+  const t0 = financialDateKey(window.start);
+  const t1 = financialDateKey(window.end);
   const inWindow = transactions.filter((row) => {
-    const d = new Date(row.date).getTime();
+    const d = financialDateKey(row.date);
     return d >= t0 && d <= t1;
   });
   return foldCashFlow(inWindow, accounts, userId);
@@ -60,8 +61,8 @@ export function computeCategoryStats(
   userId?: string,
   accounts: Account[] = []
 ) {
-  const t0 = window.start.getTime();
-  const t1 = window.end.getTime();
+  const t0 = financialDateKey(window.start);
+  const t1 = financialDateKey(window.end);
   const accountMap = accountsToMap(accounts);
   const categoryMap = new Map(categories.map((c) => [c.id, c]));
   const categoryByKey = new Map(categories.map((c) => [c.key.toLowerCase(), c]));
@@ -91,7 +92,7 @@ export function computeCategoryStats(
   };
 
   for (const tx of transactions) {
-    const d = new Date(tx.date).getTime();
+    const d = financialDateKey(tx.date);
     if (d < t0 || d > t1) continue;
     const impact = computeTransactionImpact(tx, accountMap);
     if (userId === undefined) {
@@ -115,10 +116,10 @@ export function computeUserFlows(
   window: DateWindow
 ): UserFlowSummary[] {
   const accountMap = new Map(accounts.map((a) => [a.id, a]));
-  const t0 = window.start.getTime();
-  const t1 = window.end.getTime();
+  const t0 = financialDateKey(window.start);
+  const t1 = financialDateKey(window.end);
   const filtered = transactions.filter((row) => {
-    const d = new Date(row.date).getTime();
+    const d = financialDateKey(row.date);
     return d >= t0 && d <= t1;
   });
 
@@ -199,8 +200,8 @@ export function computeGroupAccountTypeSummary(
   window: DateWindow
 ): AccountTypeSummary[] {
   const accountMap = accountsToMap(accounts);
-  const t0 = window.start.getTime();
-  const t1 = window.end.getTime();
+  const t0 = financialDateKey(window.start);
+  const t1 = financialDateKey(window.end);
   const merged = new Map<string, { balance: number; earned: number; spent: number }>();
 
   const uniqueAccounts = accounts.filter((account) =>
@@ -217,7 +218,7 @@ export function computeGroupAccountTypeSummary(
   }
 
   for (const tx of transactions) {
-    const d = new Date(tx.date).getTime();
+    const d = financialDateKey(tx.date);
     if (d < t0 || d > t1) continue;
     const impact = computeTransactionImpact(tx, accountMap);
     if (impact.cashFlow === 0) continue;
@@ -244,10 +245,10 @@ export function computeGroupAccountTypeSummary(
 }
 
 export function periodOverlapsWindow(period: ReportPeriodSummary, w: DateWindow): boolean {
-  const ps = new Date(period.startDate).getTime();
-  const pe = new Date(period.endDate).getTime();
-  const ws = w.start.getTime();
-  const we = w.end.getTime();
+  const ps = financialDateKey(period.startDate);
+  const pe = financialDateKey(period.endDate);
+  const ws = financialDateKey(w.start);
+  const we = financialDateKey(w.end);
   return !(pe < ws || ps > we);
 }
 

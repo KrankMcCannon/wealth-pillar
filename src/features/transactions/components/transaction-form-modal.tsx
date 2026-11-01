@@ -1,5 +1,6 @@
 'use client';
 
+import type { TransactionMutationResult } from '@/lib/types/financial-mutation';
 import { parseDecimal } from '@/lib/utils/parse-decimal';
 import { useSearchParams } from 'next/navigation';
 import { resolveTransactionCreateContext } from '../utils/create-transaction-context';
@@ -26,7 +27,7 @@ import {
 import { getDefaultAccountIdForUser } from '@/features/accounts/utils/default-account-id';
 import { useToast } from '@/hooks';
 import { getTempId } from '@/lib/utils/temp-id';
-import type { Account, Category, Transaction, User } from '@/lib/types';
+import type { Account, Category, User } from '@/lib/types';
 import { useTransactionEditStore } from '../stores/transaction-edit-store';
 import {
   buildOptimisticTransaction,
@@ -313,7 +314,7 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
   const handleSubmit = useEntityFormSubmit<
     TransactionFormData,
     ReturnType<typeof buildPayload>,
-    Transaction,
+    TransactionMutationResult,
     TransactionMutationHandle
   >({
     isEditMode,
@@ -336,6 +337,7 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
     commitCreate: (handle, result) => {
       if (!handle || handle.kind !== 'create') return;
       commitOptimistic(handle.tempId, result);
+      applyBalanceSnapshotToStore(result.accountBalances, updateAccount);
     },
     rollbackCreate: (handle, _error) => {
       if (!handle || handle.kind !== 'create') return;
@@ -367,6 +369,7 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
     commitUpdate: (handle, result) => {
       if (!handle || handle.kind !== 'update') return;
       commitUpdateOptimisticStore(handle.editId, result);
+      applyBalanceSnapshotToStore(result.accountBalances, updateAccount);
     },
     rollbackUpdate: (handle, _error) => {
       if (!handle || handle.kind !== 'update') return;
@@ -415,6 +418,7 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
       });
       throw new Error(result.error);
     }
+    if (result.data) applyBalanceSnapshotToStore(result.data.accountBalances, updateAccount);
     commitDeleteOptimisticStore(editId);
   }, [
     applyDeleteOptimisticStore,

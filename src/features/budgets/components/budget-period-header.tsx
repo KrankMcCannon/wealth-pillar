@@ -46,14 +46,6 @@ export function BudgetPeriodHeader({
       </p>
 
       <div className="flex shrink-0 items-center gap-1">
-        <button
-          type="button"
-          className="min-h-11 rounded-lg px-2 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-ring"
-          disabled={disabled}
-          onClick={onStartSalaryPeriod}
-        >
-          {t('startSalaryPeriod')}
-        </button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
@@ -67,6 +59,9 @@ export function BudgetPeriodHeader({
           </DropdownMenuTrigger>
 
           <DropdownMenuContent align="end">
+            <DropdownMenuItem className="min-h-11" onSelect={onStartSalaryPeriod}>
+              {t('startSalaryPeriod')}
+            </DropdownMenuItem>
             <DropdownMenuItem className="min-h-11" onSelect={onEditClosingDate}>
               {t('editClosingDate')}
             </DropdownMenuItem>
