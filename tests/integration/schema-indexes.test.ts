@@ -27,7 +27,12 @@ it('creates every exported index with its declared operator class on PostgreSQL'
     for (const statement of indexes) await connection.unsafe(statement);
     const [result] =
       await connection`select count(*)::int as count from pg_indexes where schemaname = 'index_validation'`;
-    expect(result?.count).toBe(indexes.length);
+    const implicitIndexes = tables.reduce(
+      (total, [statement]) =>
+        total + (statement.match(/\bPRIMARY KEY\b|\bUNIQUE\s*\(/g)?.length ?? 0),
+      0
+    );
+    expect(result?.count).toBe(indexes.length + implicitIndexes);
   } finally {
     await connection.unsafe('ROLLBACK');
     connection.release();

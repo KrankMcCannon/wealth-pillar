@@ -120,9 +120,9 @@ export const stitchDashboardShell = {
 /** Capsule page tabs (Transazioni/Ricorrenti, Investimenti/Sandbox). */
 export const stitchPageTabs = {
   wrap: 'px-4',
-  list: 'grid w-full min-w-0 max-w-full grid-cols-2 gap-1 rounded-xl bg-muted p-1',
+  list: 'grid h-auto w-full min-w-0 max-w-full auto-cols-fr grid-flow-col items-stretch gap-1 rounded-xl bg-muted p-1',
   trigger:
-    'inline-flex min-h-11 min-w-0 w-full items-center justify-center rounded-lg px-2 py-2 text-sm font-semibold text-muted-foreground shadow-none transition-colors duration-200 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm motion-reduce:transition-none',
+    'inline-flex h-auto min-h-11 min-w-0 w-full items-center justify-center whitespace-normal rounded-lg px-2 py-2 text-center text-sm leading-snug font-semibold text-muted-foreground shadow-none transition-colors duration-200 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm motion-reduce:transition-none',
   stickyBar: 'relative z-30 w-full min-w-0 border-b border-border/40 bg-background py-3',
   stickyStack: 'mx-auto flex max-w-5xl flex-col gap-2',
   leading: 'px-4',

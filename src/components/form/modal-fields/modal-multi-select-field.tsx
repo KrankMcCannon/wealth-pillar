@@ -7,7 +7,7 @@ import type { User } from '@/lib/types';
 import { MultiUserSelect } from '@/components/form/multi-user-select';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
 import { ModalFieldError } from './modal-field-error';
-import { ModalMultiSelectChips } from './modal-multi-select-chips';
+import { CategoryPicker } from '../category-picker';
 import { ModalSelectorTrigger } from './modal-selector-trigger';
 import type { ModalSelectOption } from './modal-select-field';
 
@@ -147,42 +147,17 @@ function ModalMultiOptionRow({
   error?: string;
   searchPlaceholder?: string;
 }) {
-  const t = useTranslations('Budgets.FormModal.fields.categories');
-  const [open, setOpen] = useState(false);
-
-  const summary = useMemo(() => {
-    const selected = options.filter((option) => value.includes(option.value));
-    if (selected.length === 0) return '';
-    if (selected.length <= 2) return selected.map((option) => option.label).join(', ');
-    return t('selectedCount', { count: selected.length });
-  }, [options, value, t]);
-
   return (
     <div>
-      <ModalSelectorTrigger
+      <CategoryPicker
         label={label}
-        value={summary || t('placeholder')}
-        valueMuted={!summary}
-        {...(disabled !== undefined ? { disabled } : {})}
-        onClick={() => setOpen(true)}
+        value={value}
+        onChange={onChange}
+        options={options}
+        multiple
+        disabled={disabled}
+        placeholder={searchPlaceholder}
       />
-      <ModalWrapper
-        isOpen={open}
-        onOpenChange={(next) => {
-          if (!next) setOpen(false);
-        }}
-        title={label}
-        nested
-        className="min-h-0 overflow-hidden"
-      >
-        <ModalMultiSelectChips
-          options={options}
-          value={value}
-          onChange={onChange}
-          {...(disabled !== undefined ? { disabled } : {})}
-          {...(searchPlaceholder !== undefined ? { searchPlaceholder } : {})}
-        />
-      </ModalWrapper>
       {error ? <ModalFieldError message={error} /> : null}
     </div>
   );

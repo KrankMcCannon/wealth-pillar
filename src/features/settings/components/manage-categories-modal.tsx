@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Plus, Tag } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { stitchSettings as s } from '@/styles/home-design-foundation';
@@ -9,8 +9,13 @@ import { CategoryBadge } from '@/components/ui/category-badge';
 import { Badge } from '@/components/ui/badge';
 import { ModalWrapper, ModalBody, ModalSection } from '@/components/ui/modal-wrapper';
 import { useRequiredCurrentUser } from '@/hooks';
-import { useCategories, useUsedCategoryKeys } from '@/stores/reference-data-store';
+import {
+  useCategories,
+  useUsedCategoryKeys,
+  useReferenceDataStore,
+} from '@/stores/reference-data-store';
 import { useModalState } from '@/lib/navigation/url-state';
+import { getAllCategoriesAction } from '@/features/categories/actions/category-actions';
 import { isSystemCategory } from '@/features/categories/utils/category-helpers';
 
 export interface ManageCategoriesModalProps {
@@ -24,6 +29,40 @@ export function ManageCategoriesModal({ isOpen, onClose }: Readonly<ManageCatego
   const categories = useCategories();
   const usedCategoryKeys = useUsedCategoryKeys();
   const { openModal } = useModalState();
+  const [loading, setLoading] = useState(true);
+  const [failed, setFailed] = useState(false);
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    setFailed(false);
+    try {
+      const result = await getAllCategoriesAction();
+      if (result.data) useReferenceDataStore.getState().refreshCategories(result.data);
+      else setFailed(true);
+    } catch {
+      setFailed(true);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+  useEffect(() => {
+    if (!isOpen) return;
+    let active = true;
+    getAllCategoriesAction()
+      .then((result) => {
+        if (!active) return;
+        if (result.data) useReferenceDataStore.getState().refreshCategories(result.data);
+        else setFailed(true);
+      })
+      .catch(() => {
+        if (active) setFailed(true);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [isOpen, refresh]);
 
   const { customCategories, systemCategories } = useMemo(() => {
     const groupId = currentUser.group_id;
@@ -42,6 +81,19 @@ export function ManageCategoriesModal({ isOpen, onClose }: Readonly<ManageCatego
   return (
     <ModalWrapper isOpen={isOpen} onOpenChange={onClose} title={t('modalTitle')}>
       <ModalBody className="flex flex-col gap-5 pb-4">
+        {loading ? (
+          <p role="status" className="text-sm text-muted-foreground">
+            {t('loading')}
+          </p>
+        ) : null}
+        {failed ? (
+          <div role="alert">
+            <p>{t('loadError')}</p>
+            <button type="button" onClick={() => refresh()} className="min-h-11 underline">
+              {t('retry')}
+            </button>
+          </div>
+        ) : null}
         <ModalSection title={t('customTitle')}>
           <div className={s.sectionCard}>
             <SettingsRow

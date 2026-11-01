@@ -1,3 +1,4 @@
+import { rememberNotificationCategory } from '@/server/use-cases/bank-notifications/remember-category';
 import { db } from '@/server/db/drizzle';
 import { TransactionsRepository } from '@/server/repositories/transactions.repository';
 import type { UpdateTransactionInput } from '@/server/use-cases/transactions/types';
@@ -52,6 +53,7 @@ export async function updateTransactionUseCase(
       const row = await TransactionsRepository.update(id, updateData, tx);
       if (!row) throw new Error('Failed to update transaction');
       await applyTransactionBalanceUpdate(existing, row, tx);
+      if (existing.category !== row.category) await rememberNotificationCategory(tx, row);
       const { accountBalances, accountBalanceVersions } =
         await TransactionsRepository.getAccountBalanceState(
           [existing.account_id, existing.to_account_id, row.account_id, row.to_account_id].filter(

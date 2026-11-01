@@ -29,6 +29,7 @@ export function ModalIconField<T extends FieldValues>({
     >
       <IconPicker
         value={field.value ?? ''}
+        disabled={disabled}
         onChange={disabled ? () => undefined : field.onChange}
       />
     </ModalFormField>

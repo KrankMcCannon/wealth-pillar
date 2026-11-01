@@ -93,7 +93,10 @@
       "inUseBadge": "In uso",
       "inUseHint": "Usata da transazioni del gruppo: puoi modificarla, non eliminarla",
       "emptyCustom": "Nessuna categoria personalizzata",
-      "emptySystem": "Nessuna categoria predefinita"
+      "emptySystem": "Nessuna categoria predefinita",
+      "loadError": "Impossibile caricare le categorie.",
+      "retry": "Riprova",
+      "loading": "Caricamento categorie…"
     },
     "Preferences": {
       "title": "Preferenze",
@@ -145,7 +148,7 @@
       },
       "title": "Invita membro",
       "emailLabel": "Email",
-      "emailPlaceholder": "Email",
+      "emailPlaceholder": "nome@esempio.it",
       "noteLabel": "Nota:",
       "noteText": "Il nuovo membro riceverà un'email con un link di invito valido per 7 giorni. Potrà accettare l'invito creando un account o accedendo con un account esistente.",
       "cancelButton": "Annulla",
@@ -2170,5 +2173,64 @@
     "description": "Il caricamento non è riuscito. I movimenti non sono stati cancellati. Riprova.",
     "retry": "Riprova",
     "home": "Torna alla home"
+  },
+  "BankNotifications": {
+    "title": "Importa dalle notifiche",
+    "intro": "Collega le notifiche Revolut al tuo conto EUR tramite l’automazione iOS già configurata. I messaggi non riconosciuti restano da verificare. Trade Republic e Credem saranno aggiunte quando avremo i loro formati.",
+    "device": "Nome del dispositivo",
+    "deviceExample": "iPhone personale",
+    "account": "Conto Revolut EUR",
+    "category": "Categoria predefinita",
+    "autoImport": "Importa automaticamente i movimenti riconosciuti. Le notifiche ambigue e i possibili duplicati richiedono verifica.",
+    "connect": "Collega dispositivo",
+    "secretOnce": "Copia ora il token: viene mostrato solo questa volta. Conservalo solo nella tua automazione.",
+    "shortcut1": "Nell’automazione Revolut, aggiungi “Ottieni contenuto dell’URL”. Usa l’URL qui sotto, metodo POST e corpo JSON.",
+    "shortcut2": "Aggiungi le intestazioni Content-Type: application/json e Authorization con il valore Bearer mostrato sotto.",
+    "shortcut3": "Collega title al Titolo, body al Corpo e occurredAt alla Data originale della notifica formattata ISO 8601 con fuso orario. Esempio: 2026-11-01T20:45:00+01:00.",
+    "titleVariable": "[Notifica → Titolo]",
+    "bodyVariable": "[Notifica → Corpo]",
+    "dateVariable": "[Notifica → Data, ISO 8601]",
+    "copy": "Copia autorizzazione",
+    "copied": "Copiato",
+    "retryHelp": "Per riprovare un invio usa sempre la stessa data originale. HTTP 200/201 conferma la ricezione, anche per i messaggi da verificare. Su 429 riprova dopo 60 secondi; su 503 conserva il messaggio e riprova. Il saldo indicato dalla banca non sovrascrive il saldo del conto.",
+    "devices": "Dispositivi collegati",
+    "refresh": "Aggiorna notifiche",
+    "revoked": "Revocato",
+    "automatic": "Importazione automatica",
+    "reviewMode": "Verifica prima di importare",
+    "revoke": "Revoca",
+    "inbox": "Notifiche ricevute",
+    "inboxHint": "Fino a 50 notifiche, prima quelle da verificare. La categoria scelta in verifica viene ricordata per i prossimi movimenti dello stesso esercente.",
+    "loading": "Caricamento…",
+    "empty": "Nessuna notifica ricevuta.",
+    "unrecognized": "Formato non riconosciuto. Puoi ignorare la notifica e inserire il movimento manualmente.",
+    "import": "Conferma importazione",
+    "ignore": "Ignora",
+    "statuses": {
+      "pending": "Da verificare",
+      "imported": "Importata",
+      "ignored": "Ignorata"
+    },
+    "reasons": {
+      "unsupported_provider": "La mappatura di questa banca non è ancora disponibile.",
+      "missing_date": "Manca la data originale della notifica. Correggi l’automazione e inserisci questo movimento manualmente.",
+      "future_date": "La data è nel futuro. Controlla il formato e il fuso orario.",
+      "unconfirmed_movement": "Rimborso, storno o movimento non confermato: verifica manualmente.",
+      "unknown_format": "Il testo non corrisponde a un formato Revolut verificato.",
+      "invalid_amount": "Importo non valido.",
+      "missing_merchant": "Non è stato identificato l’esercente.",
+      "invalid_category": "Scegli una categoria disponibile nel gruppo.",
+      "possible_duplicate": "Esiste già un movimento con stessa data, importo e direzione. Controllalo prima di confermare.",
+      "review_mode": "Il dispositivo è configurato per la verifica prima dell’importazione."
+    },
+    "errors": {
+      "unavailable": "Non è stato possibile caricare o salvare. Riprova.",
+      "clipboard": "Copia il token manualmente: gli appunti non sono disponibili.",
+      "device_limit": "Puoi avere fino a 10 dispositivi attivi. Revocane uno prima di aggiungerne altri.",
+      "invalid_category": "Scegli una categoria disponibile nel gruppo.",
+      "connection_unavailable": "Il conto o l’utente non appartiene più al gruppo. Crea un nuovo collegamento.",
+      "duplicate_transaction": "Questo movimento risulta già importato. Aggiorna la lista.",
+      "unauthorized": "Accedi di nuovo per continuare."
+    }
   }
 }

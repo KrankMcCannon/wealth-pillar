@@ -9,9 +9,9 @@ it('generates no index rebuilds between the corrected baseline and current schem
   const snapshot = JSON.parse(
     readFileSync('src/server/db/drizzle/meta/0004_snapshot.json', 'utf8')
   );
-  for (const [name, table] of Object.entries<{ indexes: unknown }>(baseline.tables)) {
-    expect(snapshot.tables[name]).toBeDefined();
-    table.indexes = snapshot.tables[name].indexes;
+  for (const [name, table] of Object.entries<{ indexes: unknown }>(snapshot.tables)) {
+    expect(baseline.tables[name]).toBeDefined();
+    baseline.tables[name].indexes = table.indexes;
   }
   expect(await generateMigration(baseline, current)).toEqual([]);
 });

@@ -4,6 +4,9 @@ import { ManageCategoriesModal } from './manage-categories-modal';
 import { SYSTEM_GROUP_ID } from '@/lib/constants';
 
 const openModal = vi.fn();
+vi.mock('@/features/categories/actions/category-actions', () => ({
+  getAllCategoriesAction: vi.fn(async () => ({ data: [], error: null })),
+}));
 
 vi.mock('next-intl', () => ({
   useTranslations: () => (key: string) => key,
@@ -18,6 +21,7 @@ vi.mock('@/hooks/use-required-user', () => ({
 }));
 
 vi.mock('@/stores/reference-data-store', () => ({
+  useReferenceDataStore: { getState: () => ({ refreshCategories: vi.fn() }) },
   useCategories: () => [
     {
       id: 'c-custom',

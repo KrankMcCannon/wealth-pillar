@@ -50,6 +50,13 @@
       "when": 1793560581098,
       "tag": "20261101191621_account_balance_versions",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1793564288876,
+      "tag": "0007_bank_notifications",
+      "breakpoints": true
     }
   ]
 }
