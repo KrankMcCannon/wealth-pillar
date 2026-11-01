@@ -1,3 +1,4 @@
+import { financialDateKey as toDateOnlyString } from '@/lib/utils/financial-date';
 import type { BudgetPeriod } from '@/lib/types';
 import { withBudgetPeriodTransaction } from './budget-period-transaction';
 import { BudgetPeriodsRepository } from '@/server/repositories/budget-periods.repository';
@@ -11,13 +12,6 @@ export class RewindClosedPeriodError extends Error {
     super(code);
     this.name = 'RewindClosedPeriodError';
   }
-}
-
-function toDateOnlyString(date: string | Date): string {
-  if (typeof date === 'string') {
-    return date.split('T')[0] ?? date;
-  }
-  return date.toISOString().split('T')[0] ?? '';
 }
 
 /** Chronologically previous persisted period (greatest start_date still before `period`). */

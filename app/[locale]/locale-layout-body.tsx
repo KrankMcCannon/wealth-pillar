@@ -145,7 +145,11 @@ async function ReferenceDataGate({
 
   const [accounts, categories, usedCategoryKeys] = await Promise.all([
     withTimeout(getAccountsByGroupDeduped(groupId), 1500, [] as GroupAccounts),
-    withTimeout(getAllCategoriesDeduped(), 1200, [] as AllCategories),
+    withTimeout(
+      getAllCategoriesDeduped(currentUser.group_id ?? undefined),
+      1200,
+      [] as AllCategories
+    ),
     withTimeout(getUsedCategoryKeysByGroupUseCase(groupId), 1500, [] as string[]),
   ]);
 

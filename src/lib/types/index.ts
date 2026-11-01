@@ -89,6 +89,7 @@ export interface Account {
   user_ids: string[];
   group_id: string;
   balance?: number; // Added for performance optimization
+  balance_version?: string;
   created_at: DateString;
   updated_at: DateString;
 }

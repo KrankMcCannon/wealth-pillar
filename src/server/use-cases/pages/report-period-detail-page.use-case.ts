@@ -3,7 +3,6 @@ import { AccessScope } from '@/lib/permissions/access-scope';
 import type { Budget, BudgetProgress, Category, PeriodLiquidityAmounts, User } from '@/lib/types';
 import { toDateString } from '@/lib/utils';
 import { roundMoney } from '@/lib/utils/money';
-import { REPORTS_TRANSACTIONS_LIMIT } from '@/server/db/query-limits';
 import { BudgetPeriodsRepository } from '@/server/repositories/budget-periods.repository';
 import { UsersRepository } from '@/server/repositories/users.repository';
 import {
@@ -29,7 +28,8 @@ import {
   getProcessedUserPeriodsUseCase,
 } from '../reports/reports.use-cases';
 import { parsePeriodDates } from '../shared/period.logic';
-import { getTransactionsByGroupUseCase } from '../transactions/get-transactions.use-case';
+import { getFinancialLedgerUseCase } from '../transactions/get-transactions.use-case';
+import { financialDateTime } from '@/lib/utils/financial-date';
 
 export interface ReportPeriodDetailPageData {
   periodId: string;
@@ -92,7 +92,7 @@ async function getCachedReportPeriodDetailPageData(
   cacheTag(`group:${groupId}:transactions`);
   cacheTag(`group:${groupId}:accounts`);
   cacheTag(`group:${groupId}:budgets`);
-  cacheTag('categories');
+  cacheTag(`group:${groupId}:categories`, `group:00000000-0000-0000-0000-000000000000:categories`);
 
   if (isSyntheticBudgetPeriodId(periodId)) {
     notFound();
@@ -111,23 +111,20 @@ async function getCachedReportPeriodDetailPageData(
     notFound();
   }
   const owner = ownerRow as unknown as User;
+  cacheTag(CACHE_TAGS.USER_BUDGET_PERIODS(owner.id), CACHE_TAGS.USER(owner.id));
 
-  const startDate = new Date(`${toDateString(period.start_date)}T00:00:00.000Z`);
-  const endDate = new Date(`${toDateString(period.end_date ?? new Date())}T23:59:59.999Z`);
+  const startDate = financialDateTime(toDateString(period.start_date)).startOf('day').toJSDate();
+  const endDate = financialDateTime(toDateString(period.end_date ?? new Date()))
+    .endOf('day')
+    .toJSDate();
 
-  const [transactionResult, accounts, budgets, categories, periods] = await Promise.all([
-    getTransactionsByGroupUseCase(groupId, {
-      startDate,
-      endDate,
-      limit: REPORTS_TRANSACTIONS_LIMIT,
-      countTotal: false,
-    }),
+  const [transactions, accounts, budgets, categories, periods] = await Promise.all([
+    getFinancialLedgerUseCase(groupId, startDate, endDate),
     getAccountsByGroupDeduped(groupId),
     getBudgetsByUserUseCase(period.user_id),
-    getAllCategoriesDeduped().catch(() => [] as Category[]),
+    getAllCategoriesDeduped(groupId),
     getProcessedUserPeriodsUseCase(owner),
   ]);
-  const transactions = transactionResult.data;
 
   const periodBudgets = resolvePeriodBudgets(period, budgets);
   const envelopeKeys = categoryKeysFromBudgets(periodBudgets);

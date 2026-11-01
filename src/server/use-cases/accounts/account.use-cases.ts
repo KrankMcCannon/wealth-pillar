@@ -1,6 +1,6 @@
 import { serialize } from '@/lib/utils/serializer';
 import { cached } from '@/lib/cache';
-import { CACHE_TAGS, cacheOptions } from '@/lib/cache/config';
+import { cacheOptions } from '@/lib/cache/config';
 import { accountCacheKeys } from '@/lib/cache/keys';
 import { AccountsRepository } from '@/server/repositories/accounts.repository';
 import {
@@ -61,16 +61,8 @@ export const getAccountByIdUseCase = async (accountId: string): Promise<Account>
 export const getAccountsByUserUseCase = async (userId: string): Promise<Account[]> => {
   if (!userId?.trim()) throw new Error('User ID is required');
 
-  const getCachedAccounts = cached(
-    async () => {
-      const accounts = await AccountsRepository.findByUser(userId);
-      return serialize(accounts.map((a) => serializeAccountRow(a)));
-    },
-    accountCacheKeys.byUser(userId),
-    cacheOptions.accountsByUser(userId)
-  );
-
-  return getCachedAccounts();
+  const accounts = await AccountsRepository.findByUser(userId);
+  return serialize(accounts.map(serializeAccountRow));
 };
 
 export const getAccountsByGroupUseCase = async (groupId: string): Promise<Account[]> => {
@@ -91,13 +83,7 @@ export const getAccountsByGroupUseCase = async (groupId: string): Promise<Accoun
 export const getAccountCountByUserUseCase = async (userId: string): Promise<number> => {
   if (!userId?.trim()) throw new Error('User ID is required');
 
-  const getCachedCount = cached(
-    async () => AccountsRepository.countByUser(userId),
-    [`user:${userId}:accounts:count`],
-    { revalidate: 300, tags: [CACHE_TAGS.ACCOUNTS, `user:${userId}:accounts`] }
-  );
-
-  return getCachedCount();
+  return AccountsRepository.countByUser(userId);
 };
 
 export const accountExistsUseCase = async (accountId: string): Promise<boolean> => {
@@ -226,13 +212,18 @@ export const deleteAccountUseCase = async (accountId: string): Promise<boolean> 
     return { account, removed };
   });
 
-  for (const row of removed) {
+  const affected = new Map(
+    removed.map((row) => [
+      JSON.stringify([row.group_id, row.account_id, row.to_account_id, row.user_id]),
+      row,
+    ])
+  );
+  for (const row of affected.values()) {
     invalidateTransactionCaches({
       groupId: row.group_id ?? account.group_id,
       accountId: row.account_id,
       toAccountId: row.to_account_id,
       userId: row.user_id,
-      transactionId: row.id,
     });
   }
 

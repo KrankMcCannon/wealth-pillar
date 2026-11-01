@@ -7,6 +7,14 @@
 
 ## Migrations
 
+- **Account balance revisions (1 November 2026):**
+  [`20261101191621_account_balance_versions.sql`](./drizzle/20261101191621_account_balance_versions.sql)
+  adds the monotonic `bigint` revision and a balance trigger. Apply this migration
+  in a transaction before deploying its application changes. It leaves all balances
+  and ledger entries unchanged and can be replayed. The timestamp prefix keeps it
+  distinct from the historical numbered files; journal index is 6.
+  [Release and compatibility notes](../../../docs/releases/general-review-fixes.md).
+
 - **Recurring frequencies (1 November 2026):**
   [`0005_recurring_frequencies.sql`](./drizzle/0005_recurring_frequencies.sql) has
   journal index/snapshot 5. Apply only this migration through Supabase's migration

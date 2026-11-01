@@ -21,8 +21,8 @@ vi.mock('../budget-periods/get-active-budget-period.use-case', () => ({
   getActiveBudgetPeriodUseCase: vi.fn(),
 }));
 
-vi.mock('../transactions/get-transactions.use-case', () => ({
-  getTransactionsByGroupUseCase: vi.fn(),
+vi.mock('@/server/repositories/transactions.repository', () => ({
+  TransactionsRepository: { aggregateByGroup: vi.fn(), scanByGroup: vi.fn() },
 }));
 
 vi.mock('@/server/request-cache/services', () => ({
@@ -33,7 +33,7 @@ vi.mock('@/server/request-cache/services', () => ({
 import { notFound } from 'next/navigation';
 import { getBudgetByIdUseCase } from '../budgets/get-budgets.use-case';
 import { getActiveBudgetPeriodUseCase } from '../budget-periods/get-active-budget-period.use-case';
-import { getTransactionsByGroupUseCase } from '../transactions/get-transactions.use-case';
+import { TransactionsRepository } from '@/server/repositories/transactions.repository';
 import {
   getAllCategoriesDeduped,
   getAccountsByGroupDeduped,
@@ -134,24 +134,22 @@ const otherMember = {
 describe('getBudgetDetailPageData', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(TransactionsRepository.scanByGroup).mockImplementation(async function* () {
+      const rows = await TransactionsRepository.aggregateByGroup('group-1');
+      yield rows as never;
+    });
     vi.mocked(getBudgetByIdUseCase).mockResolvedValue(budget);
     vi.mocked(getActiveBudgetPeriodUseCase).mockResolvedValue(null);
-    vi.mocked(getTransactionsByGroupUseCase).mockResolvedValue({
-      data: [tx()],
-      total: 1,
-      hasMore: false,
-    });
+    vi.mocked(TransactionsRepository.aggregateByGroup).mockResolvedValue([tx()] as never);
     vi.mocked(getAllCategoriesDeduped).mockResolvedValue(categories);
     vi.mocked(getAccountsByGroupDeduped).mockResolvedValue(accounts);
   });
 
   it('returns budget detail with progress and category breakdown', async () => {
     const txDate = luxonToday().toISODate() ?? '';
-    vi.mocked(getTransactionsByGroupUseCase).mockResolvedValue({
-      data: [tx({ date: txDate })],
-      total: 1,
-      hasMore: false,
-    });
+    vi.mocked(TransactionsRepository.aggregateByGroup).mockResolvedValue([
+      tx({ date: txDate }),
+    ] as never);
     const data = await getBudgetDetailPageData('group-1', 'b-1', owner);
     expect(data.budget.id).toBe('b-1');
     expect(data.progress.spent).toBe(100);
@@ -160,7 +158,7 @@ describe('getBudgetDetailPageData', () => {
     expect(data.categoryBreakdown[0]?.spent).toBe(100);
     expect(data.groupedTransactions).toHaveLength(1);
     expect(data.groupedTransactions[0]?.total).toBe(-100);
-    expect(getTransactionsByGroupUseCase).toHaveBeenCalledWith(
+    expect(TransactionsRepository.aggregateByGroup).toHaveBeenCalledWith(
       'group-1',
       expect.objectContaining({
         categoryKeys: ['food', 'transport'],
@@ -201,14 +199,10 @@ describe('getBudgetDetailPageData', () => {
 
   it('stores daily net as income minus expenses', async () => {
     const txDate = luxonToday().toISODate() ?? '';
-    vi.mocked(getTransactionsByGroupUseCase).mockResolvedValue({
-      data: [
-        tx({ id: 'in', type: 'income', amount: 9.89, category: 'food', date: txDate }),
-        tx({ id: 'out', type: 'expense', amount: 0.8, category: 'food', date: txDate }),
-      ],
-      total: 2,
-      hasMore: false,
-    });
+    vi.mocked(TransactionsRepository.aggregateByGroup).mockResolvedValue([
+      tx({ id: 'in', type: 'income', amount: 9.89, category: 'food', date: txDate }),
+      tx({ id: 'out', type: 'expense', amount: 0.8, category: 'food', date: txDate }),
+    ] as never);
 
     const data = await getBudgetDetailPageData('group-1', 'b-1', owner);
 

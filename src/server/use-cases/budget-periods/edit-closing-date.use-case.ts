@@ -1,3 +1,4 @@
+import { financialDateKey as toDateOnlyString } from '@/lib/utils/financial-date';
 import type { Account, BudgetPeriod, Transaction } from '@/lib/types';
 import { toDateTime, todayDateString } from '@/lib/utils/date-utils';
 import { BudgetPeriodsRepository } from '@/server/repositories/budget-periods.repository';
@@ -21,13 +22,6 @@ export class EditClosingDateError extends Error {
     super(code);
     this.name = 'EditClosingDateError';
   }
-}
-
-function toDateOnlyString(date: string | Date): string {
-  if (typeof date === 'string') {
-    return date.split('T')[0] ?? date;
-  }
-  return date.toISOString().split('T')[0] ?? '';
 }
 
 function shiftIsoDate(iso: string, days: number): string {

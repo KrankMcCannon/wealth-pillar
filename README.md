@@ -222,7 +222,7 @@ wealth-pillar/
 │   │   └── use-cases/         # Application logic
 │   └── stores/                # Zustand stores
 ├── scripts/
-│   ├── update-market-data-cache.mjs   # Refresh market_data_cache
+│   ├── update-market-data-cache.ts   # Refresh market_data_cache
 │   └── seed-available-shares.js         # Seed share catalog
 ├── .github/workflows/
 │   └── update-market-data.yml           # Daily market data cron
@@ -285,21 +285,30 @@ Investment charts read from the `market_data_cache` table. A GitHub Actions work
 
 **Required GitHub secrets:**
 
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `SUPABASE_SERVICE_ROLE_KEY`
+- `DATABASE_URL` — backend PostgreSQL connection (pooler supported); required by both the market refresh and portfolio snapshot job.
 - `TWELVE_DATA_API_KEY`
+
+After refreshing quotes, the same daily workflow persists complete, closed-day portfolio snapshots. It rebuilds each user's available history under the same transaction lock as holding edits, so backdated changes cannot race with the job. Quotes outside a provider's rolling window are retained. Missing-price days are omitted, never saved as partial values. The job is idempotent and also repairs invalidated history on its next run.
+
+To rebuild snapshots independently:
+
+```sh
+pnpm exec tsx scripts/persist-portfolio-snapshots.ts
+```
+
+These scripts read environment variables from the process; supply the backend connection explicitly. They do not load the application's `.env`.
 
 **Run locally:**
 
 ```bash
 # Update all symbols from the investments table
-node scripts/update-market-data-cache.mjs
+pnpm exec tsx scripts/update-market-data-cache.ts
 
 # Dry run for a single symbol
-node scripts/update-market-data-cache.mjs --symbols=AAPL --dry-run
+pnpm exec tsx scripts/update-market-data-cache.ts --symbols=AAPL --dry-run
 
 # Limit batch size or read from available_shares
-node scripts/update-market-data-cache.mjs --from=available_shares --limit=10
+pnpm exec tsx scripts/update-market-data-cache.ts --from=available_shares --limit=10
 ```
 
 The script exits with code 1 if any symbol fails, so CI can detect partial failures.

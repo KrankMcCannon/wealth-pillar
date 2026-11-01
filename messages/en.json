@@ -1892,6 +1892,7 @@
       "partialDay": "partial · full total",
       "overLabel": "Limit exceeded",
       "sharedTitle": "Shared categories",
+      "sharedNotice": "Shared categories: the same expense can count toward several envelopes.",
       "previousPeriod": "Closing period",
       "nextPeriod": "New start date",
       "dateChange": "{field}: {old} → {next}",

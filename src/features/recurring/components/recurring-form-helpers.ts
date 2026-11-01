@@ -1,10 +1,9 @@
 import type { Account } from '@/lib/types';
-import { toDateString } from '@/lib/utils/date-utils';
+import { financialDateKey } from '@/lib/utils/financial-date';
 
 export function formatDateForInput(date: string | Date | null | undefined): string {
   if (!date) return '';
-  if (typeof date === 'string') return date.split('T')[0] ?? '';
-  return toDateString(date);
+  return financialDateKey(date);
 }
 
 export function calculateDefaultAccountId(

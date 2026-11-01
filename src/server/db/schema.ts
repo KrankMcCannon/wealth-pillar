@@ -419,6 +419,9 @@ export const accounts = pgTable(
     created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
     updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow(),
     balance: numeric({ precision: 12, scale: 2 }).default('0'),
+    balance_version: bigint('balance_version', { mode: 'bigint' })
+      .default(sql`0`)
+      .notNull(),
     liquidity: text(),
   },
   (table) => [

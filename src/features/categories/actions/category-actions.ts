@@ -1,6 +1,5 @@
 'use server';
 
-import { revalidateTag } from 'next/cache';
 import { getTranslations } from 'next-intl/server';
 
 import { getCurrentUser } from '@/lib/auth/cached-auth';
@@ -125,8 +124,6 @@ export async function createCategoryAction(
       // Service handles some tags, but actions might need broader revalidation if needed
       // Service handles CATEGORIES tag.
 
-      revalidateTag(`group:${input.group_id}:categories`, 'max');
-
       return { data: category, error: null };
     }
 
@@ -180,8 +177,6 @@ export async function updateCategoryAction(
     const category = await updateCategoryUseCase(id, input);
 
     if (category) {
-      revalidateTag(`group:${existingCategory.group_id}:categories`, 'max');
-
       return { data: category, error: null };
     }
 
@@ -239,7 +234,6 @@ export async function deleteCategoryAction(
     const result = await deleteCategoryUseCase(id);
 
     if (result) {
-      revalidateTag(`group:${existingCategory.group_id}:categories`, 'max');
       return { data: result, error: null };
     }
 

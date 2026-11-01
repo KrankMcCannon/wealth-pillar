@@ -1892,6 +1892,7 @@
       "partialDay": "parziale · totale completo",
       "overLabel": "Limite superato",
       "sharedTitle": "Categorie condivise",
+      "sharedNotice": "Categorie condivise: la stessa spesa può contribuire a più buste.",
       "previousPeriod": "Chiusura periodo",
       "nextPeriod": "Nuovo inizio",
       "dateChange": "{field}: {old} → {next}",

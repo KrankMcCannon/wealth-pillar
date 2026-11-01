@@ -1,8 +1,8 @@
 import { UsersRepository } from '@/server/repositories/users.repository';
 import { cached } from '@/lib/cache';
-import { CACHE_TAGS, cacheOptions } from '@/lib/cache/config';
+import { cacheOptions } from '@/lib/cache/config';
 import { userCacheKeys } from '@/lib/cache/keys';
-import { revalidateTag } from 'next/cache';
+import { invalidateUserCaches } from '@/lib/utils/cache-utils';
 import { serialize } from '@/lib/utils/serializer';
 import { isValidEmail } from '@/lib/utils/validation-utils';
 import { initialsFromName } from '@/lib/utils/string-formatter';
@@ -75,9 +75,7 @@ export async function ensureClerkIdentityStubUseCase(params: {
     return null;
   }
 
-  revalidateTag(CACHE_TAGS.USERS, 'max');
-  revalidateTag(CACHE_TAGS.USER(user.id), 'max');
-  revalidateTag(CACHE_TAGS.USER_BY_CLERK(clerkId), 'max');
+  invalidateUserCaches({ userId: user.id, clerkId, groupId: user.group_id });
 
   return serialize(user) as unknown as User;
 }
@@ -91,16 +89,13 @@ export async function createUserUseCase(data: UserInsert): Promise<User> {
   const user = await UsersRepository.create(userInsert);
   if (!user) throw new Error('Failed to create user');
 
-  revalidateTag(CACHE_TAGS.USERS, 'max');
-  revalidateTag(CACHE_TAGS.USER(user.id), 'max');
-  if (user.clerk_id) {
-    revalidateTag(CACHE_TAGS.USER_BY_CLERK(user.clerk_id), 'max');
-  }
+  invalidateUserCaches({ userId: user.id, clerkId: user.clerk_id, groupId: user.group_id });
 
   return serialize(user) as unknown as User;
 }
 
 export async function updateUserUseCase(userId: string, data: Partial<UserInsert>): Promise<User> {
+  const previous = data.group_id !== undefined ? await UsersRepository.findById(userId) : null;
   const userUpdate = {
     ...data,
     created_at: data.created_at ? new Date(data.created_at) : undefined,
@@ -109,11 +104,12 @@ export async function updateUserUseCase(userId: string, data: Partial<UserInsert
   const user = await UsersRepository.update(userId, userUpdate);
   if (!user) throw new Error('Failed to update user');
 
-  revalidateTag(CACHE_TAGS.USERS, 'max');
-  revalidateTag(CACHE_TAGS.USER(userId), 'max');
-  if (user.clerk_id) {
-    revalidateTag(CACHE_TAGS.USER_BY_CLERK(user.clerk_id), 'max');
-  }
+  invalidateUserCaches({
+    userId,
+    clerkId: user.clerk_id,
+    groupId: user.group_id,
+    previousGroupId: previous?.group_id,
+  });
 
   return serialize(user) as unknown as User;
 }
@@ -154,11 +150,7 @@ export async function deleteUserUseCase(userId: string): Promise<void> {
   await UsersRepository.delete(userId);
 
   // Invalidate cache
-  revalidateTag(CACHE_TAGS.USERS, 'max');
-  revalidateTag(CACHE_TAGS.USER(userId), 'max');
-  if (user.clerk_id) {
-    revalidateTag(CACHE_TAGS.USER_BY_CLERK(user.clerk_id), 'max');
-  }
+  invalidateUserCaches({ userId, clerkId: user.clerk_id, groupId: user.group_id });
 }
 
 export async function getUserByEmailUseCase(email: string): Promise<User | null> {

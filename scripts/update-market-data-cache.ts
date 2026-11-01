@@ -1,29 +1,18 @@
-import { createClient } from '@supabase/supabase-js';
+import { db } from '../src/server/db/drizzle';
+import { investments, availableShares } from '../src/server/db/schema';
+import { MarketDataRepository } from '../src/server/repositories/market-data.repository';
 
 const BASE_URL = 'https://api.twelvedata.com';
 const DEFAULT_INTERVAL = '1day';
 const DEFAULT_OUTPUTSIZE = 365 * 2;
 
-const { NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, TWELVE_DATA_API_KEY } = process.env;
-
-if (!NEXT_PUBLIC_SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-  console.error('Missing Supabase env: NEXT_PUBLIC_SUPABASE_URL and/or SUPABASE_SERVICE_ROLE_KEY');
-  process.exit(1);
-}
-
-if (!TWELVE_DATA_API_KEY) {
-  console.error('Missing Twelve Data env: TWELVE_DATA_API_KEY');
-  process.exit(1);
-}
-
-const supabase = createClient(NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-  auth: { autoRefreshToken: false, persistSession: false },
-});
+const { TWELVE_DATA_API_KEY } = process.env;
+if (!TWELVE_DATA_API_KEY) throw new Error('Missing Twelve Data API key');
 
 const parseArgs = () => {
   const args = process.argv.slice(2);
   const options = {
-    symbols: [],
+    symbols: [] as string[],
     from: 'investments',
     limit: 0,
     interval: DEFAULT_INTERVAL,
@@ -54,17 +43,15 @@ const parseArgs = () => {
   return options;
 };
 
-const fetchSymbols = async (from, limit) => {
-  const table = from === 'available_shares' ? 'available_shares' : 'investments';
-  let query = supabase.from(table).select('symbol');
-  if (limit > 0) query = query.limit(limit);
-  const { data, error } = await query;
-  if (error) throw error;
+const fetchSymbols = async (from: string, limit: number) => {
+  const table = from === 'available_shares' ? availableShares : investments;
+  const query = db.selectDistinct({ symbol: table.symbol }).from(table);
+  const data = limit > 0 ? await query.limit(limit) : await query;
   const symbols = (data || []).map((row) => row.symbol).filter(Boolean);
   return Array.from(new Set(symbols.map((s) => String(s).toUpperCase())));
 };
 
-const fetchTimeSeries = async (symbol, interval, outputsize) => {
+const fetchTimeSeries = async (symbol: string, interval: string, outputsize: number) => {
   const url = `${BASE_URL}/time_series?symbol=${symbol}&interval=${interval}&outputsize=${outputsize}&apikey=${TWELVE_DATA_API_KEY}`;
   const res = await fetch(url);
   if (!res.ok) {
@@ -77,19 +64,7 @@ const fetchTimeSeries = async (symbol, interval, outputsize) => {
   return json.values || [];
 };
 
-const upsertCache = async (symbol, data) => {
-  const { error } = await supabase.from('market_data_cache').upsert(
-    {
-      symbol,
-      data,
-      last_updated: new Date().toISOString(),
-    },
-    { onConflict: 'symbol' }
-  );
-  if (error) throw error;
-};
-
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const main = async () => {
   const options = parseArgs();
@@ -113,22 +88,24 @@ const main = async () => {
       if (options.dryRun) {
         process.stdout.write(`[DRY] ${symbol}: ${series.length} rows\n`);
       } else {
-        await upsertCache(symbol, series);
+        await MarketDataRepository.upsert(symbol, series);
         process.stdout.write(`[OK] ${symbol}: ${series.length} rows\n`);
       }
       await sleep(250); // Basic throttling for free tier
     } catch (error) {
       failureCount += 1;
-      console.error(`[ERR] ${symbol}:`, error?.message || error);
+      console.error(`[ERR] ${symbol}:`, error instanceof Error ? error.message : 'Fetch failed');
     }
   }
 
   if (failureCount > 0) {
-    process.exit(1);
+    process.exitCode = 1;
   }
 };
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+main()
+  .catch((err) => {
+    console.error(err instanceof Error ? err.message : 'Market refresh failed');
+    process.exitCode = 1;
+  })
+  .finally(() => db.$client.end());

@@ -1,8 +1,6 @@
 import { financialDateTime } from '@/lib/utils/financial-date';
 import type { Account, Budget, BudgetPeriod, Transaction, User } from '@/lib/types';
 import { formatDateShort, toDateString, toDateTime } from '@/lib/utils';
-import { REPORTS_TRANSACTIONS_LIMIT } from '@/server/db/query-limits';
-import { transactions } from '@/server/db/schema';
 import { AccountsRepository } from '@/server/repositories/accounts.repository';
 import { BudgetPeriodsRepository } from '@/server/repositories/budget-periods.repository';
 import { CategoriesRepository } from '@/server/repositories/categories.repository';
@@ -116,7 +114,7 @@ export async function getReportsContextUseCase(groupId: string, groupUserIds?: s
   const [users, allAccounts, allCategories, budgets] = await Promise.all([
     UsersRepository.findByGroupId(groupId),
     AccountsRepository.findByGroup(groupId),
-    CategoriesRepository.findByGroup(groupId),
+    CategoriesRepository.findAvailable(groupId),
     getBudgetsByGroupUseCase(groupId),
   ]);
 
@@ -148,21 +146,8 @@ export async function getReportsTransactionsUseCase(
   groupId: string,
   window: { startDate: Date; endDate: Date }
 ): Promise<{ transactions: Transaction[]; hasMore: boolean }> {
-  const { data: allTransactions, hasMore } = await TransactionsRepository.getByGroup(groupId, {
-    startDate: window.startDate,
-    endDate: window.endDate,
-    limit: REPORTS_TRANSACTIONS_LIMIT,
-    countTotal: false,
-  });
-
-  const normalizedTransactions: Transaction[] = (allTransactions || []).map(
-    (t: typeof transactions.$inferSelect) => ({
-      ...t,
-      amount: Number(t.amount),
-    })
-  ) as Transaction[];
-
-  return { transactions: normalizedTransactions, hasMore };
+  const transactions = await TransactionsRepository.aggregateByGroup(groupId, window);
+  return { transactions, hasMore: false };
 }
 
 /** Budget totals cover entire overlapping periods, independently of report filters and list limits. */
@@ -183,16 +168,10 @@ export async function getReportsPeriodSummariesUseCase(
     );
   if (!relevant.length) return [];
 
-  const { data, hasMore } = await TransactionsRepository.getByGroup(groupId, {
+  const ledger = await TransactionsRepository.aggregateByGroup(groupId, {
     startDate: new Date(Math.min(...relevant.map(({ dates }) => dates[0].toMillis()))),
     endDate: new Date(Math.max(...relevant.map(({ dates }) => dates[1].toMillis()))),
-    countTotal: false,
   });
-  if (hasMore) throw new Error('Cannot calculate budget summaries from an incomplete ledger');
-  const ledger = data.map((row: typeof transactions.$inferSelect) => ({
-    ...row,
-    amount: Number(row.amount),
-  })) as Transaction[];
   return calculatePeriodSummariesUseCase(
     relevant.map(({ period }) => period),
     ledger,

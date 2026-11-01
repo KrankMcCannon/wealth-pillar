@@ -151,7 +151,11 @@ export const cacheOptions = {
    */
   categoriesByGroup: (groupId: string) => ({
     revalidate: CACHE_TTL.CATEGORY,
-    tags: [CACHE_TAGS.CATEGORIES, `group:${groupId}:categories`],
+    tags: [
+      CACHE_TAGS.CATEGORIES,
+      `group:${groupId}:categories`,
+      `group:00000000-0000-0000-0000-000000000000:categories`,
+    ],
   }),
 
   /**

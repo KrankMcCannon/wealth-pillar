@@ -1,14 +1,6 @@
 import type { Transaction } from '@/lib/types';
-import { toDateString } from '@/lib/utils/date-utils';
+import { financialDateKey } from '@/lib/utils/financial-date';
 import type { TransactionFormData } from '../components/transaction-form-fields';
-
-function formatTransactionDate(date: Transaction['date']): string {
-  if (typeof date === 'string') {
-    return date.split('T')[0] ?? date;
-  }
-
-  return toDateString(date);
-}
 
 export function mapTransactionToFormData(transaction: Transaction): TransactionFormData {
   return {
@@ -16,7 +8,7 @@ export function mapTransactionToFormData(transaction: Transaction): TransactionF
     amount: String(transaction.amount ?? ''),
     type: transaction.type,
     category: transaction.category ?? '',
-    date: formatTransactionDate(transaction.date),
+    date: financialDateKey(transaction.date),
     user_id: transaction.user_id ?? '',
     account_id: transaction.account_id ?? '',
     to_account_id: transaction.to_account_id ?? '',

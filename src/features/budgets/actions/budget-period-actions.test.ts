@@ -1,4 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+vi.mock('@/server/repositories/users.repository', () => ({
+  UsersRepository: {
+    findByIds: vi.fn(async (ids: string[]) =>
+      ids.filter((id) => id !== 'foreign').map((id) => ({ id, group_id: 'group-1' }))
+    ),
+  },
+}));
 import { editClosingDateAction, getLatestClosedPeriodAction } from './budget-period-actions';
 import type { BudgetPeriod, User } from '@/lib/types';
 

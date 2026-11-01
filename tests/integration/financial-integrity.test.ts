@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { setTimeout as delay } from 'node:timers/promises';
 import { sql } from 'drizzle-orm';
@@ -30,7 +31,10 @@ import { getReportsPageDataUseCase } from '@/server/use-cases/pages/reports-page
 import { getCurrentReportingWindow } from '@/features/reports/utils/reporting-window';
 import type { Budget, User } from '@/lib/types';
 import { updateTransactionUseCase } from '@/server/use-cases/transactions/update-transaction.use-case';
-import { deleteTransactionUseCase } from '@/server/use-cases/transactions/delete-transaction.use-case';
+import {
+  deleteTransactionsByUserUseCase,
+  deleteTransactionUseCase,
+} from '@/server/use-cases/transactions/delete-transaction.use-case';
 import { bulkCreateTransactionsUseCase } from '@/server/use-cases/transactions/bulk-create-transactions.use-case';
 import {
   prepareImportRowProofs,
@@ -101,13 +105,28 @@ beforeAll(async () => {
   await db.execute(
     sql`CREATE UNIQUE INDEX idx_budget_periods_one_active_per_user ON budget_periods (user_id) WHERE is_active = true`
   );
+  await db.transaction((tx) =>
+    tx.execute(
+      sql.raw(
+        readFileSync('src/server/db/drizzle/20261101191621_account_balance_versions.sql', 'utf8')
+      )
+    )
+  );
+  await db.execute(
+    sql`CREATE OR REPLACE FUNCTION fixture_accounts_updated_at() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN NEW.updated_at = NOW(); RETURN NEW; END; $$`
+  );
+  await db.execute(
+    sql`CREATE TRIGGER trigger_accounts_updated_at BEFORE UPDATE ON accounts FOR EACH ROW EXECUTE FUNCTION fixture_accounts_updated_at()`
+  );
 });
 
 afterAll(async () => {
   await db.execute(
     sql`DROP TABLE IF EXISTS transactions, accounts, budget_periods, user_preferences CASCADE`
   );
-  await db.execute(sql`DROP FUNCTION IF EXISTS fail_account_delete()`);
+  await db.execute(
+    sql`DROP FUNCTION IF EXISTS fail_account_delete(), fixture_accounts_updated_at(), public.bump_account_balance_version()`
+  );
   await db.$client.end();
 });
 
@@ -195,7 +214,7 @@ describe('account deletion against PostgreSQL', () => {
       expect(await TransactionsRepository.getById(transfer.id)).toBeNull();
       expect(await TransactionsRepository.getById(income.id)).not.toBeNull();
       expect(invalidateTransactionCaches).toHaveBeenCalledWith(
-        expect.objectContaining({ transactionId: transfer.id, toAccountId: outgoing ? b : a })
+        expect.objectContaining({ groupId, toAccountId: outgoing ? b : a })
       );
       await expect(deleteAccountUseCase(a)).rejects.toThrow('Account not found');
       expect(Number((await AccountsRepository.findById(b))?.balance)).toBe(500);
@@ -275,7 +294,7 @@ describe('historical snapshots against PostgreSQL', () => {
       snapshot_at: new Date('2024-06-01'),
     });
     const spy = vi
-      .spyOn(TransactionsRepository, 'getByGroup')
+      .spyOn(TransactionsRepository, 'aggregateByGroup')
       .mockRejectedValueOnce(new Error('unavailable'));
     try {
       await expect(recalculateClosedPeriodSnapshotUseCase(userId, period.id)).rejects.toThrow(
@@ -834,7 +853,7 @@ describe('complete period totals independently of report windows', () => {
           endDate: window.end,
         })
       ).hasMore
-    ).toBe(true);
+    ).toBe(false);
     const summaries = await getReportsPeriodSummariesUseCase(
       groupId,
       [period],
@@ -1086,4 +1105,39 @@ it('returns authoritative balances for creates, account changes and deletions', 
   expect(updated.accountBalances).toEqual({ [a]: 800, [b]: 680 });
   const deleted = await deleteTransactionUseCase(created.id, { groupId, userId });
   expect(deleted.accountBalances).toEqual({ [b]: 700 });
+});
+
+it('returns ordered balance revisions for concurrent writes and reconciles bulk user deletion', async () => {
+  const input = {
+    description: 'Concurrent',
+    amount: 10,
+    type: 'expense' as const,
+    category: 'food',
+    date: '2026-11-01',
+    account_id: a,
+    user_id: userId,
+    group_id: groupId,
+  };
+  const results = await Promise.all([
+    createTransactionUseCase(input),
+    createTransactionUseCase(input),
+  ]);
+  const ordered = results.sort((x, y) =>
+    BigInt(x.accountBalanceVersions?.[a] ?? '-1') < BigInt(y.accountBalanceVersions?.[a] ?? '-1')
+      ? -1
+      : 1
+  );
+  expect(ordered.map((row) => row.accountBalances[a])).toEqual([790, 780]);
+  const revisions = ordered.map((row) => {
+    const version = row.accountBalanceVersions?.[a];
+    expect(version).toMatch(/^\d+$/);
+    return BigInt(version ?? '-1');
+  });
+  expect(revisions[1]).toBeGreaterThan(revisions[0] ?? BigInt(-1));
+  await createTransactionUseCase({ ...input, type: 'transfer', amount: 30, to_account_id: b });
+  await deleteTransactionsByUserUseCase(userId);
+  expect(Number((await AccountsRepository.findById(a))?.balance)).toBe(800);
+  expect(Number((await AccountsRepository.findById(b))?.balance)).toBe(700);
+  await deleteTransactionsByUserUseCase(userId);
+  expect(Number((await AccountsRepository.findById(a))?.balance)).toBe(800);
 });

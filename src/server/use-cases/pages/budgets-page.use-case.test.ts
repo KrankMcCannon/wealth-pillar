@@ -15,7 +15,7 @@ vi.mock('../budget-periods/get-active-budget-periods-for-users.use-case', () => 
 
 vi.mock('../transactions/get-transactions.use-case', () => ({
   getTransactionsByGroupUseCase: vi.fn(),
-  getCompletePeriodTransactionsUseCase: vi.fn(),
+  getFinancialLedgerUseCase: vi.fn(),
 }));
 
 vi.mock('@/server/request-cache/services', () => ({
@@ -28,7 +28,7 @@ import { getBudgetsByGroupUseCase } from '../budgets/get-budgets.use-case';
 import { getActiveBudgetPeriodsForUsersUseCase } from '../budget-periods/get-active-budget-periods-for-users.use-case';
 import {
   getTransactionsByGroupUseCase,
-  getCompletePeriodTransactionsUseCase,
+  getFinancialLedgerUseCase,
 } from '../transactions/get-transactions.use-case';
 import {
   getAccountsByGroupDeduped,
@@ -49,7 +49,7 @@ const admin = {
 
 describe('getBudgetsPageData', () => {
   beforeEach(() => {
-    vi.mocked(getCompletePeriodTransactionsUseCase).mockReset().mockResolvedValue([]);
+    vi.mocked(getFinancialLedgerUseCase).mockReset().mockResolvedValue([]);
     vi.mocked(getGroupUsersByGroupIdDeduped).mockResolvedValue([admin]);
     vi.mocked(getBudgetsByGroupUseCase).mockResolvedValue([]);
     vi.mocked(getAccountsByGroupDeduped).mockResolvedValue([]);
@@ -68,9 +68,7 @@ describe('getBudgetsPageData', () => {
   });
 
   it('propagates an interrupted complete ledger scan instead of showing partial totals', async () => {
-    vi.mocked(getCompletePeriodTransactionsUseCase).mockRejectedValue(
-      new Error('Ledger unavailable')
-    );
+    vi.mocked(getFinancialLedgerUseCase).mockRejectedValue(new Error('Ledger unavailable'));
     await expect(getBudgetsPageData('g1', admin)).rejects.toThrow('Ledger unavailable');
   });
 });

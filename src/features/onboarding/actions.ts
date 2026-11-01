@@ -1,6 +1,5 @@
 'use server';
 
-import { CACHE_TAGS } from '@/lib/cache/config';
 import { isOnboardingComplete, requireAuthenticatedClerkId } from '@/lib/auth/clerk-session';
 import {
   createUserUseCase,
@@ -11,7 +10,7 @@ import {
 import { createGroupUseCase, deleteGroupUseCase } from '@/server/use-cases/groups/groups.use-cases';
 import { createAccountUseCase } from '@/server/use-cases/accounts/account.use-cases';
 import { createBudgetUseCase } from '@/server/use-cases/budgets/create-budget.use-case';
-import { revalidatePath, revalidateTag } from 'next/cache';
+import { revalidatePath } from 'next/cache';
 import { APP_ROUTE } from '@/lib/cache/revalidation-paths';
 import type { CompleteOnboardingInput } from './types';
 import { clerkClient } from '@clerk/nextjs/server';
@@ -205,10 +204,6 @@ export async function completeOnboardingAction(
       await rollbackOnboarding(userId, groupId);
       return { data: null, error: t('genericConfigurationFailed') };
     }
-
-    revalidateTag(CACHE_TAGS.USERS, 'max');
-    revalidateTag(CACHE_TAGS.USER(userId), 'max');
-    revalidateTag(CACHE_TAGS.USER_BY_CLERK(sessionClerkId), 'max');
 
     // Phase 2: Accounts
     const {

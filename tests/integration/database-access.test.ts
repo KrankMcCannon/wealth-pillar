@@ -12,6 +12,8 @@ it('blocks client tables, views and privileged RPCs while preserving the backend
   const rollback = new Error('rollback fixture');
   await expect(
     db.transaction(async (tx) => {
+      // Exercise the migration's postgres default privileges regardless of the local login name.
+      await tx.execute(sql`SET LOCAL ROLE postgres`);
       // Roles and objects are transactional; nothing survives this isolated fixture.
       await tx.execute(sql`CREATE ROLE anon NOLOGIN`);
       await tx.execute(sql`CREATE ROLE authenticated NOLOGIN`);

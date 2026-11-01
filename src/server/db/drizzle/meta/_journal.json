@@ -43,6 +43,13 @@
       "when": 1793534670886,
       "tag": "0005_recurring_frequencies",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793560581098,
+      "tag": "20261101191621_account_balance_versions",
+      "breakpoints": true
     }
   ]
 }

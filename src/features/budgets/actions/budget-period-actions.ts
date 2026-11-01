@@ -34,13 +34,14 @@ import {
   deleteClosedPeriodBudgetUseCase,
   ClosedPeriodBudgetError,
 } from '@/server/use-cases/budget-periods/mutate-closed-period-budget.use-case';
-import { getTransactionsByUserUseCase } from '@/server/use-cases/transactions/get-transactions.use-case';
+import { getFinancialLedgerUseCase } from '@/server/use-cases/transactions/get-transactions.use-case';
+import { financialDateTime } from '@/lib/utils/financial-date';
+import { allocatedFromBudgets } from '@/server/use-cases/budget-periods/period-budgets.logic';
 import { getBudgetsByUserUseCase } from '@/server/use-cases/budgets/get-budgets.use-case';
 import { AccountsRepository } from '@/server/repositories/accounts.repository';
 import type { Budget, BudgetPeriod, User } from '@/lib/types';
 import type { CreateBudgetInput } from '@/server/use-cases/budgets/types';
 import type { ServiceResult } from '@/lib/types/service-result';
-import { DateTime } from 'luxon';
 
 async function getBudgetPeriodActionTranslator(locale?: string) {
   if (locale) {
@@ -56,7 +57,7 @@ async function authorizeBudgetPeriodUser(
 ): Promise<User | ServiceResult<never>> {
   const auth = await requireAuthenticatedUser(unauthenticatedError);
   if (isAuthDenial(auth)) return auth;
-  const denied = denyUnlessCanViewUser(auth, userId, permissionError);
+  const denied = await denyUnlessCanViewUser(auth, userId, permissionError);
   if (denied) return denied;
   return auth;
 }
@@ -497,9 +498,13 @@ export async function getPeriodPreviewAction(
     // Fetch necessary data on server
     // We fetch all transactions for the user to ensure accurate calculations
     const [transactions, budgets, accounts] = await Promise.all([
-      getTransactionsByUserUseCase(userId),
+      getFinancialLedgerUseCase(
+        auth.group_id!,
+        financialDateTime(startDate).startOf('day').toJSDate(),
+        financialDateTime(endDate).endOf('day').toJSDate()
+      ),
       getBudgetsByUserUseCase(userId),
-      AccountsRepository.findByUser(userId),
+      AccountsRepository.findByGroup(auth.group_id!),
     ]);
 
     // Instantiate a temporary period object for calculation
@@ -514,8 +519,8 @@ export async function getPeriodPreviewAction(
     };
 
     // Use BudgetPeriodService.calculatePeriodTotals
-    const startDt = DateTime.fromISO(startDate);
-    const endDt = DateTime.fromISO(endDate);
+    const startDt = financialDateTime(startDate);
+    const endDt = financialDateTime(endDate);
 
     const totals = calculatePeriodTotalsUseCase(
       transactions,
@@ -527,7 +532,7 @@ export async function getPeriodPreviewAction(
     );
 
     // Calculate total budget amount
-    const totalBudget = budgets.filter((b) => b.amount > 0).reduce((sum, b) => sum + b.amount, 0);
+    const totalBudget = allocatedFromBudgets(budgets);
 
     return {
       data: {

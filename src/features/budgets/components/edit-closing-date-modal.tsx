@@ -1,5 +1,7 @@
 'use client';
 
+import { financialDateKey as toDateOnlyString } from '@/lib/utils/financial-date';
+
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useWatch } from 'react-hook-form';
 import { z } from 'zod';
@@ -30,13 +32,6 @@ interface EditClosingDateModalProps {
   period?: Pick<BudgetPeriod, 'id' | 'start_date' | 'end_date'> | null;
   editStart?: boolean;
   editEnd?: boolean;
-}
-
-function toDateOnlyString(date: string | Date): string {
-  if (typeof date === 'string') {
-    return date.split('T')[0] ?? date;
-  }
-  return date.toISOString().split('T')[0] ?? '';
 }
 
 function EditClosingDateFields({

@@ -33,15 +33,17 @@ async function getCachedBudgetsPageData(groupId: string): Promise<BudgetsPageDat
   cacheTag(`group:${groupId}:transactions`);
   cacheTag(`group:${groupId}:accounts`);
   cacheTag(CACHE_TAGS.BUDGET_PERIODS);
-  cacheTag('categories');
+  cacheTag(`group:${groupId}:categories`, `group:00000000-0000-0000-0000-000000000000:categories`);
 
   const groupUsers = await getGroupUsersByGroupIdDeduped(groupId);
   const userIds = groupUsers.map((u) => u.id);
+  for (const id of userIds) cacheTag(CACHE_TAGS.USER_BUDGET_PERIODS(id), `user:${id}:recurring`);
+  cacheTag(CACHE_TAGS.GROUP_USERS(groupId));
 
   const [budgets, accounts, categories, periodMap] = await Promise.all([
     getBudgetsByGroupUseCase(groupId),
     getAccountsByGroupDeduped(groupId),
-    getAllCategoriesDeduped(),
+    getAllCategoriesDeduped(groupId),
     getActiveBudgetPeriodsForUsersUseCase(userIds),
   ]);
 
@@ -73,7 +75,7 @@ async function getCachedBudgetsPageData(groupId: string): Promise<BudgetsPageDat
     const userBudgets = budgets.filter((b) => b.user_id === user.id);
     const [periodStart] = parsePeriodDates(budgetPeriods[user.id], now);
     const chartPeriodEnd = resolveChartPeriodEnd(budgetPeriods[user.id], now);
-    chartViewModelsByUser[user.id] = buildBudgetChartViewModel(
+    const chart = buildBudgetChartViewModel(
       budgetTransactions,
       userBudgets,
       user.id,
@@ -82,6 +84,7 @@ async function getCachedBudgetsPageData(groupId: string): Promise<BudgetsPageDat
       budgetsByUser[user.id] ?? null,
       accounts
     );
+    chartViewModelsByUser[user.id] = { ...chart, groupedTransactions: [], periodTransactions: [] };
   }
 
   return {

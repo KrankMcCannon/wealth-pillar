@@ -35,10 +35,12 @@ export class FinancialResourcePolicy {
     if (!userIds.length || userIds.some((id) => !this.scope.canViewUser(id))) {
       throw new Error('Permesso negato');
     }
-    const users = await UsersRepository.findByIds([...new Set(userIds)]);
-    if (
-      userIds.some((id) => !users.some((user) => user.id === id && user.group_id === this.groupId))
-    ) {
+    const targets = [...new Set(userIds)];
+    const users = await UsersRepository.findByIds(targets);
+    const members = new Set(
+      users.filter((user) => user.group_id === this.groupId).map((user) => user.id)
+    );
+    if (targets.some((id) => !members.has(id))) {
       throw new Error('Permesso negato');
     }
   }

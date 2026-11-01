@@ -51,11 +51,12 @@ export async function createTransactionUseCase(
     const created = await TransactionsRepository.create(insertData, tx);
     if (!created) throw new Error('Failed to create transaction');
     await applyTransactionBalanceAdjustments(created, 1, tx);
-    const accountBalances = await TransactionsRepository.getAccountBalances(
-      [created.account_id, ...(created.to_account_id ? [created.to_account_id] : [])],
-      tx
-    );
-    return { ...created, accountBalances };
+    const { accountBalances, accountBalanceVersions } =
+      await TransactionsRepository.getAccountBalanceState(
+        [created.account_id, ...(created.to_account_id ? [created.to_account_id] : [])],
+        tx
+      );
+    return { ...created, accountBalances, accountBalanceVersions };
   });
 
   invalidateTransactionCaches({

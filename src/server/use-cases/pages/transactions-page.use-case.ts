@@ -198,7 +198,7 @@ async function getCachedTransactionsListData(
   cacheLife('minutes');
   cacheTag(`group:${groupId}:transactions`);
   cacheTag(`group:${groupId}:accounts`);
-  cacheTag('categories');
+  cacheTag(`group:${groupId}:categories`, `group:00000000-0000-0000-0000-000000000000:categories`);
   if (query.budget?.trim()) {
     cacheTag(`group:${groupId}:budgets`);
   }
@@ -211,7 +211,7 @@ async function getCachedTransactionsListData(
 
   const [transactionResult, categories, accounts, budgets] = await Promise.all([
     getTransactionsByGroupUseCase(groupId, repoOptions),
-    getAllCategoriesDeduped(),
+    getAllCategoriesDeduped(groupId),
     getAccountsByGroupDeduped(groupId),
     fetchBudgets ? getBudgetsByGroupUseCase(groupId) : Promise.resolve([] as Budget[]),
   ]);

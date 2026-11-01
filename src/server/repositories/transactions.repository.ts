@@ -3,6 +3,7 @@ import { db } from '@/server/db/drizzle';
 import { transactions, accounts } from '@/server/db/schema';
 import { and, desc, eq, or, sql, count, inArray, ilike, lt, getTableColumns } from 'drizzle-orm';
 import { resolveDb, type DbExecutor } from '@/server/repositories/db-executor';
+import type { FinancialLedgerRow } from '@/server/ledger/aggregate';
 
 export interface TransactionScope {
   groupId?: string;
@@ -49,22 +50,81 @@ function transactionConditions(id: string, scope?: TransactionScope) {
 }
 
 export class TransactionsRepository {
-  static async getAccountBalances(
-    accountIds: string[],
-    executor: DbExecutor
-  ): Promise<Record<string, number>> {
+  /** SQL removes per-entry payloads while retaining every dimension used by the ledger rules. */
+  static async aggregateByGroup(
+    groupId: string,
+    options: Pick<TransactionFilterOptions, 'startDate' | 'endDate' | 'categoryKeys'> = {},
+    executor?: DbExecutor
+  ): Promise<FinancialLedgerRow[]> {
+    if (!groupId?.trim()) throw new Error('Group ID is required');
+    const rows = await resolveDb(executor)
+      .select({
+        date: transactions.date,
+        user_id: transactions.user_id,
+        account_id: transactions.account_id,
+        to_account_id: transactions.to_account_id,
+        type: transactions.type,
+        category: transactions.category,
+        amount: sql<string>`sum(${transactions.amount})`,
+        transaction_count: count(),
+      })
+      .from(transactions)
+      .where(
+        and(
+          eq(transactions.group_id, groupId),
+          options.startDate
+            ? sql`${transactions.date} >= ${financialDateKey(options.startDate)}`
+            : undefined,
+          options.endDate
+            ? sql`${transactions.date} <= ${financialDateKey(options.endDate)}`
+            : undefined,
+          options.categoryKeys?.length
+            ? inArray(transactions.category, options.categoryKeys)
+            : undefined
+        )
+      )
+      .groupBy(
+        transactions.date,
+        transactions.user_id,
+        transactions.account_id,
+        transactions.to_account_id,
+        transactions.type,
+        transactions.category
+      );
+    return rows.map((row, index) => ({
+      ...row,
+      id: `aggregate:${index}`,
+      group_id: groupId,
+      description: '',
+      created_at: row.date,
+      updated_at: row.date,
+      amount: Number(row.amount),
+    })) as FinancialLedgerRow[];
+  }
+
+  static async getAccountBalanceState(accountIds: string[], executor: DbExecutor) {
     const ids = [...new Set(accountIds)];
-    if (!ids.length) return {};
+    if (!ids.length) return { accountBalances: {}, accountBalanceVersions: {} };
     const rows = await executor
-      .select({ id: accounts.id, balance: accounts.balance })
+      .select({
+        id: accounts.id,
+        balance: accounts.balance,
+        version: sql<string>`${accounts.balance_version}::text`,
+      })
       .from(accounts)
       .where(inArray(accounts.id, ids));
-    return Object.fromEntries(rows.map((row) => [row.id, Number(row.balance)]));
+    return {
+      accountBalances: Object.fromEntries(rows.map((row) => [row.id, Number(row.balance)])),
+      accountBalanceVersions: Object.fromEntries(rows.map((row) => [row.id, row.version])),
+    };
   }
   /** Bounded keyset scans keep financial calculations complete without an unbounded SQL result. */
   static async *scanByGroup(
     groupId: string,
-    options: Pick<TransactionFilterOptions, 'startDate' | 'endDate' | 'userId'> = {},
+    options: Pick<
+      TransactionFilterOptions,
+      'startDate' | 'endDate' | 'userId' | 'categoryKeys'
+    > = {},
     executor?: DbExecutor
   ): AsyncGenerator<TransactionLedgerRow[]> {
     let cursorAfter: TransactionCursorAfter | undefined;
@@ -405,8 +465,11 @@ export class TransactionsRepository {
   /**
    * Delete all transactions for a user
    */
-  static async deleteByUser(userId: string) {
-    await db.delete(transactions).where(eq(transactions.user_id, userId));
+  static async deleteByUser(userId: string, executor?: DbExecutor) {
+    return resolveDb(executor)
+      .delete(transactions)
+      .where(eq(transactions.user_id, userId))
+      .returning();
   }
 
   /**
@@ -439,7 +502,7 @@ export class TransactionsRepository {
   static async updateAccountBalance(accountId: string, deltaAmount: number, executor?: DbExecutor) {
     const dbConn = resolveDb(executor);
     await dbConn.execute(
-      sql`UPDATE accounts SET balance = balance + ${deltaAmount} WHERE id = ${accountId}`
+      sql`UPDATE accounts SET balance = balance + ${deltaAmount}, updated_at = clock_timestamp() WHERE id = ${accountId}`
     );
   }
 }

@@ -1,3 +1,5 @@
+import { lockPortfolio } from './portfolio-lock';
+import { resolveDb, type DbExecutor } from './db-executor';
 import { PortfolioSnapshotRepository } from './portfolio-snapshot.repository';
 import { financialDateKey } from '@/lib/utils/financial-date';
 import { db } from '@/server/db/drizzle';
@@ -5,8 +7,8 @@ import { investments } from '@/server/db/schema';
 import { eq, and, inArray, sql } from 'drizzle-orm';
 
 export class InvestmentRepository {
-  static async findByUser(userId: string) {
-    return await db
+  static async findByUser(userId: string, executor?: DbExecutor) {
+    return await resolveDb(executor)
       .select()
       .from(investments)
       .where(eq(investments.user_id, userId))
@@ -58,6 +60,7 @@ export class InvestmentRepository {
 
   static async create(data: typeof investments.$inferInsert) {
     return db.transaction(async (tx) => {
+      await lockPortfolio(data.user_id, tx);
       const [row] = await tx.insert(investments).values(data).returning();
       if (row)
         await PortfolioSnapshotRepository.deleteFrom(
@@ -71,6 +74,7 @@ export class InvestmentRepository {
 
   static async update(id: string, data: Partial<typeof investments.$inferInsert>, userId: string) {
     return db.transaction(async (tx) => {
+      await lockPortfolio(userId, tx);
       const [previous] = await tx
         .select()
         .from(investments)
@@ -93,6 +97,7 @@ export class InvestmentRepository {
 
   static async delete(id: string, userId: string) {
     return db.transaction(async (tx) => {
+      await lockPortfolio(userId, tx);
       const [row] = await tx
         .delete(investments)
         .where(and(eq(investments.id, id), eq(investments.user_id, userId)))

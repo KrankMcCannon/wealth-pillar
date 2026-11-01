@@ -62,7 +62,7 @@ test('keeps budgets and detail readable at narrow widths, in both themes and wit
     for (const width of [320, 390, 1280]) {
       await page.setViewportSize({ width, height: 900 });
       await page.goto(`/${locale}/budgets`);
-      await expect(page.getByTestId('budgets-fab-add')).toBeVisible();
+      await expect(page.locator('[data-testid="budgets-fab-add"]:visible')).toBeVisible();
       await expect(
         page.getByRole('heading', {
           name: locale === 'it' ? 'Budget' : 'Budgets',
@@ -76,7 +76,7 @@ test('keeps budgets and detail readable at narrow widths, in both themes and wit
       await page.screenshot({ path: testInfo.outputPath(`budgets-${locale}-${width}.png`) });
       const card = page.locator('a[href*="/budgets/"]').first();
       await card.click();
-      await expect(page.locator('#main-budget-detail')).toBeVisible();
+      await expect(page.locator('#main-budget-detail:visible')).toBeVisible();
       await expect
         .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth))
         .toBe(true);
@@ -96,7 +96,7 @@ test('creates a shared-category envelope with a long name and exposes the over-l
   page,
 }) => {
   await page.goto('/it/budgets');
-  await page.getByTestId('budgets-fab-add').click();
+  await page.locator('[data-testid="budgets-fab-add"]:visible').click();
   const form = page.getByRole('dialog');
   await form.getByRole('textbox', { name: 'Importo', exact: true }).fill('10');
   await form
@@ -117,23 +117,39 @@ test('creates a shared-category envelope with a long name and exposes the over-l
   await expect(card).toHaveAccessibleName(/Superato di/);
 });
 test('keeps cycle management available after deleting every envelope', async ({ page }) => {
-  await page.goto('/it/budgets');
-  for (let i = 0; i < 3; i++) {
-    const cards = page.getByRole('link', { name: /Apri dettagli budget:/ });
-    if ((await cards.count()) === 0) break;
-    await cards.first().click();
-    await page.getByRole('button', { name: 'Modifica budget', exact: true }).click();
-    await page.getByRole('button', { name: 'Eliminare il budget?', exact: true }).click();
-    const confirmation = page
-      .getByRole('dialog')
-      .filter({ has: page.getByRole('heading', { name: 'Eliminare il budget?', exact: true }) });
-    await confirmation.getByRole('button', { name: 'Elimina', exact: true }).click();
-    await expect(confirmation).toBeHidden();
+  try {
     await page.goto('/it/budgets');
+    for (let i = 0; i < 3; i++) {
+      const cards = page.getByRole('link', { name: /Apri dettagli budget:/ });
+      if ((await cards.count()) === 0) break;
+      await cards.first().click();
+      await page.getByRole('button', { name: 'Modifica budget', exact: true }).click();
+      await page.getByRole('button', { name: 'Eliminare il budget?', exact: true }).click();
+      const confirmation = page
+        .getByRole('dialog')
+        .filter({ has: page.getByRole('heading', { name: 'Eliminare il budget?', exact: true }) });
+      await confirmation.getByRole('button', { name: 'Elimina', exact: true }).click();
+      await expect(confirmation).toBeHidden();
+      await page.goto('/it/budgets');
+    }
+    await expect(page.getByRole('link', { name: /Apri dettagli budget:/ })).toHaveCount(0);
+    await page.getByRole('button', { name: /azioni del periodo/i }).click();
+    await expect(page.getByRole('menuitem', { name: 'Nuovo periodo', exact: true })).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('link', { name: 'Storico', exact: true })).toBeVisible();
+  } finally {
+    // Restore the shared baseline through the UI so its cache tags are expired too.
+    await page.goto('/it/budgets?modal=budget');
+    const form = page.getByRole('dialog');
+    await form.getByRole('textbox', { name: 'Importo', exact: true }).fill('500');
+    await form.getByRole('textbox', { name: 'Descrizione', exact: true }).fill('E2E Food Budget');
+    await form.getByRole('button', { name: /^Categorie/ }).click();
+    const picker = page
+      .getByRole('dialog')
+      .filter({ has: page.getByRole('heading', { name: 'Categorie', exact: true }) });
+    await picker.getByText('E2E Food', { exact: true }).click();
+    await picker.getByRole('button', { name: 'Chiudi finestra', exact: true }).click();
+    await form.getByRole('button', { name: 'Crea budget', exact: true }).click();
+    await expect(form).toBeHidden();
   }
-  await expect(page.getByRole('link', { name: /Apri dettagli budget:/ })).toHaveCount(0);
-  await page.getByRole('button', { name: /azioni del periodo/i }).click();
-  await expect(page.getByRole('menuitem', { name: 'Nuovo periodo', exact: true })).toBeVisible();
-  await page.keyboard.press('Escape');
-  await expect(page.getByRole('link', { name: 'Storico', exact: true })).toBeVisible();
 });
