@@ -1,5 +1,6 @@
 'use server';
 
+import { financialDateKey } from '@/lib/utils/financial-date';
 import { validateRecurringDefinition } from '@/lib/recurring/recurring-validation';
 
 /**
@@ -11,6 +12,7 @@ import { validateRecurringDefinition } from '@/lib/recurring/recurring-validatio
 
 import { getCurrentUser } from '@/lib/auth/cached-auth';
 import { AccessScope } from '@/lib/permissions/access-scope';
+import { FinancialResourcePolicy } from '@/server/permissions/financial-resource-policy';
 import { isMember } from '@/lib/utils/permissions';
 import { RecurringTransactionSeries, User } from '@/lib/types';
 import {
@@ -20,6 +22,7 @@ import {
   updateSeriesUseCase,
 } from '@/server/use-cases/recurring/recurring.use-cases';
 import { serialize } from '@/lib/utils/serializer';
+import type { RecurringFrequency } from '@/lib/recurring/frequencies';
 import type { ServiceResult } from '@/lib/types/service-result';
 
 /**
@@ -30,7 +33,7 @@ export interface CreateRecurringSeriesInput {
   amount: number;
   type: 'income' | 'expense' | 'transfer';
   category: string;
-  frequency: 'once' | 'weekly' | 'biweekly' | 'monthly' | 'yearly';
+  frequency: RecurringFrequency;
   user_ids: string[]; // Array of user IDs who can access this series
   account_id: string;
   start_date: string;
@@ -47,7 +50,7 @@ export interface UpdateRecurringSeriesInput {
   amount?: number;
   type?: 'income' | 'expense' | 'transfer';
   category?: string;
-  frequency?: 'once' | 'weekly' | 'biweekly' | 'monthly' | 'yearly';
+  frequency?: RecurringFrequency;
   user_ids?: string[]; // Array of user IDs who can access this series
   account_id?: string;
   start_date?: string;
@@ -118,6 +121,9 @@ export async function createRecurringSeriesAction(
     const permError = validateCreatePermissions(currentUser, input.user_ids);
     if (permError) return { data: null, error: permError };
 
+    const policy = new FinancialResourcePolicy(currentUser);
+    await policy.assertRecurring(input);
+
     const data = await createSeriesUseCase({
       description: input.description.trim(),
       amount: input.amount,
@@ -126,8 +132,8 @@ export async function createRecurringSeriesAction(
       frequency: input.frequency,
       user_ids: input.user_ids,
       account_id: input.account_id,
-      start_date: new Date(input.start_date).toISOString(),
-      end_date: input.end_date ? new Date(input.end_date).toISOString() : null,
+      start_date: financialDateKey(input.start_date),
+      end_date: input.end_date ? financialDateKey(input.end_date) : null,
       due_day: input.due_day,
       is_active: true,
       total_executions: 0,
@@ -200,10 +206,9 @@ function buildUpdatePayload(input: UpdateRecurringSeriesInput): {
   if (input.category !== undefined) updatePayload.category = input.category;
   if (input.frequency !== undefined) updatePayload.frequency = input.frequency;
   if (input.account_id !== undefined) updatePayload.account_id = input.account_id;
-  if (input.start_date !== undefined)
-    updatePayload.start_date = new Date(input.start_date).toISOString();
+  if (input.start_date !== undefined) updatePayload.start_date = financialDateKey(input.start_date);
   if (input.end_date !== undefined)
-    updatePayload.end_date = input.end_date ? new Date(input.end_date).toISOString() : null;
+    updatePayload.end_date = input.end_date ? financialDateKey(input.end_date) : null;
   if (input.due_day !== undefined) updatePayload.due_day = input.due_day;
   if (input.is_active !== undefined) updatePayload.is_active = input.is_active;
   if (input.user_ids !== undefined) updatePayload.user_ids = input.user_ids;
@@ -236,7 +241,8 @@ export async function updateRecurringSeriesAction(
     }
 
     // Get old user_ids to invalidate cache for previous users
-    const oldSeries = await getSeriesByIdUseCase(input.id);
+    const policy = new FinancialResourcePolicy(currentUser);
+    const oldSeries = await getSeriesByIdUseCase(input.id, policy.resourceScope);
     if (!oldSeries) {
       return { data: null, error: 'Serie ricorrente non trovata' };
     }
@@ -244,6 +250,9 @@ export async function updateRecurringSeriesAction(
     // Permission validation
     const permError = validateUpdatePermission(currentUser, oldSeries, input.user_ids);
     if (permError) return { data: null, error: permError };
+
+    await policy.assertRecurring(oldSeries);
+    await policy.assertRecurring({ ...oldSeries, ...input });
 
     // Build update data
     const { payload, error: payloadError } = buildUpdatePayload(input);
@@ -257,7 +266,7 @@ export async function updateRecurringSeriesAction(
       : validateRecurringDefinition({ ...oldSeries, ...input });
     if (definitionError) return { data: null, error: definitionError };
 
-    const data = await updateSeriesUseCase(input.id, updatePayload);
+    const data = await updateSeriesUseCase(input.id, updatePayload, policy.resourceScope);
     if (!data) {
       return { data: null, error: 'Failed to update series' };
     }
@@ -293,7 +302,8 @@ export async function deleteRecurringSeriesAction(
       return { data: null, error: 'Non autenticato. Effettua il login per continuare.' };
     }
 
-    const series = await getSeriesByIdUseCase(seriesId);
+    const policy = new FinancialResourcePolicy(currentUser);
+    const series = await getSeriesByIdUseCase(seriesId, policy.resourceScope);
     if (!series) {
       return { data: null, error: 'Serie ricorrente non trovata' };
     }
@@ -302,7 +312,8 @@ export async function deleteRecurringSeriesAction(
       return { data: null, error: 'Permesso negato' };
     }
 
-    await deleteSeriesUseCase(seriesId);
+    await policy.assertRecurring(series);
+    await deleteSeriesUseCase(seriesId, policy.resourceScope);
 
     return { data: { success: true }, error: null };
   } catch (error) {
@@ -330,7 +341,8 @@ export async function getRecurringSeriesByIdAction(
       return { data: null, error: 'Non autenticato' };
     }
 
-    const series = await getSeriesByIdUseCase(id);
+    const policy = new FinancialResourcePolicy(currentUser);
+    const series = await getSeriesByIdUseCase(id, policy.resourceScope);
     if (!series) {
       return { data: null, error: 'Serie non trovata' };
     }
@@ -339,6 +351,7 @@ export async function getRecurringSeriesByIdAction(
       return { data: null, error: 'Permesso negato' };
     }
 
+    await policy.assertRecurring(series);
     return { data: serialize(series), error: null };
   } catch (error) {
     return {

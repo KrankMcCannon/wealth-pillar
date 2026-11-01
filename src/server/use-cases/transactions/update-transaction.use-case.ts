@@ -1,7 +1,7 @@
 import { db } from '@/server/db/drizzle';
 import { TransactionsRepository } from '@/server/repositories/transactions.repository';
 import type { UpdateTransactionInput } from '@/server/use-cases/transactions/types';
-import type { Transaction } from '@/lib/types';
+import type { TransactionMutationResult } from '@/lib/types/financial-mutation';
 import { serialize } from '@/lib/utils/serializer';
 import { toDateTime } from '@/lib/utils/date-utils';
 import { invalidateTransactionUpdateCaches } from '@/lib/utils/cache-utils';
@@ -12,7 +12,7 @@ export async function updateTransactionUseCase(
   id: string,
   data: UpdateTransactionInput,
   scope?: TransactionScope
-): Promise<Transaction> {
+): Promise<TransactionMutationResult> {
   if (!id?.trim()) throw new Error('Transaction ID is required');
 
   const updateData: Parameters<typeof TransactionsRepository.update>[1] = {};
@@ -29,7 +29,7 @@ export async function updateTransactionUseCase(
   if (data.account_id !== undefined) updateData.account_id = data.account_id;
   if (data.to_account_id !== undefined) updateData.to_account_id = data.to_account_id;
 
-  const { existing, updated } = await db.transaction(async (tx) => {
+  const { existing, updated, accountBalances } = await db.transaction(async (tx) => {
     const existing = await TransactionsRepository.getByIdForUpdate(id, scope, tx);
     if (!existing) throw new Error('Transaction not found');
     if (data.group_id !== undefined && data.group_id !== existing.group_id) {
@@ -51,7 +51,13 @@ export async function updateTransactionUseCase(
     const row = await TransactionsRepository.update(id, updateData, tx);
     if (!row) throw new Error('Failed to update transaction');
     await applyTransactionBalanceUpdate(existing, row, tx);
-    return { existing, updated: row };
+    const accountBalances = await TransactionsRepository.getAccountBalances(
+      [existing.account_id, existing.to_account_id, row.account_id, row.to_account_id].filter(
+        (id): id is string => Boolean(id)
+      ),
+      tx
+    );
+    return { existing, updated: row, accountBalances };
   });
 
   invalidateTransactionUpdateCaches(
@@ -73,5 +79,6 @@ export async function updateTransactionUseCase(
   return serialize({
     ...updated,
     amount: Number(updated.amount),
-  }) as Transaction;
+    accountBalances,
+  }) as TransactionMutationResult;
 }

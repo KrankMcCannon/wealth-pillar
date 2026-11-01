@@ -1,21 +1,21 @@
 import { cached } from '@/lib/cache';
 import { cacheOptions } from '@/lib/cache/config';
 import { budgetCacheKeys } from '@/lib/cache/keys';
-import { BudgetsRepository } from '@/server/repositories/budgets.repository';
+import { BudgetsRepository, type BudgetScope } from '@/server/repositories/budgets.repository';
 import type { Budget } from '@/lib/types';
 
-export async function getBudgetByIdUseCase(budgetId: string): Promise<Budget> {
+export async function getBudgetByIdUseCase(budgetId: string, scope?: BudgetScope): Promise<Budget> {
   if (!budgetId || budgetId.trim() === '') {
     throw new Error('Budget ID is required');
   }
 
   const getCachedBudget = cached(
     async () => {
-      const budget = await BudgetsRepository.getById(budgetId);
+      const budget = await BudgetsRepository.getById(budgetId, scope);
       if (!budget) return null;
       return { ...budget, amount: Number(budget.amount) };
     },
-    budgetCacheKeys.byId(budgetId),
+    [...budgetCacheKeys.byId(budgetId), scope?.groupId ?? 'all', scope?.userId ?? 'all'],
     cacheOptions.budget(budgetId)
   );
 

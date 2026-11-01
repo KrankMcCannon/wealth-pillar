@@ -1,5 +1,5 @@
 import { cacheLife, cacheTag } from 'next/cache';
-import { endOfDay, format, startOfDay, subYears } from 'date-fns';
+import { financialDateTime, financialDateKey } from '@/lib/utils/financial-date';
 import { CACHE_TAGS } from '@/lib/cache/config';
 import {
   getReportsContextUseCase,
@@ -75,10 +75,13 @@ async function getCachedReportsPageData(
     const now = new Date();
     const anchor = resolveYtdBudgetStart(periods, now);
     if (anchor) {
-      currentWindow = { start: startOfDay(anchor), end: currentWindow.end };
+      currentWindow = {
+        start: financialDateTime(anchor).startOf('day').toJSDate(),
+        end: currentWindow.end,
+      };
       comparisonWindow = {
-        start: startOfDay(subYears(currentWindow.start, 1)),
-        end: endOfDay(subYears(currentWindow.end, 1)),
+        start: financialDateTime(currentWindow.start).minus({ years: 1 }).startOf('day').toJSDate(),
+        end: financialDateTime(currentWindow.end).minus({ years: 1 }).endOf('day').toJSDate(),
       };
     }
   }
@@ -136,13 +139,13 @@ async function getCachedReportsPageData(
     comparisonLabelKey,
     transactionsTruncated,
     currentWindow: {
-      start: format(currentWindow.start, 'yyyy-MM-dd'),
-      end: format(currentWindow.end, 'yyyy-MM-dd'),
+      start: financialDateKey(currentWindow.start),
+      end: financialDateKey(currentWindow.end),
     },
     comparisonWindow: comparisonWindow
       ? {
-          start: format(comparisonWindow.start, 'yyyy-MM-dd'),
-          end: format(comparisonWindow.end, 'yyyy-MM-dd'),
+          start: financialDateKey(comparisonWindow.start),
+          end: financialDateKey(comparisonWindow.end),
         }
       : null,
   };

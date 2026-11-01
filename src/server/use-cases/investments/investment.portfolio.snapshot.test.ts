@@ -51,7 +51,7 @@ describe('buildPortfolioHistoryWithSnapshots', () => {
   });
   afterEach(() => vi.useRealTimers());
 
-  it('counts persisted snapshots once, sums different users, and stays stable on a second load', async () => {
+  it('sums users without writing snapshots and stays stable on a second load', async () => {
     let stored: Array<{ user_id: string; snapshot_date: string; value: string }> = [];
     vi.mocked(PortfolioSnapshotRepository.findByUserIds).mockImplementation(
       async () => stored as Awaited<ReturnType<typeof PortfolioSnapshotRepository.findByUserIds>>
@@ -61,12 +61,29 @@ describe('buildPortfolioHistoryWithSnapshots', () => {
     });
     const rows = [row(), row({ id: 'inv-2', user_id: 'user-2', shares_acquired: '3' })];
     const first = await buildPortfolioHistoryWithSnapshots(['user-1', 'user-2'], rows, seriesIndex);
-    expect(stored).toHaveLength(4);
+    expect(stored).toHaveLength(0);
+    expect(PortfolioSnapshotRepository.upsertMany).not.toHaveBeenCalled();
     expect(first).toEqual(buildPortfolioHistory(rows, seriesIndex));
     expect(first.find((point) => point.date === '2024-01-02')?.value).toBe(60);
     expect(
       await buildPortfolioHistoryWithSnapshots(['user-1', 'user-2'], rows, seriesIndex)
     ).toEqual(first);
+  });
+
+  it('rebuilds past values after changing shares, moving the purchase date and removing holdings', async () => {
+    vi.mocked(PortfolioSnapshotRepository.findByUserIds).mockResolvedValue([
+      { user_id: 'user-1', snapshot_date: '2024-01-01', value: '20' },
+      { user_id: 'user-1', snapshot_date: '2024-01-02', value: '24' },
+    ] as never);
+    const updated = row({ shares_acquired: '12' });
+    const history = await buildPortfolioHistoryWithSnapshots(['user-1'], [updated], seriesIndex);
+    expect(history.find((point) => point.date === '2024-01-01')?.value).toBe(120);
+    expect(history.find((point) => point.date === '2024-01-02')?.value).toBe(144);
+    const moved = { ...updated, created_at: new Date('2024-01-02T12:00:00Z') };
+    const movedHistory = await buildPortfolioHistoryWithSnapshots(['user-1'], [moved], seriesIndex);
+    expect(movedHistory.some((point) => point.date === '2024-01-01')).toBe(false);
+    expect(await buildPortfolioHistoryWithSnapshots(['user-1'], [], seriesIndex)).toEqual([]);
+    expect(PortfolioSnapshotRepository.upsertMany).not.toHaveBeenCalled();
   });
 
   it('does not persist unknown valuations or expose a partial grouped snapshot', async () => {

@@ -707,7 +707,7 @@ export const recurringTransactions = pgTable(
     check('due_day_range', sql`(due_day >= 1) AND (due_day <= 31)`),
     check(
       'recurring_transactions_frequency_check',
-      sql`(frequency)::text = ANY ((ARRAY['daily'::character varying, 'weekly'::character varying, 'monthly'::character varying, 'quarterly'::character varying, 'yearly'::character varying])::text[])`
+      sql`(frequency)::text = ANY ((ARRAY['once'::character varying, 'weekly'::character varying, 'biweekly'::character varying, 'monthly'::character varying, 'yearly'::character varying])::text[])`
     ),
     check(
       'recurring_transactions_type_check',

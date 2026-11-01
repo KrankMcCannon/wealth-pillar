@@ -4,18 +4,23 @@ import { validateId } from '@/lib/utils/validation-utils';
 import { invalidateTransactionCaches } from '@/lib/utils/cache-utils';
 import { applyTransactionBalanceAdjustments } from '@/server/use-cases/transactions/transaction-balance';
 import type { TransactionScope } from '@/server/repositories/transactions.repository';
+import type { TransactionDeleteResult } from '@/lib/types/financial-mutation';
 
 export async function deleteTransactionUseCase(
   id: string,
   scope?: TransactionScope
-): Promise<{ id: string }> {
+): Promise<TransactionDeleteResult> {
   validateId(id, 'Transaction ID');
 
   const existing = await db.transaction(async (tx) => {
     const removed = await TransactionsRepository.delete(id, tx, scope);
     if (!removed) throw new Error('Transaction not found');
     await applyTransactionBalanceAdjustments(removed, -1, tx);
-    return removed;
+    const accountBalances = await TransactionsRepository.getAccountBalances(
+      [removed.account_id, ...(removed.to_account_id ? [removed.to_account_id] : [])],
+      tx
+    );
+    return { ...removed, accountBalances };
   });
 
   invalidateTransactionCaches({
@@ -26,7 +31,7 @@ export async function deleteTransactionUseCase(
     transactionId: existing.id,
   });
 
-  return { id };
+  return { id, accountBalances: existing.accountBalances };
 }
 
 export async function deleteTransactionsByAccountUseCase(accountId: string): Promise<void> {

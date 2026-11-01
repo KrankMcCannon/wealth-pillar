@@ -1,4 +1,3 @@
-import { after } from 'next/server';
 import { BudgetsRepository } from '@/server/repositories/budgets.repository';
 import type { CreateBudgetInput } from './types';
 import type { Budget } from '@/lib/types';
@@ -21,7 +20,10 @@ export async function createBudgetUseCase(data: CreateBudgetInput): Promise<Budg
   validateNonEmptyArray(data.categories, 'category');
   validateId(data.user_id, 'User ID');
 
-  const groupId = data.group_id || (await getUserGroupIdUseCase(data.user_id));
+  const groupId = await getUserGroupIdUseCase(data.user_id);
+  if (!groupId || (data.group_id && data.group_id !== groupId)) {
+    throw new Error('Permesso negato');
+  }
 
   const insertData = {
     description,
@@ -35,9 +37,7 @@ export async function createBudgetUseCase(data: CreateBudgetInput): Promise<Budg
 
   const budget = await BudgetsRepository.create(insertData);
 
-  after(() => {
-    invalidateBudgetCaches({ userId: data.user_id, groupId });
-  });
+  invalidateBudgetCaches({ userId: data.user_id, groupId });
 
   return budget;
 }

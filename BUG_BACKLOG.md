@@ -1,5 +1,65 @@
 # Wealth Pillar: backlog della Daily Review
 
+## Review del 1 novembre 2026: correzioni pronte per il rilascio
+
+Fonti lette: [Daily Review](https://chatgpt.com/c/6ada63ee-fa9c-83eb-8eb5-bdb886c77905)
+e [review generale](https://chatgpt.com/c/6ac55d6f-ffa4-83eb-bb65-7cd5230c8cb9),
+confrontate con `master` al commit `5ce837c`. Le sezioni successive documentano gli
+interventi precedenti.
+
+- Budget: gruppo derivato dalla sessione, utenti verificati con la policy finanziaria
+  condivisa, letture e mutazioni SQL vincolate a gruppo e ownership. Le normali
+  operazioni non possono trasferire il budget a un altro gruppo.
+- Ricorrenze: verifica del gruppo di utenti e conto, inclusi i conti condivisi;
+  protezione di lettura, modifica, eliminazione e cambio stato. Il dettaglio non
+  espone il conto di un altro gruppo. In caso di riassegnazione scadono anche le
+  cache dei precedenti utenti.
+- Frequenze: dominio condiviso tra tipi e validazione del form/server. La migrazione
+  Drizzle `0005_recurring_frequencies.sql` allinea PostgreSQL a `once`, `weekly`,
+  `biweekly`, `monthly`, `yearly`. L'ispezione in sola lettura del database reale ha
+  confermato il vecchio vincolo e l'assenza di righe `daily`/`quarterly`.
+- Investimenti: creazione, modifica ed eliminazione invalidano atomicamente gli
+  snapshot dal primo giorno interessato. Lo storico ricalcola i punti disponibili
+  dalle posizioni correnti e conserva quelli precedenti non interessati. La lettura
+  non scrive nuovi snapshot; quotazioni mancanti non diventano totali parziali.
+- Date: giorno contabile esplicito in `Europe/Rome` per filtri, query, ricorrenze,
+  storico, Rapporti e link al ledger. Confronti per giorni di calendario, inclusi
+  mezzanotte, Capodanno, ora legale e 29 febbraio.
+- Cache: scadenza immediata dei dati finanziari prima della risposta della mutazione,
+  compatibile sia con Server Actions sia con i webhook Clerk;
+  chiavi delle singole transazioni comprensive di gruppo e utente, filtri per tipo
+  distinti anche nella cache per utente. Eliminata l'invalidazione duplicata dei budget.
+- Letture complete: scansioni SQL a blocchi di 1.000 righe, con cursore che conserva
+  i microsecondi PostgreSQL, per Home/Budget e snapshot dei periodi. Nessun troncamento
+  dei totali. I calcoli esistenti mantengono in memoria le righe del periodo; ulteriori
+  aggregazioni SQL restano un'evoluzione per volumi superiori.
+- Saldi ottimistici: create/update/delete restituiscono i saldi autorevoli dei conti
+  interessati, letti nella stessa transazione contabile; il client li applica al commit.
+- Interfaccia: “Nuovo ciclo” nel menu del periodo, usando lo stesso menu Radix e i
+  token esistenti. Verifiche responsive in italiano/inglese, tema chiaro/scuro e zoom.
+
+Verifica locale finale: 1.021 test unitari, 56 test PostgreSQL, 71 test di calendario
+per ciascuno dei tre fusi, 20 test del planner CI, TypeScript, ESLint, formattazione,
+build di produzione e 6 test Playwright (4 scenari più setup e teardown) superati.
+Il flusso browser registra una spesa, ricarica il ledger e verifica subito Budget,
+Home e Conti. Le schermate Budget sono state verificate a 320/390/1280 px in
+italiano/inglese, con temi chiaro/scuro e zoom.
+
+La migrazione delle frequenze è verificata su PostgreSQL locale, inclusi errori
+forzati e rollback. Il rilascio applica solo questa migrazione tramite Supabase;
+il journal Drizzle di produzione era vuoto durante il preflight. Timeout, verifica
+dei dati e rollback protetto sono descritti nel
+[runbook di rilascio](docs/releases/recurring-frequency-migration.md).
+L'esito dell'applicazione in produzione è riportato nella PR di rilascio.
+Nessuna nuova variabile di produzione è richiesta.
+
+La riconciliazione assistita dei giroconti importati, l'automatismo dopo l'accredito
+stipendio e un nuovo motore di esecuzione delle ricorrenze sono proposte funzionali
+per una successiva iterazione. Le ricorrenze restano previsioni distinte dai movimenti
+registrati, come già implementato su `master`. Gli E2E usano la sessione Clerk di
+sviluppo e il database locale dedicato; la CI include ora anche i test del calendario
+con processo UTC, Europe/Rome e America/Los_Angeles.
+
 Fonte: [review del 23–29 ottobre 2026](chatgpt-conversation://6ada63ee-fa9c-83eb-8eb5-bdb886c77905).
 Il backlog originale contiene 21 segnalazioni, tutte corrette nel codice o nella
 configurazione. La segnalazione UI manuale aggiuntiva è anch’essa corretta.

@@ -11,7 +11,8 @@ export const DEFAULT_LIQUIDITY_BY_TYPE: Record<AccountType, AccountLiquidity> = 
   investments: 'reserve',
 };
 export type TransactionType = 'income' | 'expense' | 'transfer';
-export type TransactionFrequencyType = 'once' | 'weekly' | 'biweekly' | 'monthly' | 'yearly';
+export type { RecurringFrequency as TransactionFrequencyType } from '@/lib/recurring/frequencies';
+import type { RecurringFrequency as TransactionFrequencyType } from '@/lib/recurring/frequencies';
 export type BudgetType = 'monthly' | 'annually';
 export type PlanType = 'premium' | 'free';
 export type LoadingState = 'idle' | 'loading' | 'success' | 'error';

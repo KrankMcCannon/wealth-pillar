@@ -17,6 +17,7 @@ vi.mock('../recurring/recurring.use-cases', () => ({
 
 vi.mock('../transactions/get-transactions.use-case', () => ({
   getTransactionsByGroupUseCase: vi.fn(),
+  getCompletePeriodTransactionsUseCase: vi.fn(),
 }));
 
 vi.mock('../budgets/get-budgets.use-case', () => ({
@@ -31,7 +32,10 @@ vi.mock('@/server/request-cache/services', () => ({
 
 import { getActiveBudgetPeriodsForUsersUseCase } from '../budget-periods/get-active-budget-periods-for-users.use-case';
 import { getSeriesByGroupUseCase } from '../recurring/recurring.use-cases';
-import { getTransactionsByGroupUseCase } from '../transactions/get-transactions.use-case';
+import {
+  getTransactionsByGroupUseCase,
+  getCompletePeriodTransactionsUseCase,
+} from '../transactions/get-transactions.use-case';
 import { getBudgetsByGroupUseCase } from '../budgets/get-budgets.use-case';
 import {
   getAccountsByGroupDeduped,
@@ -68,6 +72,7 @@ const accounts: Account[] = [
 
 describe('getDashboardPageData', () => {
   beforeEach(() => {
+    vi.mocked(getCompletePeriodTransactionsUseCase).mockReset().mockResolvedValue([]);
     vi.clearAllMocks();
     vi.mocked(getGroupUsersByGroupIdDeduped).mockResolvedValue(groupUsers);
     vi.mocked(getAccountsByGroupDeduped).mockResolvedValue(accounts);
@@ -86,6 +91,7 @@ describe('getDashboardPageData', () => {
     getGroupUsersByGroupIdDeduped,
     getAccountsByGroupDeduped,
     getTransactionsByGroupUseCase,
+    getCompletePeriodTransactionsUseCase,
     getBudgetsByGroupUseCase,
     getSeriesByGroupUseCase,
     getAllCategoriesDeduped,
@@ -176,34 +182,27 @@ describe('getDashboardPageData', () => {
       created_at: '',
       updated_at: '',
     }));
-    vi.mocked(getTransactionsByGroupUseCase).mockImplementation(async (_group, options) => ({
-      data: options?.limit ? [] : txs,
-      total: 0,
-      hasMore: false,
-    }));
+    vi.mocked(getCompletePeriodTransactionsUseCase).mockResolvedValue(txs);
     const dashboard = await getDashboardPageData('g1', (groupUsers as User[])[0]!);
     const budgets = await getBudgetsPageData('g1', (groupUsers as User[])[0]!);
     expect(dashboard.budgetsByUser.u1).toEqual(budgets.budgetsByUser.u1);
     expect(dashboard.budgetsByUser.u1?.totalSpent).toBe(2500);
-    expect(getTransactionsByGroupUseCase).toHaveBeenCalledWith(
+    expect(getCompletePeriodTransactionsUseCase).toHaveBeenCalledWith(
       'g1',
-      expect.objectContaining({ startDate: expect.any(Date), countTotal: false })
+      expect.any(Date),
+      expect.any(Date)
     );
-    const fullReads = vi
-      .mocked(getTransactionsByGroupUseCase)
-      .mock.calls.filter(([, options]) => options?.limit === undefined);
+    const fullReads = vi.mocked(getCompletePeriodTransactionsUseCase).mock.calls;
     expect(fullReads).toHaveLength(2);
-    expect(fullReads[0]![1]!.startDate!.getUTCFullYear()).toBeLessThanOrEqual(2023);
+    expect(fullReads[0]![1].getUTCFullYear()).toBeLessThanOrEqual(2023);
   });
 
-  it('does not turn an incomplete budget ledger into a cached financial summary', async () => {
-    vi.mocked(getTransactionsByGroupUseCase).mockImplementation(async (_group, options) => ({
-      data: [],
-      total: 0,
-      hasMore: !options?.limit,
-    }));
+  it('propagates an interrupted complete ledger scan instead of caching partial totals', async () => {
+    vi.mocked(getCompletePeriodTransactionsUseCase).mockRejectedValue(
+      new Error('Ledger unavailable')
+    );
     await expect(getDashboardPageData('g1', (groupUsers as User[])[0]!)).rejects.toThrow(
-      'BUDGETS_TRANSACTIONS_OVERFLOW'
+      'Ledger unavailable'
     );
   });
 });

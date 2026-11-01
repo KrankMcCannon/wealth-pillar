@@ -2,10 +2,10 @@
  * Shared Cache Invalidation Utilities
  *
  * Centralized cache invalidation helpers to reduce code duplication.
- * Uses Next.js revalidateTag for on-demand cache invalidation.
+ * Financial writes expire tags immediately; non-financial metadata can revalidate in the background.
  */
 
-import { revalidateTag, updateTag } from 'next/cache';
+import { revalidateTag } from 'next/cache';
 import { CACHE_TAGS } from '@/lib/cache/config';
 
 /**
@@ -64,11 +64,11 @@ export function invalidateTransactionCaches(opts: TransactionCacheInvalidationOp
     accountTags.push(CACHE_TAGS.ACCOUNT(opts.toAccountId));
   }
 
-  // Balances are correctness-critical:
+  // Financial data is correctness-critical:
   // the next read after a financial mutation must see the new value.
   expireTags(accountTags);
 
-  const eventuallyConsistentTags: string[] = [
+  const financialTags: string[] = [
     CACHE_TAGS.TRANSACTIONS,
     `account:${opts.accountId}:transactions`,
     `group:${opts.groupId}:transactions`,
@@ -76,21 +76,18 @@ export function invalidateTransactionCaches(opts: TransactionCacheInvalidationOp
   ];
 
   if (opts.userId) {
-    eventuallyConsistentTags.push(
-      `user:${opts.userId}:transactions`,
-      `user:${opts.userId}:budgets`
-    );
+    financialTags.push(`user:${opts.userId}:transactions`, `user:${opts.userId}:budgets`);
   }
 
   if (opts.toAccountId) {
-    eventuallyConsistentTags.push(`account:${opts.toAccountId}:transactions`);
+    financialTags.push(`account:${opts.toAccountId}:transactions`);
   }
 
   if (opts.transactionId) {
-    eventuallyConsistentTags.push(`transaction:${opts.transactionId}`);
+    financialTags.push(`transaction:${opts.transactionId}`);
   }
 
-  invalidateTags(eventuallyConsistentTags);
+  expireTags(financialTags);
 }
 
 /**
@@ -108,7 +105,7 @@ export function invalidateBudgetCaches(opts: BudgetCacheInvalidationOptions): vo
     tags.push(`group:${opts.groupId}:budgets`);
   }
 
-  invalidateTags(tags);
+  expireTags(tags);
 }
 
 /**
@@ -117,7 +114,7 @@ export function invalidateBudgetCaches(opts: BudgetCacheInvalidationOptions): vo
 export function invalidateInvestmentCaches(opts: InvestmentCacheInvalidationOptions): void {
   const tags = [`user:${opts.userId}:investments`];
   if (opts.groupId) tags.push(`group:${opts.groupId}:investments`);
-  invalidateTags(tags);
+  expireTags(tags);
 }
 
 /**
@@ -137,7 +134,7 @@ export function invalidateAccountCaches(opts: AccountCacheInvalidationOptions): 
     });
   }
 
-  invalidateTags(tags);
+  expireTags(tags);
 }
 
 /**
@@ -184,7 +181,7 @@ export function invalidateCategoryCaches(opts: { categoryId?: string }): void {
     tags.push(CACHE_TAGS.CATEGORY(opts.categoryId));
   }
 
-  invalidateTags(tags);
+  expireTags(tags);
 }
 
 /**
@@ -212,7 +209,7 @@ export function invalidateRecurringCaches(opts: {
   }
 
   // Mutations must refresh dependent Dashboard summaries on the very next read.
-  for (const tag of new Set(tags)) updateTag(tag);
+  expireTags(tags);
 }
 
 /**
@@ -294,12 +291,13 @@ export function invalidateTransactionUpdateCaches(
     tags.push(`group:${update.groupId}:transactions`, `group:${update.groupId}:budgets`);
   }
 
-  invalidateTags(tags);
+  expireTags(tags);
 }
 
 function expireTags(tags: string[]): void {
-  for (const tag of tags) {
-    updateTag(tag);
+  for (const tag of new Set(tags)) {
+    // These use cases also run in Clerk webhooks, where updateTag is unavailable.
+    revalidateTag(tag, { expire: 0 });
   }
 }
 

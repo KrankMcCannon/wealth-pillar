@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { BUDGETS_TRANSACTIONS_OVERFLOW } from '@/server/db/query-limits';
 
 vi.mock('next/cache', () => ({
   cacheLife: vi.fn(),
@@ -16,6 +15,7 @@ vi.mock('../budget-periods/get-active-budget-periods-for-users.use-case', () => 
 
 vi.mock('../transactions/get-transactions.use-case', () => ({
   getTransactionsByGroupUseCase: vi.fn(),
+  getCompletePeriodTransactionsUseCase: vi.fn(),
 }));
 
 vi.mock('@/server/request-cache/services', () => ({
@@ -26,7 +26,10 @@ vi.mock('@/server/request-cache/services', () => ({
 
 import { getBudgetsByGroupUseCase } from '../budgets/get-budgets.use-case';
 import { getActiveBudgetPeriodsForUsersUseCase } from '../budget-periods/get-active-budget-periods-for-users.use-case';
-import { getTransactionsByGroupUseCase } from '../transactions/get-transactions.use-case';
+import {
+  getTransactionsByGroupUseCase,
+  getCompletePeriodTransactionsUseCase,
+} from '../transactions/get-transactions.use-case';
 import {
   getAccountsByGroupDeduped,
   getAllCategoriesDeduped,
@@ -46,6 +49,7 @@ const admin = {
 
 describe('getBudgetsPageData', () => {
   beforeEach(() => {
+    vi.mocked(getCompletePeriodTransactionsUseCase).mockReset().mockResolvedValue([]);
     vi.mocked(getGroupUsersByGroupIdDeduped).mockResolvedValue([admin]);
     vi.mocked(getBudgetsByGroupUseCase).mockResolvedValue([]);
     vi.mocked(getAccountsByGroupDeduped).mockResolvedValue([]);
@@ -63,13 +67,10 @@ describe('getBudgetsPageData', () => {
     expect(result).not.toHaveProperty('transactions');
   });
 
-  it('fails closed when the union period exceeds the transaction cap', async () => {
-    vi.mocked(getTransactionsByGroupUseCase).mockResolvedValue({
-      data: [],
-      total: 0,
-      hasMore: true,
-    });
-
-    await expect(getBudgetsPageData('g1', admin)).rejects.toThrow(BUDGETS_TRANSACTIONS_OVERFLOW);
+  it('propagates an interrupted complete ledger scan instead of showing partial totals', async () => {
+    vi.mocked(getCompletePeriodTransactionsUseCase).mockRejectedValue(
+      new Error('Ledger unavailable')
+    );
+    await expect(getBudgetsPageData('g1', admin)).rejects.toThrow('Ledger unavailable');
   });
 });

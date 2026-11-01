@@ -5,6 +5,7 @@ import {
   deleteTransactionAction,
 } from './transaction-actions';
 import type { Transaction, User } from '@/lib/types';
+import type { TransactionMutationResult } from '@/lib/types/financial-mutation';
 import type { CreateTransactionInput } from '@/server/use-cases/transactions/types';
 
 // Mock dependencies
@@ -68,8 +69,9 @@ function createMockUser(overrides: Partial<User> = {}): User {
   };
 }
 
-function createMockTransaction(overrides: Partial<Transaction> = {}): Transaction {
+function createMockTransaction(overrides: Partial<Transaction> = {}): TransactionMutationResult {
   return {
+    accountBalances: { 'account-1': 900 },
     id: 'tx-1',
     description: 'Test Transaction',
     amount: 100,
@@ -264,7 +266,9 @@ describe('transaction-actions', () => {
 
     it('should return null data when service returns null', async () => {
       vi.mocked(getCurrentUser).mockResolvedValue(createMockUser());
-      vi.mocked(createTransactionUseCase).mockResolvedValue(null as unknown as Transaction);
+      vi.mocked(createTransactionUseCase).mockResolvedValue(
+        null as unknown as TransactionMutationResult
+      );
 
       const result = await createTransactionAction(createMockInput());
 
@@ -304,7 +308,9 @@ describe('transaction-actions', () => {
 
     it('should return error when transaction is not found', async () => {
       vi.mocked(getCurrentUser).mockResolvedValue(createMockUser());
-      vi.mocked(getTransactionByIdUseCase).mockResolvedValue(null as unknown as Transaction);
+      vi.mocked(getTransactionByIdUseCase).mockResolvedValue(
+        null as unknown as TransactionMutationResult
+      );
 
       const result = await updateTransactionAction('tx-nonexistent', { description: 'Updated' });
 
@@ -405,7 +411,9 @@ describe('transaction-actions', () => {
     it('should return null data when update service returns null', async () => {
       vi.mocked(getCurrentUser).mockResolvedValue(createMockUser());
       vi.mocked(getTransactionByIdUseCase).mockResolvedValue(createMockTransaction());
-      vi.mocked(updateTransactionUseCase).mockResolvedValue(null as unknown as Transaction);
+      vi.mocked(updateTransactionUseCase).mockResolvedValue(
+        null as unknown as TransactionMutationResult
+      );
 
       const result = await updateTransactionAction('tx-1', { description: 'Updated' });
 
@@ -437,7 +445,9 @@ describe('transaction-actions', () => {
 
     it('should return error when transaction is not found', async () => {
       vi.mocked(getCurrentUser).mockResolvedValue(createMockUser());
-      vi.mocked(getTransactionByIdUseCase).mockResolvedValue(null as unknown as Transaction);
+      vi.mocked(getTransactionByIdUseCase).mockResolvedValue(
+        null as unknown as TransactionMutationResult
+      );
 
       const result = await deleteTransactionAction('tx-nonexistent');
 
@@ -476,11 +486,17 @@ describe('transaction-actions', () => {
 
       vi.mocked(getCurrentUser).mockResolvedValue(mockUser);
       vi.mocked(getTransactionByIdUseCase).mockResolvedValue(existingTx);
-      vi.mocked(deleteTransactionUseCase).mockResolvedValue({ id: 'tx-1' });
+      vi.mocked(deleteTransactionUseCase).mockResolvedValue({
+        id: 'tx-1',
+        accountBalances: { 'account-1': 1000 },
+      });
 
       const result = await deleteTransactionAction('tx-1');
 
-      expect(result).toEqual({ data: { id: 'tx-1' }, error: null });
+      expect(result).toEqual({
+        data: { id: 'tx-1', accountBalances: { 'account-1': 1000 } },
+        error: null,
+      });
       expect(deleteTransactionUseCase).toHaveBeenCalledWith('tx-1', repoScope);
     });
 

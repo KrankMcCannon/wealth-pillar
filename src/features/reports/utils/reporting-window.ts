@@ -1,20 +1,5 @@
-import {
-  addDays,
-  differenceInCalendarDays,
-  endOfDay,
-  endOfMonth,
-  endOfYear,
-  isValid,
-  parseISO,
-  startOfDay,
-  startOfMonth,
-  startOfWeek,
-  startOfYear,
-  subDays,
-  subMonths,
-  subWeeks,
-  subYears,
-} from 'date-fns';
+import { financialDateTime } from '@/lib/utils/financial-date';
+import type { DateTime } from 'luxon';
 
 export type ReportsTimePreset =
   'monthly' | 'weekly' | 'ytd' | 'yearly' | 'custom' | 'last_year' | 'last_month';
@@ -53,59 +38,46 @@ export function isValidReportsRange(range: ReportsDateRange | null): range is Re
     range &&
     /^\d{4}-\d{2}-\d{2}$/.test(range.start) &&
     /^\d{4}-\d{2}-\d{2}$/.test(range.end) &&
-    isValid(parseISO(range.start)) &&
-    isValid(parseISO(range.end)) &&
+    validDay(range.start) &&
+    validDay(range.end) &&
     range.start <= range.end
   );
 }
 
-function startOfIsoWeek(d: Date): Date {
-  return startOfWeek(d, { weekStartsOn: 1 });
+function validDay(value: string): boolean {
+  try {
+    return financialDateTime(value).toISODate() === value;
+  } catch {
+    return false;
+  }
 }
 
-/** Finestra corrente per preset (fine = oggi end-of-day, tranne custom). */
+function window(start: DateTime, end: DateTime): DateWindow {
+  return { start: start.startOf('day').toJSDate(), end: end.endOf('day').toJSDate() };
+}
+
 export function getCurrentReportingWindow(
   preset: ReportsTimePreset,
-  custom: { start: string; end: string } | null,
+  custom: ReportsDateRange | null,
   now = new Date()
 ): DateWindow {
-  const end = endOfDay(now);
-
+  const date = financialDateTime(now);
   if (preset === 'custom') {
     if (!isValidReportsRange(custom)) throw new Error('Invalid report date range');
-    return { start: startOfDay(parseISO(custom.start)), end: endOfDay(parseISO(custom.end)) };
+    return window(financialDateTime(custom.start), financialDateTime(custom.end));
   }
-
   if (preset === 'last_year') {
-    const previous = subYears(now, 1);
-    return { start: startOfYear(previous), end: endOfYear(previous) };
+    const previous = date.minus({ years: 1 });
+    return window(previous.startOf('year'), previous.endOf('year'));
   }
-
   if (preset === 'last_month') {
-    const previous = subMonths(now, 1);
-    return { start: startOfMonth(previous), end: endOfMonth(previous) };
+    const previous = date.minus({ months: 1 });
+    return window(previous.startOf('month'), previous.endOf('month'));
   }
-
-  if (preset === 'monthly') {
-    return { start: startOfDay(startOfMonth(now)), end };
-  }
-
-  if (preset === 'weekly') {
-    return { start: startOfDay(startOfIsoWeek(now)), end };
-  }
-
-  if (preset === 'ytd') {
-    // Calendar fallback (1 Jan -> today). The page use-case refines the start to the
-    // budget period that straddles 1 Jan when one exists.
-    return { start: startOfDay(startOfYear(now)), end };
-  }
-
-  if (preset === 'yearly') {
-    // Inclusive rolling year ending today, with no shared boundary day.
-    return { start: startOfDay(addDays(subYears(now, 1), 1)), end };
-  }
-
-  return { start: startOfDay(startOfMonth(now)), end };
+  if (preset === 'weekly') return window(date.startOf('week'), date);
+  if (preset === 'ytd') return window(date.startOf('year'), date);
+  if (preset === 'yearly') return window(date.minus({ years: 1 }).plus({ days: 1 }), date);
+  return window(date.startOf('month'), date);
 }
 
 /** Inclusive union of current + comparison windows for a single date-bounded fetch. */
@@ -120,78 +92,40 @@ export function unionReportingWindows(
   };
 }
 
-/**
- * Finestra precedente per confronto delta: stessa “forma” del preset.
- * - monthly: stesso giorno del mese nel mese precedente (finestra parziale se siamo a metà mese)
- * - weekly: stessi giorni dalla domenica della settimana precedente alla stessa distanza dalla fine settimana corrente
- * - ytd: 1 gen – stesso giorno/mese dell’anno precedente (fallback calendario; il use-case rifinisce)
- * - yearly: anno mobile precedente (oggi-2anni – oggi-1anno)
- * - custom: stessa durata immediatamente prima di `start`
- */
+/** Comparisons use Rome calendar arithmetic, including DST and leap years. */
 export function getComparisonReportingWindow(
   preset: ReportsTimePreset,
   current: DateWindow,
   now = new Date()
 ): DateWindow | null {
+  const date = financialDateTime(now);
+  const start = financialDateTime(current.start).startOf('day');
+  const end = financialDateTime(current.end).startOf('day');
   if (preset === 'custom') {
-    const days = differenceInCalendarDays(current.end, current.start) + 1;
-    if (days < 1) return null;
-    return {
-      start: startOfDay(subDays(current.start, days)),
-      end: endOfDay(subDays(current.start, 1)),
-    };
+    const days = Math.round(end.diff(start, 'days').days) + 1;
+    return days < 1 ? null : window(start.minus({ days }), start.minus({ days: 1 }));
   }
-
   if (preset === 'last_year') {
-    const previous = subYears(current.start, 1);
-    return { start: startOfYear(previous), end: endOfYear(previous) };
+    const previous = start.minus({ years: 1 });
+    return window(previous.startOf('year'), previous.endOf('year'));
   }
-
   if (preset === 'last_month') {
-    const previous = subMonths(current.start, 1);
-    return { start: startOfMonth(previous), end: endOfMonth(previous) };
+    const previous = start.minus({ months: 1 });
+    return window(previous.startOf('month'), previous.endOf('month'));
   }
-
   if (preset === 'monthly') {
-    const ref = now;
-    const dayInMonth = ref.getDate();
-    const prevMonthAnchor = subMonths(ref, 1);
-    const start = startOfDay(startOfMonth(prevMonthAnchor));
-    const cap = endOfMonth(prevMonthAnchor);
-    const target = new Date(
-      prevMonthAnchor.getFullYear(),
-      prevMonthAnchor.getMonth(),
-      Math.min(dayInMonth, cap.getDate()),
-      23,
-      59,
-      59,
-      999
-    );
-    return { start, end: endOfDay(target) };
+    const previous = date.minus({ months: 1 });
+    return window(previous.startOf('month'), previous);
   }
-
-  if (preset === 'weekly') {
-    const thisWeekStart = startOfDay(startOfIsoWeek(now));
-    const elapsedDays = Math.max(
-      0,
-      Math.floor((startOfDay(now).getTime() - thisWeekStart.getTime()) / 86400000)
-    );
-    const prevWeekStart = startOfDay(subWeeks(thisWeekStart, 1));
-    const prevWeekEnd = endOfDay(addDays(prevWeekStart, elapsedDays));
-    return { start: prevWeekStart, end: prevWeekEnd };
-  }
-
+  if (preset === 'weekly')
+    return window(date.startOf('week').minus({ weeks: 1 }), date.minus({ weeks: 1 }));
   if (preset === 'ytd') {
-    const y = now.getFullYear() - 1;
-    const start = startOfDay(new Date(y, 0, 1));
-    const end = endOfDay(new Date(y, now.getMonth(), now.getDate()));
-    return { start, end };
+    const previous = date.minus({ years: 1 });
+    return window(previous.startOf('year'), previous);
   }
-
   if (preset === 'yearly') {
-    const previousEnd = subDays(current.start, 1);
-    return { start: startOfDay(addDays(subYears(previousEnd, 1), 1)), end: endOfDay(previousEnd) };
+    const previousEnd = start.minus({ days: 1 });
+    return window(previousEnd.minus({ years: 1 }).plus({ days: 1 }), previousEnd);
   }
-
   return null;
 }

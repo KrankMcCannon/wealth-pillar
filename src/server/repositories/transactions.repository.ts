@@ -1,5 +1,6 @@
+import { financialDateKey } from '@/lib/utils/financial-date';
 import { db } from '@/server/db/drizzle';
-import { transactions } from '@/server/db/schema';
+import { transactions, accounts } from '@/server/db/schema';
 import { and, desc, eq, or, sql, count, inArray, ilike, lt, getTableColumns } from 'drizzle-orm';
 import { resolveDb, type DbExecutor } from '@/server/repositories/db-executor';
 
@@ -32,6 +33,10 @@ export interface TransactionFilterOptions {
   countTotal?: boolean;
 }
 
+export type TransactionLedgerRow = Omit<typeof transactions.$inferSelect, 'created_at'> & {
+  created_at: string | null;
+};
+
 export type InsertTransaction = typeof transactions.$inferInsert;
 export type UpdateTransaction = typeof transactions.$inferInsert;
 
@@ -44,6 +49,45 @@ function transactionConditions(id: string, scope?: TransactionScope) {
 }
 
 export class TransactionsRepository {
+  static async getAccountBalances(
+    accountIds: string[],
+    executor: DbExecutor
+  ): Promise<Record<string, number>> {
+    const ids = [...new Set(accountIds)];
+    if (!ids.length) return {};
+    const rows = await executor
+      .select({ id: accounts.id, balance: accounts.balance })
+      .from(accounts)
+      .where(inArray(accounts.id, ids));
+    return Object.fromEntries(rows.map((row) => [row.id, Number(row.balance)]));
+  }
+  /** Bounded keyset scans keep financial calculations complete without an unbounded SQL result. */
+  static async *scanByGroup(
+    groupId: string,
+    options: Pick<TransactionFilterOptions, 'startDate' | 'endDate' | 'userId'> = {},
+    executor?: DbExecutor
+  ): AsyncGenerator<TransactionLedgerRow[]> {
+    let cursorAfter: TransactionCursorAfter | undefined;
+    do {
+      const page = await this.getByGroup(
+        groupId,
+        {
+          ...options,
+          limit: 1000,
+          countTotal: false,
+          ...(cursorAfter ? { cursorAfter } : {}),
+        },
+        executor
+      );
+      const rows = page.data as TransactionLedgerRow[];
+      if (rows.length) yield rows;
+      if (!page.hasMore) return;
+      const last = rows.at(-1);
+      if (!last?.date || !last.created_at) throw new Error('Invalid ledger pagination cursor');
+      cursorAfter = { date: last.date, createdAt: last.created_at, id: last.id };
+    } while (true);
+  }
+
   /**
    * Get transactions by group with filtering
    */
@@ -56,14 +100,10 @@ export class TransactionsRepository {
     const filterConditions = [eq(transactions.group_id, groupId)];
 
     if (options?.startDate) {
-      filterConditions.push(
-        sql`${transactions.date} >= ${options.startDate.toISOString().split('T')[0]}`
-      );
+      filterConditions.push(sql`${transactions.date} >= ${financialDateKey(options.startDate)}`);
     }
     if (options?.endDate) {
-      filterConditions.push(
-        sql`${transactions.date} <= ${options.endDate.toISOString().split('T')[0]}`
-      );
+      filterConditions.push(sql`${transactions.date} <= ${financialDateKey(options.endDate)}`);
     }
     if (options?.category) {
       filterConditions.push(eq(transactions.category, options.category));
@@ -173,12 +213,10 @@ export class TransactionsRepository {
     const conditions = [eq(transactions.user_id, userId)];
 
     if (options?.startDate) {
-      conditions.push(
-        sql`${transactions.date} >= ${options.startDate.toISOString().split('T')[0]}`
-      );
+      conditions.push(sql`${transactions.date} >= ${financialDateKey(options.startDate)}`);
     }
     if (options?.endDate) {
-      conditions.push(sql`${transactions.date} <= ${options.endDate.toISOString().split('T')[0]}`);
+      conditions.push(sql`${transactions.date} <= ${financialDateKey(options.endDate)}`);
     }
     if (options?.category) {
       conditions.push(eq(transactions.category, options.category));

@@ -1052,3 +1052,38 @@ it('reads recorded recurring dates from actual linked ledger rows', async () => 
     await db.execute(sql`DROP TABLE recurring_transactions`);
   }
 });
+
+it('scans a full ledger in bounded pages without losing PostgreSQL microseconds', async () => {
+  await db.execute(sql`INSERT INTO transactions (description, amount, type, category, date, account_id, user_id, group_id, created_at)
+    SELECT 'Scanned ' || n, 1, 'expense', 'food', '2026-10-31', ${a}, ${userId}, ${groupId}, '2026-10-31 12:00:00.123456+00'::timestamptz
+    FROM generate_series(1, 2505) n`);
+  const ids: string[] = [];
+  for await (const page of TransactionsRepository.scanByGroup(groupId)) {
+    expect(page.length).toBeLessThanOrEqual(1000);
+    ids.push(...page.map((row) => row.id));
+  }
+  expect(ids).toHaveLength(2505);
+  expect(new Set(ids).size).toBe(2505);
+});
+
+it('returns authoritative balances for creates, account changes and deletions', async () => {
+  const created = await createTransactionUseCase({
+    description: 'Reconcile',
+    amount: 50,
+    type: 'expense',
+    category: 'food',
+    date: '2026-11-01',
+    account_id: a,
+    user_id: userId,
+    group_id: groupId,
+  });
+  expect(created.accountBalances).toEqual({ [a]: 750 });
+  const updated = await updateTransactionUseCase(
+    created.id,
+    { account_id: b, amount: 20 },
+    { groupId, userId }
+  );
+  expect(updated.accountBalances).toEqual({ [a]: 800, [b]: 680 });
+  const deleted = await deleteTransactionUseCase(created.id, { groupId, userId });
+  expect(deleted.accountBalances).toEqual({ [b]: 700 });
+});

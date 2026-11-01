@@ -1,3 +1,4 @@
+import { RECURRING_FREQUENCIES } from '@/lib/recurring/frequencies';
 import { toDateTime } from '@/lib/utils/date-utils';
 import type { RecurringTransactionSeries } from '@/lib/types';
 type Definition = Pick<
@@ -10,7 +11,7 @@ export function validateRecurringDefinition(input: Definition): string | null {
   if (!['income', 'expense'].includes(input.type)) return 'Tipo di ricorrenza non valido';
   if (!Number.isFinite(Number(input.amount)) || Number(input.amount) <= 0)
     return "L'importo deve essere maggiore di zero";
-  if (!['once', 'weekly', 'biweekly', 'monthly', 'yearly'].includes(input.frequency))
+  if (!(RECURRING_FREQUENCIES as readonly string[]).includes(input.frequency))
     return 'Frequenza non valida';
   const max = ['weekly', 'biweekly'].includes(input.frequency) ? 7 : 31;
   if (!Number.isInteger(input.due_day) || input.due_day < 1 || input.due_day > max)

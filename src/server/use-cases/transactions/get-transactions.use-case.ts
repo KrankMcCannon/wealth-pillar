@@ -13,6 +13,23 @@ import { db } from '@/server/db/drizzle';
 import { transactions } from '@/server/db/schema';
 import { count, eq } from 'drizzle-orm';
 
+export async function getCompletePeriodTransactionsUseCase(
+  groupId: string,
+  startDate: Date,
+  endDate: Date
+): Promise<Transaction[]> {
+  'use cache';
+  cacheLife('minutes');
+  cacheTag(CACHE_TAGS.TRANSACTIONS, `group:${groupId}:transactions`);
+  const rows: Transaction[] = [];
+  for await (const page of TransactionsRepository.scanByGroup(groupId, { startDate, endDate })) {
+    rows.push(
+      ...(serialize(page.map((row) => ({ ...row, amount: Number(row.amount) }))) as Transaction[])
+    );
+  }
+  return rows;
+}
+
 export async function getTransactionsByGroupUseCase(
   groupId: string,
   options?: TransactionFilterOptions
@@ -46,6 +63,7 @@ export async function getTransactionsByUserUseCase(
     endDate: options?.endDate?.toISOString() ?? null,
     category: options?.category ?? null,
     categoryKeys: options?.categoryKeys ?? null,
+    type: options?.type ?? null,
     limit: options?.limit ?? null,
   });
 
@@ -117,9 +135,15 @@ export async function getTransactionByIdUseCase(
 ): Promise<Transaction> {
   if (!transactionId?.trim()) throw new Error('Transaction ID is required');
 
-  const cacheKey = scope?.groupId
-    ? ['transaction', 'id', transactionId, 'group', scope.groupId]
-    : ['transaction', 'id', transactionId];
+  const cacheKey = [
+    'transaction',
+    'id',
+    transactionId,
+    'group',
+    scope?.groupId ?? 'all',
+    'user',
+    scope?.userId ?? 'all',
+  ];
 
   const getCachedTransaction = cached(
     async () => {

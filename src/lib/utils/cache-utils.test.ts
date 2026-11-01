@@ -21,7 +21,7 @@ describe('invalidateTransactionCaches', () => {
     vi.mocked(revalidatePath).mockClear();
   });
 
-  it('expires account balance tags immediately and revalidates derived data', () => {
+  it('expires balances, transactions and budgets before the next read', () => {
     invalidateTransactionCaches({
       groupId: 'g1',
       accountId: 'a1',
@@ -30,8 +30,13 @@ describe('invalidateTransactionCaches', () => {
       transactionId: 't1',
     });
 
-    const expiredTags = vi.mocked(updateTag).mock.calls.map((call) => call[0]);
-    const revalidatedTags = vi.mocked(revalidateTag).mock.calls.map((call) => call[0]);
+    const expiredTags = vi.mocked(revalidateTag).mock.calls.map((call) => call[0]);
+    expect(updateTag).not.toHaveBeenCalled();
+    expect(
+      vi
+        .mocked(revalidateTag)
+        .mock.calls.every(([, profile]) => typeof profile === 'object' && profile.expire === 0)
+    ).toBe(true);
 
     // Balance reads are correctness-critical and must be immediately expired.
     expect(expiredTags).toContain('accounts');
@@ -39,13 +44,13 @@ describe('invalidateTransactionCaches', () => {
     expect(expiredTags).toContain('account:a2');
     expect(expiredTags).toContain('group:g1:accounts');
 
-    // Derived/list data may use stale-while-revalidate.
-    expect(revalidatedTags).toContain('transactions');
-    expect(revalidatedTags).toContain('account:a1:transactions');
-    expect(revalidatedTags).toContain('account:a2:transactions');
-    expect(revalidatedTags).toContain('group:g1:transactions');
-    expect(revalidatedTags).toContain('group:g1:budgets');
-    expect(revalidatedTags).toContain('transaction:t1');
+    // The next financial read must include the committed mutation.
+    expect(expiredTags).toContain('transactions');
+    expect(expiredTags).toContain('account:a1:transactions');
+    expect(expiredTags).toContain('account:a2:transactions');
+    expect(expiredTags).toContain('group:g1:transactions');
+    expect(expiredTags).toContain('group:g1:budgets');
+    expect(expiredTags).toContain('transaction:t1');
 
     expect(revalidatePath).not.toHaveBeenCalled();
   });
@@ -58,7 +63,7 @@ describe('invalidateTransactionUpdateCaches', () => {
     vi.mocked(revalidatePath).mockClear();
   });
 
-  it('expires every affected account immediately and revalidates transaction data', () => {
+  it('expires every affected account and derived financial total immediately', () => {
     invalidateTransactionUpdateCaches(
       {
         userId: 'u1',
@@ -72,8 +77,13 @@ describe('invalidateTransactionUpdateCaches', () => {
       }
     );
 
-    const expiredTags = vi.mocked(updateTag).mock.calls.map((call) => call[0]);
-    const revalidatedTags = vi.mocked(revalidateTag).mock.calls.map((call) => call[0]);
+    const expiredTags = vi.mocked(revalidateTag).mock.calls.map((call) => call[0]);
+    expect(updateTag).not.toHaveBeenCalled();
+    expect(
+      vi
+        .mocked(revalidateTag)
+        .mock.calls.every(([, profile]) => typeof profile === 'object' && profile.expire === 0)
+    ).toBe(true);
 
     // Old source, old destination and new source balances all changed.
     expect(expiredTags).toContain('accounts');
@@ -82,11 +92,11 @@ describe('invalidateTransactionUpdateCaches', () => {
     expect(expiredTags).toContain('account:a3');
     expect(expiredTags).toContain('group:g1:accounts');
 
-    expect(revalidatedTags).toContain('transactions');
-    expect(revalidatedTags).toContain('account:a1:transactions');
-    expect(revalidatedTags).toContain('account:a2:transactions');
-    expect(revalidatedTags).toContain('account:a3:transactions');
-    expect(revalidatedTags).toContain('transaction:t1');
+    expect(expiredTags).toContain('transactions');
+    expect(expiredTags).toContain('account:a1:transactions');
+    expect(expiredTags).toContain('account:a2:transactions');
+    expect(expiredTags).toContain('account:a3:transactions');
+    expect(expiredTags).toContain('transaction:t1');
 
     expect(revalidatePath).not.toHaveBeenCalled();
   });
@@ -126,7 +136,7 @@ describe('invalidateBudgetPeriodCaches', () => {
       periodId: 'p1',
     });
 
-    const tags = vi.mocked(updateTag).mock.calls.map((call) => call[0]);
+    const tags = vi.mocked(revalidateTag).mock.calls.map((call) => call[0]);
 
     expect(tags).toContain('budget_periods');
     expect(tags).toContain('user:u1:budget_period:active');
@@ -140,12 +150,17 @@ describe('recurring Dashboard invalidation', () => {
   beforeEach(() => vi.clearAllMocks());
   it('expires series and aggregate dependencies immediately, even without a resolved group', () => {
     invalidateRecurringCaches({ seriesId: 'r1', userIds: ['u1'], groupId: 'g1' });
-    expect(updateTag).toHaveBeenCalledWith('recurring_series');
-    expect(updateTag).toHaveBeenCalledWith('group:g1:recurring');
-    expect(updateTag).toHaveBeenCalledWith('recurring:r1');
+    expect(revalidateTag).toHaveBeenCalledWith('recurring_series', { expire: 0 });
+    expect(revalidateTag).toHaveBeenCalledWith('group:g1:recurring', { expire: 0 });
+    expect(revalidateTag).toHaveBeenCalledWith('recurring:r1', { expire: 0 });
     vi.clearAllMocks();
     invalidateRecurringCaches({ userIds: ['u1'] });
-    expect(updateTag).toHaveBeenCalledWith('recurring_series');
-    expect(revalidateTag).not.toHaveBeenCalled();
+    expect(revalidateTag).toHaveBeenCalledWith('recurring_series', { expire: 0 });
+    expect(updateTag).not.toHaveBeenCalled();
+    expect(
+      vi
+        .mocked(revalidateTag)
+        .mock.calls.every(([, profile]) => typeof profile === 'object' && profile.expire === 0)
+    ).toBe(true);
   });
 });

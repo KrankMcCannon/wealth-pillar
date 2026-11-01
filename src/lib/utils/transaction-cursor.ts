@@ -1,3 +1,5 @@
+import { financialDateKey } from './financial-date';
+
 export const TRANSACTION_CURSOR_V1 = 1 as const;
 
 export type TransactionCursorPayloadV1 = {
@@ -15,7 +17,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function toDateOnly(value: string | Date): string {
   if (typeof value === 'string') return value.split('T')[0] ?? value;
-  return value.toISOString().split('T')[0] ?? '';
+  return financialDateKey(value);
 }
 
 function toIsoTimestamp(value: string | Date): string {

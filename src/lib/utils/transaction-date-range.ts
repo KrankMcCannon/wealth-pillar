@@ -1,60 +1,34 @@
 import { toDateTime } from '@/lib/utils/date-utils';
 import type { DateInput } from '@/lib/utils/date-utils';
+import { financialDateTime } from './financial-date';
 
 export type TransactionDateRangePreset = 'all' | 'today' | 'week' | 'month' | 'year' | 'custom';
-
-function parseDate(value?: string): Date | undefined {
-  if (!value) return undefined;
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? undefined : date;
-}
-
-function startOfDay(date: Date): Date {
-  const next = new Date(date);
-  next.setHours(0, 0, 0, 0);
-  return next;
-}
-
-function endOfDay(date: Date): Date {
-  const next = new Date(date);
-  next.setHours(23, 59, 59, 999);
-  return next;
-}
 
 export function resolveTransactionDateRangeBounds(
   preset: TransactionDateRangePreset | undefined,
   custom?: { startDate?: string; endDate?: string },
   now: Date = new Date()
 ): { startDate?: Date; endDate?: Date } {
-  switch (preset) {
-    case 'today':
-      return { startDate: startOfDay(now), endDate: endOfDay(now) };
-    case 'week': {
-      const start = startOfDay(now);
-      start.setDate(start.getDate() - 7);
-      return { startDate: start, endDate: endOfDay(now) };
-    }
-    case 'month': {
-      const start = startOfDay(now);
-      start.setDate(start.getDate() - 30);
-      return { startDate: start, endDate: endOfDay(now) };
-    }
-    case 'year': {
-      const start = startOfDay(now);
-      start.setDate(start.getDate() - 365);
-      return { startDate: start, endDate: endOfDay(now) };
-    }
-    case 'custom': {
-      const customStartDate = parseDate(custom?.startDate);
-      const customEndDate = parseDate(custom?.endDate);
-      return {
-        ...(customStartDate ? { startDate: customStartDate } : {}),
-        ...(customEndDate ? { endDate: customEndDate } : {}),
-      };
-    }
-    default:
-      return {};
+  const date = financialDateTime(now);
+  if (preset === 'custom') {
+    return {
+      ...(custom?.startDate
+        ? { startDate: financialDateTime(custom.startDate).startOf('day').toJSDate() }
+        : {}),
+      ...(custom?.endDate
+        ? { endDate: financialDateTime(custom.endDate).endOf('day').toJSDate() }
+        : {}),
+    };
   }
+  const days = { today: 0, week: 7, month: 30, year: 365 };
+  if (!preset || !(preset in days)) return {};
+  return {
+    startDate: date
+      .minus({ days: days[preset as keyof typeof days] })
+      .startOf('day')
+      .toJSDate(),
+    endDate: date.endOf('day').toJSDate(),
+  };
 }
 
 export function isTransactionDateInFilterRange(

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { format } from 'date-fns';
+import { financialDateKey } from '@/lib/utils/financial-date';
 import { getCurrentReportingWindow, type ReportsTimePreset } from './reporting-window';
 import {
   buildReportsCategoryTransactionsHref,
@@ -50,8 +50,8 @@ describe('buildReportsCategoryTransactionsHref', () => {
 
       expect(url.pathname).toBe('/transactions');
       expect(url.searchParams.get('dateRange')).toBe('custom');
-      expect(url.searchParams.get('startDate')).toBe(format(window.start, 'yyyy-MM-dd'));
-      expect(url.searchParams.get('endDate')).toBe(format(window.end, 'yyyy-MM-dd'));
+      expect(url.searchParams.get('startDate')).toBe(financialDateKey(window.start));
+      expect(url.searchParams.get('endDate')).toBe(financialDateKey(window.end));
       expect(url.searchParams.get('type')).toBe('expense');
       expect(url.searchParams.get('category')).toBe(categoryKey);
       expect(url.searchParams.get('categories')).toBeNull();
@@ -75,8 +75,8 @@ describe('buildReportsCategoryTransactionsHref', () => {
     const url = parseHref(href);
 
     expect(url.searchParams.get('dateRange')).toBe('custom');
-    expect(url.searchParams.get('startDate')).toBe(format(window.start, 'yyyy-MM-dd'));
-    expect(url.searchParams.get('endDate')).toBe(format(window.end, 'yyyy-MM-dd'));
+    expect(url.searchParams.get('startDate')).toBe(financialDateKey(window.start));
+    expect(url.searchParams.get('endDate')).toBe(financialDateKey(window.end));
     expect(url.searchParams.get('user')).toBeNull();
     expect(url.searchParams.get('member')).toBeNull();
   });
@@ -163,8 +163,8 @@ describe('buildReportsReserveTransactionsHref', () => {
     expect(url.pathname).toBe('/transactions');
     expect(url.searchParams.get('type')).toBe('transfer');
     expect(url.searchParams.get('dateRange')).toBe('custom');
-    expect(url.searchParams.get('startDate')).toBe(format(window.start, 'yyyy-MM-dd'));
-    expect(url.searchParams.get('endDate')).toBe(format(window.end, 'yyyy-MM-dd'));
+    expect(url.searchParams.get('startDate')).toBe(financialDateKey(window.start));
+    expect(url.searchParams.get('endDate')).toBe(financialDateKey(window.end));
     expect(url.searchParams.get('user')).toBe('member-9');
     expect(url.searchParams.get('member')).toBeNull();
   });

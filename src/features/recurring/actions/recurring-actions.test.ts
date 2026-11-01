@@ -1,4 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { AccountsRepository } from '@/server/repositories/accounts.repository';
+import { UsersRepository } from '@/server/repositories/users.repository';
+vi.mock('@/server/repositories/accounts.repository', () => ({
+  AccountsRepository: { findById: vi.fn() },
+}));
+vi.mock('@/server/repositories/users.repository', () => ({
+  UsersRepository: { findByIds: vi.fn() },
+}));
 import {
   createRecurringSeriesAction,
   updateRecurringSeriesAction,
@@ -55,6 +63,17 @@ const otherSeries = {
 describe('deleteRecurringSeriesAction', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(AccountsRepository.findById).mockResolvedValue({
+      id: 'a1',
+      group_id: 'g1',
+      user_ids: [member.id],
+    } as Awaited<ReturnType<typeof AccountsRepository.findById>>);
+    vi.mocked(UsersRepository.findByIds).mockImplementation(
+      async (ids) =>
+        ids.map((id) => ({ id, group_id: 'g1' })) as Awaited<
+          ReturnType<typeof UsersRepository.findByIds>
+        >
+    );
     vi.mocked(getCurrentUser).mockResolvedValue(member);
     vi.mocked(getSeriesByIdUseCase).mockResolvedValue(otherSeries);
   });
@@ -71,6 +90,17 @@ describe('deleteRecurringSeriesAction', () => {
 describe('recurring definition guards', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(AccountsRepository.findById).mockResolvedValue({
+      id: 'a1',
+      group_id: 'g1',
+      user_ids: [member.id],
+    } as Awaited<ReturnType<typeof AccountsRepository.findById>>);
+    vi.mocked(UsersRepository.findByIds).mockImplementation(
+      async (ids) =>
+        ids.map((id) => ({ id, group_id: 'g1' })) as Awaited<
+          ReturnType<typeof UsersRepository.findByIds>
+        >
+    );
     vi.mocked(getCurrentUser).mockResolvedValue(member);
     vi.mocked(getSeriesByIdUseCase).mockResolvedValue({ ...otherSeries, user_ids: [member.id] });
   });

@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { differenceInCalendarDays, format } from 'date-fns';
+import { financialDateKey, financialDateTime } from '@/lib/utils/financial-date';
+function differenceInCalendarDays(end: Date, start: Date) {
+  return financialDateTime(end).startOf('day').diff(financialDateTime(start).startOf('day'), 'days')
+    .days;
+}
 import {
   getCurrentReportingWindow,
   getComparisonReportingWindow,
@@ -22,8 +26,8 @@ describe('report comparison boundaries', () => {
     (start, end, previousStart, previousEnd) => {
       const current = getCurrentReportingWindow('custom', { start, end }, now);
       const previous = getComparisonReportingWindow('custom', current, now)!;
-      expect(format(previous.start, 'yyyy-MM-dd')).toBe(previousStart);
-      expect(format(previous.end, 'yyyy-MM-dd')).toBe(previousEnd);
+      expect(financialDateKey(previous.start)).toBe(previousStart);
+      expect(financialDateKey(previous.end)).toBe(previousEnd);
       expect(differenceInCalendarDays(previous.end, previous.start)).toBe(
         differenceInCalendarDays(current.end, current.start)
       );
@@ -49,9 +53,7 @@ describe('report comparison boundaries', () => {
       const current = getCurrentReportingWindow(preset, null, now);
       const previous = getComparisonReportingWindow(preset, current, now)!;
       expect(
-        [current.start, current.end, previous.start, previous.end].map((d) =>
-          format(d, 'yyyy-MM-dd')
-        )
+        [current.start, current.end, previous.start, previous.end].map((d) => financialDateKey(d))
       ).toEqual([start, end, previousStart, previousEnd]);
     }
   );

@@ -73,6 +73,7 @@ jobs:
           TYPES_HIT: ${{ steps.types_cache.outputs.cache-hit }}
       - run: pnpm exec eslint . --cache --cache-strategy content
       - run: pnpm typecheck
+      - run: node scripts/check-financial-dates.mjs
 
   unit:
     needs: plan
