@@ -47,7 +47,7 @@ export default function InvestmentsContent({
 
   const t = useTranslations('InvestmentsContent');
   const tActionMenu = useTranslations('Header.ActionMenu');
-  const { openModal } = useModalState();
+  const { openModal, modal } = useModalState();
   const { activeTab, setActiveTab } = useTabState('personal');
   const router = useRouter();
   const pathname = usePathname();
@@ -122,6 +122,7 @@ export default function InvestmentsContent({
         onClick={() => openModal('investment')}
         ariaLabel={tActionMenu('newInvestment')}
         testId="investments-fab-add"
+        hidden={activeTab === 'sandbox' || modal !== null || holdings.length === 0}
       />
     </>
   );

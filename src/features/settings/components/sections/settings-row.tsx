@@ -43,9 +43,12 @@ export function SettingsRow({
         {bareIcon ? icon : <div className={s.rowIconWrap}>{icon}</div>}
         <span className={s.rowLabel}>{label}</span>
       </div>
-      <div className="flex shrink-0 items-center gap-2">
+      <div className="flex min-w-0 max-w-[55%] items-center gap-2">
         {value ? <span className={s.rowValue}>{value}</span> : null}
-        {trailing ?? (showChevron ? <ChevronRight className={s.rowChevron} aria-hidden /> : null)}
+        {trailing ??
+          (showChevron && (onClick || href) ? (
+            <ChevronRight className={s.rowChevron} aria-hidden />
+          ) : null)}
       </div>
     </>
   );

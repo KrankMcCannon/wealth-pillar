@@ -3,7 +3,6 @@
 import dynamic from 'next/dynamic';
 import { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { ChevronDown } from 'lucide-react';
 import { usePathname, useRouter } from '@/i18n/routing';
 import { InvestmentsScreenList } from './investments-screen-list';
 import { WealthHeader } from './wealth-header';
@@ -11,7 +10,8 @@ import { useTranslations } from 'next-intl';
 import type { AssetAllocationSlice } from '@/server/use-cases/investments/investment.use-cases';
 import type { InvestmentListItem } from '@/server/use-cases/investments/investment.types';
 import { buildAllocationChartData } from '@/features/investments/utils/allocation-chart-data';
-import { stitchHome, stitchInvestments } from '@/styles/home-design-foundation';
+import { stitchInvestments } from '@/styles/home-design-foundation';
+import { SectionDisclosure } from '@/components/shared/section-disclosure';
 import { investmentsStyles } from '@/features/investments/theme/investments-styles';
 
 function ChartSlotFallback() {
@@ -93,36 +93,24 @@ export function PersonalInvestmentTab({
 
   return (
     <>
-      <WealthHeader
-        totalValue={summary.totalCurrentValue}
-        trendAmount={summary.totalReturn}
-        trendPercentage={summary.totalReturnPercent}
-        marketDataUpdatedAt={marketDataUpdatedAt}
-      />
+      {holdings.length > 0 ? (
+        <WealthHeader
+          totalValue={summary.totalCurrentValue}
+          trendAmount={summary.totalReturn}
+          trendPercentage={summary.totalReturnPercent}
+          marketDataUpdatedAt={marketDataUpdatedAt}
+        />
+      ) : null}
 
       <InvestmentsScreenList holdings={holdings} />
 
       {hasAnalytics ? (
-        <details
-          className={stitchHome.scanSection}
+        <SectionDisclosure
+          label={t('analyticsTitle')}
+          className="border-t border-border/40"
           open={analyticsOpen}
           onToggle={(event) => setAnalyticsOpen(event.currentTarget.open)}
         >
-          <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40">
-            <span className="min-w-0">
-              <span className={stitchHome.scanSectionTitle}>{t('analyticsTitle')}</span>
-              <span className="mt-1 block text-sm leading-relaxed text-muted-foreground">
-                {t('analyticsDescription')}
-              </span>
-            </span>
-            <ChevronDown
-              className={`size-4 shrink-0 transition-transform ${
-                analyticsOpen ? 'rotate-180' : ''
-              }`}
-              aria-hidden
-            />
-          </summary>
-
           {analyticsOpen ? (
             <div className="mt-4 flex min-w-0 flex-col gap-4">
               {allocationData.length > 0 ? <AssetAllocationCard data={allocationData} /> : null}
@@ -137,7 +125,7 @@ export function PersonalInvestmentTab({
               />
             </div>
           ) : null}
-        </details>
+        </SectionDisclosure>
       ) : null}
     </>
   );

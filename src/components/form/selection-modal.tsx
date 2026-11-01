@@ -50,6 +50,21 @@ function SelectionModalContent<V extends string>({
   const radioGroupName = useId().replace(/:/g, '');
   const [selectedValue, setSelectedValue] = useState(value);
 
+  if (options.length === 1) {
+    return (
+      <>
+        <ModalBody>
+          <p className="py-2 text-sm text-muted-foreground">{options[0]?.description}</p>
+        </ModalBody>
+        <ModalFooter>
+          <button type="button" onClick={onClose} className={modalS.primaryCta}>
+            {t('closeButton')}
+          </button>
+        </ModalFooter>
+      </>
+    );
+  }
+
   const handleSave = async () => {
     if (selectedValue === value) {
       onClose();
@@ -75,7 +90,7 @@ function SelectionModalContent<V extends string>({
                 key={option.value}
                 className={cn(
                   modalS.preference.itemBase,
-                  'min-w-0 cursor-pointer',
+                  'min-w-0 cursor-pointer has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-inset has-[:focus-visible]:ring-ring',
                   isSelected ? modalS.preference.itemActive : modalS.preference.itemIdle,
                   isSaving && 'pointer-events-none cursor-not-allowed opacity-50'
                 )}
@@ -116,11 +131,10 @@ function SelectionModalContent<V extends string>({
                       >
                         {option.label}
                       </span>
-                      {isCurrent ? (
+                      {isCurrent && !isSelected ? (
                         <span className={modalS.preference.currentBadge}>{t('currentBadge')}</span>
                       ) : null}
                     </div>
-                    <p className={modalS.preference.description}>{option.description}</p>
                   </div>
                 </span>
               </label>

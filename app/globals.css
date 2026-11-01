@@ -16,10 +16,12 @@
    --color-accent is a hover wash, not brand.
    ----------------------------------------------------------------------------- */
 
-@theme {
+@theme inline {
   --font-sans: var(--font-figtree);
   --font-display: var(--font-source-serif);
+}
 
+@theme {
   --radius: 0.75rem;
   --radius-sm: 0.5rem;
   --radius-md: 0.75rem;
@@ -230,7 +232,9 @@
 }
 
 html {
+  --app-header-height: calc(3.75rem + env(safe-area-inset-top, 0px));
   scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--app-header-height) + 1rem);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -245,12 +249,12 @@ html,
 body {
   height: 100%;
   overscroll-behavior-y: auto;
-  touch-action: pan-y;
+  touch-action: manipulation;
 }
 
 body {
   font-family:
-    var(--font-sans),
+    var(--font-figtree),
     system-ui,
     -apple-system,
     sans-serif;

@@ -52,9 +52,7 @@ describe('Header', () => {
       'href',
       '/settings'
     );
-    expect(screen.getByRole('heading', { name: 'appName' }).previousElementSibling).toHaveAttribute(
-      'aria-hidden'
-    );
+    expect(screen.getByRole('heading', { name: 'appName' }).previousElementSibling).toBeNull();
   });
 
   it('renders a history-back button when no href is known', () => {

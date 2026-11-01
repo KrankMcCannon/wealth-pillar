@@ -63,7 +63,6 @@ export function InvestmentFormFields({ form, loadError, onRetryLoad }: Investmen
           name="symbol"
           label={t('fields.symbol')}
           placeholder={t('placeholders.symbol')}
-          hint={t('fields.symbolHelper')}
         />
         <ModalAmountField
           control={control}
@@ -95,6 +94,7 @@ export function InvestmentFormFields({ form, loadError, onRetryLoad }: Investmen
         <ModalRadioField
           control={control}
           name="currency"
+          variant="segments"
           label={t('fields.currency')}
           options={[...currencyOptions]}
         />

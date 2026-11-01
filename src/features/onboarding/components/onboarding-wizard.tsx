@@ -10,12 +10,6 @@ import { OnboardingStepNavigation } from './step-navigation';
 import { OnboardingStepProfile } from './step-profile';
 import { useOnboardingWizard } from './use-onboarding-wizard';
 
-function getStepDotClass(index: number, currentStep: number) {
-  if (index === currentStep) return onboardingStyles.steps.dotActive;
-  if (index < currentStep) return onboardingStyles.steps.dotDone;
-  return onboardingStyles.steps.dotIdle;
-}
-
 export function OnboardingWizard() {
   const { submit } = useOnboardingSubmission();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -99,19 +93,10 @@ export function OnboardingWizard() {
             <StepIcon className={onboardingStyles.steps.icon} />
           </div>
           <div className="min-w-0 flex-1">
-            <div className={onboardingStyles.steps.dots}>
-              {steps.map((step, index) => (
-                <div
-                  key={step.id}
-                  className={`${onboardingStyles.steps.dot} ${getStepDotClass(index, currentStep)}`}
-                />
-              ))}
-            </div>
             <p className={onboardingStyles.header.meta}>
               {t('header.stepOf', { current: currentStep + 1, total: steps.length })}
             </p>
             <h2 className={onboardingStyles.header.title}>{steps[currentStep]?.title}</h2>
-            <p className={onboardingStyles.header.description}>{steps[currentStep]?.description}</p>
           </div>
         </div>
         <div className={onboardingStyles.header.progressTrack}>
@@ -125,7 +110,7 @@ export function OnboardingWizard() {
       <div className={onboardingStyles.stepContent}>{renderCurrentStep()}</div>
 
       {localError && (
-        <div className={onboardingStyles.alert}>
+        <div className={onboardingStyles.alert} role="alert">
           <AlertCircle className={onboardingStyles.footer.buttonIcon} />
           <span>{localError}</span>
         </div>

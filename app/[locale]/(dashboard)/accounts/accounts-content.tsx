@@ -72,37 +72,39 @@ export default function AccountsContent({
         />
       ) : null}
 
-      <header className="flex flex-col gap-1">
-        <div className="flex items-center justify-between gap-3">
-          <p className={stitchHome.sectionEyebrow}>{t('spendableBalanceLabel')}</p>
-          <button
-            type="button"
-            onClick={onAddAccount}
-            className={cn(stitchHome.viewAllLink, 'min-w-0')}
-            data-testid="accounts-add"
-          >
-            {t('addAccountCta')}
-          </button>
-        </div>
-        <p aria-live="polite">
-          <Amount
-            type={negative ? 'expense' : 'balance'}
-            size="2xl"
-            emphasis="strong"
-            className="text-[2.75rem] leading-none tracking-[-0.04em]"
-          >
-            {accountStats.spendableBalance}
-          </Amount>
-        </p>
-        {accountStats.reserveBalance !== 0 ? (
-          <p className="text-sm text-muted-foreground">
-            {t('reserveBalanceLabel')}:{' '}
-            <Amount type="balance" size="sm" className="inline text-foreground">
-              {accountStats.reserveBalance}
+      {sortedAccounts.length > 0 ? (
+        <header className="flex flex-col gap-1">
+          <div className="flex items-center justify-between gap-3">
+            <p className={stitchHome.sectionEyebrow}>{t('spendableBalanceLabel')}</p>
+            <button
+              type="button"
+              onClick={onAddAccount}
+              className={cn(stitchHome.viewAllLink, 'min-w-0')}
+              data-testid="accounts-add"
+            >
+              {t('addAccountCta')}
+            </button>
+          </div>
+          <p aria-live="polite">
+            <Amount
+              type={negative ? 'expense' : 'balance'}
+              size="2xl"
+              emphasis="strong"
+              className="text-[2.75rem] leading-none tracking-[-0.04em]"
+            >
+              {accountStats.spendableBalance}
             </Amount>
           </p>
-        ) : null}
-      </header>
+          {accountStats.reserveBalance !== 0 ? (
+            <p className="text-sm text-muted-foreground">
+              {t('reserveBalanceLabel')}:{' '}
+              <Amount type="balance" size="sm" className="inline text-foreground">
+                {accountStats.reserveBalance}
+              </Amount>
+            </p>
+          ) : null}
+        </header>
+      ) : null}
 
       <AccountsList
         accounts={sortedAccounts}

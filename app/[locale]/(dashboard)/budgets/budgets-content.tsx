@@ -23,6 +23,7 @@ import type { User, UserBudgetSummary } from '@/lib/types';
 import type { BudgetsPageData } from '@/server/use-cases/pages/budgets-page.use-case';
 import { stitchBudgets, stitchRecurring, stitchSurface } from '@/styles/home-design-foundation';
 import { useReferenceDataStore } from '@/stores/reference-data-store';
+import { SectionDisclosure } from '@/components/shared/section-disclosure';
 
 type BudgetsPagePayload = BudgetsPageData & {
   budgetsByUser: Record<string, UserBudgetSummary>;
@@ -98,23 +99,14 @@ export default function BudgetsContent({
 
           {userBudgetSummary ? (
             <>
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <h2 className="text-base font-semibold">
-                  {ux('context', {
-                    name:
-                      groupUsers.find((u) => u.id === budgetContextUserId)?.name ??
-                      currentUser.name ??
-                      '',
-                  })}
-                </h2>
-                <Link
-                  className="inline-flex min-h-11 items-center text-sm underline underline-offset-4"
-                  href={`/reports?member=${encodeURIComponent(budgetContextUserId)}&periods=open#budget-periods`}
-                >
-                  {ux('history')}
-                </Link>
-              </div>
-              <p className="text-sm text-muted-foreground">{ux('current')}</p>
+              <h2 className="sr-only">
+                {ux('context', {
+                  name:
+                    groupUsers.find((u) => u.id === budgetContextUserId)?.name ??
+                    currentUser.name ??
+                    '',
+                })}
+              </h2>
               <BudgetPeriodHeader
                 periodStart={userBudgetSummary.periodStart}
                 periodEnd={userBudgetSummary.periodEnd}
@@ -122,67 +114,39 @@ export default function BudgetsContent({
                 onEditClosingDate={() => setIsEditClosingDateModalOpen(true)}
               />
 
-              {userBudgetSummary.budgets.some((b, i, all) =>
-                all.some(
-                  (other, j) =>
-                    i !== j && b.categories.some((key) => other.categories.includes(key))
-                )
-              ) ? (
-                <p role="status" className="max-w-prose text-sm text-muted-foreground">
-                  {ux('shared', {
-                    names: userBudgetSummary.budgets
-                      .filter((b, i, all) =>
-                        all.some(
-                          (o, j) => i !== j && b.categories.some((k) => o.categories.includes(k))
-                        )
-                      )
-                      .map((b) => b.description)
-                      .join(', '),
-                  })}
-                </p>
+              {userBudgetSummary.budgets.length > 0 ? (
+                <BudgetsSummaryHero
+                  summary={userBudgetSummary}
+                  labels={{
+                    totalAvailable: t('hero.totalAvailable'),
+                    totalSpent: t('hero.totalSpent'),
+                    totalAssigned: t('hero.totalAssigned'),
+                    srHeading: t('hero.srHeading'),
+                  }}
+                />
               ) : null}
-              <BudgetsSummaryHero
-                summary={userBudgetSummary}
-                labels={{
-                  totalAvailable: t('hero.totalAvailable'),
-                  totalSpent: t('hero.totalSpent'),
-                  totalAssigned: t('hero.totalAssigned'),
-                  srHeading: t('hero.srHeading'),
-                }}
-              />
-
-              <details>
-                <summary className="min-h-11 cursor-pointer py-3 text-sm font-semibold">
-                  {ux('method')}
-                </summary>
-                <p className="max-w-prose text-sm text-muted-foreground">
-                  {t('hero.envelopeHelp')}
-                </p>
-              </details>
-              <details>
-                <summary className="min-h-11 cursor-pointer py-3 font-semibold">
-                  {ux('trend')}
-                </summary>
-                <BudgetChart spent={chartAggregateSpent} chartData={chartData} />
-              </details>
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <h2 className="text-lg font-semibold">{ux('envelopes')}</h2>
-                <span>
-                  {userBudgetSummary.budgets.length > 5 ? (
-                    <label className="flex flex-col gap-1 text-sm">
-                      {ux('sort')}
-                      <select
-                        value={order}
-                        onChange={(e) => setOrder(e.target.value)}
-                        className="min-h-11 rounded-lg border border-border bg-background px-3"
-                      >
-                        <option value="priority">{ux('priority')}</option>
-                        <option value="name">{ux('alphabetical')}</option>
-                      </select>
-                    </label>
-                  ) : null}
-                </span>
+                <Link
+                  className="inline-flex min-h-11 items-center text-sm font-medium text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  href={`/reports?member=${encodeURIComponent(budgetContextUserId)}&periods=open#budget-periods`}
+                >
+                  {ux('history')}
+                </Link>
               </div>
+              {userBudgetSummary.budgets.length > 5 ? (
+                <label className="flex items-center justify-end gap-2 text-sm">
+                  <span className="sr-only">{ux('sort')}</span>
+                  <select
+                    value={order}
+                    onChange={(e) => setOrder(e.target.value)}
+                    className="min-h-11 rounded-lg border border-border bg-background px-3"
+                  >
+                    <option value="priority">{ux('priority')}</option>
+                    <option value="name">{ux('alphabetical')}</option>
+                  </select>
+                </label>
+              ) : null}
 
               <div role="status" aria-live="polite" className="sr-only">
                 {periodStatusMessage}
@@ -232,6 +196,26 @@ export default function BudgetsContent({
                     />
                   ))}
               </div>
+              {userBudgetSummary.budgets.length > 0 ? (
+                <div className="divide-y divide-border/40 border-t border-border/40">
+                  <SectionDisclosure label={ux('trend')}>
+                    <BudgetChart spent={chartAggregateSpent} chartData={chartData} />
+                  </SectionDisclosure>
+                  {userBudgetSummary.budgets.some((budget, index, all) =>
+                    all.some(
+                      (other, otherIndex) =>
+                        index !== otherIndex &&
+                        budget.categories.some((key) => other.categories.includes(key))
+                    )
+                  ) ? (
+                    <SectionDisclosure label={ux('sharedTitle')}>
+                      <p className="max-w-prose text-sm text-muted-foreground">
+                        {t('hero.envelopeHelp')}
+                      </p>
+                    </SectionDisclosure>
+                  ) : null}
+                </div>
+              ) : null}
             </>
           ) : null}
 
@@ -252,7 +236,6 @@ export default function BudgetsContent({
               <p id="budgets-section-empty-title" className={stitchRecurring.emptyTitle}>
                 {t('emptyState.title')}
               </p>
-              <p className={stitchRecurring.emptyDescription}>{t('emptyState.description')}</p>
               <div className={stitchRecurring.emptyActions}>
                 <button
                   type="button"
@@ -271,7 +254,12 @@ export default function BudgetsContent({
         onClick={handleCreateBudget}
         ariaLabel={t('fabAddBudget')}
         testId="budgets-fab-add"
-        hidden={isModalOpen || isStartSalaryPeriodOpen || isEditClosingDateModalOpen}
+        hidden={
+          isModalOpen ||
+          isStartSalaryPeriodOpen ||
+          isEditClosingDateModalOpen ||
+          userBudgetSummary?.budgets.length === 0
+        }
       />
     </>
   );

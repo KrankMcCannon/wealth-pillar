@@ -7,9 +7,9 @@ describe('home-design-foundation stitch contracts', () => {
     expect(stitchFab.pageAdd).not.toContain('bg-primary');
   });
 
-  it('keeps capsule page tabs rounded-full', () => {
-    expect(stitchPageTabs.list).toContain('rounded-full');
-    expect(stitchPageTabs.trigger).toContain('rounded-full');
+  it('uses the shared rounded rectangle for page tabs', () => {
+    expect(stitchPageTabs.list).toContain('rounded-xl');
+    expect(stitchPageTabs.trigger).toContain('rounded-lg');
   });
 
   it('aliases reports empty well to the home recipe', () => {

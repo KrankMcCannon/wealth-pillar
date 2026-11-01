@@ -11,7 +11,7 @@ export default async function SignInPage(): Promise<React.JSX.Element> {
   const t = await getTranslations('Auth.productIntro');
 
   return (
-    <AuthPageWrapper title={t('title')} subtitle={t('subtitle')} trustNote={t('trustNote')}>
+    <AuthPageWrapper title={t('title')}>
       <SignIn
         appearance={clerkAppearance}
         signUpUrl={CLERK_SIGN_UP_URL}

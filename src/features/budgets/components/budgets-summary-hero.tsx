@@ -16,20 +16,12 @@ export interface BudgetsSummaryHeroProps {
   };
 }
 
-function splitCurrencyParts(formatted: string): { main: string; rest: string } {
-  const trimmed = formatted.trim();
-  const match = /^([\s\S]*?)([,.]\d{2})\s*(\S*)$/.exec(trimmed);
-  if (!match) return { main: trimmed, rest: '' };
-  return { main: (match[1] ?? '').trim(), rest: `${match[2]} ${match[3] ?? ''}`.trim() };
-}
-
 export function BudgetsSummaryHero({ summary, labels }: Readonly<BudgetsSummaryHeroProps>) {
   const locale = useLocale();
   const ux = useTranslations('Budgets.UX');
   const availableFormatted = formatCurrencyLocale(summary.totalRemaining, locale);
   const budgetFormatted = formatCurrencyLocale(summary.totalBudget, locale);
   const spentFormatted = formatCurrencyLocale(summary.totalSpent, locale);
-  const { main, rest } = splitCurrencyParts(availableFormatted);
 
   return (
     <section className={stitchBudgets.heroSection} aria-labelledby="budgets-hero-heading">
@@ -52,11 +44,8 @@ export function BudgetsSummaryHero({ summary, labels }: Readonly<BudgetsSummaryH
                 summary.totalRemaining < 0 ? 'text-expense' : 'text-foreground'
               )}
             >
-              {main}
+              {availableFormatted}
             </span>
-            {rest ? (
-              <span className="text-sm font-medium tabular-nums text-muted-foreground">{rest}</span>
-            ) : null}
           </div>
         </div>
 

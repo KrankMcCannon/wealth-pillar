@@ -91,7 +91,7 @@ async function ClerkRuntime({ children }: { children: React.ReactNode }) {
 
   return (
     <ClerkProvider telemetry={false}>
-      <Suspense fallback={children}>
+      <Suspense fallback={<div className="min-h-screen bg-background" aria-hidden />}>
         <UserSessionGate>{children}</UserSessionGate>
       </Suspense>
     </ClerkProvider>

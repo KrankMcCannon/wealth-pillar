@@ -2,7 +2,7 @@
 
 import { useLayoutEffect, useMemo, useState, type ReactNode } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { Link } from '@/i18n/routing';
 import type { ReportPeriodSummary } from '@/server/use-cases/reports/reports.use-cases';
 import type { User } from '@/lib/types';
@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 import { stitchHome, stitchReports } from '@/styles/home-design-foundation';
 import { useFormatCurrency } from '@/features/reports/hooks/use-format-currency';
 import { canOpenPeriodDetail } from '@/features/reports/utils/reports-transactions-href';
+import { formatPeriodLabel } from '@/features/reports/utils/format-period-label';
 import {
   isPeriodGroupOpen,
   readPeriodGroupsOpen,
@@ -72,6 +73,7 @@ function groupPeriodsByUser(
 
 function PeriodRow({
   period,
+  name,
   formatMoney,
   nameAsHeading,
   onTrackLabel,
@@ -80,6 +82,7 @@ function PeriodRow({
   openLabel,
 }: {
   period: ReportPeriodSummary;
+  name: string;
   formatMoney: (n: number) => string;
   nameAsHeading: boolean;
   onTrackLabel: string;
@@ -95,7 +98,7 @@ function PeriodRow({
   const body = (
     <>
       <span className="min-w-0">
-        <TitleTag className={stitchHome.plainRowTitle}>{period.name}</TitleTag>
+        <TitleTag className={stitchHome.plainRowTitle}>{name}</TitleTag>
         <span className="block text-sm tabular-nums text-muted-foreground">{allocatedVsSpent}</span>
       </span>
       <span className="flex shrink-0 items-center gap-1">
@@ -181,6 +184,8 @@ export function BudgetPeriodSection({
   hrefForPeriod,
 }: BudgetPeriodSectionProps) {
   const t = useTranslations('Reports.BudgetPeriods');
+  const tHome = useTranslations('Budgets.HomeSection');
+  const locale = useLocale();
   const { format: formatMoney } = useFormatCurrency();
   const groups = useMemo(
     () => groupPeriodsByUser(periods, users, viewerId),
@@ -222,10 +227,12 @@ export function BudgetPeriodSection({
 
   const renderRow = (period: ReportPeriodSummary, nameAsHeading: boolean) => {
     const href = hrefForPeriod && canOpenPeriodDetail(period) ? hrefForPeriod(period) : undefined;
+    const name = formatPeriodLabel(period, locale, tHome('periodOngoing'));
     return (
       <PeriodRow
         key={period.id}
         period={period}
+        name={name}
         formatMoney={formatMoney}
         nameAsHeading={nameAsHeading}
         onTrackLabel={onTrackLabel}
@@ -234,7 +241,7 @@ export function BudgetPeriodSection({
         openLabel={
           href
             ? t('openPeriodAria', {
-                name: period.name,
+                name,
                 status: period.remaining < 0 ? overBudgetLabel : onTrackLabel,
                 remaining: `${period.remaining > 0 ? '+' : ''}${formatMoney(period.remaining)}`,
               })

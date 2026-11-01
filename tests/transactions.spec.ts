@@ -189,12 +189,12 @@ test('keeps 1500 import rows keyboard reachable and retains preview decisions', 
   await expect(
     page.getByText("1499 di 1500 righe selezionate per l'import", { exact: true })
   ).toBeFocused();
-  await page.getByRole('button', { name: 'Deseleziona righe filtrate', exact: true }).focus();
+  await page.getByRole('button', { name: 'Deseleziona tutte', exact: true }).focus();
   await page.keyboard.press('Enter');
   await expect(
     page.getByText("0 di 1500 righe selezionate per l'import", { exact: true })
   ).toBeVisible();
-  await page.getByRole('button', { name: 'Seleziona 1500 righe filtrate', exact: true }).focus();
+  await page.getByRole('button', { name: 'Seleziona tutte (1500)', exact: true }).focus();
   await page.keyboard.press('Enter');
   await expect(
     page.getByText("1500 di 1500 righe selezionate per l'import", { exact: true })

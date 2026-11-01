@@ -42,7 +42,7 @@ test('offers last calendar year and opens empty dates in the current month', asy
   await page.getByRole('button', { name: 'Anno scorso', exact: true }).click();
   await expect(page).toHaveURL(/preset=last_year/);
   const previousYear = new Date().getFullYear() - 1;
-  await expect(page.getByRole('status').filter({ hasText: 'Periodo:' })).toContainText(
+  await expect(page.getByRole('status').filter({ hasText: `${previousYear}` })).toContainText(
     `${previousYear}`
   );
   await page.getByRole('button', { name: 'Anno scorso', exact: true }).click();
@@ -65,7 +65,7 @@ test('shows custom dates and only fetches budget-period details after expansion'
   await expect(page.locator('#main-reports')).toBeVisible();
   const timeFilters = page.getByRole('group', { name: 'Periodo del rapporto', exact: true });
   await expect(timeFilters.getByRole('button', { pressed: true })).toContainText('2026');
-  await expect(page.getByRole('status').filter({ hasText: 'Periodo:' })).toContainText(
+  await expect(page.getByRole('status').filter({ hasText: /10.*12.*2026/ })).toContainText(
     /10.*12.*2026/
   );
   expect(detailRequests).toBe(0);
@@ -76,7 +76,7 @@ test('shows custom dates and only fetches budget-period details after expansion'
     page.getByText('Caricamento dei periodi budget…', { exact: true })
   ).not.toBeVisible();
   await expect(
-    page.getByText('Non siamo riusciti a caricare i periodi budget. Riprova.', { exact: true })
+    page.getByText('Periodi non disponibili. Riprova.', { exact: true })
   ).not.toBeVisible();
   await page.locator('#main-reports summary').click();
   await expect(page.locator('#main-reports details')).not.toHaveAttribute('open');

@@ -6,6 +6,8 @@ Warm operator on linen: a dry oat canvas, charcoal ink, one **pine** accent used
 
 Layout: left-aligned content. One primary action per screen. Tight inside a group, generous between groups. Cards only when the object is distinct and tappable — prefer type, space, and hairlines.
 
+Copy: concise labels and actions. Use compact before/after values for changes, and disclose secondary detail on demand. Do not explain familiar controls or repeat headings in supporting paragraphs.
+
 ## Colors
 
 OKLCH. Neutrals sit on hue **95** (linen). Ink on hue **90**. Brand accent is **pine 170**. Expense is **rose 18**, never the brand colour. Token names in `app/globals.css` stay (`--color-primary`, `--color-income`, …).
@@ -64,7 +66,7 @@ Reuse shadcn/Radix. Restyle via tokens.
 
 **Date.** One `DateField`. Drawer when the parent is a page or a closed trigger. When the parent is already a sheet, the calendar **overlays** that sheet (no nested drawer, no in-flow expansion that forces scroll). Locale from the app locale, not hardcoded Italian.
 
-**Choice.** Radios when 2–5 options must be compared (in place, not a select). Radio cards when options need helper text (account type). Segmented control for 2–4 view modes. Select only at 6+; search inside the select only then. Combobox when the list is long (categories, shares). Switch = immediate setting; checkbox = deferred form answer.
+**Choice.** Native radio segments for 2–3 short choices. Compact radio cards for account types; rows for longer options. Select for 6+ options, with search when useful. Combobox when the list is long (categories, shares). Switch = immediate setting; checkbox = deferred form answer. Omit member selectors when only one valid choice exists.
 
 **Nav.** Five equal tabs, labels always visible. Active = ink + pine-tinted icon well, not a filled pill.
 

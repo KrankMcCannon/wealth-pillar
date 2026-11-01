@@ -6,7 +6,7 @@ import { stitchSurface } from '@/styles/home-design-foundation';
 export const formModalStyles = {
   drawerShell: {
     content:
-      'fixed bottom-0 left-0 right-0 z-150 flex max-h-[96dvh] flex-col gap-0 overflow-hidden rounded-t-3xl border-t border-foreground/10 bg-background shadow-xl',
+      'fixed bottom-0 left-0 right-0 z-150 flex max-h-[96dvh] flex-col gap-0 overflow-hidden rounded-t-3xl border-t border-foreground/10 bg-background shadow-xl outline-none',
     alertContent:
       'bottom-auto left-1/2 right-auto top-1/2 max-h-[90dvh] w-[min(100%-2rem,24rem)] max-w-none -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-foreground/10 bg-background shadow-xl',
     header: 'flex flex-col gap-1 border-b border-foreground/10 px-4 pt-2 pb-3 text-center',
@@ -42,9 +42,9 @@ export const formModalStyles = {
     actionsStack: 'flex w-full flex-col gap-2',
     dualRow: 'grid w-full grid-cols-2 gap-2',
     dualCancel:
-      'inline-flex min-h-11 w-full items-center justify-center rounded-xl border-0 bg-muted px-2 text-center text-sm font-semibold leading-snug text-foreground shadow-none hover:bg-muted/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/25 disabled:pointer-events-none disabled:opacity-45',
+      'inline-flex min-h-[52px] w-full items-center justify-center rounded-xl border-0 bg-muted px-3 text-center text-base font-semibold leading-snug text-foreground shadow-none hover:bg-muted/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-45',
     dualSubmit:
-      'inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border-0 bg-foreground px-2 text-center text-sm font-semibold leading-snug text-background shadow-none hover:bg-foreground/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/25 disabled:pointer-events-none disabled:opacity-45',
+      'inline-flex min-h-[52px] w-full items-center justify-center gap-2 rounded-xl border-0 bg-primary px-3 text-center text-base font-semibold leading-snug text-primary-foreground shadow-none hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-45',
     dualSubmitDanger:
       'bg-expense text-destructive-foreground hover:bg-expense/90 focus-visible:ring-expense/50',
     secondaryAction:
@@ -74,10 +74,14 @@ export const formModalStyles = {
     legendFlush: 'px-0 pt-1 pb-1.5 text-sm font-medium text-foreground',
     rows: 'divide-y divide-foreground/10',
     row: 'flex min-h-12 w-full cursor-pointer items-center justify-between gap-3 px-4 py-2 text-left',
-    cards: 'flex flex-col gap-2 px-4 pb-3 pt-1',
+    cards: 'grid grid-cols-2 gap-2 px-4 pb-3 pt-1',
     cardsFlush: 'px-0 py-1',
     card: 'flex min-h-11 w-full cursor-pointer items-start gap-3 rounded-xl border border-foreground/10 bg-background px-3 py-3 text-left',
     cardSelected: 'border-foreground/25 bg-muted/40',
+    segments: 'mx-4 mb-3 mt-1 flex rounded-xl bg-muted p-1',
+    segment:
+      'relative flex min-h-11 min-w-0 flex-auto cursor-pointer items-center justify-center rounded-lg px-2 py-2 text-center text-muted-foreground transition-colors motion-reduce:transition-none',
+    segmentSelected: 'bg-background text-foreground shadow-sm ring-1 ring-border/50',
     text: 'flex min-w-0 flex-1 flex-col gap-0.5',
     title: 'block text-[15px] font-medium leading-snug text-foreground',
     description: 'block text-sm leading-snug text-muted-foreground',
@@ -88,11 +92,11 @@ export const formModalStyles = {
     radioDot: 'size-2 rounded-full bg-background',
   },
   selectorTrigger:
-    'flex min-h-12 w-full items-center justify-between gap-3 bg-transparent px-4 py-2 text-left transition-colors hover:bg-muted/60 focus:outline-none focus-visible:ring-0',
+    'flex min-h-12 w-full items-center justify-between gap-3 bg-transparent px-4 py-2 text-left transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring',
   selectorLabel: 'min-w-0 max-w-[70%] shrink-0 text-[15px] leading-snug text-muted-foreground',
   selectorValue: 'min-w-0 flex-1 text-right text-[15px] font-medium leading-snug text-foreground',
   selectorValueMuted:
-    'min-w-0 flex-1 text-right text-[15px] font-medium leading-snug text-foreground/40',
+    'min-w-0 flex-1 text-right text-base font-medium leading-snug text-muted-foreground',
   selectorChevron: 'h-4 w-4 shrink-0 text-foreground/35',
   noteShell: 'flex min-h-12 items-center justify-between gap-3 px-4 py-2',
   noteLabel: 'mb-0 shrink-0 text-[15px] font-normal text-muted-foreground',

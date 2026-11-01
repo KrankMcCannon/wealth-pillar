@@ -41,7 +41,7 @@ describe('SelectionModal', () => {
 
     expect(screen.getByRole('radiogroup', { name: 'Currency' })).toBeInTheDocument();
     expect(screen.getByRole('radio', { name: /Euro/ })).toBeChecked();
-    expect(screen.getByText('currentBadge')).toBeInTheDocument();
-    expect(screen.getByText('Eurozone')).toBeInTheDocument();
+    expect(screen.queryByText('currentBadge')).not.toBeInTheDocument();
+    expect(screen.queryByText('Eurozone')).not.toBeInTheDocument();
   });
 });

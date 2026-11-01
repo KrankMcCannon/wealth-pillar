@@ -25,6 +25,17 @@ export function StickyTotal({
   const barRef = totalRef ?? localRef;
   const [pinned, setPinned] = useState(false);
   const [height, setHeight] = useState(0);
+  const [headerHeight, setHeaderHeight] = useState(APP_HEADER_PX);
+
+  useLayoutEffect(() => {
+    const header = document.querySelector('header');
+    if (!header) return;
+    const sync = () => setHeaderHeight(header.getBoundingClientRect().height);
+    const observer = new ResizeObserver(sync);
+    observer.observe(header);
+    sync();
+    return () => observer.disconnect();
+  }, []);
 
   useLayoutEffect(() => {
     const node = barRef.current;
@@ -44,11 +55,11 @@ export function StickyTotal({
         if (!entry) return;
         setPinned(!entry.isIntersecting);
       },
-      { rootMargin: `-${APP_HEADER_PX}px 0px 0px 0px`, threshold: 0 }
+      { rootMargin: `-${headerHeight}px 0px 0px 0px`, threshold: 0 }
     );
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, []);
+  }, [headerHeight]);
 
   return (
     <>
@@ -60,7 +71,7 @@ export function StickyTotal({
           'z-30 border-b border-border/22 bg-background py-2',
           pinned ? 'fixed inset-x-0' : 'relative'
         )}
-        style={pinned ? { top: APP_HEADER_PX } : undefined}
+        style={pinned ? { top: headerHeight } : undefined}
       >
         <div className="mx-auto w-full max-w-5xl px-4">{children}</div>
       </div>

@@ -11,9 +11,9 @@ import { parseReturnTo } from '@/lib/navigation/return-to';
 import { STICKY_HEADER_BASE } from '@/lib/utils/ui-constants';
 
 const headerStyles = {
-  container: 'px-4 py-2',
-  inner: 'flex min-h-11 items-center gap-1',
-  title: 'min-w-0 flex-1 truncate text-base font-semibold text-foreground',
+  container: 'px-4 pb-2 pt-[calc(0.5rem+env(safe-area-inset-top))]',
+  inner: 'mx-auto flex min-h-11 max-w-5xl items-center gap-1',
+  title: 'min-w-0 flex-1 truncate text-lg font-semibold tracking-tight text-foreground',
   titleSkeleton: 'block h-5 w-36 max-w-[70%] rounded-md bg-muted',
   iconButton:
     'flex min-h-11 min-w-11 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-accent active:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none',
@@ -125,7 +125,7 @@ function HistoryBackButton({ label }: Readonly<{ label: string }>) {
 }
 
 function BackSlot() {
-  return <span className="min-h-11 min-w-11 shrink-0" aria-hidden />;
+  return null;
 }
 
 function BackLinkIcon({ className }: Readonly<{ className: string }>) {

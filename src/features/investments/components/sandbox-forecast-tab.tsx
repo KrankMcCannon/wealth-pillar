@@ -154,9 +154,6 @@ export function SandboxForecastTab() {
               autoComplete="off"
               className={investmentsStyles.sandbox.input}
             />
-            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-              {t('fields.annualReturnHint')}
-            </p>
           </Field>
           <Field>
             <FieldLabel htmlFor="years">{t('fields.durationYears')}</FieldLabel>

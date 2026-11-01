@@ -64,7 +64,6 @@ export const AccountsList = ({
     return (
       <div className={stitchRecurring.emptyState} role="status" aria-live="polite">
         <p className={stitchRecurring.emptyTitle}>{t('empty.title')}</p>
-        <p className={stitchRecurring.emptyDescription}>{t('empty.description')}</p>
         {onAddAccount ? (
           <div className={stitchRecurring.emptyActions}>
             <button type="button" onClick={onAddAccount} className={stitchSurface.primaryCta}>

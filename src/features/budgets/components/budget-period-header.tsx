@@ -39,8 +39,8 @@ export function BudgetPeriodHeader({
     : tHome('periodOngoing');
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-card p-3">
-      <p className="flex min-w-0 items-center gap-2 text-sm font-semibold">
+    <div className="flex items-center justify-between gap-2">
+      <p className="flex min-w-0 items-center gap-2 text-sm text-muted-foreground">
         <CalendarDays className={stitchBudgets.periodHeaderIcon} aria-hidden />
         <span className="break-words">{periodLabel}</span>
       </p>

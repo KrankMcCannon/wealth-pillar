@@ -166,7 +166,6 @@ function CloseBudgetPeriodModal({
       isOpen={isOpen}
       onClose={handleClose}
       title={t('buttons.closePeriod')}
-      description={t('description')}
       schema={schema}
       defaultValues={defaultValues}
       resetValues={defaultValues}

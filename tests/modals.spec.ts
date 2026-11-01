@@ -13,7 +13,9 @@ test.describe('entity modals (mobile)', () => {
 
     await fab.click();
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 });
-    await expect(page.locator('text=Nuova transazione')).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: 'Nuova transazione', exact: true })
+    ).toBeVisible();
     await expect(page.locator('input[placeholder="0,00"]').first()).toBeVisible();
     await expect(page.getByRole('radiogroup', { name: /Tipo|Type/i })).toBeVisible();
     await expect(page.getByRole('radio', { name: /Uscita|Expense/i })).toBeChecked();
@@ -28,7 +30,7 @@ test.describe('entity modals (mobile)', () => {
 
     await fab.click();
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 });
-    await expect(page.locator('text=Nuovo Budget')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Nuovo budget', exact: true })).toBeVisible();
     await expect(page.locator('input[placeholder="0,00"]').first()).toBeVisible();
   });
 
@@ -36,7 +38,7 @@ test.describe('entity modals (mobile)', () => {
     await page.goto('/it/budgets');
 
     await page.getByRole('button', { name: /azioni del periodo|period actions/i }).click();
-    await page.getByRole('menuitem', { name: /nuovo ciclo|new cycle/i }).click();
+    await page.getByRole('menuitem', { name: /nuovo periodo|new period/i }).click();
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 });
     await expect(page.locator('[data-vaul-drawer]')).toBeVisible();
   });

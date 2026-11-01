@@ -1,15 +1,15 @@
 'use client';
 
-import { use, useCallback, useMemo, useOptimistic, useState, useTransition } from 'react';
+import { use, useCallback, useMemo, useState, useTransition } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useFormatter, useTranslations } from 'next-intl';
-import { ChevronDown } from 'lucide-react';
 import { useRouter, usePathname } from '@/i18n/routing';
 import { HomeDashboardMain } from '@/components/layout';
 import { usePageHeader } from '@/hooks/use-page-header';
 import type { ReportsPageData, ReportsScope } from '@/server/use-cases/pages/reports-page.use-case';
 import type { User } from '@/lib/types';
-import { stitchHome, stitchReports } from '@/styles/home-design-foundation';
+import { stitchReports } from '@/styles/home-design-foundation';
+import { SectionDisclosure } from '@/components/shared/section-disclosure';
 import { pathWithoutReturnTo, withReturnTo } from '@/lib/navigation/return-to';
 import UserSelector from '@/components/shared/user-selector';
 import { ReportsTimeFilter } from '@/features/reports/components/reports-time-filter';
@@ -72,7 +72,11 @@ export default function ReportsContent({
     [initialCustomStart, initialCustomEnd]
   );
   const appliedTime = useMemo(() => ({ preset, customRange }), [preset, customRange]);
-  const [requestedTime, setRequestedTime] = useOptimistic(appliedTime);
+  const [timeSelection, setTimeSelection] = useState({ applied: appliedTime, value: appliedTime });
+  if (timeSelection.applied !== appliedTime) {
+    setTimeSelection({ applied: appliedTime, value: appliedTime });
+  }
+  const requestedTime = timeSelection.value;
   const [scopeState, setScopeState] = useState({
     applied: initialScope,
     value: initialScope ?? data.defaultScope,
@@ -110,12 +114,15 @@ export default function ReportsContent({
         customRange: nextCustom,
         scope: selectedScope,
       });
+      setTimeSelection({
+        applied: appliedTime,
+        value: { preset: nextPreset, customRange: nextCustom },
+      });
       startTransition(() => {
-        setRequestedTime({ preset: nextPreset, customRange: nextCustom });
         router.push(query ? `${pathname}?${query}` : pathname, { scroll: false });
       });
     },
-    [pathname, preset, customRange, selectedScope, router, setRequestedTime]
+    [pathname, preset, customRange, selectedScope, router, appliedTime]
   );
 
   const handlePresetChange = useCallback(
@@ -176,7 +183,7 @@ export default function ReportsContent({
       </ReportsTimeFilter>
 
       <div
-        className="px-4 py-2 text-sm text-muted-foreground"
+        className="mx-auto w-full max-w-5xl px-4 py-2 text-sm text-muted-foreground"
         role="status"
         aria-live="polite"
         aria-atomic="true"
@@ -189,7 +196,7 @@ export default function ReportsContent({
             {t('previousData', { range: formatRange(data.currentWindow) })}
           </span>
         ) : data.comparisonWindow ? (
-          <span className="mt-1 block">
+          <span className="sr-only">
             {t('comparisonRange', { range: formatRange(data.comparisonWindow) })}
           </span>
         ) : null}
@@ -240,27 +247,13 @@ export default function ReportsContent({
             )}
           />
 
-          <details
+          <SectionDisclosure
             id="budget-periods"
-            className={stitchHome.scanSection}
+            label={t('insightsTitle')}
+            className="scroll-mt-36 border-t border-border/40"
             open={insightsOpen}
             onToggle={(event) => setInsightsOpen(event.currentTarget.open)}
           >
-            <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40">
-              <span className="min-w-0">
-                <span className={stitchHome.scanSectionTitle}>{t('insightsTitle')}</span>
-                <span className="mt-1 block text-sm leading-relaxed text-muted-foreground">
-                  {t('insightsDescription')}
-                </span>
-              </span>
-              <ChevronDown
-                className={`size-4 shrink-0 transition-transform ${
-                  insightsOpen ? 'rotate-180' : ''
-                }`}
-                aria-hidden
-              />
-            </summary>
-
             {insightsOpen ? (
               <div className="mt-4 flex flex-col gap-5">
                 <AccountBreakdownSection
@@ -285,7 +278,7 @@ export default function ReportsContent({
                 />
               </div>
             ) : null}
-          </details>
+          </SectionDisclosure>
         </div>
       </HomeDashboardMain>
     </div>

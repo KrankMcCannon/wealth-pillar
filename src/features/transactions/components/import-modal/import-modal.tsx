@@ -406,7 +406,7 @@ export default function ImportModal({ isOpen, onClose }: Readonly<ImportModalPro
           <ModalSection title={t('upload.title')}>
             <label
               htmlFor="import-file-input"
-              className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border/70 p-8 text-center"
+              className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border/70 p-8 text-center has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring"
             >
               <Upload className="size-8 text-muted-foreground" aria-hidden />
               <span className="text-sm font-medium">{t('upload.cta')}</span>
@@ -507,7 +507,7 @@ export default function ImportModal({ isOpen, onClose }: Readonly<ImportModalPro
                 {t('preview.deselectFiltered')}
               </Button>
             </div>
-            <p className="text-sm text-muted-foreground">{t('preview.duplicatesHelp')}</p>
+            <p className="sr-only">{t('preview.duplicatesHelp')}</p>
             {includedCount > 0 ? (
               <CategorySelect
                 value=""
