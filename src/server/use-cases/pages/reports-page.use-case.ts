@@ -54,7 +54,7 @@ async function getCachedReportsPageData(
   cacheTag(`group:${groupId}:accounts`);
   cacheTag(`group:${groupId}:budgets`);
   cacheTag(CACHE_TAGS.BUDGET_PERIODS);
-  cacheTag('categories');
+  cacheTag(`group:${groupId}:categories`, 'group:00000000-0000-0000-0000-000000000000:categories');
 
   const preset = params.preset ?? DEFAULT_REPORTS_PRESET;
   const customRange =
@@ -67,6 +67,8 @@ async function getCachedReportsPageData(
     groupUserIds
   );
   const userIds = users.map((u) => u.id);
+  for (const id of userIds) cacheTag(CACHE_TAGS.USER_BUDGET_PERIODS(id));
+  cacheTag(CACHE_TAGS.GROUP_USERS(groupId));
 
   let currentWindow: DateWindow = getCurrentReportingWindow(preset, customRange);
   let comparisonWindow = getComparisonReportingWindow(preset, currentWindow);

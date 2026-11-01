@@ -222,3 +222,12 @@ describe('editBudgetPeriodClosingDateUseCase', () => {
     ).rejects.toMatchObject({ code: 'cannotEditActiveEnd' });
   });
 });
+
+it('matches adjacent accounting days across midnight in Rome for Date values', () => {
+  const closed = closedPeriod({
+    start_date: new Date('2026-04-30T22:00:00Z'),
+    end_date: new Date('2026-05-31T21:59:59Z'),
+  });
+  const active = activePeriod({ start_date: new Date('2026-05-31T22:00:00Z') });
+  expect(findLatestClosedPeriod([closed, active], active)).toBe(closed);
+});

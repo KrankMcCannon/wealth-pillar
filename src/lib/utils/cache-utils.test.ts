@@ -39,13 +39,13 @@ describe('invalidateTransactionCaches', () => {
     ).toBe(true);
 
     // Balance reads are correctness-critical and must be immediately expired.
-    expect(expiredTags).toContain('accounts');
+    expect(expiredTags).not.toContain('accounts');
     expect(expiredTags).toContain('account:a1');
     expect(expiredTags).toContain('account:a2');
     expect(expiredTags).toContain('group:g1:accounts');
 
     // The next financial read must include the committed mutation.
-    expect(expiredTags).toContain('transactions');
+    expect(expiredTags).not.toContain('transactions');
     expect(expiredTags).toContain('account:a1:transactions');
     expect(expiredTags).toContain('account:a2:transactions');
     expect(expiredTags).toContain('group:g1:transactions');
@@ -86,13 +86,13 @@ describe('invalidateTransactionUpdateCaches', () => {
     ).toBe(true);
 
     // Old source, old destination and new source balances all changed.
-    expect(expiredTags).toContain('accounts');
+    expect(expiredTags).not.toContain('accounts');
     expect(expiredTags).toContain('account:a1');
     expect(expiredTags).toContain('account:a2');
     expect(expiredTags).toContain('account:a3');
     expect(expiredTags).toContain('group:g1:accounts');
 
-    expect(expiredTags).toContain('transactions');
+    expect(expiredTags).not.toContain('transactions');
     expect(expiredTags).toContain('account:a1:transactions');
     expect(expiredTags).toContain('account:a2:transactions');
     expect(expiredTags).toContain('account:a3:transactions');
@@ -138,7 +138,7 @@ describe('invalidateBudgetPeriodCaches', () => {
 
     const tags = vi.mocked(revalidateTag).mock.calls.map((call) => call[0]);
 
-    expect(tags).toContain('budget_periods');
+    expect(tags).toContain('user:u1:budget_periods');
     expect(tags).toContain('user:u1:budget_period:active');
     expect(tags).toContain('budget_period:p1');
 
@@ -150,12 +150,14 @@ describe('recurring Dashboard invalidation', () => {
   beforeEach(() => vi.clearAllMocks());
   it('expires series and aggregate dependencies immediately, even without a resolved group', () => {
     invalidateRecurringCaches({ seriesId: 'r1', userIds: ['u1'], groupId: 'g1' });
-    expect(revalidateTag).toHaveBeenCalledWith('recurring_series', { expire: 0 });
+    expect(revalidateTag).not.toHaveBeenCalledWith('recurring_series', { expire: 0 });
+    expect(revalidateTag).toHaveBeenCalledWith('user:u1:recurring', { expire: 0 });
     expect(revalidateTag).toHaveBeenCalledWith('group:g1:recurring', { expire: 0 });
     expect(revalidateTag).toHaveBeenCalledWith('recurring:r1', { expire: 0 });
     vi.clearAllMocks();
     invalidateRecurringCaches({ userIds: ['u1'] });
-    expect(revalidateTag).toHaveBeenCalledWith('recurring_series', { expire: 0 });
+    expect(revalidateTag).not.toHaveBeenCalledWith('recurring_series', { expire: 0 });
+    expect(revalidateTag).toHaveBeenCalledWith('user:u1:recurring', { expire: 0 });
     expect(updateTag).not.toHaveBeenCalled();
     expect(
       vi

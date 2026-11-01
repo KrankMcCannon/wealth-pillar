@@ -29,36 +29,39 @@ export async function updateTransactionUseCase(
   if (data.account_id !== undefined) updateData.account_id = data.account_id;
   if (data.to_account_id !== undefined) updateData.to_account_id = data.to_account_id;
 
-  const { existing, updated, accountBalances } = await db.transaction(async (tx) => {
-    const existing = await TransactionsRepository.getByIdForUpdate(id, scope, tx);
-    if (!existing) throw new Error('Transaction not found');
-    if (data.group_id !== undefined && data.group_id !== existing.group_id) {
-      throw new Error('Cannot move a transaction to another group');
-    }
-
-    if (data.type === 'transfer' || existing.type === 'transfer') {
-      const toAccountId =
-        data.to_account_id !== undefined ? data.to_account_id : existing.to_account_id;
-      const accountId = data.account_id ?? existing.account_id;
-      if ((data.type || existing.type) === 'transfer' && !toAccountId) {
-        throw new Error('Destination account is required for transfers');
+  const { existing, updated, accountBalances, accountBalanceVersions } = await db.transaction(
+    async (tx) => {
+      const existing = await TransactionsRepository.getByIdForUpdate(id, scope, tx);
+      if (!existing) throw new Error('Transaction not found');
+      if (data.group_id !== undefined && data.group_id !== existing.group_id) {
+        throw new Error('Cannot move a transaction to another group');
       }
-      if (toAccountId === accountId) {
-        throw new Error('Source and destination accounts must be different');
-      }
-    }
 
-    const row = await TransactionsRepository.update(id, updateData, tx);
-    if (!row) throw new Error('Failed to update transaction');
-    await applyTransactionBalanceUpdate(existing, row, tx);
-    const accountBalances = await TransactionsRepository.getAccountBalances(
-      [existing.account_id, existing.to_account_id, row.account_id, row.to_account_id].filter(
-        (id): id is string => Boolean(id)
-      ),
-      tx
-    );
-    return { existing, updated: row, accountBalances };
-  });
+      if (data.type === 'transfer' || existing.type === 'transfer') {
+        const toAccountId =
+          data.to_account_id !== undefined ? data.to_account_id : existing.to_account_id;
+        const accountId = data.account_id ?? existing.account_id;
+        if ((data.type || existing.type) === 'transfer' && !toAccountId) {
+          throw new Error('Destination account is required for transfers');
+        }
+        if (toAccountId === accountId) {
+          throw new Error('Source and destination accounts must be different');
+        }
+      }
+
+      const row = await TransactionsRepository.update(id, updateData, tx);
+      if (!row) throw new Error('Failed to update transaction');
+      await applyTransactionBalanceUpdate(existing, row, tx);
+      const { accountBalances, accountBalanceVersions } =
+        await TransactionsRepository.getAccountBalanceState(
+          [existing.account_id, existing.to_account_id, row.account_id, row.to_account_id].filter(
+            (id): id is string => Boolean(id)
+          ),
+          tx
+        );
+      return { existing, updated: row, accountBalances, accountBalanceVersions };
+    }
+  );
 
   invalidateTransactionUpdateCaches(
     {
@@ -80,5 +83,6 @@ export async function updateTransactionUseCase(
     ...updated,
     amount: Number(updated.amount),
     accountBalances,
+    accountBalanceVersions,
   }) as TransactionMutationResult;
 }

@@ -3,8 +3,11 @@
 import type { useTranslations } from 'next-intl';
 import type { UseFormReturn } from 'react-hook-form';
 import { useWatch } from 'react-hook-form';
-import { ModalRadioField, ModalSelectField, ModalTextField } from '@/components/form/modal-fields';
+import { ModalRadioField } from '@/components/form/modal-fields/modal-radio-field';
+import { ModalSelectField } from '@/components/form/modal-fields/modal-select-field';
+import { ModalTextField } from '@/components/form/modal-fields/modal-text-field';
 import type { RecurringFormData } from './recurring-form-schema';
+import { financialDateTime } from '@/lib/utils/financial-date';
 
 export interface RecurrencePickerProps {
   form: UseFormReturn<RecurringFormData>;
@@ -32,6 +35,15 @@ export function RecurrencePicker({ form, t, isSubmitting }: RecurrencePickerProp
           { value: 'yearly', label: t('frequencyOptions.yearly') },
         ]}
         disabled={isSubmitting}
+        onValueChange={(next) => {
+          const nextWeekly = next === 'weekly' || next === 'biweekly';
+          if (weekly === nextWeekly && frequency !== 'once' && next !== 'once') return;
+          const start = financialDateTime(form.getValues('start_date') || new Date());
+          form.setValue('due_day', String(nextWeekly ? start.weekday : start.day), {
+            shouldDirty: true,
+            shouldValidate: true,
+          });
+        }}
       />
 
       {weekly ? (

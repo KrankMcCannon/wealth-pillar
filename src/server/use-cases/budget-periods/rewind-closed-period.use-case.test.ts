@@ -162,3 +162,10 @@ describe('rewindClosedPeriodUseCase', () => {
     expect(BudgetPeriodsRepository.findById).not.toHaveBeenCalled();
   });
 });
+
+it('orders neighbors by Rome accounting days for timestamp inputs', () => {
+  const closed = closedPeriod({ start_date: '2026-05-31' });
+  const active = activePeriod({ start_date: new Date('2026-05-31T22:00:00Z') });
+  expect(findPreviousPeriod([active, closed], active)).toBe(closed);
+  expect(findNextPeriod([active, closed], closed)).toBe(active);
+});

@@ -67,11 +67,19 @@ export class RecurringRepository {
       .where(arrayContains(recurringTransactions.user_ids, [userId]));
   }
 
-  static async findByUserIds(userIds: string[]) {
+  static async findByUserIds(userIds: string[], groupId?: string) {
     return await db
       .select({ ...getTableColumns(recurringTransactions), recorded_dates: recordedDates })
       .from(recurringTransactions)
-      .where(arrayOverlaps(recurringTransactions.user_ids, userIds));
+      .where(
+        and(
+          arrayOverlaps(recurringTransactions.user_ids, userIds),
+          groupId
+            ? sql`${recurringTransactions.account_id} in
+        (select ${accounts.id} from ${accounts} where ${accounts.group_id} = ${groupId})`
+            : undefined
+        )
+      );
   }
 
   static async create(data: typeof recurringTransactions.$inferInsert) {

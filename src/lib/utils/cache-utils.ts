@@ -47,6 +47,9 @@ export interface AccountCacheInvalidationOptions {
  */
 export interface UserCacheInvalidationOptions {
   userId: string;
+  clerkId?: string | null | undefined;
+  groupId?: string | null | undefined;
+  previousGroupId?: string | null | undefined;
 }
 
 /**
@@ -55,7 +58,6 @@ export interface UserCacheInvalidationOptions {
  */
 export function invalidateTransactionCaches(opts: TransactionCacheInvalidationOptions): void {
   const accountTags: string[] = [
-    CACHE_TAGS.ACCOUNTS,
     CACHE_TAGS.ACCOUNT(opts.accountId),
     `group:${opts.groupId}:accounts`,
   ];
@@ -69,7 +71,6 @@ export function invalidateTransactionCaches(opts: TransactionCacheInvalidationOp
   expireTags(accountTags);
 
   const financialTags: string[] = [
-    CACHE_TAGS.TRANSACTIONS,
     `account:${opts.accountId}:transactions`,
     `group:${opts.groupId}:transactions`,
     `group:${opts.groupId}:budgets`,
@@ -95,7 +96,7 @@ export function invalidateTransactionCaches(opts: TransactionCacheInvalidationOp
  * Used after creating, updating, or deleting budgets.
  */
 export function invalidateBudgetCaches(opts: BudgetCacheInvalidationOptions): void {
-  const tags: string[] = [CACHE_TAGS.BUDGETS, `user:${opts.userId}:budgets`];
+  const tags: string[] = [`user:${opts.userId}:budgets`];
 
   if (opts.budgetId) {
     tags.push(CACHE_TAGS.BUDGET(opts.budgetId));
@@ -122,7 +123,7 @@ export function invalidateInvestmentCaches(opts: InvestmentCacheInvalidationOpti
  * Used after creating, updating, or deleting accounts.
  */
 export function invalidateAccountCaches(opts: AccountCacheInvalidationOptions): void {
-  const tags: string[] = [CACHE_TAGS.ACCOUNTS, CACHE_TAGS.ACCOUNT(opts.accountId)];
+  const tags: string[] = [CACHE_TAGS.ACCOUNT(opts.accountId)];
 
   if (opts.groupId) {
     tags.push(`group:${opts.groupId}:accounts`);
@@ -142,7 +143,12 @@ export function invalidateAccountCaches(opts: AccountCacheInvalidationOptions): 
  * Used after updating user profile or preferences.
  */
 export function invalidateUserCaches(opts: UserCacheInvalidationOptions): void {
-  invalidateTags([CACHE_TAGS.USERS, CACHE_TAGS.USER(opts.userId)]);
+  const tags = [CACHE_TAGS.USER(opts.userId)];
+  if (opts.clerkId) tags.push(CACHE_TAGS.USER_BY_CLERK(opts.clerkId));
+  for (const groupId of new Set([opts.groupId, opts.previousGroupId])) {
+    if (groupId) tags.push(CACHE_TAGS.GROUP_USERS(groupId), `group:${groupId}:investments`);
+  }
+  expireTags(tags);
 }
 
 /**
@@ -154,14 +160,10 @@ export function invalidateBudgetPeriodCaches(opts: {
   periodId?: string | undefined;
 }): void {
   const tags: string[] = [
-    CACHE_TAGS.BUDGET_PERIODS,
     `user:${opts.userId}:budget_periods`,
     `user:${opts.userId}:budget_period:active`,
-    CACHE_TAGS.USERS,
     CACHE_TAGS.USER(opts.userId),
-    CACHE_TAGS.BUDGETS,
     CACHE_TAGS.USER_BUDGETS(opts.userId),
-    CACHE_TAGS.ACCOUNTS,
   ];
 
   if (opts.periodId) {
@@ -174,8 +176,10 @@ export function invalidateBudgetPeriodCaches(opts: {
 /**
  * Invalidates category-related caches.
  */
-export function invalidateCategoryCaches(opts: { categoryId?: string }): void {
-  const tags: string[] = [CACHE_TAGS.CATEGORIES];
+export function invalidateCategoryCaches(opts: { categoryId?: string; groupId?: string }): void {
+  const tags: string[] = opts.groupId
+    ? [`group:${opts.groupId}:categories`]
+    : [CACHE_TAGS.CATEGORIES];
 
   if (opts.categoryId) {
     tags.push(CACHE_TAGS.CATEGORY(opts.categoryId));
@@ -192,7 +196,7 @@ export function invalidateRecurringCaches(opts: {
   userIds?: string[] | undefined;
   groupId?: string | undefined;
 }): void {
-  const tags: string[] = [CACHE_TAGS.RECURRING_SERIES];
+  const tags: string[] = [];
 
   if (opts.seriesId) {
     tags.push(CACHE_TAGS.RECURRING(opts.seriesId));
@@ -231,7 +235,7 @@ export function invalidateTransactionUpdateCaches(
     groupId?: string | undefined;
   }
 ): void {
-  const accountTags: string[] = [CACHE_TAGS.ACCOUNTS, CACHE_TAGS.ACCOUNT(existing.accountId)];
+  const accountTags: string[] = [CACHE_TAGS.ACCOUNT(existing.accountId)];
 
   if (existing.toAccountId) {
     accountTags.push(CACHE_TAGS.ACCOUNT(existing.toAccountId));
@@ -255,7 +259,7 @@ export function invalidateTransactionUpdateCaches(
 
   expireTags(accountTags);
 
-  const tags: string[] = [CACHE_TAGS.TRANSACTIONS];
+  const tags: string[] = [];
 
   if (existing.id) {
     tags.push(`transaction:${existing.id}`);
@@ -298,11 +302,5 @@ function expireTags(tags: string[]): void {
   for (const tag of new Set(tags)) {
     // These use cases also run in Clerk webhooks, where updateTag is unavailable.
     revalidateTag(tag, { expire: 0 });
-  }
-}
-
-function invalidateTags(tags: string[]): void {
-  for (const tag of tags) {
-    revalidateTag(tag, 'max');
   }
 }

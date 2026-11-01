@@ -12,7 +12,8 @@
 
 import { cache } from 'react';
 import { auth } from '@clerk/nextjs/server';
-import { getUserByClerkIdUseCase } from '@/server/use-cases';
+import { UsersRepository } from '@/server/repositories/users.repository';
+import { serialize } from '@/lib/utils/serializer';
 import { getGroupUsersByGroupIdDeduped } from '@/server/request-cache/services';
 import type { User } from '@/lib/types';
 
@@ -54,8 +55,8 @@ export const getCurrentUser = cache(async (): Promise<User | null> => {
     return null;
   }
 
-  const user = await getUserByClerkIdUseCase(clerkId);
-  return user;
+  const user = await UsersRepository.findByClerkId(clerkId);
+  return user ? serialize(user) : null;
 });
 
 /**

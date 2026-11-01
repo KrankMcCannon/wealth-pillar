@@ -1,5 +1,7 @@
 'use client';
 
+import { financialDateKey } from '@/lib/utils/financial-date';
+
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { z } from 'zod';
 import { useLocale, useTranslations } from 'next-intl';
@@ -93,10 +95,8 @@ function CloseBudgetPeriodModal({
     };
   }, [userId, locale]);
 
-  const periodStartDate: string | null = activePeriod?.start_date
-    ? typeof activePeriod.start_date === 'string'
-      ? (activePeriod.start_date.split('T')[0] ?? null)
-      : (activePeriod.start_date.toISOString().split('T')[0] ?? null)
+  const periodStartDate = activePeriod?.start_date
+    ? financialDateKey(activePeriod.start_date)
     : null;
 
   const schema = useMemo(

@@ -66,7 +66,6 @@ export async function createGroupInvitationUseCase(input: CreateInvitationInput)
   }
 
   // Invalidate cache
-  revalidateTag(CACHE_TAGS.GROUP_INVITATIONS, 'max');
   revalidateTag(CACHE_TAGS.GROUP_INVITATIONS_BY_GROUP(groupId), 'max');
 
   return invitation;
@@ -84,6 +83,5 @@ export async function deleteGroupInvitationUseCase(invitationId: string) {
 
   await GroupInvitationsRepository.delete(invitationId);
 
-  revalidateTag(CACHE_TAGS.GROUP_INVITATIONS, 'max');
   revalidateTag(CACHE_TAGS.GROUP_INVITATIONS_BY_GROUP(invitation.group_id), 'max');
 }

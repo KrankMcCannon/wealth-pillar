@@ -7,12 +7,27 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { useShallow } from 'zustand/react/shallow';
 import type { Account, Budget, Category } from '@/lib/types';
+import {
+  emptyBalanceState,
+  seedBalances,
+  displayBalances,
+  beginBalanceMutation,
+  finishBalanceMutation,
+  type BalanceState,
+} from './balance-reconciliation';
+import type { TransactionDeleteResult } from '@/lib/types/financial-mutation';
 
 // ============================================================================
 // Types
 // ============================================================================
 
 interface ReferenceDataState {
+  balanceState: BalanceState;
+  beginBalanceMutation: (id: string, deltas: Record<string, number>) => void;
+  finishBalanceMutation: (
+    id: string,
+    result?: Pick<TransactionDeleteResult, 'accountBalances' | 'accountBalanceVersions'>
+  ) => void;
   // Data
   accounts: Account[];
   categories: Category[];
@@ -52,6 +67,7 @@ interface ReferenceDataState {
 // ============================================================================
 
 const initialState = {
+  balanceState: emptyBalanceState(),
   accounts: [],
   categories: [],
   usedCategoryKeys: [] as string[],
@@ -71,11 +87,15 @@ export const useReferenceDataStore = create<ReferenceDataState>()(
       // Initialize store with data from server
       initialize: (data) => {
         set(
-          {
-            accounts: data.accounts,
-            categories: data.categories,
-            usedCategoryKeys: data.usedCategoryKeys ?? [],
-            isInitialized: true,
+          (state) => {
+            const balanceState = seedBalances(state.balanceState, data.accounts);
+            return {
+              balanceState,
+              accounts: displayBalances(data.accounts, balanceState),
+              categories: data.categories,
+              usedCategoryKeys: data.usedCategoryKeys ?? [],
+              isInitialized: true,
+            };
           },
           false,
           'reference-data/initialize'
@@ -100,11 +120,19 @@ export const useReferenceDataStore = create<ReferenceDataState>()(
 
       updateAccount: (id, updates) => {
         set(
-          (state) => ({
-            accounts: state.accounts.map((account) =>
+          (state) => {
+            const accounts = state.accounts.map((account) =>
               account.id === id ? { ...account, ...updates } : account
-            ),
-          }),
+            );
+            const balanceState =
+              updates.balance !== undefined && updates.balance_version
+                ? seedBalances(
+                    state.balanceState,
+                    accounts.filter((account) => account.id === id)
+                  )
+                : state.balanceState;
+            return { balanceState, accounts: displayBalances(accounts, balanceState) };
+          },
           false,
           'reference-data/updateAccount'
         );
@@ -121,8 +149,25 @@ export const useReferenceDataStore = create<ReferenceDataState>()(
       },
 
       refreshAccounts: (accounts) => {
-        set({ accounts }, false, 'reference-data/refreshAccounts');
+        set(
+          (state) => {
+            const balanceState = seedBalances(state.balanceState, accounts);
+            return { balanceState, accounts: displayBalances(accounts, balanceState) };
+          },
+          false,
+          'reference-data/refreshAccounts'
+        );
       },
+      beginBalanceMutation: (id, deltas) =>
+        set((state) => {
+          const balanceState = beginBalanceMutation(state.balanceState, state.accounts, id, deltas);
+          return { balanceState, accounts: displayBalances(state.accounts, balanceState) };
+        }),
+      finishBalanceMutation: (id, result) =>
+        set((state) => {
+          const balanceState = finishBalanceMutation(state.balanceState, id, result);
+          return { balanceState, accounts: displayBalances(state.accounts, balanceState) };
+        }),
 
       // Category actions
       addCategory: (category) => {

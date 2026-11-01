@@ -13,6 +13,7 @@ export interface ModalRadioFieldProps<T extends FieldValues> {
   options: readonly ModalRadioOption[];
   disabled?: boolean | undefined;
   variant?: 'rows' | 'cards' | 'segments';
+  onValueChange?: ((value: string) => void) | undefined;
 }
 
 export function ModalRadioField<T extends FieldValues>({
@@ -22,13 +23,17 @@ export function ModalRadioField<T extends FieldValues>({
   options,
   disabled,
   variant = 'rows',
+  onValueChange,
 }: Readonly<ModalRadioFieldProps<T>>) {
   const {
     field,
     fieldState: { error },
   } = useController({ control, name });
   const errorId = `${String(name)}-error`;
-  const handleChange = field.onChange;
+  const handleChange = (value: string) => {
+    field.onChange(value);
+    onValueChange?.(value);
+  };
 
   return (
     <div>

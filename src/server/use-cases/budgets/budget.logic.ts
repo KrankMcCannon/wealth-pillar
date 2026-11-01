@@ -14,7 +14,12 @@ import { filterTransactionsByPeriod, filterByCategories } from '../transactions/
 import { parsePeriodDates } from '../shared/period.logic';
 import { getCategoryColor, getCategoryLabel } from '../categories/category.logic';
 import { allocatedFromBudgets, periodBudgetAmount } from '../budget-periods/period-budgets.logic';
-import { foldBudgetCategorySpending, foldBudgetSpent } from '@/server/ledger';
+import {
+  foldBudgetCategorySpending,
+  foldBudgetSpent,
+  transactionInvolvesUser,
+} from '@/server/ledger';
+import { ledgerRowCount } from '@/server/ledger/aggregate';
 
 export interface BudgetCategoryBreakdownItem {
   key: string;
@@ -80,7 +85,11 @@ export function buildBudgetCategoryBreakdown(
         label: getCategoryLabel(categories, key),
         color: getCategoryColor(categories, key),
         spent: effectiveSpentFromTransactions(categoryTxs, accounts, userId),
-        transactionCount: categoryTxs.length,
+        transactionCount: ledgerRowCount(
+          userId
+            ? categoryTxs.filter((tx) => transactionInvolvesUser(tx, userId, accounts))
+            : categoryTxs
+        ),
       };
     })
     .filter((item) => item.spent > 0)
@@ -200,7 +209,11 @@ export function calculateBudgetProgress(
     remaining,
     percentage,
     categories: budget.categories,
-    transactionCount: transactions.length,
+    transactionCount: ledgerRowCount(
+      userId
+        ? transactions.filter((tx) => transactionInvolvesUser(tx, userId, accounts))
+        : transactions
+    ),
   };
 }
 

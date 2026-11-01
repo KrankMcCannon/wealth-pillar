@@ -1,3 +1,4 @@
+import { financialDateKey } from '@/lib/utils/financial-date';
 import { CACHE_TAGS } from '@/lib/cache/config';
 import type { Account, Budget, Category, Transaction, User } from '@/lib/types';
 import { toDateTime } from '@/lib/utils/date-utils';
@@ -19,7 +20,8 @@ import {
 import { getBudgetByIdUseCase } from '../budgets/get-budgets.use-case';
 import { parsePeriodDates } from '../shared/period.logic';
 import { accountsToMap, budgetSignedForUser, transactionInvolvesUser } from '@/server/ledger';
-import { getTransactionsByGroupUseCase } from '../transactions/get-transactions.use-case';
+import { TransactionsRepository } from '@/server/repositories/transactions.repository';
+import { ledgerRowCount } from '@/server/ledger/aggregate';
 import type { BudgetDetailPageData } from './budget-detail-page.types';
 
 export type { BudgetDetailPageData } from './budget-detail-page.types';
@@ -32,10 +34,7 @@ function groupTransactionsByDay(
   const groupedMap: Record<string, Transaction[]> = {};
   const accountMap = accountsToMap(accounts);
   for (const transaction of transactions) {
-    const dateKey =
-      typeof transaction.date === 'string'
-        ? (transaction.date.split('T')[0] ?? transaction.date)
-        : String(transaction.date);
+    const dateKey = financialDateKey(transaction.date);
     if (!groupedMap[dateKey]) groupedMap[dateKey] = [];
     groupedMap[dateKey].push(transaction);
   }
@@ -108,7 +107,7 @@ async function getCachedBudgetDetailPageData(
   cacheTag(`group:${groupId}:transactions`);
   cacheTag(`group:${groupId}:accounts`);
   cacheTag(CACHE_TAGS.BUDGET_PERIODS);
-  cacheTag('categories');
+  cacheTag(`group:${groupId}:categories`, `group:00000000-0000-0000-0000-000000000000:categories`);
 
   let budget: Budget;
   try {
@@ -121,7 +120,8 @@ async function getCachedBudgetDetailPageData(
     notFound();
   }
 
-  const activePeriod = await getActiveBudgetPeriodUseCase(budget.user_id).catch(() => null);
+  cacheTag(CACHE_TAGS.USER_BUDGET_PERIODS(budget.user_id));
+  const activePeriod = await getActiveBudgetPeriodUseCase(budget.user_id);
   const [periodStart, periodEnd] = parsePeriodDates(activePeriod);
   const txOptions: {
     startDate?: Date;
@@ -134,11 +134,9 @@ async function getCachedBudgetDetailPageData(
   };
 
   const [accounts, categories, groupTransactions] = await Promise.all([
-    getAccountsByGroupDeduped(groupId).catch(() => [] as Account[]),
-    getAllCategoriesDeduped().catch(() => [] as Category[]),
-    getTransactionsByGroupUseCase(groupId, txOptions)
-      .then((result) => result.data)
-      .catch(() => [] as Transaction[]),
+    getAccountsByGroupDeduped(groupId),
+    getAllCategoriesDeduped(groupId),
+    TransactionsRepository.aggregateByGroup(groupId, txOptions),
   ]);
 
   const userTransactions = groupTransactions.filter((tx) =>
@@ -159,14 +157,35 @@ async function getCachedBudgetDetailPageData(
     accounts,
     budget.user_id
   );
+  const preview: Transaction[] = [];
+  for await (const page of TransactionsRepository.scanByGroup(groupId, txOptions)) {
+    for (const row of page) {
+      const transaction = { ...row, amount: Number(row.amount) } as Transaction;
+      if (
+        transactionInvolvesUser(transaction, budget.user_id, accounts) &&
+        budget.categories.includes(transaction.category)
+      )
+        preview.push(transaction);
+      if (preview.length > BUDGET_DETAIL_TX_PREVIEW) break;
+    }
+    if (preview.length > BUDGET_DETAIL_TX_PREVIEW) break;
+  }
   const groupedTransactions = previewGroupedBudgetTransactions(
-    groupTransactionsByDay(budgetTransactions, accounts, budget.user_id),
+    groupTransactionsByDay(preview, accounts, budget.user_id),
     BUDGET_DETAIL_TX_PREVIEW
-  );
+  ).map((group) => ({
+    ...group,
+    total: budgetTransactions
+      .filter((tx) => financialDateKey(tx.date) === group.date)
+      .reduce(
+        (sum, tx) => sum - budgetSignedForUser(tx, accountsToMap(accounts), budget.user_id),
+        0
+      ),
+  }));
   const slim = slimDetailPayload(accounts, categories, budget, budgetTransactions);
 
   return {
-    transactionCount: budgetTransactions.length,
+    transactionCount: ledgerRowCount(budgetTransactions),
     budget,
     progress,
     activePeriod,

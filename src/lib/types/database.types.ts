@@ -12,10 +12,12 @@ export interface Database {
           user_ids: string[];
           group_id: string;
           balance: number;
+          balance_version: number;
           created_at: string | null;
           updated_at: string | null;
         };
         Insert: {
+          balance_version?: number;
           id?: string;
           name: string;
           type: string;
@@ -33,6 +35,7 @@ export interface Database {
           user_ids?: string[];
           group_id?: string;
           balance?: number;
+          balance_version?: number;
           created_at?: string | null;
           updated_at?: string | null;
         };

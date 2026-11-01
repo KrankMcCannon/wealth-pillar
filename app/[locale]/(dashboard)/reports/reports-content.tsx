@@ -196,7 +196,7 @@ export default function ReportsContent({
             {t('previousData', { range: formatRange(data.currentWindow) })}
           </span>
         ) : data.comparisonWindow ? (
-          <span className="sr-only">
+          <span className="mt-1 block">
             {t('comparisonRange', { range: formatRange(data.comparisonWindow) })}
           </span>
         ) : null}

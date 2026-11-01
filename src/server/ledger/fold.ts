@@ -1,6 +1,7 @@
 import type { Account, DateString, Transaction } from '@/lib/types';
 import { toDateTime } from '@/lib/utils/date-utils';
 import { fromCents } from '@/lib/utils/money';
+import { ledgerRowCount } from './aggregate';
 import { accountsToMap, classifyMovement, type LedgerLeg, type Movement } from './classify';
 
 export interface DateWindow {
@@ -168,7 +169,7 @@ export function computeNetSavings(
     if (userId !== undefined && movement.savingsUserId !== userId) continue;
     if (movement.savingsDeltaCents > 0) depositsCents += movement.savingsDeltaCents;
     else withdrawalsCents += Math.abs(movement.savingsDeltaCents);
-    count += 1;
+    count += ledgerRowCount([tx]);
   }
 
   return {

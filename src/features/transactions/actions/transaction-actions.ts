@@ -3,7 +3,6 @@
 import { getCurrentUser } from '@/lib/auth/cached-auth';
 import { isAuthDenial, requireAuthenticatedUser } from '@/lib/permissions/action-auth';
 import type { ServiceResult } from '@/lib/types/service-result';
-import { assertCanActOnUser } from '@/features/permissions/assert-can-act-on-user';
 import { createTransactionUseCase } from '@/server/use-cases/transactions/create-transaction.use-case';
 import { updateTransactionUseCase } from '@/server/use-cases/transactions/update-transaction.use-case';
 import { deleteTransactionUseCase } from '@/server/use-cases/transactions/delete-transaction.use-case';
@@ -16,7 +15,7 @@ import type {
   TransactionMutationResult,
   TransactionDeleteResult,
 } from '@/lib/types/financial-mutation';
-import type { User, Transaction } from '@/lib/types';
+import type { Transaction } from '@/lib/types';
 import {
   createTransactionSchema,
   updateTransactionSchema,
@@ -36,15 +35,15 @@ export async function createTransactionAction(
 ): Promise<ServiceResult<TransactionMutationResult>> {
   try {
     const currentUser = await getCurrentUser();
-    const gate = assertCanActOnUser(currentUser, input.user_id ?? undefined);
-    if (!gate.ok) return { data: null, error: gate.error };
+    if (!currentUser) return { data: null, error: 'Non autenticato' };
+    if (!input.user_id) return { data: null, error: 'User ID richiesto' };
 
     const parsed = createTransactionSchema.safeParse(input);
     if (!parsed.success) {
       return { data: null, error: parsed.error.issues[0]?.message ?? 'Invalid input' };
     }
 
-    const policy = new FinancialResourcePolicy(currentUser as unknown as User);
+    const policy = new FinancialResourcePolicy(currentUser);
     await policy.assertTransaction(parsed.data);
     const data = await createTransactionUseCase({
       ...parsed.data,
@@ -149,15 +148,19 @@ export async function getTransactionByIdAction(id: string): Promise<ServiceResul
     }
 
     const policy = new FinancialResourcePolicy(currentUser);
-    const transaction = await getTransactionByIdUseCase(id, { groupId: policy.groupId });
+    const transaction = await getTransactionByIdUseCase(id, policy.resourceScope);
     if (!transaction) {
       return { data: null, error: 'Transazione non trovata' };
     }
     policy.assertGroup(transaction.group_id);
 
-    if (transaction.user_id && !AccessScope.for(currentUser).canViewUser(transaction.user_id)) {
+    if (
+      !AccessScope.for(currentUser).isAdmin &&
+      !AccessScope.for(currentUser).canViewOwned(transaction)
+    ) {
       return { data: null, error: 'Permesso negato' };
     }
+    if (transaction.user_id) await policy.assertUsers([transaction.user_id]);
 
     return { data: transaction, error: null };
   } catch (error) {

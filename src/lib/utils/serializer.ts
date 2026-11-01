@@ -21,6 +21,9 @@ export function serialize<T>(data: T): T {
     return data;
   }
 
+  // PostgreSQL bigint revisions must retain precision across JSON caches and actions.
+  if (typeof data === 'bigint') return data.toString() as T;
+
   if (typeof data === 'object') {
     // Handle Decimal via duck typing
     if (isDecimalLike(data)) {

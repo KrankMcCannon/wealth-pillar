@@ -1,7 +1,7 @@
 'use server';
 
 import { cacheLife, cacheTag } from 'next/cache';
-import { endOfDay, parseISO, startOfDay } from 'date-fns';
+import { financialDateTime } from '@/lib/utils/financial-date';
 import { getCurrentUser, getGroupUsers } from '@/lib/auth/cached-auth';
 import { AccessScope } from '@/lib/permissions/access-scope';
 import { CACHE_TAGS } from '@/lib/cache/config';
@@ -25,10 +25,12 @@ async function getCachedPeriods(groupId: string, userIds: string[], window: Repo
     `group:${groupId}:budgets`,
     CACHE_TAGS.BUDGET_PERIODS
   );
+  for (const id of userIds) cacheTag(CACHE_TAGS.USER_BUDGET_PERIODS(id));
+  cacheTag(CACHE_TAGS.GROUP_USERS(groupId));
   const { periods, accounts, budgets } = await getReportsContextUseCase(groupId, userIds);
   return getReportsPeriodSummariesUseCase(groupId, periods, accounts, budgets, {
-    start: startOfDay(parseISO(window.start)),
-    end: endOfDay(parseISO(window.end)),
+    start: financialDateTime(window.start).startOf('day').toJSDate(),
+    end: financialDateTime(window.end).endOf('day').toJSDate(),
   });
 }
 

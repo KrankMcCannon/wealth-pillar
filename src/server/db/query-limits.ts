@@ -1,4 +1,4 @@
-/** Safety caps for unbounded group transaction reads (dashboard/reports). */
+/** Display limits only. Financial totals use complete SQL aggregates. */
 export const DASHBOARD_TRANSACTIONS_LIMIT = 2000;
 export const REPORTS_TRANSACTIONS_LIMIT = 5000;
 export const BUDGETS_TRANSACTIONS_LIMIT = 2000;

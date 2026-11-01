@@ -68,7 +68,6 @@ export async function createGroupUseCase(input: CreateGroupInput): Promise<Group
   const group = await GroupsRepository.create(createData);
   if (!group) throw new Error('Failed to create group');
 
-  revalidateTag(CACHE_TAGS.GROUPS, 'max');
   revalidateTag(CACHE_TAGS.GROUP(group.id), 'max');
   revalidateTag(CACHE_TAGS.GROUP_USERS(group.id), 'max');
 
@@ -80,7 +79,6 @@ export async function deleteGroupUseCase(groupId: string): Promise<void> {
 
   await GroupsRepository.delete(groupId);
 
-  revalidateTag(CACHE_TAGS.GROUPS, 'max');
   revalidateTag(CACHE_TAGS.GROUP(groupId), 'max');
   revalidateTag(CACHE_TAGS.GROUP_USERS(groupId), 'max');
 }
@@ -106,7 +104,6 @@ export async function updateGroupUseCase(groupId: string, input: UpdateGroupInpu
   const group = await GroupsRepository.update(groupId, updateData);
   if (!group) throw new Error('Failed to update group');
 
-  revalidateTag(CACHE_TAGS.GROUPS, 'max');
   revalidateTag(CACHE_TAGS.GROUP(groupId), 'max');
   revalidateTag(CACHE_TAGS.GROUP_USERS(groupId), 'max');
 

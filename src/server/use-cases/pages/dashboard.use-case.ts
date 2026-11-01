@@ -91,10 +91,12 @@ async function getCachedDashboardPageData(groupId: string): Promise<DashboardPag
   cacheTag(CACHE_TAGS.BUDGET_PERIODS);
   cacheTag(CACHE_TAGS.RECURRING_SERIES);
   cacheTag(`group:${groupId}:recurring`);
-  cacheTag('categories');
+  cacheTag(`group:${groupId}:categories`, `group:00000000-0000-0000-0000-000000000000:categories`);
 
   const groupUsers = await getGroupUsersByGroupIdDeduped(groupId);
   const userIds = groupUsers.map((u) => u.id);
+  for (const id of userIds) cacheTag(CACHE_TAGS.USER_BUDGET_PERIODS(id), `user:${id}:recurring`);
+  cacheTag(CACHE_TAGS.GROUP_USERS(groupId));
 
   const [accounts, transactionResult, budgets, recurringSeries, categories, periodMap] =
     await Promise.all([
@@ -106,7 +108,7 @@ async function getCachedDashboardPageData(groupId: string): Promise<DashboardPag
       }),
       getBudgetsByGroupUseCase(groupId),
       getSeriesByGroupUseCase(groupId),
-      getAllCategoriesDeduped(),
+      getAllCategoriesDeduped(groupId),
       getActiveBudgetPeriodsForUsersUseCase(userIds),
     ]);
 

@@ -8,26 +8,18 @@ import {
   type TransactionScope,
 } from '@/server/repositories/transactions.repository';
 import type { TransactionFilterOptions } from '@/server/repositories/transactions.repository';
+import type { FinancialLedgerRow } from '@/server/ledger/aggregate';
 import type { Transaction } from '@/lib/types';
 import { db } from '@/server/db/drizzle';
 import { transactions } from '@/server/db/schema';
 import { count, eq } from 'drizzle-orm';
 
-export async function getCompletePeriodTransactionsUseCase(
+export async function getFinancialLedgerUseCase(
   groupId: string,
   startDate: Date,
   endDate: Date
-): Promise<Transaction[]> {
-  'use cache';
-  cacheLife('minutes');
-  cacheTag(CACHE_TAGS.TRANSACTIONS, `group:${groupId}:transactions`);
-  const rows: Transaction[] = [];
-  for await (const page of TransactionsRepository.scanByGroup(groupId, { startDate, endDate })) {
-    rows.push(
-      ...(serialize(page.map((row) => ({ ...row, amount: Number(row.amount) }))) as Transaction[])
-    );
-  }
-  return rows;
+): Promise<FinancialLedgerRow[]> {
+  return TransactionsRepository.aggregateByGroup(groupId, { startDate, endDate });
 }
 
 export async function getTransactionsByGroupUseCase(
@@ -58,45 +50,20 @@ export async function getTransactionsByUserUseCase(
 ): Promise<Transaction[]> {
   if (!userId?.trim()) throw new Error('User ID is required');
 
-  const filterKey = JSON.stringify({
-    startDate: options?.startDate?.toISOString() ?? null,
-    endDate: options?.endDate?.toISOString() ?? null,
-    category: options?.category ?? null,
-    categoryKeys: options?.categoryKeys ?? null,
-    type: options?.type ?? null,
-    limit: options?.limit ?? null,
-  });
-
-  const getCachedTransactions = cached(
-    async () => {
-      const result = await TransactionsRepository.getByUser(userId, options);
-      return serialize(
-        result.data.map((t: (typeof result.data)[number]) => ({ ...t, amount: Number(t.amount) }))
-      ) as Transaction[];
-    },
-    transactionCacheKeys.byUser(userId, filterKey),
-    cacheOptions.transactionsByUser(userId)
-  );
-
-  return getCachedTransactions();
+  const result = await TransactionsRepository.getByUser(userId, options);
+  return serialize(
+    result.data.map((t: (typeof result.data)[number]) => ({ ...t, amount: Number(t.amount) }))
+  ) as Transaction[];
 }
 
 export async function getTransactionCountByUserUseCase(userId: string): Promise<number> {
   if (!userId?.trim()) throw new Error('User ID is required');
 
-  const getCachedCount = cached(
-    async () => {
-      const result = await db
-        .select({ value: count() })
-        .from(transactions)
-        .where(eq(transactions.user_id, userId));
-      return result[0]?.value || 0;
-    },
-    [`user:${userId}:transactions:count`],
-    { revalidate: 300, tags: [CACHE_TAGS.TRANSACTIONS, `user:${userId}:transactions`] }
-  );
-
-  return getCachedCount();
+  const result = await db
+    .select({ value: count() })
+    .from(transactions)
+    .where(eq(transactions.user_id, userId));
+  return result[0]?.value ?? 0;
 }
 
 export async function getTransactionsByAccountUseCase(accountId: string): Promise<Transaction[]> {
@@ -152,7 +119,14 @@ export async function getTransactionByIdUseCase(
       return serialize({ ...transaction, amount: Number(transaction.amount) }) as Transaction;
     },
     cacheKey,
-    { revalidate: 120, tags: [CACHE_TAGS.TRANSACTIONS, `transaction:${transactionId}`] }
+    {
+      revalidate: 120,
+      tags: [
+        CACHE_TAGS.TRANSACTIONS,
+        `transaction:${transactionId}`,
+        ...(scope?.groupId ? [`group:${scope.groupId}:transactions`] : []),
+      ],
+    }
   );
 
   return getCachedTransaction();

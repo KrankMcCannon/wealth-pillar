@@ -1,5 +1,5 @@
 import { getCurrentUser } from '@/lib/auth/cached-auth';
-import { AccessScope } from '@/lib/permissions/access-scope';
+import { FinancialResourcePolicy } from '@/server/permissions/financial-resource-policy';
 import type { User } from '@/lib/types';
 import type { ServiceResult } from '@/lib/types/service-result';
 
@@ -21,12 +21,15 @@ export async function requireAuthenticatedUser(
 /**
  * Returns a permission denial when the caller cannot view the target user's data.
  */
-export function denyUnlessCanViewUser(
+export async function denyUnlessCanViewUser(
   currentUser: User,
   userId: string,
   error: string
-): AuthDenial | null {
-  if (!AccessScope.for(currentUser).canViewUser(userId)) {
+): Promise<AuthDenial | null> {
+  try {
+    // Role checks alone do not establish membership in the authenticated tenant.
+    await new FinancialResourcePolicy(currentUser).assertUsers([userId]);
+  } catch {
     return { data: null, error };
   }
   return null;

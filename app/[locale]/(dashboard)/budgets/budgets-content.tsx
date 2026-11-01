@@ -73,6 +73,13 @@ export default function BudgetsContent({
     handleSelectUser,
     isModalOpen,
   } = useBudgetsContent(props);
+  const hasSharedCategories =
+    userBudgetSummary?.budgets.some((budget, index, all) =>
+      all.some(
+        (other, otherIndex) =>
+          index !== otherIndex && budget.categories.some((key) => other.categories.includes(key))
+      )
+    ) ?? false;
   const [isStartSalaryPeriodOpen, setIsStartSalaryPeriodOpen] = useState(false);
   const [isEditClosingDateModalOpen, setIsEditClosingDateModalOpen] = useState(false);
   const [periodStatusMessage, setPeriodStatusMessage] = useState('');
@@ -124,6 +131,11 @@ export default function BudgetsContent({
                     srHeading: t('hero.srHeading'),
                   }}
                 />
+              ) : null}
+              {hasSharedCategories ? (
+                <p className="text-sm text-muted-foreground" role="status">
+                  {ux('sharedNotice')}
+                </p>
               ) : null}
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <h2 className="text-lg font-semibold">{ux('envelopes')}</h2>
@@ -201,18 +213,14 @@ export default function BudgetsContent({
                   <SectionDisclosure label={ux('trend')}>
                     <BudgetChart spent={chartAggregateSpent} chartData={chartData} />
                   </SectionDisclosure>
-                  {userBudgetSummary.budgets.some((budget, index, all) =>
-                    all.some(
-                      (other, otherIndex) =>
-                        index !== otherIndex &&
-                        budget.categories.some((key) => other.categories.includes(key))
-                    )
-                  ) ? (
-                    <SectionDisclosure label={ux('sharedTitle')}>
-                      <p className="max-w-prose text-sm text-muted-foreground">
-                        {t('hero.envelopeHelp')}
-                      </p>
-                    </SectionDisclosure>
+                  {hasSharedCategories ? (
+                    <div>
+                      <SectionDisclosure label={ux('sharedTitle')}>
+                        <p className="max-w-prose text-sm text-muted-foreground">
+                          {t('hero.envelopeHelp')}
+                        </p>
+                      </SectionDisclosure>
+                    </div>
                   ) : null}
                 </div>
               ) : null}

@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import postgres from 'postgres';
@@ -45,6 +46,11 @@ export async function seedE2EDatabase(clerkId: string, email: string) {
       )
         await db.unsafe(statement);
     }
+    await db.begin((tx) =>
+      tx.unsafe(
+        readFileSync('src/server/db/drizzle/20261101191621_account_balance_versions.sql', 'utf8')
+      )
+    );
     const groupId = randomUUID();
     const userId = randomUUID();
     const accountId = randomUUID();

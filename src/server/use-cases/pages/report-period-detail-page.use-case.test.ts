@@ -1,3 +1,4 @@
+import type { FinancialLedgerRow } from '@/server/ledger/aggregate';
 import type { Account, Budget, BudgetPeriod, Category, Transaction, User } from '@/lib/types';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -36,7 +37,7 @@ vi.mock('../budgets/get-budgets.use-case', () => ({
 }));
 
 vi.mock('../transactions/get-transactions.use-case', () => ({
-  getTransactionsByGroupUseCase: vi.fn(),
+  getFinancialLedgerUseCase: vi.fn(),
 }));
 
 vi.mock('../reports/reports.use-cases', async () => {
@@ -58,7 +59,7 @@ import {
 import { notFound } from 'next/navigation';
 import { getBudgetsByUserUseCase } from '../budgets/get-budgets.use-case';
 import { getProcessedUserPeriodsUseCase } from '../reports/reports.use-cases';
-import { getTransactionsByGroupUseCase } from '../transactions/get-transactions.use-case';
+import { getFinancialLedgerUseCase } from '../transactions/get-transactions.use-case';
 import { getReportPeriodDetailPageData } from './report-period-detail-page.use-case';
 
 const owner = {
@@ -154,9 +155,10 @@ const foodCategory: Category = {
   updated_at: '',
 };
 
-function tx(overrides: Partial<Transaction> = {}): Transaction {
+function tx(overrides: Partial<Transaction> = {}): FinancialLedgerRow {
   return {
     id: 't1',
+    transaction_count: 1,
     description: '',
     amount: 40,
     type: 'expense',
@@ -181,11 +183,7 @@ describe('getReportPeriodDetailPageData', () => {
     vi.mocked(getAccountsByGroupDeduped).mockResolvedValue([payroll]);
     vi.mocked(getBudgetsByUserUseCase).mockResolvedValue([foodBudget]);
     vi.mocked(getAllCategoriesDeduped).mockResolvedValue([foodCategory]);
-    vi.mocked(getTransactionsByGroupUseCase).mockResolvedValue({
-      data: [tx()],
-      total: 1,
-      hasMore: false,
-    });
+    vi.mocked(getFinancialLedgerUseCase).mockResolvedValue([tx()]);
   });
 
   it('returns summary and edit flags for the latest closed period without rewind', async () => {
@@ -206,17 +204,9 @@ describe('getReportPeriodDetailPageData', () => {
     expect(data.storedAmounts.spendableSpent).toBe(40);
     expect(data.periodBudgets).toEqual([foodBudget]);
     expect(data.budgetProgress[0]).toMatchObject({ id: 'b1', amount: 200, spent: 40 });
-    expect(getTransactionsByGroupUseCase).toHaveBeenCalledWith(
-      'group-1',
-      expect.objectContaining({
-        startDate: expect.any(Date),
-        endDate: expect.any(Date),
-        countTotal: false,
-      })
-    );
-    const txOptions = vi.mocked(getTransactionsByGroupUseCase).mock.calls[0]?.[1];
-    expect(txOptions?.startDate?.toISOString().slice(0, 10)).toBe('2024-05-01');
-    expect(txOptions?.endDate?.toISOString().slice(0, 10)).toBe('2024-05-31');
+    const [, start, end] = vi.mocked(getFinancialLedgerUseCase).mock.calls[0]!;
+    expect(start.toISOString()).toBe('2024-04-30T22:00:00.000Z');
+    expect(end.toISOString()).toBe('2024-05-31T21:59:59.999Z');
   });
 
   it('does not surface live envelopes when a closed period has no snapshot', async () => {

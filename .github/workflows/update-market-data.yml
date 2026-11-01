@@ -38,7 +38,11 @@ jobs:
 
       - name: Run update script
         env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
           TWELVE_DATA_API_KEY: ${{ secrets.TWELVE_DATA_API_KEY }}
-        run: node scripts/update-market-data-cache.mjs
+        run: pnpm exec tsx scripts/update-market-data-cache.ts
+
+      - name: Persist complete portfolio history
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: pnpm exec tsx scripts/persist-portfolio-snapshots.ts

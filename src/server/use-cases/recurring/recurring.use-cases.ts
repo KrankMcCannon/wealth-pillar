@@ -5,6 +5,7 @@ import {
 import { recurringTransactions } from '@/server/db/schema';
 import { getUsersByGroupUseCase, getUserGroupIdUseCase } from '../users/user.use-cases';
 import { cached } from '@/lib/cache';
+import { cacheLife, cacheTag } from 'next/cache';
 import { cacheOptions } from '@/lib/cache/config';
 import { recurringCacheKeys } from '@/lib/cache/keys';
 import { serialize } from '@/lib/utils/serializer';
@@ -35,22 +36,16 @@ export async function getSeriesByUserUseCase(
 export async function getSeriesByGroupUseCase(
   groupId: string
 ): Promise<RecurringTransactionSeries[]> {
+  'use cache';
   if (!groupId?.trim()) throw new Error('Group ID is required');
-
-  const getCachedSeries = cached(
-    async () => {
-      const users = await getUsersByGroupUseCase(groupId);
-      if (!users || users.length === 0) return [];
-
-      const userIds = users.map((u) => u.id);
-      const series = await RecurringRepository.findByUserIds(userIds);
-      return serialize(series || []) as unknown as RecurringTransactionSeries[];
-    },
-    recurringCacheKeys.byGroup(groupId),
-    cacheOptions.recurringGroup(groupId)
-  );
-
-  return await getCachedSeries();
+  cacheLife('minutes');
+  cacheTag(`group:${groupId}:recurring`);
+  const users = await getUsersByGroupUseCase(groupId);
+  if (!users.length) return [];
+  const userIds = users.map((u) => u.id);
+  for (const id of userIds) cacheTag(`user:${id}:recurring`);
+  const series = await RecurringRepository.findByUserIds(userIds, groupId);
+  return serialize(series) as unknown as RecurringTransactionSeries[];
 }
 
 export async function getSeriesByIdUseCase(

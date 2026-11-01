@@ -2,6 +2,10 @@ import { spawnSync } from 'node:child_process';
 
 const tests = [
   'src/lib/utils/financial-date.test.ts',
+  'src/lib/utils/financial-form-dates.test.ts',
+  'src/lib/utils/transaction-cursor.test.ts',
+  'src/server/use-cases/budget-periods/edit-closing-date.use-case.test.ts',
+  'src/server/use-cases/budget-periods/rewind-closed-period.use-case.test.ts',
   'src/lib/utils/transaction-date-range.test.ts',
   'src/features/reports/utils/reporting-window.test.ts',
   'src/features/reports/utils/reports-transactions-href.test.ts',

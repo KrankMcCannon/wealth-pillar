@@ -16,7 +16,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function toDateOnly(value: string | Date): string {
-  if (typeof value === 'string') return value.split('T')[0] ?? value;
   return financialDateKey(value);
 }
 

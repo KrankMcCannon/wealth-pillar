@@ -1,5 +1,18 @@
 # Wealth Pillar: backlog della Daily Review
 
+## Seconda review generale del 1 novembre 2026
+
+Correzioni trasversali e regressioni documentate nella
+[matrice della review e nel runbook di rilascio](docs/releases/general-review-fixes.md).
+Comprendono guardie tra gruppi, aggregazioni complete, confini contabili, revisioni
+concorrenziali dei saldi, cache per tenant, storico investimenti persistito e i tre
+punti UX segnalati. Estese anche a metadati, categorie e cancellazioni massive.
+
+Per il rilascio occorrono la migrazione delle revisioni dei conti, prima dell'app,
+e `DATABASE_URL` nel job GitHub. La parte finale del messaggio sorgente è troncata
+dal connettore e resta non verificata; il runbook distingue questa limitazione
+dalle correzioni implementate.
+
 ## Review del 1 novembre 2026: correzioni pronte per il rilascio
 
 Fonti lette: [Daily Review](https://chatgpt.com/c/6ada63ee-fa9c-83eb-8eb5-bdb886c77905)

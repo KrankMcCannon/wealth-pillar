@@ -1,23 +1,22 @@
 import type { User } from '@/lib/types';
-import { AccessScope } from '@/lib/permissions/access-scope';
+import { denyUnlessCanViewUser } from '@/lib/permissions/action-auth';
 
 export type AssertCanActResult = { ok: true } | { ok: false; error: string };
 
 /**
  * Shared guard for server actions: auth + visibility for target user.
  */
-export function assertCanActOnUser(
+export async function assertCanActOnUser(
   currentUser: User | null,
   targetUserId: string | undefined
-): AssertCanActResult {
+): Promise<AssertCanActResult> {
   if (!currentUser) {
     return { ok: false, error: 'Non autenticato' };
   }
   if (!targetUserId) {
     return { ok: false, error: 'User ID richiesto' };
   }
-  if (!AccessScope.for(currentUser).canViewUser(targetUserId)) {
-    return { ok: false, error: 'Permesso negato' };
-  }
+  const denial = await denyUnlessCanViewUser(currentUser, targetUserId, 'Permesso negato');
+  if (denial) return { ok: false, error: denial.error! };
   return { ok: true };
 }

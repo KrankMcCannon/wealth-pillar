@@ -34,13 +34,7 @@ import {
   buildOptimisticTransactionFromOriginal,
   useOptimisticTransactionStore,
 } from '../stores/optimistic-transactions';
-import {
-  applyBalanceSnapshotToStore,
-  patchStoreBalancesForEdit,
-  patchStoreBalancesFromTransaction,
-  snapshotAffectedBalances,
-  type AccountBalanceSnapshot,
-} from '../utils/transaction-balance-delta';
+import { getTransactionBalanceDeltas } from '../utils/transaction-balance-delta';
 import { mapTransactionToFormData } from '../utils/transaction-form-data';
 import { buildTransactionPayload } from '../utils/build-transaction-payload';
 import { getTransferDestinationAccounts } from '../utils/transfer-destinations';
@@ -186,8 +180,8 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
     useEntityFormPermissions();
   const accounts = useAccounts();
   const categories = useCategories();
-  const storeAccounts = useReferenceDataStore((state) => state.accounts);
-  const updateAccount = useReferenceDataStore((state) => state.updateAccount);
+  const beginBalanceMutation = useReferenceDataStore((state) => state.beginBalanceMutation);
+  const finishBalanceMutation = useReferenceDataStore((state) => state.finishBalanceMutation);
   const { toast } = useToast();
   const seedTransaction = useTransactionEditStore((state) => state.seed);
   const clearSeed = useTransactionEditStore((state) => state.clearSeed);
@@ -302,12 +296,12 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
   type CreateMutationHandle = {
     kind: 'create';
     tempId: string;
-    balanceSnapshot: AccountBalanceSnapshot;
+    balanceId: string;
   };
   type UpdateMutationHandle = {
     kind: 'update';
     editId: string;
-    balanceSnapshot: AccountBalanceSnapshot;
+    balanceId: string;
   };
   type TransactionMutationHandle = CreateMutationHandle | UpdateMutationHandle | null;
 
@@ -327,22 +321,18 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
       const tempId = getTempId('temp-tx');
       const optimistic = buildOptimisticTransaction(payload, tempId);
       addOptimistic(optimistic, tempId);
-      const balanceSnapshot = snapshotAffectedBalances(storeAccounts, {
-        transaction: optimistic,
-        multiplier: 1,
-      });
-      patchStoreBalancesFromTransaction(storeAccounts, updateAccount, optimistic, 1);
-      return { kind: 'create', tempId, balanceSnapshot };
+      beginBalanceMutation(tempId, Object.fromEntries(getTransactionBalanceDeltas(optimistic, 1)));
+      return { kind: 'create', tempId, balanceId: tempId };
     },
     commitCreate: (handle, result) => {
       if (!handle || handle.kind !== 'create') return;
       commitOptimistic(handle.tempId, result);
-      applyBalanceSnapshotToStore(result.accountBalances, updateAccount);
+      finishBalanceMutation(handle.balanceId, result);
     },
     rollbackCreate: (handle, _error) => {
       if (!handle || handle.kind !== 'create') return;
       rollbackOptimistic(handle.tempId);
-      applyBalanceSnapshotToStore(handle.balanceSnapshot, updateAccount);
+      finishBalanceMutation(handle.balanceId);
     },
     applyUpdateOptimistic: (id, payload) => {
       const overlay = useOptimisticTransactionStore.getState();
@@ -354,27 +344,26 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
         ? buildOptimisticTransactionFromOriginal(original, payload)
         : { ...buildOptimisticTransaction(payload, id), id };
       applyUpdateOptimisticStore(id, optimistic, original ?? optimistic);
-      const balanceSnapshot = original
-        ? snapshotAffectedBalances(
-            storeAccounts,
-            { transaction: original, multiplier: -1 },
-            { transaction: optimistic, multiplier: 1 }
-          )
-        : {};
-      if (original) {
-        patchStoreBalancesForEdit(storeAccounts, updateAccount, original, optimistic);
-      }
-      return { kind: 'update' as const, editId: id, balanceSnapshot };
+      const deltas = original
+        ? getTransactionBalanceDeltas(original, -1)
+        : new Map<string, number>();
+      if (original)
+        for (const [accountId, delta] of getTransactionBalanceDeltas(optimistic, 1)) {
+          deltas.set(accountId, (deltas.get(accountId) ?? 0) + delta);
+        }
+      const balanceId = getTempId('balance-edit');
+      beginBalanceMutation(balanceId, Object.fromEntries(deltas));
+      return { kind: 'update' as const, editId: id, balanceId };
     },
     commitUpdate: (handle, result) => {
       if (!handle || handle.kind !== 'update') return;
       commitUpdateOptimisticStore(handle.editId, result);
-      applyBalanceSnapshotToStore(result.accountBalances, updateAccount);
+      finishBalanceMutation(handle.balanceId, result);
     },
     rollbackUpdate: (handle, _error) => {
       if (!handle || handle.kind !== 'update') return;
       rollbackUpdateOptimisticStore(handle.editId);
-      applyBalanceSnapshotToStore(handle.balanceSnapshot, updateAccount);
+      finishBalanceMutation(handle.balanceId);
     },
     getSuccessToast,
     errorToast: { title: t('toast.errorTitle') },
@@ -400,17 +389,20 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
       throw new Error(t('errors.notFound'));
     }
 
-    const balanceSnapshot = snapshotAffectedBalances(storeAccounts, {
-      transaction: original,
-      multiplier: -1,
-    });
+    const balanceId = getTempId('balance-delete');
     applyDeleteOptimisticStore(editId, original);
-    patchStoreBalancesFromTransaction(storeAccounts, updateAccount, original, -1);
-
-    const result = await deleteTransactionAction(editId);
+    beginBalanceMutation(balanceId, Object.fromEntries(getTransactionBalanceDeltas(original, -1)));
+    let result;
+    try {
+      result = await deleteTransactionAction(editId);
+    } catch (error) {
+      rollbackDeleteOptimisticStore(editId);
+      finishBalanceMutation(balanceId);
+      throw error;
+    }
     if (result.error) {
       rollbackDeleteOptimisticStore(editId);
-      applyBalanceSnapshotToStore(balanceSnapshot, updateAccount);
+      finishBalanceMutation(balanceId);
       toast({
         title: tPage('errors.title'),
         description: `${tPage('errors.deleteTransactionFailed')} ${tPage('errors.retryHint')}`,
@@ -418,7 +410,7 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
       });
       throw new Error(result.error);
     }
-    if (result.data) applyBalanceSnapshotToStore(result.data.accountBalances, updateAccount);
+    finishBalanceMutation(balanceId, result.data ?? undefined);
     commitDeleteOptimisticStore(editId);
   }, [
     applyDeleteOptimisticStore,
@@ -426,11 +418,11 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
     editId,
     rollbackDeleteOptimisticStore,
     seedTransaction,
-    storeAccounts,
+    beginBalanceMutation,
+    finishBalanceMutation,
     t,
     tPage,
     toast,
-    updateAccount,
   ]);
 
   return (

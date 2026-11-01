@@ -1,3 +1,4 @@
+import { financialDateKey } from '@/lib/utils/financial-date';
 import { parseDecimal } from '@/lib/utils/parse-decimal';
 import type { investments } from '@/server/db/schema';
 import type { InvestmentFormData } from '../components/investment-form-fields';
@@ -5,11 +6,7 @@ import type { InvestmentFormData } from '../components/investment-form-fields';
 type InvestmentRow = typeof investments.$inferSelect;
 
 export function mapInvestmentToFormData(row: InvestmentRow): InvestmentFormData {
-  const fallbackDay = new Date().toISOString().slice(0, 10);
-  const dateStr =
-    row.created_at === null
-      ? fallbackDay
-      : (row.created_at.toISOString().split('T')[0] ?? fallbackDay);
+  const dateStr = financialDateKey(row.created_at ?? new Date());
   const currency: 'EUR' | 'USD' = row.currency === 'USD' ? 'USD' : 'EUR';
 
   return {
