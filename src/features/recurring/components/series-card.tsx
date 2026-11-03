@@ -3,6 +3,7 @@
  */
 
 'use client';
+import { useCurrency } from '@/providers/currency-provider';
 
 import { memo, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
@@ -15,7 +16,7 @@ import { Button, CategoryBadge, StatusBadge } from '@/components/ui';
 import { RowCard } from '@/components/ui/layout/row-card';
 import { stitchHome } from '@/styles/home-design-foundation';
 import { transactionStyles } from '@/features/transactions/theme/transaction-styles';
-import { formatCurrency } from '@/lib/utils';
+
 import { useCategories } from '@/stores/reference-data-store';
 
 interface SeriesCardProps {
@@ -62,6 +63,8 @@ function SeriesCardInner({
   onDelete,
   onPause,
 }: SeriesCardProps) {
+  const { format: formatCurrency } = useCurrency();
+
   const t = useTranslations('Recurring.SeriesCard');
   const categories = useCategories();
   const categoryColor = useMemo(() => {

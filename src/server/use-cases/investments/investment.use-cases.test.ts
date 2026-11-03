@@ -1,3 +1,4 @@
+import { historicalPurchaseRate } from '@/lib/currency/frankfurter';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
   getInvestmentsOverviewUseCase,
@@ -7,6 +8,10 @@ import {
 } from './investment.use-cases';
 import { InvestmentRepository } from '@/server/repositories/investment.repository';
 import { getBatchMarketDataUseCase } from '../market-data/market-data.use-cases';
+
+vi.mock('@/lib/currency/frankfurter', () => ({
+  historicalPurchaseRate: vi.fn().mockResolvedValue(0.86),
+}));
 
 vi.mock('@/server/repositories/investment.repository', () => ({
   InvestmentRepository: {
@@ -134,21 +139,32 @@ describe('investment purchase rates', () => {
       'owner'
     );
   });
-  it('rejects USD creation and currency changes without an explicit positive rate', async () => {
-    await expect(addInvestmentUseCase({ currency: 'USD' } as never)).rejects.toThrow(
-      'INVALID_CURRENCY_RATE'
+  it('obtains purchase FX automatically and ignores a client-supplied fixed rate', async () => {
+    vi.mocked(historicalPurchaseRate).mockResolvedValue(0.86);
+    await addInvestmentUseCase({
+      currency: 'USD',
+      currency_rate: 1,
+      created_at: '2026-10-30',
+    } as never);
+    expect(historicalPurchaseRate).toHaveBeenCalledWith('USD', '2026-10-30');
+    expect(InvestmentRepository.create).toHaveBeenCalledWith(
+      expect.objectContaining({ currency_rate: '0.86' })
     );
     vi.mocked(InvestmentRepository.findByIdAndUser).mockResolvedValue({
       currency: 'EUR',
       currency_rate: '1',
     } as never);
-    await expect(updateInvestmentUseCase('lot', 'owner', { currency: 'USD' })).rejects.toThrow(
-      'INVALID_CURRENCY_RATE'
+    await updateInvestmentUseCase('lot', 'owner', { currency: 'USD', created_at: '2026-10-30' });
+    expect(InvestmentRepository.update).toHaveBeenLastCalledWith(
+      'lot',
+      expect.objectContaining({ currency_rate: '0.86' }),
+      'owner'
     );
-    for (const currencyRate of [0, -1, NaN, Infinity]) {
-      await expect(
-        updateInvestmentUseCase('lot', 'owner', { currency: 'USD', currency_rate: currencyRate })
-      ).rejects.toThrow('INVALID_CURRENCY_RATE');
-    }
+  });
+  it('does not write a guessed rate when the free provider is unavailable', async () => {
+    vi.mocked(historicalPurchaseRate).mockRejectedValueOnce(new Error('EXCHANGE_RATE_UNAVAILABLE'));
+    await expect(addInvestmentUseCase({ currency: 'USD' } as never)).rejects.toThrow(
+      'EXCHANGE_RATE_UNAVAILABLE'
+    );
   });
 });

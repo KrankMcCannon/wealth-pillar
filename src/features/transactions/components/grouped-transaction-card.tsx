@@ -1,10 +1,11 @@
 'use client';
+import { useCurrency } from '@/providers/currency-provider';
 
 import { memo, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { Transaction, Category } from '@/lib';
 import { getCategoryLabel as getCategoryLabelLogic } from '@/server/use-cases/categories/category.logic';
-import { formatCurrency } from '@/lib/utils';
+
 import { stitchHome } from '@/styles/home-design-foundation';
 import { TransactionRow } from './transaction-row';
 import {
@@ -30,6 +31,8 @@ function GroupedTransactionCardInner({
   categories = [],
   onEditTransaction,
 }: Readonly<GroupedTransactionCardProps>) {
+  const { format: formatCurrency } = useCurrency();
+
   const t = useTranslations('Transactions.GroupedCard');
   const getCategoryLabel = useCallback(
     (categoryKey: string) => getCategoryLabelLogic(categories, categoryKey),

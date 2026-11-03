@@ -1,5 +1,6 @@
 'use client';
 
+import type { Currency } from '@/lib/currency/types';
 import type { UseFormReturn } from 'react-hook-form';
 import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
@@ -18,8 +19,7 @@ export type InvestmentFormData = {
   tax_paid: string;
   shares: string;
   created_at: string;
-  currency: 'EUR' | 'USD';
-  currency_rate?: string | undefined;
+  currency: Currency;
 };
 
 interface InvestmentFormFieldsProps {
@@ -31,11 +31,12 @@ interface InvestmentFormFieldsProps {
 export function InvestmentFormFields({ form, loadError, onRetryLoad }: InvestmentFormFieldsProps) {
   const t = useTranslations('Investments.AddModal');
   const { control } = form;
-  const currency = form.watch('currency');
 
   const currencyOptions = [
     { value: 'EUR', label: 'EUR' },
     { value: 'USD', label: 'USD' },
+    { value: 'GBP', label: 'GBP' },
+    { value: 'CHF', label: 'CHF' },
   ] as const;
 
   return (
@@ -100,16 +101,6 @@ export function InvestmentFormFields({ form, loadError, onRetryLoad }: Investmen
           label={t('fields.currency')}
           options={[...currencyOptions]}
         />
-        {currency === 'USD' ? (
-          <ModalTextField
-            control={control}
-            name="currency_rate"
-            type="number"
-            label={t('fields.purchaseRate')}
-            hint={t('fields.purchaseRateHint')}
-            placeholder="0,86"
-          />
-        ) : null}
       </div>
     </>
   );

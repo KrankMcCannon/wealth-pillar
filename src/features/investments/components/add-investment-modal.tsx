@@ -1,5 +1,6 @@
 'use client';
 
+import { CURRENCIES } from '@/lib/currency/types';
 import { parseDecimal } from '@/lib/utils/parse-decimal';
 import { todayDateString } from '@/lib/utils/date-utils';
 
@@ -23,40 +24,30 @@ import {
 } from '@/features/investments/utils/investment-form-data';
 
 const createInvestmentSchema = (t: ReturnType<typeof useTranslations>) =>
-  z
-    .object({
-      name: z.string().min(1, t('validation.nameRequired')),
-      symbol: z.string().min(1, t('validation.symbolRequired')),
-      amount: z
-        .string()
-        .refine(
-          (val) => !Number.isNaN(parseDecimal(val)) && parseDecimal(val) > 0,
-          t('validation.amountInvalid')
-        ),
-      tax_paid: z
-        .string()
-        .refine(
-          (val) => !Number.isNaN(parseDecimal(val)) && parseDecimal(val) >= 0,
-          t('validation.taxInvalid')
-        ),
-      shares: z
-        .string()
-        .refine(
-          (val) => !Number.isNaN(parseDecimal(val, 10)) && parseDecimal(val, 10) > 0,
-          t('validation.sharesInvalid')
-        ),
-      created_at: z.string().min(1, t('validation.dateRequired')),
-      currency: z.enum(['EUR', 'USD']),
-      currency_rate: z.string().optional(),
-    })
-    .refine(
-      (data) =>
-        data.currency === 'EUR' ||
-        (Number.isFinite(parseDecimal(data.currency_rate ?? '', 6)) &&
-          parseDecimal(data.currency_rate ?? '', 6) > 0 &&
-          parseDecimal(data.currency_rate ?? '', 6) < 10000),
-      { path: ['currency_rate'], message: t('validation.rateInvalid') }
-    );
+  z.object({
+    name: z.string().min(1, t('validation.nameRequired')),
+    symbol: z.string().min(1, t('validation.symbolRequired')),
+    amount: z
+      .string()
+      .refine(
+        (val) => !Number.isNaN(parseDecimal(val)) && parseDecimal(val) > 0,
+        t('validation.amountInvalid')
+      ),
+    tax_paid: z
+      .string()
+      .refine(
+        (val) => !Number.isNaN(parseDecimal(val)) && parseDecimal(val) >= 0,
+        t('validation.taxInvalid')
+      ),
+    shares: z
+      .string()
+      .refine(
+        (val) => !Number.isNaN(parseDecimal(val, 10)) && parseDecimal(val, 10) > 0,
+        t('validation.sharesInvalid')
+      ),
+    created_at: z.string().min(1, t('validation.dateRequired')),
+    currency: z.enum(CURRENCIES),
+  });
 
 interface AddInvestmentModalProps {
   isOpen: boolean;
@@ -83,7 +74,6 @@ export default function AddInvestmentModal({
       tax_paid: '0',
       shares: '',
       currency: 'EUR',
-      currency_rate: '',
       created_at: today,
     }),
     [today]

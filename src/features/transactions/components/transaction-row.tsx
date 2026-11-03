@@ -1,7 +1,8 @@
 'use client';
+import { useCurrency } from '@/providers/currency-provider';
 
 import { Transaction } from '@/lib';
-import { formatCurrencyLocale } from '@/lib/utils/currency-formatter';
+
 import { memo } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { Amount } from '@/components/ui/primitives/amount';
@@ -22,6 +23,8 @@ export const TransactionRow = memo(function TransactionRow({
   accountNames,
   selectedAccountId,
 }: TransactionRowProps) {
+  const { format: formatCurrencyLocale } = useCurrency();
+
   const t = useTranslations('Transactions.Table');
   const locale = useLocale();
   const isOutgoing =

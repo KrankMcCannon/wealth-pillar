@@ -2,7 +2,7 @@ import { getCloseForDate, type ParsedSeriesPoint } from '@/lib/types/market-data
 
 /** Prices are quoted in the position currency; all account costs remain in EUR. */
 export function conversionSymbol(currency: string): string | null {
-  return currency === 'USD' ? 'USD/EUR' : null;
+  return ['USD', 'GBP', 'CHF'].includes(currency) ? `${currency}/EUR` : null;
 }
 
 export function portfolioMarketSymbols(rows: { symbol: string; currency: string }[]): string[] {
@@ -25,12 +25,4 @@ export function valuationRate(
   if (currency === 'EUR') return 1;
   const symbol = conversionSymbol(currency);
   return symbol ? getCloseForDate(series[symbol], day) : null;
-}
-
-export function purchaseRate(currency: string, rate: unknown): number {
-  if (currency === 'EUR') return 1;
-  const parsed = Number(rate);
-  if (currency !== 'USD' || !Number.isFinite(parsed) || parsed <= 0 || parsed >= 10000)
-    throw new Error('INVALID_CURRENCY_RATE');
-  return parsed;
 }

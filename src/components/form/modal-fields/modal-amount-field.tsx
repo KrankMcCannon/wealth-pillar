@@ -1,7 +1,8 @@
 'use client';
 
 import { useController, type Control, type FieldPath, type FieldValues } from 'react-hook-form';
-import { FormCurrencyInput } from '@/components/form/form-currency-input';
+import { ConvertedCurrencyInput } from '@/components/form/converted-currency-input';
+import { useCurrency } from '@/providers/currency-provider';
 import { formModalStyles as s } from '@/components/form/form-modal-styles';
 import { ModalFormField } from './modal-form-field';
 import { ModalFieldError } from './modal-field-error';
@@ -21,12 +22,13 @@ export function ModalAmountField<T extends FieldValues>({
   control,
   name,
   label,
-  currency = '€',
+  currency,
   variant = 'hero',
   disabled,
   placeholder,
   decimals,
 }: Readonly<ModalAmountFieldProps<T>>) {
+  const preferred = useCurrency();
   const {
     field,
     fieldState: { error },
@@ -37,7 +39,7 @@ export function ModalAmountField<T extends FieldValues>({
   const handleChange = field.onChange;
 
   const input = (
-    <FormCurrencyInput
+    <ConvertedCurrencyInput
       id={fieldId}
       value={field.value ?? ''}
       onChange={handleChange}
@@ -60,6 +62,7 @@ export function ModalAmountField<T extends FieldValues>({
           {resolvedLabel ? (
             <label htmlFor={fieldId} className={s.field.textLabel}>
               {resolvedLabel}
+              {preferred.currency !== 'EUR' ? ` (${preferred.currency})` : ''}
             </label>
           ) : null}
           {input}
@@ -79,7 +82,7 @@ export function ModalAmountField<T extends FieldValues>({
         ) : null}
         <div className={s.amountRow}>
           <span className={s.amountCurrency} aria-hidden>
-            {currency}
+            {currency ?? preferred.symbol}
           </span>
           {input}
         </div>

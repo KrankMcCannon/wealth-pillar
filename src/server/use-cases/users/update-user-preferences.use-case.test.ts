@@ -60,3 +60,11 @@ describe('validated user preferences', () => {
     expect(updateTag).not.toHaveBeenCalled();
   });
 });
+
+it.each(['EUR', 'USD', 'GBP', 'CHF'])(
+  'persists the supported display currency %s',
+  async (currency) => {
+    await updateUserPreferencesUseCase('u1', { currency });
+    expect(UserPreferencesRepository.update).toHaveBeenCalledWith('u1', { currency });
+  }
+);

@@ -1,5 +1,6 @@
 'use client';
 
+import { useCurrency } from '@/providers/currency-provider';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { BellRing, Copy, RefreshCw } from 'lucide-react';
@@ -276,6 +277,7 @@ function NotificationRow({
   busy: boolean;
   perform: (action: () => Promise<{ error: string | null }>) => Promise<void>;
 }) {
+  const { format: formatCurrency } = useCurrency();
   const t = useTranslations('BankNotifications');
   const categories = useCategories();
   const [category, setCategory] = useState(event.category ?? '');
@@ -288,7 +290,7 @@ function NotificationRow({
         {event.parsed ? (
           <span className="shrink-0 tabular-nums">
             {event.parsed.type === 'expense' ? '−' : '+'}
-            {event.parsed.amount} €
+            {formatCurrency(Number(event.parsed.amount))}
           </span>
         ) : null}
       </div>

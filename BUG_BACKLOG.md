@@ -1,5 +1,13 @@
 # Wealth Pillar: backlog della Daily Review
 
+## Valute: estensione della PR #58
+
+Cambi gratuiti correnti e storici da Frankfurter, senza chiavi o tassi fissi.
+Preferenza EUR/USD/GBP/CHF collegata a visualizzazione, grafici e campi monetari
+in tutta l’app; conversione inversa verso la contabilità EUR e centesimi preservati
+nelle modifiche senza variazione dell’importo. Cambio storico degli investimenti
+recuperato automaticamente sul server. [Dettagli](docs/currencies.md).
+
 ## Daily Review del 2–3 novembre 2026: PR #58
 
 Completate le tre correzioni residue: cambi all’acquisto preservati e conversione

@@ -1,3 +1,5 @@
+import { isCurrency } from '@/lib/currency/types';
+import { fetchExchangeRates } from '@/lib/currency/frankfurter';
 import { MarketDataRepository } from '@/server/repositories/market-data.repository';
 import { twelveData } from '@/lib/twelve-data';
 import type { TimeSeriesEntry, MarketDataBatchResult } from '@/lib/types/market-data.types';
@@ -105,7 +107,15 @@ export async function getCachedQuotePricesUseCase(
 
 async function fetchAndCacheMarketData(symbol: string): Promise<TimeSeriesEntry[]> {
   try {
-    let timeSeries = await twelveData.getTimeSeries(symbol, '1day', 365 * 2);
+    const [base, quote] = symbol.split('/');
+    let timeSeries: TimeSeriesEntry[];
+    if (isCurrency(base) && isCurrency(quote)) {
+      const from = new Date();
+      from.setUTCFullYear(from.getUTCFullYear() - 2);
+      timeSeries = (
+        await fetchExchangeRates(base, [quote], undefined, from.toISOString().slice(0, 10))
+      ).map((row) => ({ datetime: row.date, close: row.rate }));
+    } else timeSeries = await twelveData.getTimeSeries(symbol, '1day', 365 * 2);
 
     if (!timeSeries || timeSeries.length === 0) {
       const quote = await twelveData.getQuote(symbol);

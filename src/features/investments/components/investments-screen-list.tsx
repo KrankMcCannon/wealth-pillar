@@ -1,11 +1,12 @@
 'use client';
+import { useCurrency } from '@/providers/currency-provider';
 
 import { memo } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { TrendingDown, TrendingUp } from 'lucide-react';
 import { Amount } from '@/components/ui/primitives/amount';
 import { stitchHome, stitchInvestments } from '@/styles/home-design-foundation';
-import { cn, formatCurrency } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { useModalState } from '@/lib/navigation/url-state';
 import type { InvestmentListItem } from '@/server/use-cases/investments/investment.types';
 
@@ -29,6 +30,8 @@ function HoldingRow({
   holding: InvestmentListItem;
   onEdit: (id: string) => void;
 }) {
+  const { format: formatCurrency } = useCurrency();
+
   const tList = useTranslations('Investments.InvestmentList');
   const locale = useLocale();
 

@@ -1,4 +1,5 @@
 'use client';
+import { useCurrency } from '@/providers/currency-provider';
 
 import { useMemo } from 'react';
 
@@ -6,7 +7,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { Link } from '@/i18n/routing';
 import type { BudgetProgress, Category } from '@/lib/types';
 import { stitchBudgets } from '@/styles/home-design-foundation';
-import { formatCurrencyLocale } from '@/lib/utils/currency-formatter';
+
 import { ChevronRight, Wallet } from 'lucide-react';
 import { BudgetProgressBar } from './budget-progress-bar';
 import {
@@ -35,6 +36,8 @@ export function BudgetCategoryCard({
   href,
   onPress,
 }: Readonly<BudgetCategoryCardProps>) {
+  const { format: formatCurrencyLocale } = useCurrency();
+
   const locale = useLocale();
   const t = useTranslations('Budgets.Page');
   const ux = useTranslations('Budgets.UX');

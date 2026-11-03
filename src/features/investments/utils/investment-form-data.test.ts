@@ -21,7 +21,9 @@ describe('investment-form-data', () => {
       net_earn: '0',
     });
 
-    expect(buildInvestmentPayload({ ...mapped, name: 'Renamed' }).currency_rate).toBe(0.86);
+    expect(buildInvestmentPayload({ ...mapped, name: 'Renamed' })).not.toHaveProperty(
+      'currency_rate'
+    );
     expect(mapped).toEqual({
       name: 'Apple',
       symbol: 'AAPL',
@@ -29,7 +31,6 @@ describe('investment-form-data', () => {
       tax_paid: '12',
       shares: '4',
       currency: 'USD',
-      currency_rate: '0.86',
       created_at: '2026-01-15',
     });
   });

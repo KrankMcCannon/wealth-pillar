@@ -1,3 +1,5 @@
+'use client';
+import { useCurrency } from '@/providers/currency-provider';
 /**
  * Amount Primitive Component
  *
@@ -12,9 +14,9 @@
  */
 
 import * as React from 'react';
-import { formatCurrencyLocale } from '@/lib/utils/currency-formatter';
+
 import { cva, type VariantProps } from 'class-variance-authority';
-import { cn, formatCurrency, toFiniteMoney } from '@/lib/utils';
+import { cn, toFiniteMoney } from '@/lib/utils';
 
 const amountVariants = cva('font-bold tabular-nums', {
   variants: {
@@ -65,6 +67,10 @@ export function Amount({
   children,
   ...props
 }: Readonly<AmountProps>) {
+  const { format: formatCurrencyValue } = useCurrency();
+  const formatCurrencyLocale = formatCurrencyValue;
+  const formatCurrency = formatCurrencyValue;
+
   const value = toFiniteMoney(children);
   const formatted = currency
     ? locale

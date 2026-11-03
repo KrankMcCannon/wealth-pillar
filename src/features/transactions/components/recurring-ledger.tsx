@@ -1,4 +1,5 @@
 'use client';
+import { useCurrency } from '@/providers/currency-provider';
 
 import { use, useRef, useState } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
@@ -19,7 +20,7 @@ import {
 import { RecurringSeriesSkeleton } from './transaction-skeletons';
 import { buildRecurringView, type DecoratedRecurringSeries } from '@/lib/recurring/recurring-view';
 import { formatDateShort, cn } from '@/lib/utils';
-import { formatCurrencyLocale } from '@/lib/utils/currency-formatter';
+
 import type { RecurringTransactionSeries } from '@/lib/types';
 import { stitchHome, stitchTransactions } from '@/styles/home-design-foundation';
 import { toggleRecurringSeriesActiveAction } from '@/features/recurring/actions/recurring-actions';
@@ -41,6 +42,8 @@ export function RecurringLedgerWithSeries({
 }
 
 export function RecurringLedger(props: RecurringLedgerProps) {
+  const { format: formatCurrencyLocale } = useCurrency();
+
   const t = useTranslations('TransactionsContent.Ledger');
   const section = useTranslations('Recurring.Section');
   const card = useTranslations('Recurring.SeriesCard');
@@ -390,6 +393,8 @@ function SeriesRow({
   accountName?: string | undefined;
   onClick: () => void;
 }) {
+  const { format: formatCurrencyLocale } = useCurrency();
+
   const t = useTranslations('Recurring.SeriesCard');
   const ledger = useTranslations('TransactionsContent.Ledger');
   const locale = useLocale();

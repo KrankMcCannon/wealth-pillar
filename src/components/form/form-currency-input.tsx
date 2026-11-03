@@ -2,7 +2,7 @@
 import { parseDecimal } from '@/lib/utils/parse-decimal';
 
 import * as React from 'react';
-import { Euro } from 'lucide-react';
+import { useCurrency } from '@/providers/currency-provider';
 import { Input } from '../ui/input';
 import { cn } from '@/lib';
 import { formStyles } from './theme/form-styles';
@@ -75,6 +75,7 @@ export function FormCurrencyInput({
   'aria-invalid': ariaInvalid,
   'aria-describedby': ariaDescribedBy,
 }: Readonly<FormCurrencyInputProps>) {
+  const currency = useCurrency();
   // Convert value to string for input
   const stringValue = typeof value === 'number' ? value.toString() : value;
 
@@ -138,7 +139,7 @@ export function FormCurrencyInput({
     <div className={formStyles.currencyInput.wrapper}>
       {showSymbol && (
         <div className={formStyles.currencyInput.iconWrap}>
-          <Euro className={formStyles.currencyInput.icon} />
+          <span className={formStyles.currencyInput.icon}>{currency.symbol}</span>
         </div>
       )}
       <Input

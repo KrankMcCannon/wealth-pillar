@@ -1,4 +1,5 @@
 'use client';
+import { useCurrency } from '@/providers/currency-provider';
 
 import { useState, useMemo, useCallback, useId } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
@@ -63,6 +64,7 @@ export function buildForecastSeries(amount: number, years: number, rate: number)
 }
 
 export function SandboxForecastTab() {
+  const { format: formatMoney, toBase, toDisplay, currency } = useCurrency();
   const t = useTranslations('Investments.SandboxTab');
   const locale = useLocale();
   const titleId = useId();
@@ -91,15 +93,16 @@ export function SandboxForecastTab() {
       ? t('chartDataSummary', {
           startYear: firstForecast.year,
           endYear: lastForecast.year,
-          value: new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR' }).format(
-            lastForecast.amount
-          ),
+          value: formatMoney(lastForecast.amount, locale),
         })
       : null;
 
-  const onAmountChange = useCallback((raw: string) => {
-    setAmount((prev) => clampAmount(raw, prev));
-  }, []);
+  const onAmountChange = useCallback(
+    (raw: string) => {
+      setAmount((prev) => toBase(clampAmount(raw, toDisplay(prev))));
+    },
+    [toBase, toDisplay]
+  );
 
   const onYearsChange = useCallback((raw: string) => {
     setYears((prev) => clampYears(raw, prev));
@@ -125,7 +128,9 @@ export function SandboxForecastTab() {
       <div>
         <FieldGroup className={investmentsStyles.sandbox.fieldsWrap}>
           <Field>
-            <FieldLabel htmlFor="amount">{t('fields.initialAmount')}</FieldLabel>
+            <FieldLabel htmlFor="amount">
+              {t('fields.initialAmount')} ({currency})
+            </FieldLabel>
             <Input
               id="amount"
               type="text"
@@ -133,7 +138,7 @@ export function SandboxForecastTab() {
               min={0}
               max={MAX_FORECAST_AMOUNT}
               step={1}
-              value={amount}
+              value={toDisplay(amount)}
               onChange={(e) => onAmountChange(e.target.value)}
               autoComplete="off"
               className={investmentsStyles.sandbox.input}
@@ -233,10 +238,10 @@ export function SandboxForecastTab() {
                       tickFormatter={(value) => {
                         const n = Number(value);
                         if (!Number.isFinite(n)) return '';
-                        return `${new Intl.NumberFormat(locale, {
+                        return formatMoney(n, locale, {
                           notation: 'compact',
-                          compactDisplay: 'short',
-                        }).format(n)}€`;
+                          maximumFractionDigits: 1,
+                        });
                       }}
                       width={60}
                     />
@@ -244,10 +249,7 @@ export function SandboxForecastTab() {
                       contentStyle={rechartsTooltipContentStyle()}
                       itemStyle={rechartsTooltipItemStyle}
                       formatter={(value) => [
-                        new Intl.NumberFormat(locale, {
-                          style: 'currency',
-                          currency: 'EUR',
-                        }).format(Number(value ?? 0) || 0),
+                        formatMoney(Number(value ?? 0) || 0, locale),
                         t('valueSeriesLabel'),
                       ]}
                     />

@@ -1,4 +1,5 @@
 'use client';
+import { useCurrency } from '@/providers/currency-provider';
 
 import { useId } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
@@ -52,6 +53,7 @@ export function BenchmarkChart({
   onBenchmarkChange,
   anchorId,
 }: Readonly<BenchmarkChartProps>) {
+  const { format: formatMoney } = useCurrency();
   const t = useTranslations('Investments.BenchmarkChart');
   const locale = useLocale();
   const titleId = useId();
@@ -66,9 +68,7 @@ export function BenchmarkChart({
           count: sortedData.length,
           from: formatLocaleMediumDate(rowDateKey(firstRow), locale),
           to: formatLocaleMediumDate(rowDateKey(lastRow), locale),
-          value: new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR' }).format(
-            Number(lastRow.close) || 0
-          ),
+          value: formatMoney(Number(lastRow.close) || 0, locale),
         })
       : null;
 
@@ -127,21 +127,17 @@ export function BenchmarkChart({
                   tickFormatter={(value) => {
                     const n = Number(value);
                     if (!Number.isFinite(n)) return '';
-                    return new Intl.NumberFormat(locale, {
+                    return formatMoney(n, locale, {
                       notation: 'compact',
-                      compactDisplay: 'short',
-                    }).format(n);
+                      maximumFractionDigits: 1,
+                    });
                   }}
                   width={60}
                 />
                 <Tooltip
                   contentStyle={rechartsTooltipContentStyle()}
                   itemStyle={rechartsTooltipItemStyle}
-                  formatter={(value) =>
-                    new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR' }).format(
-                      Number(value) || 0
-                    )
-                  }
+                  formatter={(value) => formatMoney(Number(value) || 0, locale)}
                 />
                 <Line
                   type="monotone"

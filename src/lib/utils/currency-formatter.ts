@@ -37,20 +37,11 @@ export function formatCurrencyLocale(
   locale: string,
   options?: Intl.NumberFormatOptions
 ): string {
-  if (Number.isNaN(value)) {
-    return new Intl.NumberFormat(locale, {
-      style: 'currency',
-      currency: APP_CURRENCY_CODE,
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(0);
-  }
-
   return new Intl.NumberFormat(locale, {
     style: 'currency',
     currency: APP_CURRENCY_CODE,
-    minimumFractionDigits: 2,
+    minimumFractionDigits: Math.min(2, options?.maximumFractionDigits ?? 2),
     maximumFractionDigits: 2,
     ...options,
-  }).format(value);
+  }).format(Number.isNaN(value) ? 0 : value);
 }

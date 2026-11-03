@@ -1,5 +1,7 @@
 'use client';
 
+import { useCurrency } from '@/providers/currency-provider';
+import { isCurrency } from '@/lib/currency/types';
 import { useCallback, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { usePathname, useRouter } from '@/i18n/routing';
@@ -16,6 +18,7 @@ import {
 } from '@/features/settings/utils/preference-options';
 
 function usePreferenceModalSave(preferenceKey: keyof UserPreferencesUpdate) {
+  const currency = useCurrency();
   const t = useTranslations('SettingsModals.PreferenceSelect');
   const { currentUser, onPreferenceUpdate } = useSettingsModalsContext();
   const { closeModal } = useModalState();
@@ -59,6 +62,10 @@ function usePreferenceModalSave(preferenceKey: keyof UserPreferencesUpdate) {
           variant: 'success',
         });
         onPreferenceUpdate(preferenceKey, selectedValue);
+        if (preferenceKey === 'currency' && isCurrency(selectedValue)) {
+          currency.setCurrency(selectedValue);
+          router.refresh();
+        }
         closeModal();
         if (preferenceKey === 'language') {
           const locale = selectedValue.toLowerCase().startsWith('en') ? 'en' : 'it';
@@ -74,7 +81,7 @@ function usePreferenceModalSave(preferenceKey: keyof UserPreferencesUpdate) {
         setIsSaving(false);
       }
     },
-    [closeModal, currentUser.id, onPreferenceUpdate, pathname, preferenceKey, router, t]
+    [currency, closeModal, currentUser.id, onPreferenceUpdate, pathname, preferenceKey, router, t]
   );
 
   return { isSaving, onSave };
@@ -84,15 +91,19 @@ export function CurrencyPreferenceModal() {
   const t = useTranslations('SettingsContent');
   const { modal, closeModal } = useModalState();
   const { currencyOptions } = usePreferenceOptions();
+  const { preferences } = useSettingsModalsContext();
+  const { isSaving, onSave } = usePreferenceModalSave('currency');
   return (
     <SelectionModal
       isOpen={modal === 'settings:currency'}
       onClose={closeModal}
       title={t('currencyModalTitle')}
-      value="EUR"
-      options={currencyOptions.filter((option) => option.value === 'EUR')}
-      isSaving={false}
-      onSave={async () => closeModal()}
+      value={preferences?.currency ?? 'EUR'}
+      options={currencyOptions}
+      isSaving={isSaving}
+      onSave={(value) =>
+        onSave(value, preferences?.currency ?? 'EUR', t('currencyModalTitle'), currencyOptions)
+      }
     />
   );
 }

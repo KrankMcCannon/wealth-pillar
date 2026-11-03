@@ -1,3 +1,5 @@
+import { isCurrency } from '../src/lib/currency/types';
+import { fetchExchangeRates } from '../src/lib/currency/frankfurter';
 import { db } from '../src/server/db/drizzle';
 import { investments, availableShares } from '../src/server/db/schema';
 import { MarketDataRepository } from '../src/server/repositories/market-data.repository';
@@ -10,7 +12,6 @@ const DEFAULT_INTERVAL = '1day';
 const DEFAULT_OUTPUTSIZE = 365 * 2;
 
 const { TWELVE_DATA_API_KEY } = process.env;
-if (!TWELVE_DATA_API_KEY) throw new Error('Missing Twelve Data API key');
 
 const parseArgs = () => {
   const args = process.argv.slice(2);
@@ -62,6 +63,15 @@ const fetchSymbols = async (from: string, limit: number) => {
 };
 
 const fetchTimeSeries = async (symbol: string, interval: string, outputsize: number) => {
+  const [base, quote] = symbol.split('/');
+  if (isCurrency(base) && isCurrency(quote)) {
+    const from = new Date();
+    from.setUTCFullYear(from.getUTCFullYear() - 2);
+    return (
+      await fetchExchangeRates(base, [quote], undefined, from.toISOString().slice(0, 10))
+    ).map((row) => ({ datetime: row.date, close: row.rate }));
+  }
+  if (!TWELVE_DATA_API_KEY) throw new Error('Missing Twelve Data API key for stock prices');
   const url = `${BASE_URL}/time_series?symbol=${symbol}&interval=${interval}&outputsize=${outputsize}&apikey=${TWELVE_DATA_API_KEY}`;
   const res = await fetch(url);
   if (!res.ok) {
@@ -84,6 +94,9 @@ const main = async () => {
     options.symbols.length > 0
       ? Array.from(new Set(options.symbols.map((s) => s.toUpperCase())))
       : await fetchSymbols(options.from, options.limit);
+
+  for (const pair of ['EUR/USD', 'EUR/GBP', 'EUR/CHF'])
+    if (!symbols.includes(pair)) symbols.push(pair);
 
   if (symbols.length === 0) {
     process.stdout.write('No symbols found to update.\n');

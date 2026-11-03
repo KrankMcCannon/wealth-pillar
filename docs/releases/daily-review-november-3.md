@@ -5,27 +5,14 @@ Le criticità delle review precedenti risultano già trattate nel backlog. Quest
 intervento completa i tre problemi confermati rimasti al 3 novembre e prepara il
 collaudo operativo della consegna delle notifiche nella PR #58.
 
-## Cambi degli investimenti
+## Cambi degli investimenti e valuta dell’app
 
-- La valuta dell’investimento indica la valuta della quotazione. Costo d’acquisto e
-  imposte sono importi contabili in EUR, come nei calcoli e nei campi importo esistenti.
-- `currency_rate` conserva il cambio all’acquisto, espresso in EUR per unità di valuta.
-  Il form carica il valore esistente: cambiare soltanto il nome non lo riscrive a 1.
-  Creare una posizione USD o cambiare da EUR a USD richiede un cambio esplicito e positivo,
-  validato anche sul server. Per EUR si usa 1.
-- Valore corrente e storico giornaliero usano invece la serie `USD/EUR` alla data della
-  valutazione, includendola nelle letture batch, nel job quotazioni e nel job snapshot.
-  L’ultimo cambio valido precedente viene mantenuto durante chiusure di mercato;
-  un cambio futuro non viene anticipato. In assenza di prezzo o cambio il totale
-  corrente è non disponibile e il job non persiste uno snapshot parziale.
-- I costi e gli snapshot già persistiti non vengono convertiti o riscritti tramite
-  migrazione. Un vecchio cambio pari a 1 può essere un dato inserito oppure il precedente
-  default: non viene interpretato automaticamente. Controllarlo rispetto alla distinta
-  d’acquisto se si vuole correggere il costo storico della posizione.
-- Il provider resta Twelve Data e non richiede nuove variabili. Occorre accesso alla
-  serie forex USD/EUR con la chiave già configurata. Se il piano/provider non la fornisce,
-  i valori USD restano esplicitamente incompleti. La convenzione base/controvaluta è
-  documentata dal [provider](https://twelvedata.com/docs).
+L’estensione successiva richiesta dall’utente è documentata in
+[Valute e cambi automatici](../currencies.md). Frankfurter gratuito fornisce i cambi
+correnti e storici senza chiave. La valuta scelta nelle impostazioni (EUR, USD,
+GBP, CHF) si applica a tutta l’interfaccia e ai campi importo; la contabilità resta EUR.
+Il cambio all’acquisto è recuperato automaticamente dal server e viene preservato
+nelle modifiche non correlate. Nessuna conversione usa un cambio estero fisso.
 
 ## Riferimenti delle categorie
 
@@ -80,7 +67,7 @@ con un estratto conto anonimizzato rimane un criterio prima del rilascio automat
    Non applicare di nuovo manualmente migrazioni già registrate. La nuova query
    del catalogo richiede la funzione installata dalla migrazione 0008.
 2. Pubblicare il codice. Eseguire il job quotazioni e verificare che USD/EUR sia
-   disponibile prima di considerare completi i portafogli contenenti posizioni USD.
+   disponibile da Frankfurter prima di considerare completi i portafogli contenenti posizioni USD.
 3. Configurare e collaudare la coda locale iOS seguendo la matrice di consegna.
    Iniziare in modalità di verifica manuale; confrontare con l’estratto conto.
 
@@ -91,7 +78,7 @@ applicativo e la sospensione delle scritture alle categorie e ai loro riferiment
 
 ## Verifica locale
 
-1.066 test unitari e 99 test PostgreSQL verificati, inclusi i casi di concorrenza,
+1.085 test unitari e 99 test PostgreSQL verificati, inclusi i casi di concorrenza,
 quotazioni invarianti e snapshot EUR/USD. Il test dei permessi richiede il ruolo
 locale `postgres`; sul cluster temporaneo creato con un diverso superutente è stato
 eseguito nuovamente dopo aver creato quel ruolo. TypeScript, lint, calendario nei tre

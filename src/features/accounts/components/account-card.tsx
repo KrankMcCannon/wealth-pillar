@@ -1,9 +1,10 @@
 'use client';
+import { useCurrency } from '@/providers/currency-provider';
 
 import { memo } from 'react';
 import { useTranslations } from 'next-intl';
 import { Building2 } from 'lucide-react';
-import { formatCurrency, cn } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import type { Account } from '@/lib/types';
 import { AccountTypeMap } from '@/lib/types';
 import { resolveAccountLiquidity } from '@/lib/utils/account-classification';
@@ -42,6 +43,8 @@ export const AccountCard = memo(function AccountCard({
   className,
   balancePresentation = 'default',
 }: Readonly<AccountCardProps>) {
+  const { format: formatCurrency } = useCurrency();
+
   const t = useTranslations('Accounts.Card');
   const isNegative = accountBalance < 0;
   const primaryValue = formatCurrency(Math.abs(accountBalance));

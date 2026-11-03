@@ -1,7 +1,7 @@
 import React, { Suspense } from 'react';
 import { ClerkProvider } from '@clerk/nextjs';
 import { hasLocale, NextIntlClientProvider } from 'next-intl';
-import { getMessages, setRequestLocale } from 'next-intl/server';
+import { getMessages, setRequestLocale, getLocale } from 'next-intl/server';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { notFound } from 'next/navigation';
 import { connection } from 'next/server';
@@ -20,6 +20,9 @@ import { getUsedCategoryKeysByGroupUseCase } from '@/server/use-cases/transactio
 import { ModalProvider } from '@/providers/modal-provider';
 import { ReferenceDataInitializer } from '@/providers/reference-data-initializer';
 import { UserProvider } from '@/providers/user-provider';
+import { CurrencyProvider } from '@/providers/currency-provider';
+import { getCurrencySnapshot } from '@/server/use-cases/market-data/currency.use-cases';
+import { getUserPreferencesUseCase } from '@/server/use-cases/users/get-user-preferences.use-case';
 import type { User } from '@/lib/types';
 
 export function LocaleLayoutHtmlFallback({ className }: { className: string }): React.JSX.Element {
@@ -105,11 +108,19 @@ async function UserSessionGate({ children }: { children: React.ReactNode }) {
     return children;
   }
 
+  const preferences = await getUserPreferencesUseCase(currentUser.id);
+  const currencySnapshot = await getCurrencySnapshot(preferences.currency ?? 'EUR');
+  const locale = await getLocale();
   const allGroupUsers = currentUser.group_id
     ? await withTimeout(getGroupUsers(), 1500, [currentUser])
     : [currentUser];
   const groupUsers = getSelectableUsers(currentUser, allGroupUsers);
 
+  const wrapCurrency = (content: React.ReactNode) => (
+    <CurrencyProvider key={currentUser.id} snapshot={currencySnapshot} locale={locale}>
+      {content}
+    </CurrencyProvider>
+  );
   const session = (
     <UserProvider currentUser={currentUser} groupUsers={groupUsers}>
       <ModalProvider>{children}</ModalProvider>
@@ -117,10 +128,10 @@ async function UserSessionGate({ children }: { children: React.ReactNode }) {
   );
 
   if (!currentUser.group_id) {
-    return session;
+    return wrapCurrency(session);
   }
 
-  return (
+  return wrapCurrency(
     <UserProvider currentUser={currentUser} groupUsers={groupUsers}>
       <Suspense fallback={<ModalProvider>{children}</ModalProvider>}>
         <ReferenceDataGate groupId={currentUser.group_id} currentUser={currentUser}>

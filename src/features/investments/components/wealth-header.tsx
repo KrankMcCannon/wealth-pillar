@@ -1,9 +1,10 @@
 'use client';
+import { useCurrency } from '@/providers/currency-provider';
 
 import { TrendingDown, TrendingUp } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { stitchInvestments } from '@/styles/home-design-foundation';
-import { formatCurrencyLocale } from '@/lib/utils/currency-formatter';
+
 import { cn } from '@/lib/utils';
 
 interface WealthHeaderProps {
@@ -32,6 +33,8 @@ export function WealthHeader({
   trendPercentage = 0,
   marketDataUpdatedAt,
 }: Readonly<WealthHeaderProps>) {
+  const { format: formatCurrencyLocale } = useCurrency();
+
   const locale = useLocale();
   const t = useTranslations('Investments.PersonalTab');
 

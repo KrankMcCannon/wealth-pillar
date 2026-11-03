@@ -676,13 +676,13 @@
         "name": "Name",
         "symbol": "Ticker symbol",
         "symbolHelper": "Exchange ticker (e.g. AAPL). Used for market prices.",
-        "investedAmount": "Purchase cost (EUR)",
-        "taxesPaid": "Taxes paid (EUR)",
+        "investedAmount": "Purchase cost",
+        "taxesPaid": "Taxes paid",
         "sharesAcquired": "Shares acquired",
         "purchaseDate": "Purchase date",
         "currency": "Currency",
         "purchaseRate": "Purchase rate (EUR per USD)",
-        "purchaseRateHint": "Cost and taxes are in EUR. Valuations use the market exchange rate for the day."
+        "purchaseRateHint": "The purchase exchange rate is retrieved automatically for the selected date."
       },
       "placeholders": {
         "name": "e.g. Apple Inc.",
@@ -2243,5 +2243,11 @@
       "unauthorized": "Sign in again to continue."
     },
     "eventIdVariable": "[UUID saved once in the file]"
+  },
+  "Currency": {
+    "base": "Accounts are recorded in EUR. Free daily rates from Frankfurter.",
+    "unavailable": "Exchange rate unavailable: amounts remain visible in EUR. Try again later.",
+    "rate": "1 EUR = {rate} {currency} · rate dated {date} · Frankfurter",
+    "saveUnavailable": "The purchase-date exchange rate is unavailable. Your changes were not saved; try again later."
   }
 }

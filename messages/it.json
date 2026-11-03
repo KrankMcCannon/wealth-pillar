@@ -676,13 +676,13 @@
         "name": "Nome",
         "symbol": "Simbolo di borsa",
         "symbolHelper": "Ticker di borsa (es. AAPL). Usato per i prezzi di mercato.",
-        "investedAmount": "Costo d’acquisto (EUR)",
-        "taxesPaid": "Imposte pagate (EUR)",
+        "investedAmount": "Costo d’acquisto",
+        "taxesPaid": "Imposte pagate",
         "sharesAcquired": "Quote acquisite",
         "purchaseDate": "Data acquisto",
         "currency": "Valuta",
         "purchaseRate": "Cambio all’acquisto (EUR per USD)",
-        "purchaseRateHint": "Costo e imposte sono in EUR. La valutazione usa il cambio di mercato del giorno."
+        "purchaseRateHint": "Il cambio all’acquisto viene recuperato automaticamente alla data selezionata."
       },
       "placeholders": {
         "name": "Es. Apple Inc.",
@@ -2243,5 +2243,11 @@
       "unauthorized": "Accedi di nuovo per continuare."
     },
     "eventIdVariable": "[UUID salvato una sola volta nel file]"
+  },
+  "Currency": {
+    "base": "Importi contabili in EUR. Cambi giornalieri gratuiti da Frankfurter.",
+    "unavailable": "Cambio non disponibile: gli importi restano visibili in EUR. Riprova più tardi.",
+    "rate": "1 EUR = {rate} {currency} · cambio del {date} · Frankfurter",
+    "saveUnavailable": "Cambio alla data di acquisto non disponibile. I dati non sono stati salvati: riprova più tardi."
   }
 }
