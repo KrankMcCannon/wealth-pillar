@@ -91,6 +91,7 @@ export function BudgetFormFields({
   return (
     <>
       <ModalAmountField
+        inputCurrency="EUR"
         control={control}
         name="amount"
         label={type === 'annually' ? ux('annual') : t('fields.amount.label')}

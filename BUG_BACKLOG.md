@@ -1,5 +1,16 @@
 # Wealth Pillar: backlog della Daily Review
 
+## Conversione solo UI e applicazione migrazioni: PR #58
+
+Per transazioni, serie ricorrenti, budget e conti la valuta preferita riguarda
+soltanto la visualizzazione. I campi e i payload di transazioni, ricorrenze e budget
+restano in EUR, con controvalore non modificabile. Verificati i quattro componenti
+reali e i salvataggi con preferenza USD/GBP senza variazioni dei dati di origine.
+
+Il preflight Supabase del 3 novembre conferma il journal Drizzle vuoto e le due
+migrazioni ancora mancanti. [Procedura e script atomico](docs/releases/apply-pr58-migrations.md)
+applicano solo 0007 e 0008; nessuna migrazione è stata eseguita in produzione.
+
 ## Valute: estensione della PR #58
 
 Cambi gratuiti correnti e storici da Frankfurter, senza chiavi o tassi fissi.

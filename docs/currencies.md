@@ -26,11 +26,15 @@ rimangono confrontabili. I dati storici vengono mostrati come controvalori al ca
 di visualizzazione, non come ricostruzioni del saldo in un conto bancario estero.
 Data, fonte e rapporto di cambio sono visibili nelle preferenze.
 
-I campi monetari indicano la valuta scelta. Per un nuovo importo o una modifica,
-il valore digitato viene convertito in EUR e arrotondato ai centesimi prima della
-registrazione, attraverso il componente comune a transazioni, ricorrenti, budget
-e costi degli investimenti. Un’apertura/salvataggio o un blur senza modifica
-conserva l’importo EUR originale anche quando il controvalore visibile è arrotondato.
+Per transazioni, serie ricorrenti e budget la conversione è soltanto di
+visualizzazione: i campi di inserimento e modifica restano esplicitamente in EUR.
+Sotto il campo viene mostrato il controvalore non modificabile nella valuta scelta.
+Digitare 100 significa sempre salvare 100 EUR, anche se la preferenza è USD, GBP o CHF.
+Cambiare preferenza non riscrive né ricalcola il valore dei campi o il payload di salvataggio.
+Anche i saldi dei conti vengono convertiti soltanto in visualizzazione.
+
+I campi dei costi degli investimenti e il simulatore mantengono il comportamento
+precedente nella valuta scelta; la contabilità degli investimenti resta EUR.
 Quote possedute, percentuali e anni non vengono convertiti.
 
 La preferenza viene applicata soltanto dopo la conferma del salvataggio sul server.
@@ -82,6 +86,6 @@ non del servizio valutario. La compatibilità locale della PR conserva l’inter
 attesa dai vecchi utilizzatori mentre usa il motore aggiornato. Non serve per la
 conversione degli importi e questa estensione non aggiunge dipendenze monetarie.
 
-Verifica locale finale: 1.085 test unitari (suite completa più il caso aggiuntivo
-di formattazione compatta), 99 test PostgreSQL, TypeScript, lint e build di
-produzione. La matrice browser E2E completa non è dichiarata verificata.
+Verifica locale finale: 1.091 test unitari, 102 test PostgreSQL, TypeScript, lint
+e build di produzione. I test coprono anche campi e payload EUR invariati con
+preferenza USD/GBP e l’applicazione atomica delle due migrazioni. La matrice browser E2E completa non è dichiarata verificata.

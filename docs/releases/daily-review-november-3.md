@@ -61,11 +61,10 @@ con un estratto conto anonimizzato rimane un criterio prima del rilascio automat
 
 ## Rilascio
 
-1. Applicare con credenziali di migrazione le migrazioni ancora mancanti del journal
-   Drizzle, inclusa `0007_bank_notifications.sql` della PR e poi
-   `0008_category_reference_guards.sql`, **prima di pubblicare il nuovo codice**.
-   Non applicare di nuovo manualmente migrazioni già registrate. La nuova query
-   del catalogo richiede la funzione installata dalla migrazione 0008.
+1. Seguire la [procedura specifica per le due migrazioni](apply-pr58-migrations.md).
+   La verifica del 3 novembre conferma che il journal Drizzle è vuoto: il migratore
+   generale non va usato finché le migrazioni storiche non sono state allineate.
+   Lo script preparato applica soltanto 0007 e 0008 in una transazione, prima del codice.
 2. Pubblicare il codice. Eseguire il job quotazioni e verificare che USD/EUR sia
    disponibile da Frankfurter prima di considerare completi i portafogli contenenti posizioni USD.
 3. Configurare e collaudare la coda locale iOS seguendo la matrice di consegna.
@@ -78,7 +77,7 @@ applicativo e la sospensione delle scritture alle categorie e ai loro riferiment
 
 ## Verifica locale
 
-1.085 test unitari e 99 test PostgreSQL verificati, inclusi i casi di concorrenza,
+1.091 test unitari e 102 test PostgreSQL verificati, inclusi i casi di concorrenza,
 quotazioni invarianti e snapshot EUR/USD. Il test dei permessi richiede il ruolo
 locale `postgres`; sul cluster temporaneo creato con un diverso superutente è stato
 eseguito nuovamente dopo aver creato quel ruolo. TypeScript, lint, calendario nei tre

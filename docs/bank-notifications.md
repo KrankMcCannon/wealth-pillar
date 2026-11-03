@@ -8,9 +8,10 @@ rimangono da verificare finché i loro formati non saranno documentati.
 
 ## Attivazione
 
-1. Applicare `src/server/db/drizzle/0007_bank_notifications.sql` attraverso il
-   journal Drizzle (`pnpm db:migrate` con credenziali di migrazione, non quelle
-   runtime). La migrazione aggiunge tre tabelle; non modifica i movimenti esistenti.
+1. Applicare le due migrazioni seguendo la [procedura limitata alla PR #58](releases/apply-pr58-migrations.md).
+   Il journal Drizzle del progetto è vuoto: non usare il migratore generale finché
+   la sua cronologia non è stata allineata. La migrazione bancaria aggiunge tre
+   tabelle; non modifica i movimenti esistenti.
 2. Pubblicare il codice.
 3. In **Impostazioni → Importa dalle notifiche**, scegliere il proprio conto
    Revolut EUR, un nome del dispositivo e una categoria predefinita.

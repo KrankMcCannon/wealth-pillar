@@ -92,6 +92,7 @@ export function TransactionFormFields({
   return (
     <>
       <ModalAmountField
+        inputCurrency="EUR"
         control={control}
         name="amount"
         label={t('fields.amount.label')}
