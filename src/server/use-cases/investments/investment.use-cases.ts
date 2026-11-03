@@ -1,3 +1,4 @@
+import { portfolioMarketSymbols, purchaseRate } from './currency-conversion';
 import { InvestmentRepository } from '@/server/repositories/investment.repository';
 import { investments } from '@/server/db/schema';
 import { getBatchMarketDataUseCase } from '../market-data/market-data.use-cases';
@@ -45,7 +46,7 @@ export async function getInvestmentsOverviewUseCase(
   }
 
   const sqlTotals = await InvestmentRepository.getTotalsByUsers(ids);
-  const symbols = [...new Set(rows.map((inv) => inv.symbol.toUpperCase()))];
+  const symbols = portfolioMarketSymbols(rows);
   const batch = await getBatchMarketDataUseCase(symbols);
   const seriesIndex = batchResultsToSeriesIndex(batch);
   const freshnessTimes = batch
@@ -77,7 +78,7 @@ export async function addInvestmentUseCase(data: InvestmentInsert) {
     ...data,
     amount: data.amount?.toString(),
     shares_acquired: data.shares_acquired?.toString(),
-    currency_rate: data.currency_rate?.toString(),
+    currency_rate: purchaseRate(data.currency ?? 'EUR', data.currency_rate).toString(),
     tax_paid: data.tax_paid?.toString(),
     net_earn: data.net_earn?.toString(),
     created_at: data.created_at ? new Date(data.created_at) : new Date(),
@@ -102,7 +103,11 @@ export async function updateInvestmentUseCase(
     ...data,
     amount: data.amount?.toString(),
     shares_acquired: data.shares_acquired?.toString(),
-    currency_rate: data.currency_rate?.toString(),
+    currency_rate: purchaseRate(
+      data.currency ?? existing.currency,
+      data.currency_rate ??
+        (data.currency && data.currency !== existing.currency ? undefined : existing.currency_rate)
+    ).toString(),
     tax_paid: data.tax_paid?.toString(),
     net_earn: data.net_earn?.toString(),
     created_at: data.created_at ? new Date(data.created_at) : undefined,

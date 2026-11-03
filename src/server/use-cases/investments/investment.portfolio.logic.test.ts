@@ -138,3 +138,47 @@ describe('buildPortfolioHistory', () => {
     expect(buildPortfolioHistory([], {})).toEqual([]);
   });
 });
+
+describe('EUR and USD valuations', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2024-01-15T18:00:00Z'));
+  });
+  afterEach(() => vi.useRealTimers());
+  const series: SeriesIndex = {
+    AAA: [{ date: '2024-01-01', close: 200 }],
+    'USD/EUR': [
+      { date: '2024-01-01', close: 0.8 },
+      { date: '2024-01-10', close: 0.86 },
+    ],
+  };
+  it('uses the purchase rate for initial value and dated market rates for current and historical valuations', () => {
+    const usd = row({
+      currency: 'USD',
+      currency_rate: '0.75',
+      shares_acquired: '10',
+      amount: '1500',
+      tax_paid: '0',
+    });
+    const result = enrichPortfolioFromInvestments([usd, row()], series);
+    expect(result.investments[0]?.initialValue).toBe(1500);
+    expect(result.investments[0]?.currentValue).toBe(1720);
+    expect(result.summary.totalCurrentValue).toBe(2120);
+    const history = buildPortfolioHistory([usd], series);
+    expect(history.find((p) => p.date === '2024-01-01')?.value).toBe(1600);
+    expect(history.at(-1)?.value).toBe(1720);
+  });
+  it('never substitutes purchase rates, parity or future FX for missing market rates', () => {
+    const usd = row({ currency: 'USD', currency_rate: '0.75' });
+    const missing = enrichPortfolioFromInvestments([row(), usd], { AAA: series.AAA! });
+    expect(missing.summary.totalCurrentValue).toBeNull();
+    expect(missing.summary.totalReturn).toBeNull();
+    expect(missing.investments[1]?.initialValue).toBe(300);
+    const history = buildPortfolioHistory([usd], {
+      AAA: series.AAA!,
+      'USD/EUR': [{ date: '2024-01-10', close: 0.86 }],
+    });
+    expect(history[0]).toEqual({ date: '2024-01-10', value: 344 });
+    expect(buildPortfolioHistory([usd], { AAA: series.AAA! })).toEqual([]);
+  });
+});

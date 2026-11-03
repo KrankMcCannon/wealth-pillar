@@ -91,7 +91,7 @@
       "systemTitle": "Default categories",
       "addLabel": "Add category",
       "inUseBadge": "In use",
-      "inUseHint": "Used by group transactions: you can edit it, not delete it",
+      "inUseHint": "Used by transactions, budgets, recurring items or imports: you can edit it, but cannot delete it",
       "emptyCustom": "No custom categories yet",
       "emptySystem": "No default categories",
       "loadError": "Could not load categories.",
@@ -660,7 +660,8 @@
         "amountInvalid": "Invalid amount",
         "taxInvalid": "Invalid taxes",
         "sharesInvalid": "Invalid shares",
-        "dateRequired": "Date is required"
+        "dateRequired": "Date is required",
+        "rateInvalid": "Enter a valid rate: EUR per 1 USD"
       },
       "title": {
         "create": "Add investment",
@@ -675,11 +676,13 @@
         "name": "Name",
         "symbol": "Ticker symbol",
         "symbolHelper": "Exchange ticker (e.g. AAPL). Used for market prices.",
-        "investedAmount": "Invested amount",
-        "taxesPaid": "Taxes paid",
+        "investedAmount": "Purchase cost (EUR)",
+        "taxesPaid": "Taxes paid (EUR)",
         "sharesAcquired": "Shares acquired",
         "purchaseDate": "Purchase date",
-        "currency": "Currency"
+        "currency": "Currency",
+        "purchaseRate": "Purchase rate (EUR per USD)",
+        "purchaseRateHint": "Cost and taxes are in EUR. Valuations use the market exchange rate for the day."
       },
       "placeholders": {
         "name": "e.g. Apple Inc.",
@@ -1976,7 +1979,8 @@
         "updateFailed": "Failed to update category",
         "deleteFailed": "Failed to delete category",
         "systemImmutable": "Default categories cannot be edited or deleted",
-        "hasTransactions": "This category is used by group transactions and cannot be deleted"
+        "hasTransactions": "This category is used by group transactions and cannot be deleted",
+        "hasDependencies": "This category is used by transactions, budgets, recurring items or imports. Remove active links first; historical references must be retained."
       }
     }
   },
@@ -2182,7 +2186,7 @@
   },
   "BankNotifications": {
     "title": "Import from notifications",
-    "intro": "Connect Revolut notifications to your EUR account using your existing iOS automation. Unrecognized messages stay in review. Trade Republic and Credem will follow once their formats are mapped.",
+    "intro": "Import Revolut notifications into your EUR account. This is not a full bank sync: reconcile transactions with your statement. Uncertain messages stay in review.",
     "device": "Device name",
     "deviceExample": "Personal iPhone",
     "account": "Revolut EUR account",
@@ -2190,7 +2194,7 @@
     "autoImport": "Automatically import recognized movements. Ambiguous notifications and possible duplicates require review.",
     "connect": "Connect device",
     "secretOnce": "Copy the token now: it is shown only once. Keep it only in your automation.",
-    "shortcut1": "In the Revolut automation, add “Get Contents of URL”. Use the URL below, POST method and a JSON body.",
+    "shortcut1": "Before sending, save the notification JSON in a local file with a stable eventId. Then use “Get Contents of URL”, POST and a JSON body.",
     "shortcut2": "Add Content-Type: application/json and Authorization headers with the Bearer value below.",
     "shortcut3": "Map title to Title, body to Body and occurredAt to the original notification Date formatted as ISO 8601 with a time zone. Example: 2026-11-01T20:45:00+01:00.",
     "titleVariable": "[Notification → Title]",
@@ -2198,7 +2202,7 @@
     "dateVariable": "[Notification → Date, ISO 8601]",
     "copy": "Copy authorization",
     "copied": "Copied",
-    "retryHelp": "Always reuse the original timestamp when retrying a delivery. HTTP 200/201 acknowledges receipt, including messages awaiting review. Retry 429 after 60 seconds; keep and retry the message on 503. The bank’s reported balance never overwrites the account balance.",
+    "retryHelp": "Keep the file until a response contains an id and the same eventId. Always resend the saved JSON without regenerating its date or identity. Network errors, 429 and 503 leave the file queued; retry after at least 60 seconds. The bank balance does not overwrite the account balance.",
     "devices": "Connected devices",
     "refresh": "Refresh notifications",
     "revoked": "Revoked",
@@ -2237,6 +2241,7 @@
       "connection_unavailable": "The account or user no longer belongs to the group. Create a new connection.",
       "duplicate_transaction": "This movement has already been imported. Refresh the list.",
       "unauthorized": "Sign in again to continue."
-    }
+    },
+    "eventIdVariable": "[UUID saved once in the file]"
   }
 }

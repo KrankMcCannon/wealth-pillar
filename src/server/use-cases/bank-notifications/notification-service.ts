@@ -19,7 +19,7 @@ import {
   normalizeMerchant,
 } from '@/lib/bank-notifications/parser';
 import { applyTransactionBalanceAdjustments } from '@/server/use-cases/transactions/transaction-balance';
-import { invalidateTransactionCaches } from '@/lib/utils/cache-utils';
+import { invalidateCategoryCaches, invalidateTransactionCaches } from '@/lib/utils/cache-utils';
 import type { User } from '@/lib/types';
 import type { DbExecutor } from '@/server/repositories/db-executor';
 
@@ -99,6 +99,7 @@ export async function createBankConnection(
     await assertConnectionScope(tx, connection!);
     return { id: connection!.id, token };
   });
+  invalidateCategoryCaches({ groupId: user.group_id! });
   return result;
 }
 export async function getBankNotificationSettings(user: User) {

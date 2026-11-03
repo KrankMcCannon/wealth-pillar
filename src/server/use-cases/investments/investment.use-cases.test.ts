@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
   getInvestmentsOverviewUseCase,
   resolveInvestmentsTargetUserIds,
+  updateInvestmentUseCase,
+  addInvestmentUseCase,
 } from './investment.use-cases';
 import { InvestmentRepository } from '@/server/repositories/investment.repository';
 import { getBatchMarketDataUseCase } from '../market-data/market-data.use-cases';
@@ -9,6 +11,9 @@ import { getBatchMarketDataUseCase } from '../market-data/market-data.use-cases'
 vi.mock('@/server/repositories/investment.repository', () => ({
   InvestmentRepository: {
     findByUser: vi.fn(),
+    findByIdAndUser: vi.fn(),
+    update: vi.fn(),
+    create: vi.fn(),
     findByUsers: vi.fn(),
     getTotalsByUsers: vi.fn(),
   },
@@ -111,5 +116,39 @@ describe('getInvestmentsOverviewUseCase', () => {
     expect(InvestmentRepository.findByUsers).toHaveBeenCalledTimes(1);
     expect(InvestmentRepository.findByUsers).toHaveBeenCalledWith(['user-1', 'user-2']);
     expect(InvestmentRepository.findByUser).not.toHaveBeenCalled();
+  });
+});
+
+describe('investment purchase rates', () => {
+  beforeEach(() => {
+    vi.mocked(InvestmentRepository.findByIdAndUser).mockResolvedValue({
+      currency: 'USD',
+      currency_rate: '0.86',
+    } as never);
+  });
+  it('preserves the stored rate on an unrelated partial update', async () => {
+    await updateInvestmentUseCase('lot', 'owner', { name: 'Renamed' });
+    expect(InvestmentRepository.update).toHaveBeenCalledWith(
+      'lot',
+      expect.objectContaining({ currency_rate: '0.86' }),
+      'owner'
+    );
+  });
+  it('rejects USD creation and currency changes without an explicit positive rate', async () => {
+    await expect(addInvestmentUseCase({ currency: 'USD' } as never)).rejects.toThrow(
+      'INVALID_CURRENCY_RATE'
+    );
+    vi.mocked(InvestmentRepository.findByIdAndUser).mockResolvedValue({
+      currency: 'EUR',
+      currency_rate: '1',
+    } as never);
+    await expect(updateInvestmentUseCase('lot', 'owner', { currency: 'USD' })).rejects.toThrow(
+      'INVALID_CURRENCY_RATE'
+    );
+    for (const currencyRate of [0, -1, NaN, Infinity]) {
+      await expect(
+        updateInvestmentUseCase('lot', 'owner', { currency: 'USD', currency_rate: currencyRate })
+      ).rejects.toThrow('INVALID_CURRENCY_RATE');
+    }
   });
 });

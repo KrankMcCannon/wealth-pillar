@@ -1,3 +1,4 @@
+import { portfolioMarketSymbols } from './currency-conversion';
 import { financialDateKey } from '@/lib/utils/financial-date';
 import { db } from '@/server/db/drizzle';
 import { InvestmentRepository } from '@/server/repositories/investment.repository';
@@ -12,7 +13,7 @@ export async function persistPortfolioSnapshotsUseCase(userId: string) {
     await lockPortfolio(userId, tx);
     const lots = await InvestmentRepository.findByUser(userId, tx);
     if (!lots.length) return { saved: 0 };
-    const symbols = [...new Set(lots.map((lot) => lot.symbol.toUpperCase()))];
+    const symbols = portfolioMarketSymbols(lots);
     const quotes = await MarketDataRepository.findBySymbols(symbols, tx);
     const today = financialDateKey(new Date());
     const points = buildPortfolioHistory(lots, batchResultsToSeriesIndex(quotes));

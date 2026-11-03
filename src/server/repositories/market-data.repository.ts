@@ -2,7 +2,7 @@ import { resolveDb, type DbExecutor } from './db-executor';
 import { db } from '@/server/db/drizzle';
 import { marketDataCache } from '@/server/db/schema';
 import { eq, inArray, sql } from 'drizzle-orm';
-import { normalizeSeriesValues } from '@/lib/types/market-data.types';
+import { validSeriesValues } from '@/lib/types/market-data.types';
 import type { MarketDataCacheRow, TimeSeriesEntry } from '@/lib/types/market-data.types';
 
 export class MarketDataRepository {
@@ -28,11 +28,13 @@ export class MarketDataRepository {
   }
 
   static async upsert(symbol: string, data: TimeSeriesEntry[]) {
+    const values = validSeriesValues(data);
+    if (!values.length) throw new Error(`No valid quotes for ${symbol}`);
     await db
       .insert(marketDataCache)
       .values({
         symbol: symbol.toUpperCase(),
-        data: normalizeSeriesValues(data),
+        data: values,
         last_updated: new Date(),
       })
       .onConflictDoUpdate({
@@ -47,6 +49,11 @@ export class MarketDataRepository {
               order by point->>'datetime', priority desc) unique_days)`,
           last_updated: new Date(),
         },
+        // Repeated or older unchanged quotes must not renew freshness.
+        setWhere: sql`exists (select 1 from jsonb_array_elements(excluded.data) incoming
+          where not exists (select 1 from jsonb_array_elements(${marketDataCache.data}) previous
+            where previous->>'datetime' = incoming->>'datetime'
+              and previous->>'close' = incoming->>'close'))`,
       });
   }
 }

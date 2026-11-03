@@ -91,7 +91,7 @@
       "systemTitle": "Categorie predefinite",
       "addLabel": "Aggiungi categoria",
       "inUseBadge": "In uso",
-      "inUseHint": "Usata da transazioni del gruppo: puoi modificarla, non eliminarla",
+      "inUseHint": "Usata da transazioni, budget, ricorrenze o importazioni: puoi modificarla, non eliminarla",
       "emptyCustom": "Nessuna categoria personalizzata",
       "emptySystem": "Nessuna categoria predefinita",
       "loadError": "Impossibile caricare le categorie.",
@@ -660,7 +660,8 @@
         "amountInvalid": "Importo non valido",
         "taxInvalid": "Tasse non valide",
         "sharesInvalid": "Quote non valide",
-        "dateRequired": "Data obbligatoria"
+        "dateRequired": "Data obbligatoria",
+        "rateInvalid": "Inserisci un cambio valido: EUR per 1 USD"
       },
       "title": {
         "create": "Aggiungi investimento",
@@ -675,11 +676,13 @@
         "name": "Nome",
         "symbol": "Simbolo di borsa",
         "symbolHelper": "Ticker di borsa (es. AAPL). Usato per i prezzi di mercato.",
-        "investedAmount": "Importo investito",
-        "taxesPaid": "Tasse pagate",
+        "investedAmount": "Costo d’acquisto (EUR)",
+        "taxesPaid": "Imposte pagate (EUR)",
         "sharesAcquired": "Quote acquisite",
         "purchaseDate": "Data acquisto",
-        "currency": "Valuta"
+        "currency": "Valuta",
+        "purchaseRate": "Cambio all’acquisto (EUR per USD)",
+        "purchaseRateHint": "Costo e imposte sono in EUR. La valutazione usa il cambio di mercato del giorno."
       },
       "placeholders": {
         "name": "Es. Apple Inc.",
@@ -1976,7 +1979,8 @@
         "updateFailed": "Impossibile aggiornare la categoria",
         "deleteFailed": "Impossibile eliminare la categoria",
         "systemImmutable": "Le categorie predefinite non possono essere modificate o eliminate",
-        "hasTransactions": "Questa categoria è usata da transazioni del gruppo e non può essere eliminata"
+        "hasTransactions": "Questa categoria è usata da transazioni del gruppo e non può essere eliminata",
+        "hasDependencies": "La categoria è utilizzata da transazioni, budget, ricorrenze o importazioni. Rimuovi prima i collegamenti attivi; i riferimenti storici devono essere conservati."
       }
     }
   },
@@ -2182,7 +2186,7 @@
   },
   "BankNotifications": {
     "title": "Importa dalle notifiche",
-    "intro": "Collega le notifiche Revolut al tuo conto EUR tramite l’automazione iOS già configurata. I messaggi non riconosciuti restano da verificare. Trade Republic e Credem saranno aggiunte quando avremo i loro formati.",
+    "intro": "Importa le notifiche Revolut sul tuo conto EUR. Non è una sincronizzazione bancaria completa: confronta i movimenti con l’estratto conto. I messaggi incerti restano da verificare.",
     "device": "Nome del dispositivo",
     "deviceExample": "iPhone personale",
     "account": "Conto Revolut EUR",
@@ -2190,7 +2194,7 @@
     "autoImport": "Importa automaticamente i movimenti riconosciuti. Le notifiche ambigue e i possibili duplicati richiedono verifica.",
     "connect": "Collega dispositivo",
     "secretOnce": "Copia ora il token: viene mostrato solo questa volta. Conservalo solo nella tua automazione.",
-    "shortcut1": "Nell’automazione Revolut, aggiungi “Ottieni contenuto dell’URL”. Usa l’URL qui sotto, metodo POST e corpo JSON.",
+    "shortcut1": "Prima dell’invio, salva il JSON della notifica in un file locale con un eventId stabile. Poi usa “Ottieni contenuto dell’URL”, metodo POST e corpo JSON.",
     "shortcut2": "Aggiungi le intestazioni Content-Type: application/json e Authorization con il valore Bearer mostrato sotto.",
     "shortcut3": "Collega title al Titolo, body al Corpo e occurredAt alla Data originale della notifica formattata ISO 8601 con fuso orario. Esempio: 2026-11-01T20:45:00+01:00.",
     "titleVariable": "[Notifica → Titolo]",
@@ -2198,7 +2202,7 @@
     "dateVariable": "[Notifica → Data, ISO 8601]",
     "copy": "Copia autorizzazione",
     "copied": "Copiato",
-    "retryHelp": "Per riprovare un invio usa sempre la stessa data originale. HTTP 200/201 conferma la ricezione, anche per i messaggi da verificare. Su 429 riprova dopo 60 secondi; su 503 conserva il messaggio e riprova. Il saldo indicato dalla banca non sovrascrive il saldo del conto.",
+    "retryHelp": "Conserva il file fino a una risposta con id e lo stesso eventId. Usa sempre il JSON salvato, senza rigenerare data o identificativo. Su errore di rete, 429 o 503 il file resta in coda; riprova dopo almeno 60 secondi. Il saldo della banca non sovrascrive quello del conto.",
     "devices": "Dispositivi collegati",
     "refresh": "Aggiorna notifiche",
     "revoked": "Revocato",
@@ -2237,6 +2241,7 @@
       "connection_unavailable": "Il conto o l’utente non appartiene più al gruppo. Crea un nuovo collegamento.",
       "duplicate_transaction": "Questo movimento risulta già importato. Aggiorna la lista.",
       "unauthorized": "Accedi di nuovo per continuare."
-    }
+    },
+    "eventIdVariable": "[UUID salvato una sola volta nel file]"
   }
 }

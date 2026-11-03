@@ -2,7 +2,8 @@ import { MarketDataRepository } from '@/server/repositories/market-data.reposito
 import { twelveData } from '@/lib/twelve-data';
 import type { TimeSeriesEntry, MarketDataBatchResult } from '@/lib/types/market-data.types';
 import {
-  normalizeSeriesValues,
+  validSeriesValues,
+  latestQuoteDate,
   getLatestCloseFromSeries as getLatestClose,
 } from '@/lib/types/market-data.types';
 
@@ -15,19 +16,20 @@ export async function getMarketDataUseCase(symbol: string): Promise<TimeSeriesEn
 
   // 1. Check cache
   const cached = await MarketDataRepository.findBySymbol(normalizedSymbol);
+  const cachedValues = validSeriesValues(cached?.data);
   const now = new Date();
   const isFresh =
     cached?.last_updated &&
     now.getTime() - new Date(cached.last_updated).getTime() < 24 * 60 * 60 * 1000;
 
-  if (isFresh && cached?.data) {
-    return normalizeSeriesValues(cached.data);
+  if (isFresh && cachedValues.length) {
+    return cachedValues;
   }
 
   // 2. Refresh needed - handle in background if we have stale data
-  if (cached?.data) {
+  if (cachedValues.length) {
     refreshMarketDataInBackground(normalizedSymbol);
-    return normalizeSeriesValues(cached.data);
+    return cachedValues;
   }
 
   // 3. Force fetch if no data at all
@@ -48,25 +50,26 @@ export async function getBatchMarketDataUseCase(
 
   for (const sym of normalized) {
     const cached = cacheMap.get(sym);
+    const cachedValues = validSeriesValues(cached?.data);
     const isFresh =
       cached?.last_updated &&
       now.getTime() - new Date(cached.last_updated).getTime() < 24 * 60 * 60 * 1000;
 
-    if (isFresh && cached?.data) {
+    if (isFresh && cached && cachedValues.length) {
       results.push({
         symbol: sym,
-        data: normalizeSeriesValues(cached.data),
-        lastUpdated: cached.last_updated ? new Date(cached.last_updated).toISOString() : null,
+        data: validSeriesValues(cached.data),
+        lastUpdated: latestQuoteDate(cached.data),
       });
       continue;
     }
 
-    if (cached?.data) {
+    if (cached && cachedValues.length) {
       refreshMarketDataInBackground(sym);
       results.push({
         symbol: sym,
-        data: normalizeSeriesValues(cached.data),
-        lastUpdated: cached.last_updated ? new Date(cached.last_updated).toISOString() : null,
+        data: validSeriesValues(cached.data),
+        lastUpdated: latestQuoteDate(cached.data),
       });
       continue;
     }
@@ -75,7 +78,7 @@ export async function getBatchMarketDataUseCase(
     results.push({
       symbol: sym,
       data: fetched,
-      lastUpdated: fetched.length > 0 ? new Date().toISOString() : null,
+      lastUpdated: latestQuoteDate(fetched),
     });
   }
 
@@ -107,7 +110,7 @@ async function fetchAndCacheMarketData(symbol: string): Promise<TimeSeriesEntry[
     if (!timeSeries || timeSeries.length === 0) {
       const quote = await twelveData.getQuote(symbol);
       if (quote?.close) {
-        const datetime = quote.datetime || new Date().toISOString();
+        const datetime = quote.datetime;
         timeSeries = [
           {
             time: datetime,
@@ -121,7 +124,7 @@ async function fetchAndCacheMarketData(symbol: string): Promise<TimeSeriesEntry[
       }
     }
 
-    const values = timeSeries && timeSeries.length > 0 ? normalizeSeriesValues(timeSeries) : [];
+    const values = timeSeries && timeSeries.length > 0 ? validSeriesValues(timeSeries) : [];
 
     if (values.length > 0) {
       await MarketDataRepository.upsert(symbol, values);

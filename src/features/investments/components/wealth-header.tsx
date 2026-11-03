@@ -21,8 +21,8 @@ function formatMarketFreshness(value: string | null | undefined, locale: string)
   return new Intl.DateTimeFormat(locale, {
     day: 'numeric',
     month: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
+    year: 'numeric',
+    timeZone: 'UTC',
   }).format(date);
 }
 

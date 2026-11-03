@@ -43,8 +43,9 @@ Le parentesi sono indicazioni: inserire le variabili dinamiche, non il testo
 letterale. Un timestamp valido è `2026-11-01T20:45:00+01:00`. La data di
 registrazione usa il calendario Europe/Rome. L’orario originale viene conservato
 nel messaggio ricevuto. Non usare “Data attuale” a ogni nuovo tentativo.
-`eventId` è opzionale: usarlo solo se la sorgente offre un identificativo stabile
-per la stessa notifica. Non generare un UUID diverso per ogni ritentativo.
+`eventId` resta opzionale per i client esistenti. Nella coda persistente descritta
+sotto va generato una sola volta alla ricezione e salvato insieme al messaggio.
+Non generare un UUID diverso per ogni ritentativo.
 
 Esempio reale verificato:
 
@@ -68,10 +69,74 @@ comunicato resta un dato di riscontro: non sovrascrive il saldo dell’app.
 - **429**: attendere almeno `Retry-After` (60 secondi).
 - **503** o errore di rete: conservare il messaggio e riprovare con gli stessi dati.
 
-Comandi Rapidi non garantisce da solo una coda di consegna persistente. Se si
-vuole recuperare anche le notifiche ricevute offline, mantenere l’azione Note
-esistente come copia locale e reinviare quelle senza risposta 200/201. Il server
-è idempotente anche se il primo invio è riuscito ma la risposta è andata persa.
+### Coda persistente sul dispositivo
+
+Questa è un’importazione delle notifiche catturate, non una sincronizzazione bancaria
+completa. Il server non può recuperare notifiche che iOS non ha consegnato al trigger.
+Confrontare periodicamente il ledger con un estratto conto, anche in modalità automatica.
+
+Configurare due comandi distinti sul proprio iPhone. La ricetta è una configurazione
+da costruire e verificare sul dispositivo, non un comando già installato dall’app.
+Usare una cartella **Sul mio iPhone**, disponibile offline, selezionata una volta
+nell’azione File; non affidare il salvataggio iniziale a iCloud Drive. Creare
+`Wealth Pillar/Da inviare` e `Wealth Pillar/Consegnate`. Il token sta solo nel comando
+di invio, mai nel file JSON. I file contengono dati finanziari personali.
+
+**Comando «Conserva notifica Wealth Pillar»**, chiamato dal trigger esistente:
+
+1. Acquisire titolo, corpo e data originale una sola volta.
+2. Se la sorgente ha un identificativo stabile, usare quello; altrimenti creare
+   un UUID con «Genera UUID» una sola volta per questa ricezione.
+3. Costruire un Dizionario con `provider`, `eventId`, `title`, `body`, `occurredAt`.
+   Formattare la data ISO 8601 con fuso e convertire il dizionario in testo JSON.
+4. Dare al testo il nome `<eventId>.json` e usare «Salva file» in `Da inviare`,
+   senza chiedere la destinazione e senza sovrascrivere un file esistente.
+   Se il salvataggio fallisce, interrompere e segnalare l’errore: non inviare prima.
+5. Solo dopo il salvataggio, eseguire «Invia coda Wealth Pillar». Conservare anche
+   l’azione Note già usata come copia durante il collaudo.
+
+**Comando «Invia coda Wealth Pillar»**, eseguibile anche dalla schermata Home:
+
+1. Ottenere i file di `Da inviare` (senza sottocartelle), filtrare `.json` e
+   usare «Ripeti con ogni elemento». Ogni notifica ha il proprio file; non usare
+   un unico elenco JSON condiviso che due automazioni potrebbero sovrascrivere.
+2. Leggere il file come Dizionario e conservarne `eventId`. Non rigenerare data,
+   identificativo o testo; inviare esattamente i campi salvati all’endpoint POST.
+3. Leggere la risposta come Dizionario. La consegna è confermata soltanto se
+   contiene un `id` non vuoto, `eventId` uguale a quello inviato, `status` tra
+   `pending`/`imported`/`ignored` e nessun `error`. Questo vale anche per i duplicati.
+4. Solo in quel caso spostare **quel file** in `Consegnate`. Non cancellare file
+   dalla coda per una risposta vuota, non JSON o contenente un errore.
+5. Su 429 interrompere la scansione e riprovare dopo almeno 60 secondi. Su
+   401/403 conservare i file e correggere il collegamento. Su 400/413/415 conservare
+   il file per correggerlo manualmente. Su 503 o errore di rete, fermarsi lasciando
+   tutti i file non confermati in `Da inviare`.
+
+Un errore di rete può interrompere automaticamente Comandi Rapidi prima del ramo
+«Se»: il salvataggio precedente rende comunque recuperabile il messaggio. Eseguire
+nuovamente il comando di invio dopo il ripristino della rete o il riavvio. È possibile
+collegarlo a un’automazione personale a orario; autorizzazioni ed esecuzione a schermo
+bloccato devono essere collaudate sulla versione iOS effettivamente usata. La cartella
+`Da inviare` è anche l’indicatore visibile degli invii ancora da recuperare.
+
+### Collaudo di consegna prima del rilascio
+
+| Scenario                   | Risultato richiesto                                                                              |
+| -------------------------- | ------------------------------------------------------------------------------------------------ |
+| Invio riuscito             | File in Consegnate, un evento server, saldo modificato una volta soltanto in modalità automatica |
+| Modalità manuale           | Risposta pending, saldo invariato fino alla conferma nella coda dell’app                         |
+| Offline prima del POST     | File in Da inviare; ripristino rete e rilancio consegnano lo stesso JSON                         |
+| Timeout dopo il commit     | Ripetere il JSON salvato: stesso id, duplicate=true, nessun secondo movimento                    |
+| Riavvio prima del reinvio  | File ancora leggibile localmente, data/eventId identici al primo tentativo                       |
+| Invii simultanei/duplicati | Un solo movimento e una sola variazione del saldo                                                |
+| Revoca del token           | Errore 401, file conservato; dopo nuovo token il reinvio è possibile                             |
+| Risposta vuota, HTML o 503 | Nessun file spostato in Consegnate                                                               |
+
+Test automatici server coprono persistenza, ritentativi, concorrenza, revisione e
+revoca. Il collaudo iPhone offline/riavvio e il confronto con un estratto conto reale
+anonimizzato restano un requisito operativo: non sono sostituibili con test Node.
+I passaggi usano i blocchi Dizionario e Ripeti con ogni elemento descritti nella
+[guida Apple](https://support.apple.com/guide/shortcuts/use-repeat-actions-apdc11deb2c1/ios).
 
 ## Regole di affidabilità
 

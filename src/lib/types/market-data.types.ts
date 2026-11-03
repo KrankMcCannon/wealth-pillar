@@ -55,6 +55,7 @@ export interface MarketQuote {
 export interface MarketDataBatchResult {
   symbol: string;
   data: TimeSeriesEntry[];
+  /** Latest valid quote day, not the time a provider request was attempted. */
   lastUpdated: string | null;
 }
 
@@ -87,7 +88,7 @@ export function extractDateFromEntry(entry: TimeSeriesEntry): string {
 export function getLatestCloseFromSeries(data: unknown): number {
   if (!Array.isArray(data) || data.length === 0) return 0;
 
-  const typedData = data as TimeSeriesEntry[];
+  const typedData = validSeriesValues(data);
   const first = typedData[0];
   if (!first) return 0;
   const latest = typedData.reduce((acc, current) => {
@@ -109,13 +110,13 @@ export function buildSeriesIndex(
 
   for (const row of seriesRows) {
     const symbol = String(row?.symbol || '').toUpperCase();
-    const data = Array.isArray(row?.data) ? row.data : [];
+    const data = validSeriesValues(row?.data);
     if (!symbol || data.length === 0) continue;
 
     const points = data
       .map((entry) => {
         const date = extractDateFromEntry(entry);
-        const close = Number.parseFloat(String(entry?.close));
+        const close = Number(entry?.close);
         return {
           date,
           close: Number.isFinite(close) ? close : 0,
@@ -158,4 +159,28 @@ export function normalizeSeriesValues(values: TimeSeriesEntry[]): TimeSeriesEntr
     const datetime = String(raw).split('T')[0];
     return { ...entry, datetime };
   });
+}
+
+/** Only dated, finite positive quotes may enter the cache or financial calculations. */
+export function validSeriesValues(values: unknown): TimeSeriesEntry[] {
+  if (!Array.isArray(values)) return [];
+  const today = new Date().toISOString().slice(0, 10);
+  return values.flatMap((entry: TimeSeriesEntry) => {
+    if (!entry || typeof entry !== 'object') return [];
+    const day = extractDateFromEntry(entry);
+    if (typeof entry.close !== 'number' && typeof entry.close !== 'string') return [];
+    const close = Number(entry.close);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || day > today || !Number.isFinite(close) || close <= 0)
+      return [];
+    const date = new Date(`${day}T00:00:00Z`);
+    if (!Number.isFinite(date.getTime()) || date.toISOString().slice(0, 10) !== day) return [];
+    return [{ ...entry, datetime: day, close }];
+  });
+}
+
+export function latestQuoteDate(values: unknown): string | null {
+  return validSeriesValues(values).reduce<string | null>(
+    (latest, point) => (!latest || point.datetime! > latest ? point.datetime! : latest),
+    null
+  );
 }

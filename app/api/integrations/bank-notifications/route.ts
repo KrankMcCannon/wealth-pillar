@@ -38,7 +38,10 @@ export async function POST(request: Request) {
     const input = notificationSchema.safeParse(JSON.parse(Buffer.concat(chunks).toString('utf8')));
     if (!input.success) throw new NotificationError('invalid_payload');
     const result = await ingestBankNotification(authorization.slice(7), input.data);
-    return Response.json(result, { status: result.duplicate ? 200 : 201, headers });
+    return Response.json(
+      { ...result, eventId: input.data.eventId ?? null },
+      { status: result.duplicate ? 200 : 201, headers }
+    );
   } catch (error) {
     if (error instanceof SyntaxError)
       return Response.json({ error: 'invalid_payload' }, { status: 400, headers });

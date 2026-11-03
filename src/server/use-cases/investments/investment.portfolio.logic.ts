@@ -14,6 +14,8 @@ import type {
   PortfolioSummary,
 } from './investment.types';
 
+import { conversionSymbol, valuationRate } from './currency-conversion';
+
 type InvestmentRow = typeof investments.$inferSelect;
 
 export type SeriesIndex = Record<string, ParsedSeriesPoint[]>;
@@ -52,16 +54,21 @@ export function enrichPortfolioFromInvestments(
 
   const enrichedInvestments: EnrichedInvestment[] = rows.map((inv) => {
     const symbolKey = inv.symbol.toUpperCase();
-    const currencyRate = Number(inv.currency_rate) || 1;
+    const currencyRate = valuationRate(inv.currency, financialDateKey(new Date()), seriesIndex);
     const shares = Number(inv.shares_acquired);
 
     const symbolData = seriesIndex[symbolKey];
     const livePrice = getCloseForDate(symbolData, financialDateKey(new Date()));
-    const currentValue = livePrice == null ? null : livePrice * currencyRate * shares;
+    const currentValue =
+      livePrice == null || currencyRate == null ? null : livePrice * currencyRate * shares;
 
     const creationDateKey = financialDateKey(inv.created_at || new Date());
     const initialPrice = getCloseForDate(symbolData, creationDateKey);
-    const initialValue = initialPrice == null ? null : initialPrice * currencyRate * shares;
+    const historicalRate = inv.currency === 'EUR' ? 1 : Number(inv.currency_rate);
+    const initialValue =
+      initialPrice == null || !Number.isFinite(historicalRate) || historicalRate <= 0
+        ? null
+        : initialPrice * historicalRate * shares;
 
     const investmentAmount = Number(inv.amount);
     const taxPaid = Number(inv.tax_paid) || 0;
@@ -91,7 +98,7 @@ export function enrichPortfolioFromInvestments(
             Number.isFinite(point.close) &&
             point.close > 0
         )?.date ?? null,
-      currentPrice: livePrice == null ? null : livePrice * currencyRate,
+      currentPrice: livePrice == null || currencyRate == null ? null : livePrice * currencyRate,
       currentValue,
       initialValue,
       totalPaid,
@@ -138,12 +145,17 @@ export function buildPortfolioHistory(
   const lots = rows.map((row) => ({
     start: financialDateKey(row.created_at ?? new Date()),
     symbol: row.symbol.toUpperCase(),
-    units: Number(row.shares_acquired) * (Number(row.currency_rate) || 1),
+    units: Number(row.shares_acquired),
+    currency: row.currency,
+    rateSymbol: conversionSymbol(row.currency),
   }));
   const earliest = lots.reduce((min, lot) => (lot.start < min ? lot.start : min), today);
   const current = new Date(`${earliest}T00:00:00Z`);
   const states = new Map<string, { cursor: number; price: number | null }>();
-  for (const lot of lots) states.set(lot.symbol, { cursor: 0, price: null });
+  for (const lot of lots) {
+    states.set(lot.symbol, { cursor: 0, price: null });
+    if (lot.rateSymbol) states.set(lot.rateSymbol, { cursor: 0, price: null });
+  }
   const history: { date: string; value: number }[] = [];
   while (normalizeDateKey(current) <= today) {
     const date = normalizeDateKey(current);
@@ -159,11 +171,13 @@ export function buildPortfolioHistory(
     for (const lot of lots) {
       if (lot.start > date) continue;
       const price = states.get(lot.symbol)!.price;
-      if (price == null) {
+      const rate =
+        lot.currency === 'EUR' ? 1 : lot.rateSymbol ? states.get(lot.rateSymbol)?.price : null;
+      if (price == null || rate == null) {
         complete = false;
         break;
       }
-      value += price * lot.units;
+      value += price * lot.units * rate;
     }
     // Incomplete totals must never become immutable financial snapshots.
     if (complete) history.push({ date, value });

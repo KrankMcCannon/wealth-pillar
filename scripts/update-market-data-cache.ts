@@ -2,6 +2,9 @@ import { db } from '../src/server/db/drizzle';
 import { investments, availableShares } from '../src/server/db/schema';
 import { MarketDataRepository } from '../src/server/repositories/market-data.repository';
 
+import { validSeriesValues } from '../src/lib/types/market-data.types';
+import { portfolioMarketSymbols } from '../src/server/use-cases/investments/currency-conversion';
+
 const BASE_URL = 'https://api.twelvedata.com';
 const DEFAULT_INTERVAL = '1day';
 const DEFAULT_OUTPUTSIZE = 365 * 2;
@@ -48,7 +51,14 @@ const fetchSymbols = async (from: string, limit: number) => {
   const query = db.selectDistinct({ symbol: table.symbol }).from(table);
   const data = limit > 0 ? await query.limit(limit) : await query;
   const symbols = (data || []).map((row) => row.symbol).filter(Boolean);
-  return Array.from(new Set(symbols.map((s) => String(s).toUpperCase())));
+  const currencies =
+    from === 'available_shares'
+      ? []
+      : await db.selectDistinct({ currency: investments.currency }).from(investments);
+  return portfolioMarketSymbols([
+    ...symbols.map((symbol) => ({ symbol: String(symbol), currency: 'EUR' })),
+    ...currencies.map(({ currency }) => ({ symbol: '', currency })),
+  ]).filter(Boolean);
 };
 
 const fetchTimeSeries = async (symbol: string, interval: string, outputsize: number) => {
@@ -61,7 +71,9 @@ const fetchTimeSeries = async (symbol: string, interval: string, outputsize: num
   if (json.status === 'error') {
     throw new Error(`TwelveData error for ${symbol}: ${JSON.stringify(json)}`);
   }
-  return json.values || [];
+  const values = validSeriesValues(json.values);
+  if (!values.length) throw new Error(`No valid quotes for ${symbol}`);
+  return values;
 };
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));

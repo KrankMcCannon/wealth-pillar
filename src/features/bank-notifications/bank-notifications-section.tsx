@@ -171,6 +171,7 @@ export function BankNotificationsSection({ user }: { user: User }) {
                 {JSON.stringify(
                   {
                     provider: 'revolut',
+                    eventId: t('eventIdVariable'),
                     title: t('titleVariable'),
                     body: t('bodyVariable'),
                     occurredAt: t('dateVariable'),

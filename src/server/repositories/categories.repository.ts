@@ -1,6 +1,6 @@
 import { db } from '@/server/db/drizzle';
 import { categories } from '@/server/db/schema';
-import { eq, or } from 'drizzle-orm';
+import { eq, or, sql } from 'drizzle-orm';
 import type { Category } from '@/lib/types';
 import { SYSTEM_GROUP_ID } from '@/lib/constants';
 
@@ -53,7 +53,27 @@ export class CategoriesRepository {
     return rows[0] as unknown as Category;
   }
 
+  static async usedKeys(groupId: string): Promise<string[]> {
+    const rows = await db.execute<{ category_key: string }>(
+      sql`select category_key from public.category_reference_keys(${groupId}::uuid)`
+    );
+    return rows.map((row) => row.category_key);
+  }
+
   static async delete(id: string): Promise<void> {
-    await db.delete(categories).where(eq(categories.id, id));
+    await db.transaction(async (tx) => {
+      const [category] = await tx
+        .select()
+        .from(categories)
+        .where(eq(categories.id, id))
+        .for('update');
+      if (!category) throw new Error('Category not found');
+      const used = await tx.execute(
+        sql`select 1 from public.category_reference_keys(NULL) where category_key = ${category.key} limit 1`
+      );
+      if (used.length) throw new Error('CATEGORY_IN_USE');
+      // Reference triggers share this row lock, preventing concurrent orphan creation.
+      await tx.delete(categories).where(eq(categories.id, id));
+    });
   }
 }

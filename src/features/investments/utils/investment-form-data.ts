@@ -16,6 +16,7 @@ export function mapInvestmentToFormData(row: InvestmentRow): InvestmentFormData 
     tax_paid: String(row.tax_paid ?? 0),
     shares: String(row.shares_acquired),
     currency,
+    currency_rate: currency === 'USD' ? String(row.currency_rate) : '',
     created_at: dateStr,
   };
 }
@@ -29,7 +30,7 @@ export function buildInvestmentPayload(data: InvestmentFormData) {
     currency: data.currency,
     created_at: data.created_at,
     tax_paid: parseDecimal(data.tax_paid) || 0,
-    currency_rate: 1,
+    currency_rate: data.currency === 'EUR' ? 1 : parseDecimal(data.currency_rate ?? '', 6),
     net_earn: 0,
   };
 }

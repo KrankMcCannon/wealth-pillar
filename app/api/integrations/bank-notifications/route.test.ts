@@ -36,7 +36,12 @@ it('acknowledges review items and never caches bank responses', async () => {
   const result = await POST(request());
   expect(result.status).toBe(201);
   expect(result.headers.get('cache-control')).toBe('no-store');
-  expect(await result.json()).toEqual({ id: 'event', status: 'pending', duplicate: false });
+  expect(await result.json()).toEqual({
+    id: 'event',
+    status: 'pending',
+    duplicate: false,
+    eventId: null,
+  });
 });
 it('rejects unauthenticated, oversized and malformed requests before database work', async () => {
   expect((await POST(request('{}', { authorization: '' }))).status).toBe(401);
@@ -52,4 +57,27 @@ it('provides a retry interval for throttled devices', async () => {
   const result = await POST(request());
   expect(result.status).toBe(429);
   expect(result.headers.get('retry-after')).toBe('60');
+});
+
+it('returns the stable client identity only after a committed delivery, including retries', async () => {
+  const payload = JSON.stringify({ ...input, eventId: 'persisted-on-device' });
+  const first = await POST(request(payload));
+  expect(first.status).toBe(201);
+  expect(await first.json()).toMatchObject({ eventId: 'persisted-on-device', id: 'event' });
+  vi.mocked(ingestBankNotification).mockResolvedValue({
+    id: 'event',
+    status: 'pending',
+    duplicate: true,
+  });
+  const retry = await POST(request(payload));
+  expect(retry.status).toBe(200);
+  expect(await retry.json()).toMatchObject({
+    eventId: 'persisted-on-device',
+    id: 'event',
+    duplicate: true,
+  });
+  vi.mocked(ingestBankNotification).mockRejectedValue(
+    new NotificationError('temporarily_unavailable', 503)
+  );
+  expect(await (await POST(request(payload))).json()).toEqual({ error: 'temporarily_unavailable' });
 });

@@ -19,6 +19,7 @@ export type InvestmentFormData = {
   shares: string;
   created_at: string;
   currency: 'EUR' | 'USD';
+  currency_rate?: string | undefined;
 };
 
 interface InvestmentFormFieldsProps {
@@ -30,6 +31,7 @@ interface InvestmentFormFieldsProps {
 export function InvestmentFormFields({ form, loadError, onRetryLoad }: InvestmentFormFieldsProps) {
   const t = useTranslations('Investments.AddModal');
   const { control } = form;
+  const currency = form.watch('currency');
 
   const currencyOptions = [
     { value: 'EUR', label: 'EUR' },
@@ -98,6 +100,16 @@ export function InvestmentFormFields({ form, loadError, onRetryLoad }: Investmen
           label={t('fields.currency')}
           options={[...currencyOptions]}
         />
+        {currency === 'USD' ? (
+          <ModalTextField
+            control={control}
+            name="currency_rate"
+            type="number"
+            label={t('fields.purchaseRate')}
+            hint={t('fields.purchaseRateHint')}
+            placeholder="0,86"
+          />
+        ) : null}
       </div>
     </>
   );

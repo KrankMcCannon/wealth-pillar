@@ -1,5 +1,16 @@
 # Wealth Pillar: backlog della Daily Review
 
+## Daily Review del 2–3 novembre 2026: PR #58
+
+Completate le tre correzioni residue: cambi all’acquisto preservati e conversione
+EUR/USD alla data di valutazione; cancellazione categorie protetta per tutti i
+riferimenti finanziari, anche concorrenti; quotazioni vuote/invalide/invariate che
+non rinnovano la freschezza. La risposta bancaria conferma l’identificativo persistito
+dal dispositivo e il runbook descrive coda locale, reinvio e collaudo iOS ancora necessario.
+
+La nuova migrazione `0008_category_reference_guards.sql` va applicata prima del codice.
+[Ambito, compatibilità, verifiche e rilascio](docs/releases/daily-review-november-3.md).
+
 ## Seconda review generale del 1 novembre 2026
 
 Correzioni trasversali e regressioni documentate nella
