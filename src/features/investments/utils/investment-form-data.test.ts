@@ -17,10 +17,13 @@ describe('investment-form-data', () => {
       created_at: new Date('2026-01-15T10:00:00.000Z'),
       updated_at: new Date('2026-01-15T10:00:00.000Z'),
       user_id: 'u1',
-      currency_rate: '1',
+      currency_rate: '0.86',
       net_earn: '0',
     });
 
+    expect(buildInvestmentPayload({ ...mapped, name: 'Renamed' })).not.toHaveProperty(
+      'currency_rate'
+    );
     expect(mapped).toEqual({
       name: 'Apple',
       symbol: 'AAPL',

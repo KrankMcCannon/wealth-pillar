@@ -15,11 +15,12 @@ export interface IconPickerProps {
   value: string;
   onChange: (iconName: string) => void;
   className?: string;
+  disabled?: boolean | undefined;
 }
 
 const MAX_RECENT = 5;
 
-export function IconPicker({ value, onChange, className }: Readonly<IconPickerProps>) {
+export function IconPicker({ value, onChange, className, disabled }: Readonly<IconPickerProps>) {
   const t = useTranslations('Forms.IconPicker');
   const [isOpen, setIsOpen] = React.useState(false);
   const [recent, setRecent] = useLocalStorage<string[]>('icon-picker-recent', []);
@@ -50,7 +51,7 @@ export function IconPicker({ value, onChange, className }: Readonly<IconPickerPr
 
   return (
     <div className={cn('flex flex-col gap-2', className)}>
-      <Button {...triggerProps} type="button" onClick={() => setIsOpen(true)}>
+      <Button {...triggerProps} disabled={disabled} type="button" onClick={() => setIsOpen(true)}>
         <SelectedIcon className={styles.triggerIcon} aria-hidden="true" />
         <span className={styles.triggerText}>{value || t('triggerDefaultText')}</span>
       </Button>
@@ -62,7 +63,7 @@ export function IconPicker({ value, onChange, className }: Readonly<IconPickerPr
         repositionInputs
         className="flex max-h-[70vh] flex-col p-0"
       >
-        <div className={cn(styles.dialogWrapper, 'min-h-[360px]')}>
+        <div className={cn(styles.dialogWrapper, 'h-[min(28rem,55dvh)]')}>
           <IconPickerContent value={value} recent={recent} onSelect={handleIconSelect} />
         </div>
       </ModalWrapper>

@@ -1,14 +1,24 @@
+import { historicalPurchaseRate } from '@/lib/currency/frankfurter';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
   getInvestmentsOverviewUseCase,
   resolveInvestmentsTargetUserIds,
+  updateInvestmentUseCase,
+  addInvestmentUseCase,
 } from './investment.use-cases';
 import { InvestmentRepository } from '@/server/repositories/investment.repository';
 import { getBatchMarketDataUseCase } from '../market-data/market-data.use-cases';
 
+vi.mock('@/lib/currency/frankfurter', () => ({
+  historicalPurchaseRate: vi.fn().mockResolvedValue(0.86),
+}));
+
 vi.mock('@/server/repositories/investment.repository', () => ({
   InvestmentRepository: {
     findByUser: vi.fn(),
+    findByIdAndUser: vi.fn(),
+    update: vi.fn(),
+    create: vi.fn(),
     findByUsers: vi.fn(),
     getTotalsByUsers: vi.fn(),
   },
@@ -111,5 +121,50 @@ describe('getInvestmentsOverviewUseCase', () => {
     expect(InvestmentRepository.findByUsers).toHaveBeenCalledTimes(1);
     expect(InvestmentRepository.findByUsers).toHaveBeenCalledWith(['user-1', 'user-2']);
     expect(InvestmentRepository.findByUser).not.toHaveBeenCalled();
+  });
+});
+
+describe('investment purchase rates', () => {
+  beforeEach(() => {
+    vi.mocked(InvestmentRepository.findByIdAndUser).mockResolvedValue({
+      currency: 'USD',
+      currency_rate: '0.86',
+    } as never);
+  });
+  it('preserves the stored rate on an unrelated partial update', async () => {
+    await updateInvestmentUseCase('lot', 'owner', { name: 'Renamed' });
+    expect(InvestmentRepository.update).toHaveBeenCalledWith(
+      'lot',
+      expect.objectContaining({ currency_rate: '0.86' }),
+      'owner'
+    );
+  });
+  it('obtains purchase FX automatically and ignores a client-supplied fixed rate', async () => {
+    vi.mocked(historicalPurchaseRate).mockResolvedValue(0.86);
+    await addInvestmentUseCase({
+      currency: 'USD',
+      currency_rate: 1,
+      created_at: '2026-10-30',
+    } as never);
+    expect(historicalPurchaseRate).toHaveBeenCalledWith('USD', '2026-10-30');
+    expect(InvestmentRepository.create).toHaveBeenCalledWith(
+      expect.objectContaining({ currency_rate: '0.86' })
+    );
+    vi.mocked(InvestmentRepository.findByIdAndUser).mockResolvedValue({
+      currency: 'EUR',
+      currency_rate: '1',
+    } as never);
+    await updateInvestmentUseCase('lot', 'owner', { currency: 'USD', created_at: '2026-10-30' });
+    expect(InvestmentRepository.update).toHaveBeenLastCalledWith(
+      'lot',
+      expect.objectContaining({ currency_rate: '0.86' }),
+      'owner'
+    );
+  });
+  it('does not write a guessed rate when the free provider is unavailable', async () => {
+    vi.mocked(historicalPurchaseRate).mockRejectedValueOnce(new Error('EXCHANGE_RATE_UNAVAILABLE'));
+    await expect(addInvestmentUseCase({ currency: 'USD' } as never)).rejects.toThrow(
+      'EXCHANGE_RATE_UNAVAILABLE'
+    );
   });
 });

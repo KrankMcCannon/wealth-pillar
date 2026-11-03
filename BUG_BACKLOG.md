@@ -1,5 +1,35 @@
 # Wealth Pillar: backlog della Daily Review
 
+## Conversione solo UI e applicazione migrazioni: PR #58
+
+Per transazioni, serie ricorrenti, budget e conti la valuta preferita riguarda
+soltanto la visualizzazione. I campi e i payload di transazioni, ricorrenze e budget
+restano in EUR, con controvalore non modificabile. Verificati i quattro componenti
+reali e i salvataggi con preferenza USD/GBP senza variazioni dei dati di origine.
+
+Il preflight Supabase del 3 novembre conferma il journal Drizzle vuoto e le due
+migrazioni ancora mancanti. [Procedura e script atomico](docs/releases/apply-pr58-migrations.md)
+applicano solo 0007 e 0008; nessuna migrazione è stata eseguita in produzione.
+
+## Valute: estensione della PR #58
+
+Cambi gratuiti correnti e storici da Frankfurter, senza chiavi o tassi fissi.
+Preferenza EUR/USD/GBP/CHF collegata a visualizzazione, grafici e campi monetari
+in tutta l’app; conversione inversa verso la contabilità EUR e centesimi preservati
+nelle modifiche senza variazione dell’importo. Cambio storico degli investimenti
+recuperato automaticamente sul server. [Dettagli](docs/currencies.md).
+
+## Daily Review del 2–3 novembre 2026: PR #58
+
+Completate le tre correzioni residue: cambi all’acquisto preservati e conversione
+EUR/USD alla data di valutazione; cancellazione categorie protetta per tutti i
+riferimenti finanziari, anche concorrenti; quotazioni vuote/invalide/invariate che
+non rinnovano la freschezza. La risposta bancaria conferma l’identificativo persistito
+dal dispositivo e il runbook descrive coda locale, reinvio e collaudo iOS ancora necessario.
+
+La nuova migrazione `0008_category_reference_guards.sql` va applicata prima del codice.
+[Ambito, compatibilità, verifiche e rilascio](docs/releases/daily-review-november-3.md).
+
 ## Seconda review generale del 1 novembre 2026
 
 Correzioni trasversali e regressioni documentate nella

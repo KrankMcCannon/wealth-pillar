@@ -61,12 +61,12 @@ export const formModalStyles = {
   paddedBody:
     'px-4 py-3 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
   paddedBodyBleed: '-mx-4',
-  amountSection: 'flex flex-col items-center py-2',
+  amountSection: 'flex w-full min-w-0 flex-col items-center px-4 py-2',
   amountEyebrow: 'mb-1 text-center text-xs font-medium text-muted-foreground',
-  amountRow: 'flex items-baseline justify-center gap-1 text-foreground/45',
-  amountCurrency: 'font-display text-3xl font-medium tabular-nums',
+  amountRow: 'flex w-full min-w-0 items-baseline justify-center gap-2 text-foreground/45',
+  amountCurrency: 'shrink-0 font-display text-3xl font-medium tabular-nums',
   amountInput:
-    'font-display w-[8ch] max-w-full border-0 bg-transparent p-0 text-center text-5xl font-semibold tabular-nums tracking-tight text-foreground shadow-none outline-none placeholder:text-muted-foreground focus:ring-0 focus-visible:border-0 focus-visible:ring-0',
+    'block w-0 min-w-0 flex-1 appearance-none font-display border-0 bg-transparent p-0 text-center text-5xl font-semibold tabular-nums tracking-tight text-foreground shadow-none outline-none placeholder:text-muted-foreground focus:ring-0 focus-visible:border-0 focus-visible:ring-0',
   fieldStack: 'divide-y divide-foreground/10',
   choice: {
     fieldset: 'm-0 min-w-0 w-full border-0 p-0',

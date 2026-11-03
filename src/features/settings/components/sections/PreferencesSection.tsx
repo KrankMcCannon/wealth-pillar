@@ -1,5 +1,6 @@
 'use client';
 
+import { useCurrency } from '@/providers/currency-provider';
 import { CreditCard, Globe, Moon, Languages } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useTheme } from 'next-themes';
@@ -33,6 +34,8 @@ export function PreferencesSection({
   onOpenLanguage,
   onOpenTimezone,
 }: Readonly<PreferencesSectionProps>) {
+  const currency = useCurrency();
+  const fx = useTranslations('Currency');
   const t = useTranslations('SettingsSections.Preferences');
   const locale = useLocale();
   const { theme, setTheme, resolvedTheme } = useTheme();
@@ -42,7 +45,7 @@ export function PreferencesSection({
 
   const isDark = mounted && (resolvedTheme ?? theme) === 'dark';
 
-  const currencyLabel = resolveOptionLabel('EUR', currencyOptions, 'EUR');
+  const currencyLabel = resolveOptionLabel(preferences?.currency, currencyOptions, 'EUR');
 
   const languageLabel = resolveOptionLabel(currentLanguage, languageOptions, t('languageFallback'));
 
@@ -55,6 +58,17 @@ export function PreferencesSection({
   return (
     <section className={stitchHome.scanSection}>
       <h3 className={s.sectionEyebrow}>{t('title')}</h3>
+      <p className="mb-3 text-xs text-muted-foreground" role="status">
+        {!currency.available
+          ? fx('unavailable')
+          : currency.currency === 'EUR'
+            ? fx('base')
+            : fx('rate', {
+                currency: currency.currency,
+                rate: currency.rate,
+                date: currency.date ?? '',
+              })}
+      </p>
       <div className={s.sectionCard}>
         <SettingsRow
           icon={<CreditCard className={s.rowIcon} aria-hidden />}

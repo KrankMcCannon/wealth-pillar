@@ -1,4 +1,5 @@
 'use client';
+import { useCurrency } from '@/providers/currency-provider';
 
 import { memo, useCallback, useMemo } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
@@ -7,7 +8,7 @@ import { CategorySelect } from '@/components/form/category-select';
 import type { Category } from '@/lib/types';
 import type { PrepareImportRowResult } from '@/lib/import';
 import { canSelectImportRow } from '../../utils/import-preview-state';
-import { formatCurrencyLocale } from '@/lib/utils/currency-formatter';
+
 import { formatDateShort, cn } from '@/lib/utils';
 import { stitchHome } from '@/styles/home-design-foundation';
 
@@ -44,6 +45,8 @@ function ImportPreviewRowComponent({
   onToggleInclude,
   onCategoryChange,
 }: Readonly<ImportPreviewRowProps>) {
+  const { format: formatCurrencyLocale } = useCurrency();
+
   const locale = useLocale();
 
   const formattedDate = useMemo(() => formatDateShort(row.date, locale), [locale, row.date]);

@@ -1,21 +1,8 @@
-/**
- * Reference Data Initializer
- *
- * Client component that initializes the reference data store with data from server components.
- * This bridges the gap between Server Components (which fetch data) and Client Components (which use stores).
- *
- * @module providers/reference-data-initializer
- */
-
 'use client';
 
-import { useMemo } from 'react';
+import { useLayoutEffect } from 'react';
 import { useReferenceDataStore } from '@/stores/reference-data-store';
 import type { Account, Category } from '@/lib/types';
-
-// ============================================================================
-// Types
-// ============================================================================
 
 interface ReferenceDataInitializerProps {
   children: React.ReactNode;
@@ -26,34 +13,16 @@ interface ReferenceDataInitializerProps {
   };
 }
 
-// ============================================================================
-// Component
-// ============================================================================
-
-/**
- * ReferenceDataInitializer
- *
- * Initializes the reference data store with server data on mount.
- * Prevents re-initialization on re-renders.
- */
+/** Apply each authoritative server snapshot before painting its consumers. */
 export function ReferenceDataInitializer({
   children,
   data,
 }: Readonly<ReferenceDataInitializerProps>) {
   const initialize = useReferenceDataStore((state) => state.initialize);
-  const isInitialized = useReferenceDataStore((state) => state.isInitialized);
-
-  const isReady = useMemo(() => {
-    if (!isInitialized && data) {
-      initialize(data);
-      return true;
-    }
-    return isInitialized;
-  }, [data, initialize, isInitialized]);
-
-  if (!isReady) {
-    return null;
-  }
-
+  useLayoutEffect(() => {
+    // A previous empty/partial load must not permanently block later catalogs.
+    // initialize reconciles balances by version and retains pending mutations.
+    initialize(data);
+  }, [data, initialize]);
   return <>{children}</>;
 }

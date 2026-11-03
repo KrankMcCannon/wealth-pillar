@@ -1,4 +1,5 @@
 'use client';
+import { useCurrency } from '@/providers/currency-provider';
 
 import { useId } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
@@ -28,6 +29,7 @@ interface InvestmentHistoryChartProps {
 }
 
 export function InvestmentHistoryChart({ data }: Readonly<InvestmentHistoryChartProps>) {
+  const { format: formatMoney } = useCurrency();
   const t = useTranslations('Investments.HistoryChart');
   const locale = useLocale();
   const titleId = useId();
@@ -41,9 +43,7 @@ export function InvestmentHistoryChart({ data }: Readonly<InvestmentHistoryChart
           count: data.length,
           from: formatLocaleMediumDate(firstPoint.date, locale),
           to: formatLocaleMediumDate(lastPoint.date, locale),
-          value: new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR' }).format(
-            lastPoint.value
-          ),
+          value: formatMoney(lastPoint.value, locale),
         })
       : null;
 
@@ -111,10 +111,10 @@ export function InvestmentHistoryChart({ data }: Readonly<InvestmentHistoryChart
                   tickFormatter={(value) => {
                     const n = Number(value);
                     if (!Number.isFinite(n)) return '';
-                    return `${new Intl.NumberFormat(locale, {
+                    return formatMoney(n, locale, {
                       notation: 'compact',
-                      compactDisplay: 'short',
-                    }).format(n)}€`;
+                      maximumFractionDigits: 1,
+                    });
                   }}
                   width={60}
                 />
@@ -122,9 +122,7 @@ export function InvestmentHistoryChart({ data }: Readonly<InvestmentHistoryChart
                   contentStyle={rechartsTooltipContentStyle()}
                   itemStyle={rechartsTooltipItemStyle}
                   formatter={(value) => [
-                    new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR' }).format(
-                      Number(value) || 0
-                    ),
+                    formatMoney(Number(value) || 0, locale),
                     t('valueSeriesLabel'),
                   ]}
                 />

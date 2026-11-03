@@ -65,3 +65,7 @@ node_modules/
 /monocart-report
 # ESLint incremental cache
 .eslintcache
+
+# Local browser inspection artifacts
+/.playwright-cli/
+/output/playwright/

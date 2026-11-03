@@ -1,4 +1,5 @@
 'use client';
+import { useCurrency } from '@/providers/currency-provider';
 
 import { useTranslations, useLocale } from 'next-intl';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
@@ -14,6 +15,7 @@ interface AssetAllocationCardProps {
 }
 
 export function AssetAllocationCard({ data, className }: AssetAllocationCardProps) {
+  const { format: formatMoney } = useCurrency();
   const t = useTranslations('Investments.PersonalTab');
   const locale = useLocale();
 
@@ -64,10 +66,7 @@ export function AssetAllocationCard({ data, className }: AssetAllocationCardProp
                             {item.name}
                           </p>
                           <p className="text-xl font-semibold tabular-nums text-foreground">
-                            {new Intl.NumberFormat(locale, {
-                              style: 'currency',
-                              currency: 'EUR',
-                            }).format(item.value)}
+                            {formatMoney(item.value, locale)}
                           </p>
                         </div>
                       );
@@ -82,11 +81,7 @@ export function AssetAllocationCard({ data, className }: AssetAllocationCardProp
           <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
             <span className={stitchInvestments.chartCardTitle}>{t('totalPaidLabel')}</span>
             <span className="mt-1 text-3xl font-semibold tabular-nums tracking-tight text-foreground">
-              {new Intl.NumberFormat(locale, {
-                style: 'currency',
-                currency: 'EUR',
-                maximumFractionDigits: 0,
-              }).format(totalValue)}
+              {formatMoney(totalValue, locale)}
             </span>
           </div>
         </div>
@@ -108,11 +103,7 @@ export function AssetAllocationCard({ data, className }: AssetAllocationCardProp
                   </span>
                 </span>
                 <span className="shrink-0 text-base font-semibold tabular-nums text-foreground">
-                  {new Intl.NumberFormat(locale, {
-                    style: 'currency',
-                    currency: 'EUR',
-                    maximumFractionDigits: 0,
-                  }).format(entry.value)}
+                  {formatMoney(entry.value, locale)}
                 </span>
               </li>
             );

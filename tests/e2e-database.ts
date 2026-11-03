@@ -51,6 +51,14 @@ export async function seedE2EDatabase(clerkId: string, email: string) {
         readFileSync('src/server/db/drizzle/20261101191621_account_balance_versions.sql', 'utf8')
       )
     );
+    for (const statement of readFileSync(
+      'src/server/db/drizzle/0008_category_reference_guards.sql',
+      'utf8'
+    )
+      .split('--> statement-breakpoint')
+      .filter((part) => part.trim())) {
+      await db.unsafe(statement);
+    }
     const groupId = randomUUID();
     const userId = randomUUID();
     const accountId = randomUUID();

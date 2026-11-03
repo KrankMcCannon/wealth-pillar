@@ -490,3 +490,29 @@ it.each(['projection-first', 'mutation-first'] as const)(
     }
   }
 );
+
+it('persists mixed-currency history with dated FX and omits days before any required FX exists', async () => {
+  for (const currency of ['EUR', 'USD']) {
+    await InvestmentRepository.create({
+      user_id: adminA,
+      name: currency,
+      symbol: 'AAA',
+      amount: '100',
+      shares_acquired: currency === 'USD' ? '10' : '2',
+      currency,
+      currency_rate: currency === 'USD' ? '0.75' : '1',
+      created_at: new Date('2026-10-30T12:00:00Z'),
+    });
+  }
+  await MarketDataRepository.upsert('AAA', [{ datetime: '2026-10-30', close: 200 }]);
+  expect(await persistPortfolioSnapshotsUseCase(adminA)).toEqual({ saved: 0 });
+  expect(await PortfolioSnapshotRepository.findByUserIds([adminA])).toEqual([]);
+  await MarketDataRepository.upsert('USD/EUR', [
+    { datetime: '2026-10-30', close: 0.8 },
+    { datetime: '2026-11-02', close: 0.86 },
+  ]);
+  await persistPortfolioSnapshotsUseCase(adminA);
+  const points = await PortfolioSnapshotRepository.findByUserIds([adminA]);
+  expect(Number(points.find((point) => point.snapshot_date === '2026-10-30')?.value)).toBe(2000);
+  expect(Number(points.find((point) => point.snapshot_date === '2026-11-02')?.value)).toBe(2120);
+});

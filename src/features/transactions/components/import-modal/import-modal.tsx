@@ -1,4 +1,5 @@
 'use client';
+import { useCurrency } from '@/providers/currency-provider';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
@@ -6,7 +7,7 @@ import { Upload } from 'lucide-react';
 import { useRouter } from '@/i18n/routing';
 import { CategorySelect } from '@/components/form/category-select';
 import { CompactSegments } from '../filter-dock';
-import { formatCurrencyLocale } from '@/lib/utils/currency-formatter';
+
 import {
   restorePreviewChoices,
   setPreviewSelection,
@@ -143,6 +144,8 @@ function GroupMappingFields({
 }
 
 export default function ImportModal({ isOpen, onClose }: Readonly<ImportModalProps>) {
+  const { format: formatCurrencyLocale } = useCurrency();
+
   const t = useTranslations('Transactions.ImportModal');
   const locale = useLocale();
   const router = useRouter();

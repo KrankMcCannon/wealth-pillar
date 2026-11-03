@@ -1,10 +1,11 @@
 'use client';
+import { useCurrency } from '@/providers/currency-provider';
 
 import type { UseFormReturn } from 'react-hook-form';
 import { useMemo } from 'react';
 import { useWatch } from 'react-hook-form';
 import { useLocale, useTranslations } from 'next-intl';
-import { formatCurrencyLocale } from '@/lib/utils/currency-formatter';
+
 import { parseDecimal } from '@/lib/utils/parse-decimal';
 import type { Budget, BudgetType, User } from '@/lib/types';
 import {
@@ -50,6 +51,8 @@ export function BudgetFormFields({
   shouldDisableUserField,
   isSubmitting,
 }: BudgetFormFieldsProps) {
+  const { format: formatCurrencyLocale } = useCurrency();
+
   const t = useTranslations('Budgets.FormModal');
   const { control } = form;
   const ux = useTranslations('Budgets.UX');
@@ -88,6 +91,7 @@ export function BudgetFormFields({
   return (
     <>
       <ModalAmountField
+        inputCurrency="EUR"
         control={control}
         name="amount"
         label={type === 'annually' ? ux('annual') : t('fields.amount.label')}
@@ -131,7 +135,7 @@ export function BudgetFormFields({
               .map((b) => b.description);
             return {
               ...option,
-              label: names.length ? `${option.label} · ${names.join(', ')}` : option.label,
+              description: names.length ? names.join(', ') : '',
             };
           })}
           shape="chips"

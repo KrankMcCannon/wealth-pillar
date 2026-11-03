@@ -14,6 +14,7 @@ import {
 } from '@/features/settings';
 import { SettingsModalsProvider } from '@/features/settings/context/settings-modals-context';
 import SettingsModalRenderer from '@/features/settings/components/settings-modal-renderer';
+import { BankNotificationsSection } from '@/features/bank-notifications/bank-notifications-section';
 import type { User, UserPreferences } from '@/lib/types';
 
 interface SettingsContentProps {
@@ -78,6 +79,8 @@ export default function SettingsContent({
           />
 
           <CategoriesSection onManageCategories={() => openSettingsModal('categories')} />
+
+          <BankNotificationsSection user={displayUser} />
 
           <PreferencesSection
             preferences={preferences}

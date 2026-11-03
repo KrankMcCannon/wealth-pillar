@@ -6,12 +6,7 @@ import { useTranslations } from 'next-intl';
 import { cn } from '@/lib';
 import { getColorPalette } from '@/server/use-cases/categories/category.logic';
 import { categoryStyles, getCategoryColorStyle } from '../theme/category-styles';
-import {
-  ModalIconField,
-  ModalRootError,
-  ModalTextField,
-  ModalFieldError,
-} from '@/components/form/modal-fields';
+import { ModalIconField, ModalTextField, ModalFieldError } from '@/components/form/modal-fields';
 import { formModalStyles as s } from '@/components/form/form-modal-styles';
 import { Input } from '@/components/ui/input';
 
@@ -41,18 +36,18 @@ export function CategoryFormFields({ form, isEditMode }: CategoryFormFieldsProps
   useEffect(() => {
     if (!isEditMode && watchedLabel) {
       const generatedKey = watchedLabel
+        .normalize('NFD')
+        .replaceAll(/[\u0300-\u036f]/g, '')
         .toLowerCase()
         .trim()
         .replaceAll(/[^a-z0-9]+/g, '_')
         .replaceAll(/(^_+)|(_+$)/g, '');
-      setValue('key', generatedKey);
+      setValue('key', generatedKey || 'category');
     }
   }, [watchedLabel, isEditMode, setValue]);
 
   return (
     <>
-      {errors.root?.message ? <ModalRootError message={errors.root.message} /> : null}
-
       <div className={s.fieldStack}>
         <ModalTextField
           control={control}
@@ -69,8 +64,10 @@ export function CategoryFormFields({ form, isEditMode }: CategoryFormFieldsProps
           disabled={isSubmitting}
         />
 
-        <div className={s.noteShell}>
-          <p className={s.noteLabel}>{t('fields.color.label')}</p>
+        <div className="flex min-w-0 flex-col gap-3 px-4 py-3">
+          <label htmlFor="category-color" className={s.field.textLabel}>
+            {t('fields.color.label')}
+          </label>
           <div className={categoryStyles.formModal.colorSection}>
             <div
               className={categoryStyles.formModal.palette}
@@ -90,6 +87,30 @@ export function CategoryFormFields({ form, isEditMode }: CategoryFormFieldsProps
                     disabled={isSubmitting}
                     aria-pressed={undefined}
                     role="radio"
+                    tabIndex={isSelected ? 0 : -1}
+                    onKeyDown={(event) => {
+                      const step =
+                        event.key === 'ArrowRight' || event.key === 'ArrowDown'
+                          ? 1
+                          : event.key === 'ArrowLeft' || event.key === 'ArrowUp'
+                            ? -1
+                            : 0;
+                      if (!step) return;
+                      event.preventDefault();
+                      const index = colorPalette.findIndex(
+                        (option) => option.value === color.value
+                      );
+                      const next =
+                        colorPalette[(index + step + colorPalette.length) % colorPalette.length]!;
+                      setValue('color', next.value, { shouldDirty: true, shouldTouch: true });
+                      const buttons =
+                        event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>(
+                          '[role="radio"]'
+                        );
+                      buttons?.[
+                        (index + step + colorPalette.length) % colorPalette.length
+                      ]?.focus();
+                    }}
                     aria-checked={isSelected}
                     aria-label={color.name}
                     className={cn(
@@ -126,15 +147,20 @@ export function CategoryFormFields({ form, isEditMode }: CategoryFormFieldsProps
               render={({ field }) => (
                 <Input
                   {...field}
+                  id="category-color"
+                  aria-invalid={!!errors.color}
+                  aria-describedby={errors.color ? 'category-color-error' : undefined}
                   value={field.value ?? ''}
                   placeholder={t('fields.color.placeholder')}
                   disabled={isSubmitting}
-                  className={s.noteInput}
+                  className="w-full font-mono"
                 />
               )}
             />
           </div>
-          {errors.color?.message ? <ModalFieldError message={errors.color.message} /> : null}
+          {errors.color?.message ? (
+            <ModalFieldError id="category-color-error" message={errors.color.message} />
+          ) : null}
         </div>
       </div>
     </>

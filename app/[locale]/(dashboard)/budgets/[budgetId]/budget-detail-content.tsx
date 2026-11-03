@@ -1,4 +1,5 @@
 'use client';
+import { useCurrency } from '@/providers/currency-provider';
 
 import { use, useMemo } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
@@ -14,7 +15,7 @@ import { useTransactionEditStore } from '@/features/transactions/stores/transact
 import { useModalState } from '@/lib/navigation/url-state';
 import { useEntityFormPermissions } from '@/components/form';
 import { toDateTime, formatDateShort } from '@/lib/utils/date-utils';
-import { formatCurrencyLocale } from '@/lib/utils/currency-formatter';
+
 import type { User } from '@/lib/types';
 import type { BudgetDetailPageData } from '@/server/use-cases/pages/budget-detail-page.types';
 import { formatGroupedTransactionsForClient } from '@/features/budgets/utils/format-budget-detail-transactions';
@@ -28,6 +29,8 @@ interface BudgetDetailContentProps {
 }
 
 export default function BudgetDetailContent({ pageDataPromise }: BudgetDetailContentProps) {
+  const { format: formatCurrencyLocale } = useCurrency();
+
   const pageData = use(pageDataPromise);
   const {
     budget,

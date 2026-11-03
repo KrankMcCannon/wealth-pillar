@@ -1,10 +1,10 @@
 'use client';
+import { useCurrency } from '@/providers/currency-provider';
 
 import { useLocale, useTranslations } from 'next-intl';
 import type { UserBudgetSummary } from '@/lib/types';
 import { stitchBudgets } from '@/styles/home-design-foundation';
 import { cn } from '@/lib/utils';
-import { formatCurrencyLocale } from '@/lib/utils/currency-formatter';
 
 export interface BudgetsSummaryHeroProps {
   readonly summary: UserBudgetSummary;
@@ -17,6 +17,8 @@ export interface BudgetsSummaryHeroProps {
 }
 
 export function BudgetsSummaryHero({ summary, labels }: Readonly<BudgetsSummaryHeroProps>) {
+  const { format: formatCurrencyLocale } = useCurrency();
+
   const locale = useLocale();
   const ux = useTranslations('Budgets.UX');
   const availableFormatted = formatCurrencyLocale(summary.totalRemaining, locale);

@@ -1,3 +1,4 @@
+import { CategoriesRepository } from '@/server/repositories/categories.repository';
 import { cached } from '@/lib/cache';
 import { CACHE_TAGS, cacheOptions, CACHE_TTL } from '@/lib/cache/config';
 import { transactionCacheKeys } from '@/lib/cache/keys';
@@ -85,11 +86,17 @@ export async function getUsedCategoryKeysByGroupUseCase(groupId: string): Promis
   if (!groupId?.trim()) throw new Error('Group ID is required');
 
   const getCachedKeys = cached(
-    async () => TransactionsRepository.getUsedCategoryKeysByGroup(groupId),
+    async () => CategoriesRepository.usedKeys(groupId),
     [`group:${groupId}:used-category-keys`],
     {
       revalidate: CACHE_TTL.TRANSACTION,
-      tags: [CACHE_TAGS.TRANSACTIONS, `group:${groupId}:transactions`],
+      tags: [
+        CACHE_TAGS.TRANSACTIONS,
+        `group:${groupId}:transactions`,
+        `group:${groupId}:budgets`,
+        `group:${groupId}:recurring`,
+        `group:${groupId}:categories`,
+      ],
     }
   );
 

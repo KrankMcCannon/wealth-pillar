@@ -1,5 +1,6 @@
 'use client';
 
+import { CURRENCIES } from '@/lib/currency/types';
 import { parseDecimal } from '@/lib/utils/parse-decimal';
 import { todayDateString } from '@/lib/utils/date-utils';
 
@@ -45,7 +46,7 @@ const createInvestmentSchema = (t: ReturnType<typeof useTranslations>) =>
         t('validation.sharesInvalid')
       ),
     created_at: z.string().min(1, t('validation.dateRequired')),
-    currency: z.enum(['EUR', 'USD']),
+    currency: z.enum(CURRENCIES),
   });
 
 interface AddInvestmentModalProps {

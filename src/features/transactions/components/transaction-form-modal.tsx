@@ -431,6 +431,8 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
       isOpen={isOpen}
       onClose={handleClose}
       title={title}
+      formClassName="flex min-h-0 flex-1 flex-col [&_[data-slot=field-group]]:gap-1"
+      wrapperProps={{ className: 'max-h-[96dvh]' }}
       schema={transactionSchema}
       defaultValues={createDefaults}
       resetValues={resetValues ?? createValues}

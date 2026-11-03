@@ -1,4 +1,5 @@
 'use client';
+import { useCurrency } from '@/providers/currency-provider';
 
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
@@ -13,7 +14,7 @@ import { currentSpendable, spendableByDay } from '@/features/transactions/utils/
 import { pickVisibleLedgerDay } from '@/features/transactions/utils/visible-ledger-day';
 import { getCategoryLabel } from '@/server/use-cases/categories/category.logic';
 import { useInfiniteScrollSentinel } from '@/hooks/use-infinite-scroll-sentinel';
-import { formatCurrencyLocale } from '@/lib/utils/currency-formatter';
+
 import { cn } from '@/lib/utils';
 import { stitchHome, stitchTransactions } from '@/styles/home-design-foundation';
 import { transactionStyles } from '@/features/transactions/theme/transaction-styles';
@@ -30,6 +31,8 @@ import {
 import type { TransactionsLedgerProps } from './transactions-workspace-props';
 
 export function TransactionsLedger(props: TransactionsLedgerProps) {
+  const { format: formatCurrencyLocale } = useCurrency();
+
   const tLedger = useTranslations('TransactionsContent.Ledger');
   const tFilters = useTranslations('Transactions.Filters');
   const locale = useLocale();

@@ -1,5 +1,6 @@
 'use client';
 
+import type { Currency } from '@/lib/currency/types';
 import type { UseFormReturn } from 'react-hook-form';
 import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
@@ -18,7 +19,7 @@ export type InvestmentFormData = {
   tax_paid: string;
   shares: string;
   created_at: string;
-  currency: 'EUR' | 'USD';
+  currency: Currency;
 };
 
 interface InvestmentFormFieldsProps {
@@ -34,6 +35,8 @@ export function InvestmentFormFields({ form, loadError, onRetryLoad }: Investmen
   const currencyOptions = [
     { value: 'EUR', label: 'EUR' },
     { value: 'USD', label: 'USD' },
+    { value: 'GBP', label: 'GBP' },
+    { value: 'CHF', label: 'CHF' },
   ] as const;
 
   return (

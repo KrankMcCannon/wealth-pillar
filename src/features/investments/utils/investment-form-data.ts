@@ -1,3 +1,4 @@
+import { isCurrency, type Currency } from '@/lib/currency/types';
 import { financialDateKey } from '@/lib/utils/financial-date';
 import { parseDecimal } from '@/lib/utils/parse-decimal';
 import type { investments } from '@/server/db/schema';
@@ -7,7 +8,7 @@ type InvestmentRow = typeof investments.$inferSelect;
 
 export function mapInvestmentToFormData(row: InvestmentRow): InvestmentFormData {
   const dateStr = financialDateKey(row.created_at ?? new Date());
-  const currency: 'EUR' | 'USD' = row.currency === 'USD' ? 'USD' : 'EUR';
+  const currency: Currency = isCurrency(row.currency) ? row.currency : 'EUR';
 
   return {
     name: row.name,
@@ -29,7 +30,6 @@ export function buildInvestmentPayload(data: InvestmentFormData) {
     currency: data.currency,
     created_at: data.created_at,
     tax_paid: parseDecimal(data.tax_paid) || 0,
-    currency_rate: 1,
     net_earn: 0,
   };
 }

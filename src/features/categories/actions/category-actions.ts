@@ -16,7 +16,6 @@ import {
 import { isValidColor, isSystemCategory } from '@/server/use-cases/categories/category.logic';
 import type { Category } from '@/lib/types';
 import type { ServiceResult } from '@/lib/types/service-result';
-import { getTransactionsByGroupUseCase } from '@/server/use-cases/transactions/get-transactions.use-case';
 
 async function getCategoryActionTranslator(locale?: string) {
   if (locale) {
@@ -220,17 +219,6 @@ export async function deleteCategoryAction(
       return { data: null, error: t('errors.permissionDenied') };
     }
 
-    if (existingCategory.group_id) {
-      const usage = await getTransactionsByGroupUseCase(existingCategory.group_id, {
-        category: existingCategory.key,
-        limit: 1,
-        countTotal: true,
-      });
-      if (usage.total > 0) {
-        return { data: null, error: t('errors.hasTransactions') };
-      }
-    }
-
     const result = await deleteCategoryUseCase(id);
 
     if (result) {
@@ -239,6 +227,8 @@ export async function deleteCategoryAction(
 
     return { data: null, error: t('errors.deleteFailed') };
   } catch (error) {
+    if (error instanceof Error && error.message === 'CATEGORY_IN_USE')
+      return { data: null, error: t?.('errors.hasDependencies') ?? 'Category is in use' };
     return {
       data: null,
       error:

@@ -52,6 +52,7 @@ vi.mock('@/hooks/use-required-user', () => ({
 }));
 
 vi.mock('@/stores/reference-data-store', () => ({
+  useAccounts: () => [],
   useCategories: () => [],
   useUsedCategoryKeys: () => [],
 }));

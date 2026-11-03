@@ -91,9 +91,18 @@
       "systemTitle": "Default categories",
       "addLabel": "Add category",
       "inUseBadge": "In use",
-      "inUseHint": "Used by group transactions: you can edit it, not delete it",
+      "inUseHint": "Used by transactions, budgets, recurring items or imports: you can edit it, but cannot delete it",
       "emptyCustom": "No custom categories yet",
-      "emptySystem": "No default categories"
+      "emptySystem": "No default categories",
+      "loadError": "Could not load categories.",
+      "retry": "Try again",
+      "loading": "Loading categories…",
+      "searchPlaceholder": "Search categories…",
+      "filterLabel": "Show categories",
+      "allFilter": "All",
+      "groupFilter": "Group",
+      "systemFilter": "System",
+      "noResults": "No categories match your search."
     },
     "Preferences": {
       "title": "Preferences",
@@ -145,7 +154,7 @@
       },
       "title": "Invite member",
       "emailLabel": "Email",
-      "emailPlaceholder": "Email",
+      "emailPlaceholder": "name@example.com",
       "noteLabel": "Note:",
       "noteText": "The new member will receive an email with an invitation link valid for 7 days. They can accept the invitation by creating an account or signing in with an existing account.",
       "cancelButton": "Cancel",
@@ -651,7 +660,8 @@
         "amountInvalid": "Invalid amount",
         "taxInvalid": "Invalid taxes",
         "sharesInvalid": "Invalid shares",
-        "dateRequired": "Date is required"
+        "dateRequired": "Date is required",
+        "rateInvalid": "Enter a valid rate: EUR per 1 USD"
       },
       "title": {
         "create": "Add investment",
@@ -666,11 +676,13 @@
         "name": "Name",
         "symbol": "Ticker symbol",
         "symbolHelper": "Exchange ticker (e.g. AAPL). Used for market prices.",
-        "investedAmount": "Invested amount",
+        "investedAmount": "Purchase cost",
         "taxesPaid": "Taxes paid",
         "sharesAcquired": "Shares acquired",
         "purchaseDate": "Purchase date",
-        "currency": "Currency"
+        "currency": "Currency",
+        "purchaseRate": "Purchase rate (EUR per USD)",
+        "purchaseRateHint": "The purchase exchange rate is retrieved automatically for the selected date."
       },
       "placeholders": {
         "name": "e.g. Apple Inc.",
@@ -1967,7 +1979,8 @@
         "updateFailed": "Failed to update category",
         "deleteFailed": "Failed to delete category",
         "systemImmutable": "Default categories cannot be edited or deleted",
-        "hasTransactions": "This category is used by group transactions and cannot be deleted"
+        "hasTransactions": "This category is used by group transactions and cannot be deleted",
+        "hasDependencies": "This category is used by transactions, budgets, recurring items or imports. Remove active links first; historical references must be retained."
       }
     }
   },
@@ -2170,5 +2183,71 @@
     "description": "Loading failed. Your transactions have not been deleted. Please try again.",
     "retry": "Try again",
     "home": "Back to home"
+  },
+  "BankNotifications": {
+    "title": "Import from notifications",
+    "intro": "Import Revolut notifications into your EUR account. This is not a full bank sync: reconcile transactions with your statement. Uncertain messages stay in review.",
+    "device": "Device name",
+    "deviceExample": "Personal iPhone",
+    "account": "Revolut EUR account",
+    "category": "Default category",
+    "autoImport": "Automatically import recognized movements. Ambiguous notifications and possible duplicates require review.",
+    "connect": "Connect device",
+    "secretOnce": "Copy the token now: it is shown only once. Keep it only in your automation.",
+    "shortcut1": "Before sending, save the notification JSON in a local file with a stable eventId. Then use “Get Contents of URL”, POST and a JSON body.",
+    "shortcut2": "Add Content-Type: application/json and Authorization headers with the Bearer value below.",
+    "shortcut3": "Map title to Title, body to Body and occurredAt to the original notification Date formatted as ISO 8601 with a time zone. Example: 2026-11-01T20:45:00+01:00.",
+    "titleVariable": "[Notification → Title]",
+    "bodyVariable": "[Notification → Body]",
+    "dateVariable": "[Notification → Date, ISO 8601]",
+    "copy": "Copy authorization",
+    "copied": "Copied",
+    "retryHelp": "Keep the file until a response contains an id and the same eventId. Always resend the saved JSON without regenerating its date or identity. Network errors, 429 and 503 leave the file queued; retry after at least 60 seconds. The bank balance does not overwrite the account balance.",
+    "devices": "Connected devices",
+    "refresh": "Refresh notifications",
+    "revoked": "Revoked",
+    "automatic": "Automatic import",
+    "reviewMode": "Review before importing",
+    "revoke": "Revoke",
+    "inbox": "Received notifications",
+    "inboxHint": "Up to 50 notifications, with pending reviews first. Categories confirmed during review are remembered for the same merchant.",
+    "loading": "Loading…",
+    "empty": "No notifications received yet.",
+    "unrecognized": "Unrecognized format. You can ignore the notification and enter the movement manually.",
+    "import": "Confirm import",
+    "ignore": "Ignore",
+    "statuses": {
+      "pending": "Needs review",
+      "imported": "Imported",
+      "ignored": "Ignored"
+    },
+    "reasons": {
+      "unsupported_provider": "This bank’s mapping is not available yet.",
+      "missing_date": "The original notification date is missing. Fix the automation and enter this movement manually.",
+      "future_date": "The date is in the future. Check the format and time zone.",
+      "unconfirmed_movement": "Refund, reversal or unconfirmed movement: check manually.",
+      "unknown_format": "The text does not match a verified Revolut format.",
+      "invalid_amount": "Invalid amount.",
+      "missing_merchant": "The merchant could not be identified.",
+      "invalid_category": "Choose a category available to your group.",
+      "possible_duplicate": "A movement already has the same date, amount and direction. Check it before confirming.",
+      "review_mode": "This device requires review before importing."
+    },
+    "errors": {
+      "unavailable": "Could not load or save. Please try again.",
+      "clipboard": "Copy the token manually: the clipboard is unavailable.",
+      "device_limit": "You can have up to 10 active devices. Revoke one before adding more.",
+      "invalid_category": "Choose a category available to your group.",
+      "connection_unavailable": "The account or user no longer belongs to the group. Create a new connection.",
+      "duplicate_transaction": "This movement has already been imported. Refresh the list.",
+      "unauthorized": "Sign in again to continue."
+    },
+    "eventIdVariable": "[UUID saved once in the file]"
+  },
+  "Currency": {
+    "base": "Accounts are recorded in EUR. Free daily rates from Frankfurter.",
+    "unavailable": "Exchange rate unavailable: amounts remain visible in EUR. Try again later.",
+    "rate": "1 EUR = {rate} {currency} · rate dated {date} · Frankfurter",
+    "saveUnavailable": "The purchase-date exchange rate is unavailable. Your changes were not saved; try again later."
   }
 }

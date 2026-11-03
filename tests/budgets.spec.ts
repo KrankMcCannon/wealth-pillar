@@ -102,11 +102,11 @@ test('creates a shared-category envelope with a long name and exposes the over-l
   await form
     .getByRole('textbox', { name: 'Descrizione', exact: true })
     .fill('Budget per le spese ricorrenti della famiglia con descrizione molto lunga');
-  await form.getByRole('button', { name: /^Categorie/ }).click();
+  await form.getByRole('combobox', { name: /^Categorie/ }).click();
   const picker = page
     .getByRole('dialog')
     .filter({ has: page.getByRole('heading', { name: 'Categorie', exact: true }) });
-  await picker.getByText('E2E Food · E2E Food Budget', { exact: true }).click();
+  await picker.getByRole('option', { name: /E2E Food E2E Food Budget/ }).click();
   await picker.getByRole('button', { name: 'Chiudi finestra', exact: true }).click();
   await expect(form).toContainText('Categorie condivise con: E2E Food Budget');
   await form.getByRole('button', { name: 'Crea budget', exact: true }).click();
@@ -143,7 +143,7 @@ test('keeps cycle management available after deleting every envelope', async ({ 
     const form = page.getByRole('dialog');
     await form.getByRole('textbox', { name: 'Importo', exact: true }).fill('500');
     await form.getByRole('textbox', { name: 'Descrizione', exact: true }).fill('E2E Food Budget');
-    await form.getByRole('button', { name: /^Categorie/ }).click();
+    await form.getByRole('combobox', { name: /^Categorie/ }).click();
     const picker = page
       .getByRole('dialog')
       .filter({ has: page.getByRole('heading', { name: 'Categorie', exact: true }) });

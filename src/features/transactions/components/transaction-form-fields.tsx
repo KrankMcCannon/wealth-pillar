@@ -92,6 +92,7 @@ export function TransactionFormFields({
   return (
     <>
       <ModalAmountField
+        inputCurrency="EUR"
         control={control}
         name="amount"
         label={t('fields.amount.label')}
@@ -149,24 +150,14 @@ export function TransactionFormFields({
         <ModalDateField control={control} name="date" label={t('fields.date.label')} required />
 
         {userOptions.length > 1 && !shouldDisableUserField ? (
-          userOptions.length <= 5 ? (
-            <ModalRadioField
-              control={control}
-              name="user_id"
-              label={t('fields.user.label')}
-              options={userOptions}
-              disabled={shouldDisableUserField || isSubmitting}
-            />
-          ) : (
-            <ModalSelectField
-              control={control}
-              name="user_id"
-              label={t('fields.user.label')}
-              options={userOptions}
-              placeholder={t('fields.user.placeholder')}
-              disabled={shouldDisableUserField || isSubmitting}
-            />
-          )
+          <ModalSelectField
+            control={control}
+            name="user_id"
+            label={t('fields.user.label')}
+            options={userOptions}
+            placeholder={t('fields.user.placeholder')}
+            disabled={shouldDisableUserField || isSubmitting}
+          />
         ) : null}
       </div>
     </>

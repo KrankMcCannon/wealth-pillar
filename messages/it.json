@@ -91,9 +91,18 @@
       "systemTitle": "Categorie predefinite",
       "addLabel": "Aggiungi categoria",
       "inUseBadge": "In uso",
-      "inUseHint": "Usata da transazioni del gruppo: puoi modificarla, non eliminarla",
+      "inUseHint": "Usata da transazioni, budget, ricorrenze o importazioni: puoi modificarla, non eliminarla",
       "emptyCustom": "Nessuna categoria personalizzata",
-      "emptySystem": "Nessuna categoria predefinita"
+      "emptySystem": "Nessuna categoria predefinita",
+      "loadError": "Impossibile caricare le categorie.",
+      "retry": "Riprova",
+      "loading": "Caricamento categorie…",
+      "searchPlaceholder": "Cerca categorie…",
+      "filterLabel": "Mostra categorie",
+      "allFilter": "Tutte",
+      "groupFilter": "Gruppo",
+      "systemFilter": "Generali",
+      "noResults": "Nessuna categoria corrisponde alla ricerca."
     },
     "Preferences": {
       "title": "Preferenze",
@@ -145,7 +154,7 @@
       },
       "title": "Invita membro",
       "emailLabel": "Email",
-      "emailPlaceholder": "Email",
+      "emailPlaceholder": "nome@esempio.it",
       "noteLabel": "Nota:",
       "noteText": "Il nuovo membro riceverà un'email con un link di invito valido per 7 giorni. Potrà accettare l'invito creando un account o accedendo con un account esistente.",
       "cancelButton": "Annulla",
@@ -651,7 +660,8 @@
         "amountInvalid": "Importo non valido",
         "taxInvalid": "Tasse non valide",
         "sharesInvalid": "Quote non valide",
-        "dateRequired": "Data obbligatoria"
+        "dateRequired": "Data obbligatoria",
+        "rateInvalid": "Inserisci un cambio valido: EUR per 1 USD"
       },
       "title": {
         "create": "Aggiungi investimento",
@@ -666,11 +676,13 @@
         "name": "Nome",
         "symbol": "Simbolo di borsa",
         "symbolHelper": "Ticker di borsa (es. AAPL). Usato per i prezzi di mercato.",
-        "investedAmount": "Importo investito",
-        "taxesPaid": "Tasse pagate",
+        "investedAmount": "Costo d’acquisto",
+        "taxesPaid": "Imposte pagate",
         "sharesAcquired": "Quote acquisite",
         "purchaseDate": "Data acquisto",
-        "currency": "Valuta"
+        "currency": "Valuta",
+        "purchaseRate": "Cambio all’acquisto (EUR per USD)",
+        "purchaseRateHint": "Il cambio all’acquisto viene recuperato automaticamente alla data selezionata."
       },
       "placeholders": {
         "name": "Es. Apple Inc.",
@@ -1967,7 +1979,8 @@
         "updateFailed": "Impossibile aggiornare la categoria",
         "deleteFailed": "Impossibile eliminare la categoria",
         "systemImmutable": "Le categorie predefinite non possono essere modificate o eliminate",
-        "hasTransactions": "Questa categoria è usata da transazioni del gruppo e non può essere eliminata"
+        "hasTransactions": "Questa categoria è usata da transazioni del gruppo e non può essere eliminata",
+        "hasDependencies": "La categoria è utilizzata da transazioni, budget, ricorrenze o importazioni. Rimuovi prima i collegamenti attivi; i riferimenti storici devono essere conservati."
       }
     }
   },
@@ -2170,5 +2183,71 @@
     "description": "Il caricamento non è riuscito. I movimenti non sono stati cancellati. Riprova.",
     "retry": "Riprova",
     "home": "Torna alla home"
+  },
+  "BankNotifications": {
+    "title": "Importa dalle notifiche",
+    "intro": "Importa le notifiche Revolut sul tuo conto EUR. Non è una sincronizzazione bancaria completa: confronta i movimenti con l’estratto conto. I messaggi incerti restano da verificare.",
+    "device": "Nome del dispositivo",
+    "deviceExample": "iPhone personale",
+    "account": "Conto Revolut EUR",
+    "category": "Categoria predefinita",
+    "autoImport": "Importa automaticamente i movimenti riconosciuti. Le notifiche ambigue e i possibili duplicati richiedono verifica.",
+    "connect": "Collega dispositivo",
+    "secretOnce": "Copia ora il token: viene mostrato solo questa volta. Conservalo solo nella tua automazione.",
+    "shortcut1": "Prima dell’invio, salva il JSON della notifica in un file locale con un eventId stabile. Poi usa “Ottieni contenuto dell’URL”, metodo POST e corpo JSON.",
+    "shortcut2": "Aggiungi le intestazioni Content-Type: application/json e Authorization con il valore Bearer mostrato sotto.",
+    "shortcut3": "Collega title al Titolo, body al Corpo e occurredAt alla Data originale della notifica formattata ISO 8601 con fuso orario. Esempio: 2026-11-01T20:45:00+01:00.",
+    "titleVariable": "[Notifica → Titolo]",
+    "bodyVariable": "[Notifica → Corpo]",
+    "dateVariable": "[Notifica → Data, ISO 8601]",
+    "copy": "Copia autorizzazione",
+    "copied": "Copiato",
+    "retryHelp": "Conserva il file fino a una risposta con id e lo stesso eventId. Usa sempre il JSON salvato, senza rigenerare data o identificativo. Su errore di rete, 429 o 503 il file resta in coda; riprova dopo almeno 60 secondi. Il saldo della banca non sovrascrive quello del conto.",
+    "devices": "Dispositivi collegati",
+    "refresh": "Aggiorna notifiche",
+    "revoked": "Revocato",
+    "automatic": "Importazione automatica",
+    "reviewMode": "Verifica prima di importare",
+    "revoke": "Revoca",
+    "inbox": "Notifiche ricevute",
+    "inboxHint": "Fino a 50 notifiche, prima quelle da verificare. La categoria scelta in verifica viene ricordata per i prossimi movimenti dello stesso esercente.",
+    "loading": "Caricamento…",
+    "empty": "Nessuna notifica ricevuta.",
+    "unrecognized": "Formato non riconosciuto. Puoi ignorare la notifica e inserire il movimento manualmente.",
+    "import": "Conferma importazione",
+    "ignore": "Ignora",
+    "statuses": {
+      "pending": "Da verificare",
+      "imported": "Importata",
+      "ignored": "Ignorata"
+    },
+    "reasons": {
+      "unsupported_provider": "La mappatura di questa banca non è ancora disponibile.",
+      "missing_date": "Manca la data originale della notifica. Correggi l’automazione e inserisci questo movimento manualmente.",
+      "future_date": "La data è nel futuro. Controlla il formato e il fuso orario.",
+      "unconfirmed_movement": "Rimborso, storno o movimento non confermato: verifica manualmente.",
+      "unknown_format": "Il testo non corrisponde a un formato Revolut verificato.",
+      "invalid_amount": "Importo non valido.",
+      "missing_merchant": "Non è stato identificato l’esercente.",
+      "invalid_category": "Scegli una categoria disponibile nel gruppo.",
+      "possible_duplicate": "Esiste già un movimento con stessa data, importo e direzione. Controllalo prima di confermare.",
+      "review_mode": "Il dispositivo è configurato per la verifica prima dell’importazione."
+    },
+    "errors": {
+      "unavailable": "Non è stato possibile caricare o salvare. Riprova.",
+      "clipboard": "Copia il token manualmente: gli appunti non sono disponibili.",
+      "device_limit": "Puoi avere fino a 10 dispositivi attivi. Revocane uno prima di aggiungerne altri.",
+      "invalid_category": "Scegli una categoria disponibile nel gruppo.",
+      "connection_unavailable": "Il conto o l’utente non appartiene più al gruppo. Crea un nuovo collegamento.",
+      "duplicate_transaction": "Questo movimento risulta già importato. Aggiorna la lista.",
+      "unauthorized": "Accedi di nuovo per continuare."
+    },
+    "eventIdVariable": "[UUID salvato una sola volta nel file]"
+  },
+  "Currency": {
+    "base": "Importi contabili in EUR. Cambi giornalieri gratuiti da Frankfurter.",
+    "unavailable": "Cambio non disponibile: gli importi restano visibili in EUR. Riprova più tardi.",
+    "rate": "1 EUR = {rate} {currency} · cambio del {date} · Frankfurter",
+    "saveUnavailable": "Cambio alla data di acquisto non disponibile. I dati non sono stati salvati: riprova più tardi."
   }
 }

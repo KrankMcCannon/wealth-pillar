@@ -52,7 +52,7 @@ test('creates a transaction and keeps it after a reload', async ({ page }) => {
   const dialog = page.getByRole('dialog');
   await dialog.getByLabel('Descrizione', { exact: true }).fill(description);
   await dialog.locator('input[placeholder="0,00"]').fill('10');
-  await dialog.getByRole('combobox', { name: 'Seleziona categoria' }).click();
+  await dialog.getByRole('combobox', { name: 'Categoria', exact: true }).click();
   await page.getByRole('option', { name: 'E2E Food', exact: true }).click();
   await dialog.getByRole('button', { name: 'Crea transazione', exact: true }).click();
   await expect(dialog).toBeHidden();

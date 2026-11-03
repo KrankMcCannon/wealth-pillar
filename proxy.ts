@@ -12,6 +12,7 @@ const isPublicRoute = createRouteMatcher([
   '/sign-in(.*)',
   '/sign-up(.*)',
   '/api/webhooks(.*)',
+  '/api/integrations/bank-notifications',
   // Allow root path for redirection
   '/',
 ]);
@@ -76,6 +77,8 @@ const clerkProxy = clerkMiddleware(async (auth, request) => {
   if (shouldProtect) {
     await auth.protect();
   }
+
+  if (isApiOrTrpcRequest(pathname)) return withClerkNetlifyVary(NextResponse.next());
 
   // Skip locale redirects for Server Action requests only.
   // Other RSC/page requests still need next-intl middleware for locale routing.

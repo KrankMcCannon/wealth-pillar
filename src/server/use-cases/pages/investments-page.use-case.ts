@@ -2,6 +2,13 @@ import { cacheLife, cacheTag } from 'next/cache';
 import type { User } from '@/lib/types';
 import type { TimeSeriesEntry } from '@/lib/types/market-data.types';
 import { withTimeout } from '@/lib/utils/with-timeout';
+import { AvailableSharesRepository } from '@/server/repositories/available-shares.repository';
+import {
+  buildSeriesIndex,
+  getCloseForDate,
+  validSeriesValues,
+} from '@/lib/types/market-data.types';
+import { conversionSymbol } from '../investments/currency-conversion';
 import { getMarketDataUseCase } from '../market-data/market-data.use-cases';
 import {
   getInvestmentsOverviewUseCase,
@@ -68,7 +75,7 @@ async function getCachedInvestmentsPageData(
 
   const [overview, indexData] = await Promise.all([
     getInvestmentsOverviewUseCase(targetUserIds),
-    withTimeout(getMarketDataUseCase(indexSymbol), 1500, [] as TimeSeriesEntry[]),
+    withTimeout(getBenchmarkInEuro(indexSymbol), 1500, [] as TimeSeriesEntry[]),
   ]);
 
   return {
@@ -96,4 +103,18 @@ export async function getInvestmentsPageData(
   const data = await getCachedInvestmentsPageData(groupId, targetUserIds, indexSymbol, userScope);
 
   return scopeInvestmentsPageData(data, currentUser);
+}
+
+async function getBenchmarkInEuro(symbol: string): Promise<TimeSeriesEntry[]> {
+  const instrument = await AvailableSharesRepository.findBySymbol(symbol);
+  if (!instrument?.currency) return [];
+  const prices = validSeriesValues(await getMarketDataUseCase(symbol));
+  if (instrument.currency === 'EUR') return prices;
+  const pair = conversionSymbol(instrument.currency);
+  if (!pair) return [];
+  const index = buildSeriesIndex([{ symbol: pair, data: await getMarketDataUseCase(pair) }]);
+  return prices.flatMap((point) => {
+    const rate = getCloseForDate(index[pair], point.datetime);
+    return rate == null ? [] : [{ ...point, close: Number(point.close) * rate }];
+  });
 }

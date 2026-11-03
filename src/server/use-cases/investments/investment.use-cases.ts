@@ -1,3 +1,6 @@
+import { historicalPurchaseRate } from '@/lib/currency/frankfurter';
+import { financialDateKey } from '@/lib/utils/financial-date';
+import { portfolioMarketSymbols } from './currency-conversion';
 import { InvestmentRepository } from '@/server/repositories/investment.repository';
 import { investments } from '@/server/db/schema';
 import { getBatchMarketDataUseCase } from '../market-data/market-data.use-cases';
@@ -45,7 +48,7 @@ export async function getInvestmentsOverviewUseCase(
   }
 
   const sqlTotals = await InvestmentRepository.getTotalsByUsers(ids);
-  const symbols = [...new Set(rows.map((inv) => inv.symbol.toUpperCase()))];
+  const symbols = portfolioMarketSymbols(rows);
   const batch = await getBatchMarketDataUseCase(symbols);
   const seriesIndex = batchResultsToSeriesIndex(batch);
   const freshnessTimes = batch
@@ -77,7 +80,12 @@ export async function addInvestmentUseCase(data: InvestmentInsert) {
     ...data,
     amount: data.amount?.toString(),
     shares_acquired: data.shares_acquired?.toString(),
-    currency_rate: data.currency_rate?.toString(),
+    currency_rate: (
+      await historicalPurchaseRate(
+        data.currency ?? 'EUR',
+        financialDateKey(data.created_at ?? new Date())
+      )
+    ).toString(),
     tax_paid: data.tax_paid?.toString(),
     net_earn: data.net_earn?.toString(),
     created_at: data.created_at ? new Date(data.created_at) : new Date(),
@@ -102,7 +110,17 @@ export async function updateInvestmentUseCase(
     ...data,
     amount: data.amount?.toString(),
     shares_acquired: data.shares_acquired?.toString(),
-    currency_rate: data.currency_rate?.toString(),
+    currency_rate:
+      (data.currency && data.currency !== existing.currency) ||
+      (data.created_at &&
+        financialDateKey(data.created_at) !== financialDateKey(existing.created_at ?? new Date()))
+        ? (
+            await historicalPurchaseRate(
+              data.currency ?? existing.currency,
+              financialDateKey(data.created_at ?? existing.created_at ?? new Date())
+            )
+          ).toString()
+        : existing.currency_rate,
     tax_paid: data.tax_paid?.toString(),
     net_earn: data.net_earn?.toString(),
     created_at: data.created_at ? new Date(data.created_at) : undefined,

@@ -26,6 +26,7 @@
  */
 
 'use client';
+import { useCurrency } from '@/providers/currency-provider';
 
 import { SectionHeader } from '@/components/layout';
 import { EmptyState } from '@/components/shared';
@@ -36,7 +37,7 @@ import { transactionStyles } from '@/features/transactions/theme/transaction-sty
 import { stitchHome, stitchTransactions } from '@/styles/home-design-foundation';
 import { Skeleton } from '@/components/ui/skeleton';
 import { TransactionDayGroupSkeleton } from '@/components/ui/primitives/skeletons';
-import { formatCurrency, cn } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { FileText, type LucideIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
@@ -126,6 +127,8 @@ export function TransactionDayList({
   className,
   onEditTransaction,
 }: Readonly<TransactionDayListProps>) {
+  const { format: formatCurrency } = useCurrency();
+
   const t = useTranslations('Transactions.DayList');
   const hasTransactions = groupedTransactions.length > 0;
   const resolvedEmptyTitle = emptyTitle ?? t('empty.title');

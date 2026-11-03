@@ -1,5 +1,6 @@
 'use server';
 
+import { getTranslations } from 'next-intl/server';
 import { invalidateInvestmentCaches } from '@/lib/utils/cache-utils';
 import { getCurrentUser } from '@/lib/auth/cached-auth';
 import * as useCases from '@/server/use-cases';
@@ -49,7 +50,7 @@ export async function updateInvestmentAction(input: {
       amount: input.amount,
       shares_acquired: input.shares_acquired,
       currency: input.currency,
-      currency_rate: input.currency_rate ?? 1,
+      ...(input.currency_rate !== undefined ? { currency_rate: input.currency_rate } : {}),
       tax_paid: input.tax_paid ?? 0,
       net_earn: input.net_earn ?? 0,
       created_at: new Date(input.created_at).toISOString(),
@@ -63,7 +64,12 @@ export async function updateInvestmentAction(input: {
     console.error('Error updating investment:', error);
     return {
       data: null,
-      error: error instanceof Error ? error.message : 'Failed to update investment',
+      error:
+        error instanceof Error && error.message === 'EXCHANGE_RATE_UNAVAILABLE'
+          ? (await getTranslations('Currency'))('saveUnavailable')
+          : error instanceof Error
+            ? error.message
+            : 'Failed to update investment',
     };
   }
 }
@@ -88,7 +94,7 @@ export async function createInvestmentAction(
       amount: input.amount,
       shares_acquired: input.shares_acquired,
       currency: input.currency,
-      currency_rate: input.currency_rate || 1,
+      ...(input.currency_rate !== undefined ? { currency_rate: input.currency_rate } : {}),
       tax_paid: input.tax_paid || 0,
       net_earn: input.net_earn || 0,
       created_at: input.created_at
@@ -108,7 +114,12 @@ export async function createInvestmentAction(
     console.error('Error creating investment:', error);
     return {
       data: null,
-      error: error instanceof Error ? error.message : 'Failed to create investment',
+      error:
+        error instanceof Error && error.message === 'EXCHANGE_RATE_UNAVAILABLE'
+          ? (await getTranslations('Currency'))('saveUnavailable')
+          : error instanceof Error
+            ? error.message
+            : 'Failed to create investment',
     };
   }
 }

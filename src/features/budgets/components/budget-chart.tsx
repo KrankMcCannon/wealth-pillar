@@ -1,7 +1,8 @@
 'use client';
+import { useCurrency } from '@/providers/currency-provider';
 import { useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { formatCurrencyLocale } from '@/lib/utils/currency-formatter';
+
 import { formatDateShort } from '@/lib/utils/date-utils';
 import { SectionDisclosure } from '@/components/shared/section-disclosure';
 export interface ChartDataPoint {
@@ -16,6 +17,8 @@ export interface BudgetChartProps {
   chartData: ChartDataPoint[] | null;
 }
 export function BudgetChart({ spent, chartData }: Readonly<BudgetChartProps>) {
+  const { format: formatCurrencyLocale } = useCurrency();
+
   const t = useTranslations('Budgets.Chart');
   const ux = useTranslations('Budgets.UX');
   const locale = useLocale();

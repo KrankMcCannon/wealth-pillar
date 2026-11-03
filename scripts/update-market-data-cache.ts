@@ -1,13 +1,17 @@
+import { isCurrency } from '../src/lib/currency/types';
+import { fetchExchangeRates } from '../src/lib/currency/frankfurter';
 import { db } from '../src/server/db/drizzle';
 import { investments, availableShares } from '../src/server/db/schema';
 import { MarketDataRepository } from '../src/server/repositories/market-data.repository';
+
+import { validSeriesValues } from '../src/lib/types/market-data.types';
+import { portfolioMarketSymbols } from '../src/server/use-cases/investments/currency-conversion';
 
 const BASE_URL = 'https://api.twelvedata.com';
 const DEFAULT_INTERVAL = '1day';
 const DEFAULT_OUTPUTSIZE = 365 * 2;
 
 const { TWELVE_DATA_API_KEY } = process.env;
-if (!TWELVE_DATA_API_KEY) throw new Error('Missing Twelve Data API key');
 
 const parseArgs = () => {
   const args = process.argv.slice(2);
@@ -48,10 +52,26 @@ const fetchSymbols = async (from: string, limit: number) => {
   const query = db.selectDistinct({ symbol: table.symbol }).from(table);
   const data = limit > 0 ? await query.limit(limit) : await query;
   const symbols = (data || []).map((row) => row.symbol).filter(Boolean);
-  return Array.from(new Set(symbols.map((s) => String(s).toUpperCase())));
+  const currencies =
+    from === 'available_shares'
+      ? []
+      : await db.selectDistinct({ currency: investments.currency }).from(investments);
+  return portfolioMarketSymbols([
+    ...symbols.map((symbol) => ({ symbol: String(symbol), currency: 'EUR' })),
+    ...currencies.map(({ currency }) => ({ symbol: '', currency })),
+  ]).filter(Boolean);
 };
 
 const fetchTimeSeries = async (symbol: string, interval: string, outputsize: number) => {
+  const [base, quote] = symbol.split('/');
+  if (isCurrency(base) && isCurrency(quote)) {
+    const from = new Date();
+    from.setUTCFullYear(from.getUTCFullYear() - 2);
+    return (
+      await fetchExchangeRates(base, [quote], undefined, from.toISOString().slice(0, 10))
+    ).map((row) => ({ datetime: row.date, close: row.rate }));
+  }
+  if (!TWELVE_DATA_API_KEY) throw new Error('Missing Twelve Data API key for stock prices');
   const url = `${BASE_URL}/time_series?symbol=${symbol}&interval=${interval}&outputsize=${outputsize}&apikey=${TWELVE_DATA_API_KEY}`;
   const res = await fetch(url);
   if (!res.ok) {
@@ -61,7 +81,9 @@ const fetchTimeSeries = async (symbol: string, interval: string, outputsize: num
   if (json.status === 'error') {
     throw new Error(`TwelveData error for ${symbol}: ${JSON.stringify(json)}`);
   }
-  return json.values || [];
+  const values = validSeriesValues(json.values);
+  if (!values.length) throw new Error(`No valid quotes for ${symbol}`);
+  return values;
 };
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -72,6 +94,9 @@ const main = async () => {
     options.symbols.length > 0
       ? Array.from(new Set(options.symbols.map((s) => s.toUpperCase())))
       : await fetchSymbols(options.from, options.limit);
+
+  for (const pair of ['EUR/USD', 'EUR/GBP', 'EUR/CHF'])
+    if (!symbols.includes(pair)) symbols.push(pair);
 
   if (symbols.length === 0) {
     process.stdout.write('No symbols found to update.\n');
