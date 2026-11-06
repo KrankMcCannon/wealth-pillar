@@ -157,30 +157,47 @@ export function buildPortfolioHistory(
     if (lot.rateSymbol) states.set(lot.rateSymbol, { cursor: 0, price: null });
   }
   const history: { date: string; value: number }[] = [];
+  const startDates = new Set(lots.map((lot) => lot.start));
+  const valuedLots = lots.map((lot) => ({
+    ...lot,
+    priceState: states.get(lot.symbol)!,
+    rateState: lot.rateSymbol ? states.get(lot.rateSymbol) : undefined,
+  }));
+  let complete = false;
+  let value = 0;
+  let firstDay = true;
   while (normalizeDateKey(current) <= today) {
     const date = normalizeDateKey(current);
+    let changed = firstDay || startDates.has(date);
     for (const [symbol, state] of states) {
       const series = seriesIndex[symbol] ?? [];
       while (state.cursor < series.length && series[state.cursor]!.date <= date) {
         const point = series[state.cursor++]!;
-        if (Number.isFinite(point.close) && point.close > 0) state.price = point.close;
+        if (Number.isFinite(point.close) && point.close > 0 && point.close !== state.price) {
+          state.price = point.close;
+          changed = true;
+        }
       }
     }
-    let complete = true;
-    let value = 0;
-    for (const lot of lots) {
-      if (lot.start > date) continue;
-      const price = states.get(lot.symbol)!.price;
-      const rate =
-        lot.currency === 'EUR' ? 1 : lot.rateSymbol ? states.get(lot.rateSymbol)?.price : null;
-      if (price == null || rate == null) {
-        complete = false;
-        break;
+    // Reuse the previous daily total only when both holdings and valid prices are unchanged.
+    if (changed) {
+      complete = true;
+      value = 0;
+      for (const lot of valuedLots) {
+        if (lot.start > date) continue;
+        const price = lot.priceState.price;
+        const rate = lot.currency === 'EUR' ? 1 : lot.rateState?.price;
+        if (price == null || rate == null) {
+          complete = false;
+          break;
+        }
+        // Preserve lot order and multiplication order, including floating-point rounding.
+        value += price * lot.units * rate;
       }
-      value += price * lot.units * rate;
     }
     // Incomplete totals must never become immutable financial snapshots.
     if (complete) history.push({ date, value });
+    firstDay = false;
     current.setUTCDate(current.getUTCDate() + 1);
   }
   return history;
@@ -202,8 +219,20 @@ export async function buildPortfolioHistoryWithSnapshots(
   const starts = new Map<string, string>();
   const dates = new Set<string>();
   const today = financialDateKey(new Date());
+  const lotsByUser = new Map<string, InvestmentRow[]>();
+  for (const row of rows) {
+    const lots = lotsByUser.get(row.user_id) ?? [];
+    lots.push(row);
+    lotsByUser.set(row.user_id, lots);
+  }
+  const snapshotsByUser = new Map<string, typeof snapshots>();
+  for (const snapshot of snapshots) {
+    const points = snapshotsByUser.get(snapshot.user_id) ?? [];
+    points.push(snapshot);
+    snapshotsByUser.set(snapshot.user_id, points);
+  }
   for (const userId of new Set(userIds)) {
-    const lots = rows.filter((row) => row.user_id === userId);
+    const lots = lotsByUser.get(userId) ?? [];
     if (!lots.length) continue;
     const start = lots.reduce((first, lot) => {
       const day = financialDateKey(lot.created_at ?? new Date());
@@ -211,7 +240,7 @@ export async function buildPortfolioHistoryWithSnapshots(
     }, today);
     starts.set(userId, start);
     const points = new Map<string, number>();
-    for (const point of snapshots.filter((row) => row.user_id === userId)) {
+    for (const point of snapshotsByUser.get(userId) ?? []) {
       if (
         point.snapshot_date >= start &&
         point.snapshot_date < today &&

@@ -12,6 +12,7 @@ import {
 const refreshInFlight = new Map<string, Promise<void>>();
 const lastRefreshAttemptAt = new Map<string, number>();
 const REFRESH_COOLDOWN_MS = 60_000;
+const BATCH_FETCH_CONCURRENCY = 3;
 
 export async function getMarketDataUseCase(symbol: string): Promise<TimeSeriesEntry[]> {
   const normalizedSymbol = symbol.toUpperCase();
@@ -48,9 +49,10 @@ export async function getBatchMarketDataUseCase(
   const cacheMap = new Map(cachedRows.map((row) => [row.symbol.toUpperCase(), row]));
   const now = new Date();
 
-  const results: MarketDataBatchResult[] = [];
+  const results: MarketDataBatchResult[] = new Array(normalized.length);
+  const missing: Array<{ symbol: string; index: number }> = [];
 
-  for (const sym of normalized) {
+  for (const [index, sym] of normalized.entries()) {
     const cached = cacheMap.get(sym);
     const cachedValues = validSeriesValues(cached?.data);
     const isFresh =
@@ -58,31 +60,38 @@ export async function getBatchMarketDataUseCase(
       now.getTime() - new Date(cached.last_updated).getTime() < 24 * 60 * 60 * 1000;
 
     if (isFresh && cached && cachedValues.length) {
-      results.push({
+      results[index] = {
         symbol: sym,
         data: validSeriesValues(cached.data),
         lastUpdated: latestQuoteDate(cached.data),
-      });
+      };
       continue;
     }
 
     if (cached && cachedValues.length) {
       refreshMarketDataInBackground(sym);
-      results.push({
+      results[index] = {
         symbol: sym,
         data: validSeriesValues(cached.data),
         lastUpdated: latestQuoteDate(cached.data),
-      });
+      };
       continue;
     }
 
-    const fetched = await fetchAndCacheMarketData(sym);
-    results.push({
-      symbol: sym,
-      data: fetched,
-      lastUpdated: latestQuoteDate(fetched),
-    });
+    missing.push({ symbol: sym, index });
   }
+
+  // Each worker drains the same queue; provider/cache failures remain isolated per symbol.
+  let next = 0;
+  await Promise.all(
+    Array.from({ length: Math.min(BATCH_FETCH_CONCURRENCY, missing.length) }, async () => {
+      while (next < missing.length) {
+        const { symbol, index } = missing[next++]!;
+        const fetched = await fetchAndCacheMarketData(symbol);
+        results[index] = { symbol, data: fetched, lastUpdated: latestQuoteDate(fetched) };
+      }
+    })
+  );
 
   return results;
 }
