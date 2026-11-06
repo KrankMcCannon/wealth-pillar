@@ -48,7 +48,6 @@ CLAUDE_AGENTS.md
 CLAUDE.md
 .mcp.json
 .cursor/
-.agents/
 
 # Clerk
 /.clerk/
@@ -69,3 +68,18 @@ node_modules/
 # Local browser inspection artifacts
 /.playwright-cli/
 /output/playwright/
+
+# AI harness reports and per-session state
+/output/ai-harness/
+scripts/ai-harness/__pycache__/
+
+# Shared Codex files are allowlisted; local state and hooks stay private.
+/.codex/*
+!/.codex/config.toml
+!/.codex/agents/
+/.codex/agents/*
+!/.codex/agents/*.toml
+/.agents/*
+!/.agents/skills/
+/.antigravity/
+/docs/ai-harness/migration-manifest.json
