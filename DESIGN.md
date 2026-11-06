@@ -14,20 +14,20 @@ OKLCH. Neutrals sit on hue **95** (linen). Ink on hue **90**. Brand accent is **
 
 ### Light
 
-| Role | Token | Value | Allowed on |
-|---|---|---|---|
-| Canvas | `--color-background` | `oklch(0.985 0.01 95)` | Page |
-| Surface | `--color-card` | `oklch(0.995 0.006 95)` | Cards, sheets |
-| Text | `--color-foreground` | `oklch(0.26 0.02 90)` | Body, titles, amounts (default) |
-| Muted | `--color-muted-foreground` | `oklch(0.42 0.02 90)` | Meta, eyebrows, placeholders, “view all” links |
-| Border | `--color-border` | `oklch(0.88 0.014 95)` | Hairlines |
-| Wash | `--color-muted` / `--color-accent` | `oklch(0.94 0.012 95)` / `oklch(0.95 0.014 95)` | Hover, wells — **not** the brand accent |
-| Brand | `--color-primary` | `oklch(0.40 0.07 170)` | Primary buttons, focus ring, selected tab well |
-| On-brand | `--color-primary-foreground` | `oklch(0.99 0.008 95)` | Text on primary |
-| Income | `--color-income` | `oklch(0.40 0.08 155)` | Inflow amounts + paired icon/sign |
-| Expense | `--color-expense` | `oklch(0.50 0.12 18)` | Outflow amounts, danger |
-| Warning | `--color-warning` | `oklch(0.62 0.10 80)` | Caution, not decoration |
-| Info | `--color-teal-accent` | `oklch(0.44 0.06 185)` | “On track” and info only |
+| Role     | Token                              | Value                                           | Allowed on                                     |
+| -------- | ---------------------------------- | ----------------------------------------------- | ---------------------------------------------- |
+| Canvas   | `--color-background`               | `oklch(0.985 0.01 95)`                          | Page                                           |
+| Surface  | `--color-card`                     | `oklch(0.995 0.006 95)`                         | Cards, sheets                                  |
+| Text     | `--color-foreground`               | `oklch(0.26 0.02 90)`                           | Body, titles, amounts (default)                |
+| Muted    | `--color-muted-foreground`         | `oklch(0.42 0.02 90)`                           | Meta, eyebrows, placeholders, “view all” links |
+| Border   | `--color-border`                   | `oklch(0.88 0.014 95)`                          | Hairlines                                      |
+| Wash     | `--color-muted` / `--color-accent` | `oklch(0.94 0.012 95)` / `oklch(0.95 0.014 95)` | Hover, wells — **not** the brand accent        |
+| Brand    | `--color-primary`                  | `oklch(0.40 0.07 170)`                          | Primary buttons, focus ring, selected tab well |
+| On-brand | `--color-primary-foreground`       | `oklch(0.99 0.008 95)`                          | Text on primary                                |
+| Income   | `--color-income`                   | `oklch(0.40 0.08 155)`                          | Inflow amounts + paired icon/sign              |
+| Expense  | `--color-expense`                  | `oklch(0.50 0.12 18)`                           | Outflow amounts, danger                        |
+| Warning  | `--color-warning`                  | `oklch(0.62 0.10 80)`                           | Caution, not decoration                        |
+| Info     | `--color-teal-accent`              | `oklch(0.44 0.06 185)`                          | “On track” and info only                       |
 
 ### Dark
 
@@ -39,10 +39,10 @@ Category tokens keep their names but drop chroma (~0.08–0.10). Colour never st
 
 ## Typography
 
-| Role | Family | Use |
-|---|---|---|
-| UI / body | Figtree (`--font-sans`) | Nav, forms, lists, buttons, meta |
-| Display | Source Serif 4 (`--font-display`) | Spendable hero, page-level money figures |
+| Role      | Family                            | Use                                      |
+| --------- | --------------------------------- | ---------------------------------------- |
+| UI / body | Figtree (`--font-sans`)           | Nav, forms, lists, buttons, meta         |
+| Display   | Source Serif 4 (`--font-display`) | Spendable hero, page-level money figures |
 
 Scale (approx): 12 meta / 14 secondary / 16 body / 18 section title / 30–44 display amount. Body ≥16px. Amounts always `tabular-nums`. Display tracking slightly tight (`-0.02em` to `-0.04em`). No uppercase + wide tracking on buttons.
 

@@ -78,7 +78,7 @@ async function main(): Promise<void> {
 
     let updated = 0;
     for (const period of targets) {
-      const snapshot: postgres.JSONValue = liveByUser.get(period.user_id) ?? [];
+      const snapshot: postgres.JSONValue = liveByUser.get(period.user_id) ?? {};
       await sql`
         UPDATE budget_periods
         SET budgets_snapshot = ${sql.json(snapshot)}, updated_at = now()
@@ -88,7 +88,7 @@ async function main(): Promise<void> {
       `;
       updated += 1;
       process.stdout.write(
-        `${period.start_date} ${period.id} user=${period.user_id} envelopes=${snapshot.length}\n`
+        `${period.start_date} ${period.id} user=${period.user_id} envelopes=${JSON.stringify(snapshot)}\n`
       );
     }
 
