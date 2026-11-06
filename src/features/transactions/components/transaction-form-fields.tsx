@@ -36,6 +36,8 @@ interface TransactionFormFieldsProps {
   shouldDisableUserField: boolean;
   userFieldHelperText?: string | undefined;
   isSubmitting: boolean;
+  allowTransfers?: boolean;
+  accountDisabled?: boolean;
 }
 
 export function TransactionFormFields({
@@ -46,6 +48,8 @@ export function TransactionFormFields({
   destinationAccounts,
   shouldDisableUserField,
   isSubmitting,
+  allowTransfers = true,
+  accountDisabled = false,
 }: TransactionFormFieldsProps) {
   const t = useTranslations('Transactions.FormModal');
   const { control } = form;
@@ -55,9 +59,9 @@ export function TransactionFormFields({
     () => [
       { value: 'expense', label: t('typeOptions.expense') },
       { value: 'income', label: t('typeOptions.income') },
-      { value: 'transfer', label: t('typeOptions.transfer') },
+      ...(allowTransfers ? [{ value: 'transfer', label: t('typeOptions.transfer') }] : []),
     ],
-    [t]
+    [t, allowTransfers]
   );
 
   const accountOptions = useMemo(
@@ -133,7 +137,7 @@ export function TransactionFormFields({
           label={t('fields.sourceAccount.label')}
           options={accountOptions}
           placeholder={t('fields.sourceAccount.placeholder')}
-          disabled={isSubmitting}
+          disabled={isSubmitting || accountDisabled}
         />
 
         {watchedType === 'transfer' ? (

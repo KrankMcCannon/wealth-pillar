@@ -2210,10 +2210,10 @@
     "reviewMode": "Verifica prima di importare",
     "revoke": "Revoca",
     "inbox": "Notifiche ricevute",
-    "inboxHint": "Fino a 50 notifiche, prima quelle da verificare. La categoria scelta in verifica viene ricordata per i prossimi movimenti dello stesso esercente.",
+    "inboxHint": "La categoria confermata viene ricordata per i prossimi movimenti dello stesso esercente.",
     "loading": "Caricamento…",
     "empty": "Nessuna notifica ricevuta.",
-    "unrecognized": "Formato non riconosciuto. Puoi ignorare la notifica e inserire il movimento manualmente.",
+    "unrecognized": "Formato non riconosciuto. Completa i dati per importare il movimento oppure ignora la notifica.",
     "import": "Conferma importazione",
     "ignore": "Ignora",
     "statuses": {
@@ -2240,9 +2240,15 @@
       "invalid_category": "Scegli una categoria disponibile nel gruppo.",
       "connection_unavailable": "Il conto o l’utente non appartiene più al gruppo. Crea un nuovo collegamento.",
       "duplicate_transaction": "Questo movimento risulta già importato. Aggiorna la lista.",
-      "unauthorized": "Accedi di nuovo per continuare."
+      "unauthorized": "Accedi di nuovo per continuare.",
+      "invalid_details": "Controlla i dati: usa un importo EUR con massimo due decimali e una data valida."
     },
-    "eventIdVariable": "[UUID salvato una sola volta nel file]"
+    "eventIdVariable": "[UUID salvato una sola volta nel file]",
+    "complete": "Completa manualmente",
+    "pendingTab": "Da verificare",
+    "historyTab": "Storico",
+    "loadMore": "Carica altre",
+    "pendingCount": "{count, plural, =0 {Nessuna notifica da verificare} one {# notifica da verificare} other {# notifiche da verificare}}"
   },
   "Currency": {
     "base": "Importi contabili in EUR. Cambi giornalieri gratuiti da Frankfurter.",

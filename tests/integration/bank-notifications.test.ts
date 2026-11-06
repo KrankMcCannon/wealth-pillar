@@ -5,17 +5,23 @@ import { db } from '@/server/db/drizzle';
 import {
   createBankConnection,
   getBankNotificationSettings,
+  getBankNotificationEvents,
   ingestBankNotification,
   revokeBankConnection,
   reviewBankNotification,
 } from '@/server/use-cases/bank-notifications/notification-service';
 import { updateTransactionUseCase } from '@/server/use-cases/transactions/update-transaction.use-case';
 import type { User } from '@/lib/types';
+import { normalizeMerchant } from '@/lib/bank-notifications/parser';
 vi.mock('next/cache', () => ({ revalidateTag: vi.fn() }));
 const id = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 const user = { id: id(1), group_id: id(2), role: 'admin' } as User;
 const other = { id: id(3), group_id: id(4), role: 'admin' } as User;
 const accountId = id(5);
+const allEvents = async (owner: User) => [
+  ...(await getBankNotificationEvents(owner)).events,
+  ...(await getBankNotificationEvents(owner, { status: 'history' })).events,
+];
 const payload = {
   provider: 'revolut' as const,
   title: 'Pizzeria Rosticceria N',
@@ -97,12 +103,15 @@ it('deduplicates concurrent retries and applies the balance exactly once', async
   expect(Number(rows[0]!.balance)).toBe(83);
   expect(rows[0]!.count).toBe(1);
 });
-it('deduplicates across two devices linked to the same account', async () => {
+it('keeps device receipts distinct and requires review for the same account movement', async () => {
   const devices = await Promise.all([connection(), connection()]);
   const results = await Promise.all(
     devices.map((device) => ingestBankNotification(device.token, payload))
   );
-  expect(results.filter((result) => result.duplicate)).toHaveLength(1);
+  expect(results.filter((result) => result.duplicate)).toHaveLength(0);
+  expect(new Set(results.map((result) => result.id)).size).toBe(2);
+  expect(results.filter((result) => result.status === 'imported')).toHaveLength(1);
+  expect(results.filter((result) => result.status === 'pending')).toHaveLength(1);
 });
 it('requires review for matching existing movements, and learns explicit categories', async () => {
   const device = await connection(false);
@@ -125,9 +134,9 @@ it('requires review for matching existing movements, and learns explicit categor
     occurredAt: '2026-10-31T19:31:00+01:00',
   });
   expect(third.status).toBe('pending');
-  expect(
-    (await getBankNotificationSettings(user)).events.find((row) => row.id === third.id)?.reason
-  ).toBe('possible_duplicate');
+  expect((await allEvents(user)).find((row) => row.id === third.id)?.reason).toBe(
+    'possible_duplicate'
+  );
 });
 it('stops a revoked token and a connection whose owner lost account access', async () => {
   const first = await connection();
@@ -170,9 +179,7 @@ it('enforces a persistent per-device rate limit', async () => {
 it('learns a category correction made in the ordinary transaction editor', async () => {
   const device = await connection();
   const first = await ingestBankNotification(device.token, payload);
-  const event = (await getBankNotificationSettings(user)).events.find(
-    (row) => row.id === first.id
-  )!;
+  const event = (await allEvents(user)).find((row) => row.id === first.id)!;
   await updateTransactionUseCase(
     event.transaction_id!,
     { category: 'other' },
@@ -185,4 +192,189 @@ it('learns a category correction made in the ordinary transaction editor', async
   expect(next.status).toBe('imported');
   const rows = await db.execute(sql`SELECT category FROM transactions`);
   expect(rows.map((row) => row.category)).toEqual(['other', 'other']);
+});
+
+it('gives each shared-account owner a recoverable receipt without exposing another user event', async () => {
+  const member = { ...user, id: id(8), role: 'member' } as User;
+  await db.execute(sql`INSERT INTO users (id,group_id) VALUES (${member.id},${user.group_id})`);
+  await db.execute(sql`UPDATE accounts SET user_ids=ARRAY[${user.id}::uuid,${member.id}::uuid]`);
+  const firstDevice = await connection(false);
+  const secondDevice = await createBankConnection(member, {
+    name: 'Second phone',
+    accountId,
+    category: 'food',
+    autoImport: true,
+  });
+  const [first, second] = await Promise.all([
+    ingestBankNotification(firstDevice.token, { ...payload, eventId: 'shared-id' }),
+    ingestBankNotification(secondDevice.token, { ...payload, eventId: 'shared-id' }),
+  ]);
+  expect(first.id).not.toBe(second.id);
+  expect((await getBankNotificationEvents(user)).events.map((event) => event.id)).toEqual([
+    first.id,
+  ]);
+  await expect(reviewBankNotification(member, first.id, 'import', 'food')).rejects.toThrow(
+    'not_found'
+  );
+  const ownEvents = await allEvents(member);
+  expect(ownEvents.map((event) => event.id)).toEqual([second.id]);
+  expect(
+    (await ingestBankNotification(secondDevice.token, { ...payload, eventId: 'shared-id' })).id
+  ).toBe(second.id);
+  expect(
+    (await db.execute(sql`SELECT count(*)::int AS count FROM transactions`))[0]!.count
+  ).toBeLessThanOrEqual(1);
+});
+
+it('recognizes legacy fingerprints only for the original device', async () => {
+  const first = await connection(false);
+  const event = await ingestBankNotification(first.token, payload);
+  const { createHash } = await import('node:crypto');
+  const legacy = createHash('sha256')
+    .update(
+      JSON.stringify([
+        'revolut',
+        'content',
+        new Date(payload.occurredAt).toISOString(),
+        normalizeMerchant(payload.title),
+        normalizeMerchant(payload.body),
+      ])
+    )
+    .digest('hex');
+  await db.execute(
+    sql`UPDATE bank_notification_events SET fingerprint=${legacy} WHERE id=${event.id}`
+  );
+  expect(await ingestBankNotification(first.token, payload)).toMatchObject({
+    id: event.id,
+    duplicate: true,
+  });
+  const second = await connection(false);
+  const receipt = await ingestBankNotification(second.token, payload);
+  expect(receipt).toMatchObject({ duplicate: false, status: 'pending' });
+  expect(receipt.id).not.toBe(event.id);
+});
+
+it('completes unknown notifications atomically, preserving EUR, ownership and idempotency', async () => {
+  const device = await connection(false);
+  const event = await ingestBankNotification(device.token, {
+    ...payload,
+    body: 'New bank format',
+    eventId: 'unknown',
+  });
+  const manual = {
+    description: 'Corrected movement',
+    amount: 12.34,
+    type: 'expense' as const,
+    date: '2026-10-25',
+  };
+  const results = await Promise.all([
+    reviewBankNotification(user, event.id, 'import', 'food', manual),
+    reviewBankNotification(user, event.id, 'import', 'food', manual),
+  ]);
+  expect(results.filter(Boolean)).toHaveLength(1);
+  expect(results.find(Boolean)).toMatchObject({ accountBalances: { [accountId]: 87.66 } });
+  const [movement] = await db.execute(
+    sql`SELECT amount::text,description,date::text,user_id,account_id FROM transactions`
+  );
+  expect(movement).toMatchObject({
+    amount: '12.34',
+    description: manual.description,
+    date: manual.date,
+    user_id: user.id,
+    account_id: accountId,
+  });
+  const [stored] = await db.execute(
+    sql`SELECT status,parsed,payload,transaction_id FROM bank_notification_events`
+  );
+  expect(stored!.status).toBe('imported');
+  expect(stored!.parsed).toMatchObject({ amount: '12.34', description: manual.description });
+  expect(stored!.payload).toMatchObject({ body: 'New bank format' });
+  expect(stored!.transaction_id).toBeTruthy();
+  expect(
+    await ingestBankNotification(device.token, {
+      ...payload,
+      body: 'New bank format',
+      eventId: 'unknown',
+    })
+  ).toMatchObject({ id: event.id, duplicate: true, status: 'imported' });
+});
+
+it('rejects invalid corrections and rolls back review when a balance update fails', async () => {
+  const device = await connection(false);
+  const event = await ingestBankNotification(device.token, { ...payload, body: 'Unknown' });
+  const manual = {
+    description: 'Confirmed',
+    amount: 17,
+    type: 'expense' as const,
+    date: '2026-11-01',
+  };
+  for (const invalid of [
+    { ...manual, amount: -1 },
+    { ...manual, amount: 1.234 },
+    { ...manual, date: '2026-02-31' },
+  ])
+    await expect(
+      reviewBankNotification(user, event.id, 'import', 'food', invalid)
+    ).rejects.toThrow();
+  await expect(reviewBankNotification(other, event.id, 'import', 'food', manual)).rejects.toThrow(
+    'not_found'
+  );
+  await db.execute(sql`UPDATE accounts SET balance=-9999999999.99`);
+  await expect(reviewBankNotification(user, event.id, 'import', 'food', manual)).rejects.toThrow();
+  expect((await getBankNotificationEvents(user)).events[0]).toMatchObject({
+    status: 'pending',
+    parsed: null,
+    transaction_id: null,
+  });
+  expect((await db.execute(sql`SELECT count(*)::int AS count FROM transactions`))[0]!.count).toBe(
+    0
+  );
+});
+
+it('paginates all 80 pending events with microsecond and ID ties while new events arrive', async () => {
+  const device = await connection(false);
+  await db.execute(sql`INSERT INTO bank_notification_events (id,connection_id,user_id,group_id,account_id,fingerprint,received_at)
+    SELECT ('00000000-0000-4000-8000-' || lpad(n::text,12,'0'))::uuid, ${device.id}::uuid, ${user.id}::uuid, ${user.group_id}::uuid, ${accountId}::uuid, n::text,
+      '2026-11-01 12:00:00+00'::timestamptz + (n % 5) * interval '1 microsecond' FROM generate_series(100,179) n`);
+  const first = await getBankNotificationEvents(user);
+  expect(first.events).toHaveLength(25);
+  expect(first.pendingCount).toBe(80);
+  expect((await getBankNotificationEvents(other)).events).toEqual([]);
+  expect((await getBankNotificationEvents(other)).pendingCount).toBe(0);
+  await reviewBankNotification(user, first.events[0]!.id, 'ignore');
+  const arrived = await ingestBankNotification(device.token, {
+    ...payload,
+    eventId: 'new-arrival',
+  });
+  const found = first.events.map((event) => event.id);
+  let cursor = first.nextCursor;
+  while (cursor) {
+    const page = await getBankNotificationEvents(user, { status: 'pending', cursor });
+    found.push(...page.events.map((event) => event.id));
+    cursor = page.nextCursor;
+  }
+  expect(found).toHaveLength(80);
+  expect(new Set(found).size).toBe(80);
+  expect(found).not.toContain(arrived.id);
+  expect((await getBankNotificationEvents(user)).pendingCount).toBe(80);
+  expect(
+    (await getBankNotificationEvents(user, { status: 'history' })).events.map((event) => event.id)
+  ).toEqual([first.events[0]!.id]);
+});
+
+it('throttles duplicate retry storms and accepts the retained event in the next window', async () => {
+  const device = await connection();
+  for (let attempt = 0; attempt < 60; attempt++)
+    await ingestBankNotification(device.token, { ...payload, eventId: 'retry' });
+  const next = { ...payload, eventId: 'new', occurredAt: '2026-10-31T12:00:00Z' };
+  await expect(ingestBankNotification(device.token, next)).rejects.toMatchObject({ status: 429 });
+  await db.execute(sql`UPDATE bank_connections SET rate_window=now()-interval '61 seconds'`);
+  expect(await ingestBankNotification(device.token, next)).toMatchObject({
+    duplicate: false,
+    status: 'imported',
+  });
+  expect((await db.execute(sql`SELECT count(*)::int AS count FROM transactions`))[0]!.count).toBe(
+    2
+  );
+  expect(Number((await db.execute(sql`SELECT balance FROM accounts`))[0]!.balance)).toBe(66);
 });
