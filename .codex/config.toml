@@ -7,10 +7,12 @@ config_file = "agents/wealth-pillar-maintainer.toml"
 description = "Review Wealth Pillar financial, authorization and regression defects."
 config_file = "agents/wealth-pillar-reviewer.toml"
 
-# These stacks are outside this project's current scope. Re-enable if scope changes.
-
+# General engineering workflows stay available alongside wealth-pillar-flow.
+# This portable denylist covers unrelated stacks and organization-specific tools.
+# Re-enable an exact name when project scope changes; no catalogue token cap.
 [skills]
 config = [
+  { name = "adr-orchestrator", enabled = false },
   { name = "agents-sdk", enabled = false },
   { name = "amazon-bedrock", enabled = false },
   { name = "aws-ai-ml", enabled = false },
@@ -35,14 +37,36 @@ config = [
   { name = "aws-serverless", enabled = false },
   { name = "aws-storage", enabled = false },
   { name = "aws-well-architected-review", enabled = false },
+  { name = "bizaway-stack", enabled = false },
+  { name = "clerk-backend-api", enabled = false },
+  { name = "clerk-cli", enabled = false },
+  { name = "clerk-orgs", enabled = false },
   { name = "cloudflare", enabled = false },
   { name = "cloudflare-email-service", enabled = false },
+  { name = "create-adr-confluence", enabled = false },
+  { name = "design-apply", enabled = false },
+  { name = "design-find", enabled = false },
+  { name = "design-fix", enabled = false },
+  { name = "design-improve", enabled = false },
+  { name = "design-redesign", enabled = false },
+  { name = "develop-web-game", enabled = false },
   { name = "durable-objects", enabled = false },
+  { name = "finance-confluence-doc-agent", enabled = false },
+  { name = "finance-doc", enabled = false },
   { name = "launch-with-aws", enabled = false },
   { name = "payment-anomaly-triage", enabled = false },
   { name = "payment-architecture", enabled = false },
+  { name = "presentation-canvas", enabled = false },
+  { name = "product-confluence-doc", enabled = false },
+  { name = "product-redesign", enabled = false },
   { name = "sandbox-sdk", enabled = false },
   { name = "signing-in-to-aws", enabled = false },
+  { name = "system-design-study", enabled = false },
+  { name = "ticket-description", enabled = false },
+  { name = "usage-report", enabled = false },
+  { name = "vault-capture", enabled = false },
+  { name = "vault-recall", enabled = false },
+  { name = "wiki-lint", enabled = false },
   { name = "workers-best-practices", enabled = false },
   { name = "wrangler", enabled = false },
 ]

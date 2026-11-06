@@ -15,6 +15,11 @@ def inspect(root):
     try:
         config = tomllib.loads((base / 'config.toml').read_text())
         check('project config TOML', True)
+        rules = config.get('skills', {}).get('config', [])
+        check('portable skill selectors', isinstance(rules, list) and all(
+            isinstance(rule, dict) and set(rule) == {'name', 'enabled'}
+            and isinstance(rule['name'], str) and bool(rule['name'])
+            and isinstance(rule['enabled'], bool) for rule in rules))
         for name, role in config.get('agents', {}).items():
             path = (base / role['config_file']).resolve()
             if not path.is_relative_to(base.resolve()):
@@ -27,7 +32,10 @@ def inspect(root):
     except (OSError, ValueError, KeyError, TypeError):
         check('project config and role files', False)
     for relative in ['AGENTS.md', '.agents/skills/wealth-pillar-flow/SKILL.md',
-                     'scripts/ai-harness/check.py', 'scripts/ai-harness/test_check.py']:
+                     'scripts/ai-harness/check.py', 'scripts/ai-harness/test_check.py',
+                     'scripts/ai-harness/knowledge.py', 'scripts/ai-harness/test_knowledge.py',
+                     '.agents/skills/wealth-pillar-flow/references/financial-contracts.md',
+                     'docs/ai-harness/engineering.md']:
         check(relative, (root / relative).is_file())
     instructions = (root / 'AGENTS.md').read_text() if (root / 'AGENTS.md').is_file() else ''
     return {'status': 'passed' if all(c['passed'] for c in checks) else 'not-passed',
