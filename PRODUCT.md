@@ -22,19 +22,19 @@ Voice: short sentences, verbs on buttons, honest hedges on projections. Permissi
 
 **Words we use**
 
-| Concept | IT | EN |
-|---|---|---|
-| Cash you can use now | Spendibile | Spendable |
+| Concept                       | IT                      | EN                 |
+| ----------------------------- | ----------------------- | ------------------ |
+| Cash you can use now          | Spendibile              | Spendable          |
 | Home headline for that number | Disponibile da spendere | Available to spend |
-| Held aside | Riserva | Reserve |
-| Shared workspace | Gruppo | Group |
-| Person in the group | Membro / Amministratore | Member / Admin |
-| Budget window | Periodo | Period |
-| Money movement | Transazione | Transaction |
-| Repeating commitment | Ricorrente | Recurring |
-| Where the cash lives | Conto | Account |
-| Retail holdings | Investimento | Investment |
-| Look-back | Rapporto | Report |
+| Held aside                    | Riserva                 | Reserve            |
+| Shared workspace              | Gruppo                  | Group              |
+| Person in the group           | Membro / Amministratore | Member / Admin     |
+| Budget window                 | Periodo                 | Period             |
+| Money movement                | Transazione             | Transaction        |
+| Repeating commitment          | Ricorrente              | Recurring          |
+| Where the cash lives          | Conto                   | Account            |
+| Retail holdings               | Investimento            | Investment         |
+| Look-back                     | Rapporto                | Report             |
 
 **Words we never use:** wealth management, net worth flex, crush your goals, streak, AI-powered, portfolio optimization, “click here”, OK/Submit/Yes as button labels.
 
