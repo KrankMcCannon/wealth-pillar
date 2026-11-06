@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { CalendarPanel } from './calendar-panel';
 
 vi.mock('next-intl', () => ({
@@ -49,4 +50,38 @@ describe('CalendarPanel', () => {
     expect(onChange).toHaveBeenCalledWith('2026-06-15');
     expect(onClose).toHaveBeenCalledTimes(1);
   });
+
+  it('keeps keyboard focus on navigation across the year boundary', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(<CalendarPanel value="2026-12-31" onChange={onChange} onClose={() => {}} />);
+    const next = screen.getByRole('button', { name: 'nextMonth' });
+    next.focus();
+    await user.keyboard('{Enter}');
+    expect(next).toHaveFocus();
+    expect(screen.getByRole('button', { name: /Select January 15, 2027/i })).toBeInTheDocument();
+    const previous = screen.getByRole('button', { name: 'previousMonth' });
+    await user.click(previous);
+    expect(previous).toHaveFocus();
+    expect(screen.getByRole('button', { name: /Select December 15, 2026/i })).toBeInTheDocument();
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['2026-03-29', /Select March 29, 2026/i, '{Enter}'],
+    ['2026-10-25', /Select October 25, 2026/i, ' '],
+    ['2024-02-29', /Select February 29, 2024/i, '{Enter}'],
+  ])(
+    'selects the calendar day %s from the keyboard without shifting its date',
+    async (value, label, key) => {
+      const user = userEvent.setup();
+      const onChange = vi.fn();
+      const onClose = vi.fn();
+      render(<CalendarPanel value={value} onChange={onChange} onClose={onClose} />);
+      screen.getByRole('button', { name: label }).focus();
+      await user.keyboard(key);
+      expect(onChange).toHaveBeenCalledExactlyOnceWith(value);
+      expect(onClose).toHaveBeenCalledTimes(1);
+    }
+  );
 });

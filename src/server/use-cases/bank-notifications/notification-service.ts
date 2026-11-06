@@ -1,5 +1,12 @@
 import { createHash, randomBytes } from 'node:crypto';
-import { and, eq, desc, isNull, sql } from 'drizzle-orm';
+import { and, eq, ne, or, desc, isNull, sql, getTableColumns } from 'drizzle-orm';
+import {
+  manualNotificationSchema,
+  notificationPageSchema,
+  type ManualNotification,
+  type NotificationPageInput,
+} from '@/lib/bank-notifications/review';
+import { TransactionsRepository } from '@/server/repositories/transactions.repository';
 import { db } from '@/server/db/drizzle';
 import {
   accounts,
@@ -102,6 +109,49 @@ export async function createBankConnection(
   invalidateCategoryCaches({ groupId: user.group_id! });
   return result;
 }
+export async function getBankNotificationEvents(
+  user: User,
+  input: NotificationPageInput = { status: 'pending' }
+) {
+  own(user);
+  const { status, cursor } = notificationPageSchema.parse(input);
+  const scope = and(
+    eq(bankNotificationEvents.user_id, user.id),
+    eq(bankNotificationEvents.group_id, user.group_id!)
+  );
+  const rows = await db
+    .select({
+      ...getTableColumns(bankNotificationEvents),
+      // Preserve PostgreSQL microseconds in the cursor rather than round through a JS Date.
+      cursor_date: sql<string>`to_char(${bankNotificationEvents.received_at} AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"')`,
+    })
+    .from(bankNotificationEvents)
+    .where(
+      and(
+        scope,
+        status === 'pending'
+          ? eq(bankNotificationEvents.status, 'pending')
+          : ne(bankNotificationEvents.status, 'pending'),
+        cursor
+          ? sql`(${bankNotificationEvents.received_at}, ${bankNotificationEvents.id}) < (${cursor.receivedAt}::timestamptz, ${cursor.id}::uuid)`
+          : undefined
+      )
+    )
+    .orderBy(desc(bankNotificationEvents.received_at), desc(bankNotificationEvents.id))
+    .limit(26);
+  const [counts] = await db
+    .select({ pending: sql<number>`count(*)::int` })
+    .from(bankNotificationEvents)
+    .where(and(scope, eq(bankNotificationEvents.status, 'pending')));
+  const events = rows.slice(0, 25);
+  const last = events.at(-1);
+  return {
+    events,
+    pendingCount: counts?.pending ?? 0,
+    nextCursor: rows.length > 25 && last ? { receivedAt: last.cursor_date, id: last.id } : null,
+  };
+}
+
 export async function getBankNotificationSettings(user: User) {
   const connections = await db
     .select({
@@ -116,21 +166,6 @@ export async function getBankNotificationSettings(user: User) {
     .where(own(user))
     .orderBy(desc(bankConnections.created_at))
     .limit(50);
-  const events = await db
-    .select()
-    .from(bankNotificationEvents)
-    .where(
-      and(
-        eq(bankNotificationEvents.user_id, user.id),
-        eq(bankNotificationEvents.group_id, user.group_id!)
-      )
-    )
-    .orderBy(
-      sql`CASE WHEN ${bankNotificationEvents.status} = 'pending' THEN 0 ELSE 1 END`,
-      desc(bankNotificationEvents.received_at),
-      desc(bankNotificationEvents.id)
-    )
-    .limit(50);
   const availableAccounts = await db
     .select({ id: accounts.id, name: accounts.name })
     .from(accounts)
@@ -138,7 +173,7 @@ export async function getBankNotificationSettings(user: User) {
       and(eq(accounts.group_id, user.group_id!), sql`${user.id}::uuid = ANY(${accounts.user_ids})`)
     );
   const availableCategories = await CategoriesRepository.findAvailable(user.group_id!);
-  return { connections, events, accounts: availableAccounts, categories: availableCategories };
+  return { connections, accounts: availableAccounts, categories: availableCategories };
 }
 export async function revokeBankConnection(user: User, id: string) {
   await db
@@ -150,9 +185,12 @@ export async function revokeBankConnection(user: User, id: string) {
 async function commitEvent(
   tx: DbExecutor,
   event: typeof bankNotificationEvents.$inferSelect,
-  category: string
+  category: string,
+  manual?: ManualNotification
 ) {
-  const parsed = event.parsed;
+  const parsed = manual
+    ? { ...manual, amount: manual.amount.toFixed(2), reportedBalance: null }
+    : event.parsed;
   if (!parsed || !(await availableCategory(tx, category, event.group_id)))
     throw new NotificationError('invalid_category');
   const [created] = await tx
@@ -175,8 +213,9 @@ async function commitEvent(
   await applyTransactionBalanceAdjustments(created, 1, tx);
   await tx
     .update(bankNotificationEvents)
-    .set({ status: 'imported', category, transaction_id: created.id, reason: null })
+    .set({ status: 'imported', category, transaction_id: created.id, reason: null, parsed })
     .where(eq(bankNotificationEvents.id, event.id));
+  return parsed;
 }
 function invalidate(event: { group_id: string; account_id: string; user_id: string }) {
   invalidateTransactionCaches({
@@ -215,14 +254,19 @@ export async function ingestBankNotification(token: string, input: BankNotificat
           normalizeMerchant(input.title),
           normalizeMerchant(input.body),
         ];
-    const fingerprint = hash(JSON.stringify([input.provider, ...identity]));
+    const legacyFingerprint = hash(JSON.stringify([input.provider, ...identity]));
+    const fingerprint = hash(JSON.stringify([connection.id, input.provider, ...identity]));
     const [existing] = await tx
       .select()
       .from(bankNotificationEvents)
       .where(
         and(
           eq(bankNotificationEvents.account_id, connection.account_id),
-          eq(bankNotificationEvents.fingerprint, fingerprint)
+          eq(bankNotificationEvents.connection_id, connection.id),
+          or(
+            eq(bankNotificationEvents.fingerprint, fingerprint),
+            eq(bankNotificationEvents.fingerprint, legacyFingerprint)
+          )
         )
       )
       .limit(1);
@@ -240,6 +284,24 @@ export async function ingestBankNotification(token: string, input: BankNotificat
         ? parseBankNotification(input, now)
         : { parsed: null, reason: 'unsupported_provider' };
     const parsed = parsedResult.parsed;
+    // Another device owns its own review item. Matching account movements require
+    // explicit review; never acknowledge somebody else's event as this device's delivery.
+    const related = parsed
+      ? await tx
+          .select({ id: bankNotificationEvents.id })
+          .from(bankNotificationEvents)
+          .where(
+            and(
+              eq(bankNotificationEvents.account_id, connection.account_id),
+              eq(bankNotificationEvents.group_id, connection.group_id),
+              ne(bankNotificationEvents.status, 'ignored'),
+              sql`${bankNotificationEvents.parsed}->>'date' = ${parsed.date}`,
+              sql`${bankNotificationEvents.parsed}->>'type' = ${parsed.type}`,
+              sql`(${bankNotificationEvents.parsed}->>'amount')::numeric = ${parsed.amount}::numeric`
+            )
+          )
+          .limit(1)
+      : [];
     let category = connection.default_category;
     if (parsed) {
       const [rule] = await tx
@@ -286,7 +348,7 @@ export async function ingestBankNotification(token: string, input: BankNotificat
       parsedResult.reason ??
       (!validCategory
         ? 'invalid_category'
-        : candidates.length
+        : candidates.length || related.length
           ? 'possible_duplicate'
           : !connection.auto_import
             ? 'review_mode'
@@ -325,8 +387,11 @@ export async function reviewBankNotification(
   user: User,
   id: string,
   decision: 'import' | 'ignore',
-  category?: string
+  category?: string,
+  manual?: ManualNotification
 ) {
+  own(user);
+  const corrected = manual === undefined ? undefined : manualNotificationSchema.parse(manual);
   const event = await db.transaction(async (tx) => {
     // Match ingestion lock order: connection, account, event.
     const [target] = await tx
@@ -361,15 +426,15 @@ export async function reviewBankNotification(
         .where(eq(bankNotificationEvents.id, id));
       return null;
     }
-    await commitEvent(tx, locked!, category ?? locked!.category ?? '');
-    if (locked!.parsed && locked!.payload)
+    const parsed = await commitEvent(tx, locked!, category ?? locked!.category ?? '', corrected);
+    if (locked!.payload)
       await tx
         .insert(bankMerchantRules)
         .values({
           group_id: locked!.group_id,
           user_id: locked!.user_id,
           provider: locked!.payload.provider,
-          merchant: normalizeMerchant(locked!.parsed.description),
+          merchant: normalizeMerchant(parsed.description),
           category: category ?? locked!.category!,
         })
         .onConflictDoUpdate({
@@ -381,7 +446,14 @@ export async function reviewBankNotification(
           ],
           set: { category: category ?? locked!.category! },
         });
-    return locked;
+    const balances = await TransactionsRepository.getAccountBalanceState([locked!.account_id], tx);
+    return { ...locked!, ...balances };
   });
   if (event) invalidate(event);
+  return event
+    ? {
+        accountBalances: event.accountBalances,
+        accountBalanceVersions: event.accountBalanceVersions,
+      }
+    : null;
 }

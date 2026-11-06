@@ -3,9 +3,11 @@
 import { z } from 'zod';
 import { getCurrentUser } from '@/lib/auth/cached-auth';
 import { serialize } from '@/lib/utils/serializer';
+import { manualNotificationSchema, notificationPageSchema } from '@/lib/bank-notifications/review';
 import {
   createBankConnection,
   getBankNotificationSettings,
+  getBankNotificationEvents,
   revokeBankConnection,
   reviewBankNotification,
   NotificationError,
@@ -25,6 +27,11 @@ async function run<T>(action: () => Promise<T>) {
 }
 export async function getBankSettingsAction() {
   return run(async () => getBankNotificationSettings(await authenticated()));
+}
+export async function getBankEventsAction(input: unknown = {}) {
+  return run(async () =>
+    getBankNotificationEvents(await authenticated(), notificationPageSchema.parse(input))
+  );
 }
 export async function createBankConnectionAction(input: unknown) {
   return run(async () => {
@@ -50,9 +57,16 @@ export async function reviewBankNotificationAction(input: unknown) {
         id: z.uuid(),
         decision: z.enum(['import', 'ignore']),
         category: z.string().min(1).max(100).optional(),
+        manual: manualNotificationSchema.optional(),
       })
       .strict()
       .parse(input);
-    return reviewBankNotification(await authenticated(), data.id, data.decision, data.category);
+    return reviewBankNotification(
+      await authenticated(),
+      data.id,
+      data.decision,
+      data.category,
+      data.manual
+    );
   });
 }

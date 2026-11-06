@@ -1,5 +1,24 @@
 # Wealth Pillar: backlog della Daily Review
 
+## Findings residui del 4–5 novembre 2026
+
+Confrontate tutte le 15 review della chat con le correzioni integrate. Le osservazioni
+fino al 3 novembre sono già indirizzate; le migrazioni PR #58 risultano eseguite
+secondo la conferma dell'utente nella chat, senza una nuova verifica di produzione.
+
+- Identità bancaria distinta per dispositivo, con compatibilità dei fingerprint
+  precedenti sul dispositivo originale. Notifiche simili sul conto condiviso
+  richiedono verifica, senza esporre al mittente gli eventi di un altro proprietario.
+- Completamento manuale delle notifiche non riconosciute con i campi transazione
+  condivisi e importi EUR: notifica, movimento e saldo aggiornati atomicamente.
+- Coda con conteggio completo, Da verificare/Storico e paginazione keyset da 25
+  eventi, conservando microsecondi e ID nel cursore.
+- `Retry-After: 60` era già presente. Mantenuta la protezione di 60 richieste/minuto
+  anche per i duplicati; aggiunti test del recupero nella finestra successiva e
+  istruzioni di backoff esponenziale con jitter. Collaudo iPhone ancora necessario.
+
+Queste correzioni applicative non richiedono migrazioni o nuove variabili runtime.
+
 ## Conversione solo UI e applicazione migrazioni: PR #58
 
 Per transazioni, serie ricorrenti, budget e conti la valuta preferita riguarda

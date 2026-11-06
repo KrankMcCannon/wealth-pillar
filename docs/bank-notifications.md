@@ -108,7 +108,11 @@ di invio, mai nel file JSON. I file contengono dati finanziari personali.
    `pending`/`imported`/`ignored` e nessun `error`. Questo vale anche per i duplicati.
 4. Solo in quel caso spostare **quel file** in `Consegnate`. Non cancellare file
    dalla coda per una risposta vuota, non JSON o contenente un errore.
-5. Su 429 interrompere la scansione e riprovare dopo almeno 60 secondi. Su
+5. Su 429 interrompere la scansione. Attendere almeno `Retry-After` (60 secondi)
+   e applicare un backoff esponenziale: 60, 120, 240 secondi, fino a 15 minuti,
+   aggiungendo ogni volta un ritardo casuale di 0–30 secondi. Su 503 o errore di
+   rete applicare lo stesso backoff; azzerarlo dopo una consegna confermata.
+   Non rigenerare `eventId` o la data e non eliminare il file. Su
    401/403 conservare i file e correggere il collegamento. Su 400/413/415 conservare
    il file per correggerlo manualmente. Su 503 o errore di rete, fermarsi lasciando
    tutti i file non confermati in `Da inviare`.
@@ -145,12 +149,24 @@ I passaggi usano i blocchi Dizionario e Ripeti con ogni elemento descritti nella
 - I token casuali da 256 bit vengono salvati solo come SHA-256. Massimo 10
   dispositivi attivi per utente e 60 richieste al minuto per dispositivo.
 - Lock PostgreSQL e vincolo univoco proteggono anche invii simultanei da due
-  dispositivi sullo stesso conto. Evento, transazione e saldo sono atomici.
+  dispositivi sullo stesso conto. L'identità è distinta per dispositivo; i reinvii
+  precedenti alla modifica mantengono il riconoscimento sul dispositivo originale.
+  Ogni proprietario vede soltanto le proprie notifiche. Notifiche simili sul conto
+  condiviso richiedono verifica: non creano automaticamente un secondo movimento.
+  Evento, transazione e saldo sono atomici.
 - Data mancante/futura, valuta non EUR, testo sconosciuto, rimborsi, storni e
   operazioni non confermate rimangono in verifica senza modificare i saldi.
 - Un movimento già presente con stessa data, importo e direzione è un possibile
   duplicato: richiede conferma. Non è possibile riconciliare con certezza tutti
   gli estratti conto usando soltanto il testo di una notifica.
+- La coda separa **Da verificare** e **Storico**, mostra il conteggio totale delle
+  notifiche pendenti e carica 25 eventi alla volta con **Carica altre**. I nuovi
+  arrivi si vedono aggiornando la coda; il cursore conserva la precisione PostgreSQL.
+- **Completa manualmente** apre i campi transazione esistenti per le notifiche non
+  riconosciute. Importo contabile EUR, descrizione, data, direzione e categoria
+  richiedono conferma; conto e proprietario restano quelli del collegamento.
+  La conferma conserva il messaggio originale e collega la transazione alla notifica
+  nella stessa operazione atomica. Un doppio invio non modifica due volte il saldo.
 - La categoria viene da correzioni esplicite dello stesso utente/esercente,
   regole deterministiche disponibili nel gruppo o dalla categoria predefinita.
   Le correzioni effettuate sia nella coda sia nell’editor transazioni vengono
