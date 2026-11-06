@@ -1,14 +1,13 @@
 'use client';
 
 import type { TransactionMutationResult } from '@/lib/types/financial-mutation';
-import { parseDecimal } from '@/lib/utils/parse-decimal';
 import { useSearchParams } from 'next/navigation';
 import { resolveTransactionCreateContext } from '../utils/create-transaction-context';
+import { createTransactionFormSchema } from '../utils/transaction-form-schema';
 import { todayDateString } from '@/lib/utils/date-utils';
 
 import { useEffect, useMemo, useCallback, useRef } from 'react';
 import { useWatch, type UseFormReturn } from 'react-hook-form';
-import { z } from 'zod';
 import { useTranslations } from 'next-intl';
 import {
   EntityFormModal,
@@ -39,32 +38,6 @@ import { mapTransactionToFormData } from '../utils/transaction-form-data';
 import { buildTransactionPayload } from '../utils/build-transaction-payload';
 import { getTransferDestinationAccounts } from '../utils/transfer-destinations';
 import { TransactionFormFields, type TransactionFormData } from './transaction-form-fields';
-
-const createTransactionSchema = (t: ReturnType<typeof useTranslations>) =>
-  z
-    .object({
-      description: z.string().min(2, t('validation.descriptionMin')).trim(),
-      amount: z
-        .string()
-        .min(1, t('validation.amountRequired'))
-        .refine((val) => !Number.isNaN(parseDecimal(val)) && parseDecimal(val) > 0, {
-          message: t('validation.amountGreaterThanZero'),
-        }),
-      type: z.enum(['income', 'expense', 'transfer']),
-      category: z.string().min(1, t('validation.categoryRequired')),
-      date: z.string().min(1, t('validation.dateRequired')),
-      user_id: z.string().min(1, t('validation.userRequired')),
-      account_id: z.string().min(1, t('validation.accountRequired')),
-      to_account_id: z.string().optional(),
-    })
-    .refine((data) => data.type !== 'transfer' || Boolean(data.to_account_id), {
-      message: t('validation.destinationAccountRequired'),
-      path: ['to_account_id'],
-    })
-    .refine((data) => data.type !== 'transfer' || data.to_account_id !== data.account_id, {
-      message: t('validation.destinationAccountInvalid'),
-      path: ['to_account_id'],
-    });
 
 interface TransactionFormModalProps {
   isOpen: boolean;
@@ -214,7 +187,7 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
 
   const isEditMode = Boolean(editId);
   const title = isEditMode ? t('title.edit') : t('title.create');
-  const transactionSchema = useMemo(() => createTransactionSchema(t), [t]);
+  const transactionSchema = useMemo(() => createTransactionFormSchema(t), [t]);
 
   const searchParams = useSearchParams();
   const createContext = useMemo(

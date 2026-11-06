@@ -2210,10 +2210,10 @@
     "reviewMode": "Review before importing",
     "revoke": "Revoke",
     "inbox": "Received notifications",
-    "inboxHint": "Up to 50 notifications, with pending reviews first. Categories confirmed during review are remembered for the same merchant.",
+    "inboxHint": "The confirmed category is remembered for future movements from the same merchant.",
     "loading": "Loading…",
     "empty": "No notifications received yet.",
-    "unrecognized": "Unrecognized format. You can ignore the notification and enter the movement manually.",
+    "unrecognized": "Unrecognized format. Complete the details to import the movement or ignore the notification.",
     "import": "Confirm import",
     "ignore": "Ignore",
     "statuses": {
@@ -2240,9 +2240,15 @@
       "invalid_category": "Choose a category available to your group.",
       "connection_unavailable": "The account or user no longer belongs to the group. Create a new connection.",
       "duplicate_transaction": "This movement has already been imported. Refresh the list.",
-      "unauthorized": "Sign in again to continue."
+      "unauthorized": "Sign in again to continue.",
+      "invalid_details": "Check the details: use a EUR amount with at most two decimal places and a valid date."
     },
-    "eventIdVariable": "[UUID saved once in the file]"
+    "eventIdVariable": "[UUID saved once in the file]",
+    "complete": "Complete manually",
+    "pendingTab": "To review",
+    "historyTab": "History",
+    "loadMore": "Load more",
+    "pendingCount": "{count, plural, =0 {No notifications to review} one {# notification to review} other {# notifications to review}}"
   },
   "Currency": {
     "base": "Accounts are recorded in EUR. Free daily rates from Frankfurter.",
