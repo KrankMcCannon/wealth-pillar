@@ -1,6 +1,5 @@
 'use client';
 
-import { useCurrency } from '@/providers/currency-provider';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { BellRing, Copy, RefreshCw } from 'lucide-react';
@@ -10,13 +9,13 @@ import {
   getBankSettingsAction,
   createBankConnectionAction,
   revokeBankConnectionAction,
-  reviewBankNotificationAction,
 } from './actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { FormSelect } from '@/components/form/form-select';
 import { CategorySelect } from '@/components/form/category-select';
 import type { User } from '@/lib/types';
+import { NotificationInbox } from './notification-inbox';
 
 type Settings = NonNullable<Awaited<ReturnType<typeof getBankSettingsAction>>['data']>;
 export function BankNotificationsSection({ user }: { user: User }) {
@@ -35,10 +34,13 @@ export function BankNotificationsSection({ user }: { user: User }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
+  const [revision, setRevision] = useState(0);
   const refresh = useCallback(async () => {
     const result = await getBankSettingsAction();
-    if (result.data) setSettings(result.data);
-    else setError(t('errors.unavailable'));
+    if (result.data) {
+      setSettings(result.data);
+      setRevision((value) => value + 1);
+    } else setError(t('errors.unavailable'));
   }, [t]);
   useEffect(() => {
     if (!expanded) return;
@@ -209,12 +211,7 @@ export function BankNotificationsSection({ user }: { user: User }) {
               variant="ghost"
               disabled={busy}
               aria-label={t('refresh')}
-              onClick={() =>
-                perform(async () => {
-                  await refresh();
-                  return { error: null };
-                })
-              }
+              onClick={() => perform(async () => ({ error: null }))}
             >
               <RefreshCw className="size-4" aria-hidden />
             </Button>
@@ -231,7 +228,7 @@ export function BankNotificationsSection({ user }: { user: User }) {
                 className="flex min-w-0 items-center justify-between gap-3 py-2"
               >
                 <div className="min-w-0">
-                  <p className="break-words font-medium">{connection.name}</p>
+                  <p className="wrap-break-word font-medium">{connection.name}</p>
                   <p className="text-xs text-muted-foreground">
                     {connection.revoked_at
                       ? t('revoked')
@@ -253,96 +250,15 @@ export function BankNotificationsSection({ user }: { user: User }) {
               </li>
             ))}
           </ul>
-          <h3 className="font-medium">{t('inbox')}</h3>
-          <p className="text-xs text-muted-foreground">{t('inboxHint')}</p>
-          {settings?.events.length === 0 ? (
-            <p className="text-sm text-muted-foreground">{t('empty')}</p>
-          ) : null}
-          <ul className="divide-y divide-border">
-            {settings?.events.map((event) => (
-              <NotificationRow key={event.id} event={event} busy={busy} perform={perform} />
-            ))}
-          </ul>
+          <NotificationInbox
+            user={user}
+            revision={revision}
+            busy={busy}
+            perform={perform}
+            onComplete={refresh}
+          />
         </div>
       ) : null}
     </section>
-  );
-}
-function NotificationRow({
-  event,
-  busy,
-  perform,
-}: {
-  event: Settings['events'][number];
-  busy: boolean;
-  perform: (action: () => Promise<{ error: string | null }>) => Promise<void>;
-}) {
-  const { format: formatCurrency } = useCurrency();
-  const t = useTranslations('BankNotifications');
-  const categories = useCategories();
-  const [category, setCategory] = useState(event.category ?? '');
-  return (
-    <li className="min-w-0 space-y-2 py-3">
-      <div className="flex min-w-0 justify-between gap-3">
-        <p className="min-w-0 break-words font-medium">
-          {event.parsed?.description ?? event.payload?.title ?? t('unrecognized')}
-        </p>
-        {event.parsed ? (
-          <span className="shrink-0 tabular-nums">
-            {event.parsed.type === 'expense' ? '−' : '+'}
-            {formatCurrency(Number(event.parsed.amount))}
-          </span>
-        ) : null}
-      </div>
-      <p className="text-xs text-muted-foreground">
-        {event.parsed?.date} · {t(`statuses.${event.status}`)}
-      </p>
-      {event.status === 'pending' ? (
-        <>
-          {event.reason ? (
-            <p className="text-sm text-muted-foreground">
-              {t.has(`reasons.${event.reason}`) ? t(`reasons.${event.reason}`) : t('unrecognized')}
-            </p>
-          ) : null}
-          {!event.parsed && event.payload?.body ? (
-            <p className="whitespace-pre-wrap break-words text-sm">{event.payload.body}</p>
-          ) : null}
-          {event.parsed ? (
-            <CategorySelect
-              captionLabel={t('category')}
-              value={category}
-              onValueChange={setCategory}
-              categories={categories}
-              disabled={busy}
-            />
-          ) : null}
-          <div className="flex flex-wrap gap-2">
-            {event.parsed ? (
-              <Button
-                type="button"
-                disabled={busy || !category}
-                onClick={() =>
-                  perform(() =>
-                    reviewBankNotificationAction({ id: event.id, decision: 'import', category })
-                  )
-                }
-              >
-                {t('import')}
-              </Button>
-            ) : null}
-            <Button
-              type="button"
-              variant="outline"
-              disabled={busy}
-              onClick={() =>
-                perform(() => reviewBankNotificationAction({ id: event.id, decision: 'ignore' }))
-              }
-            >
-              {t('ignore')}
-            </Button>
-          </div>
-        </>
-      ) : null}
-    </li>
   );
 }
