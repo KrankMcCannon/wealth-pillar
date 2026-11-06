@@ -1,0 +1,48 @@
+# Shared project settings. Personal models, MCP and permissions stay in ~/.codex.
+[agents.wealth-pillar-maintainer]
+description = "Implement assigned Wealth Pillar changes."
+config_file = "agents/wealth-pillar-maintainer.toml"
+
+[agents.wealth-pillar-reviewer]
+description = "Review Wealth Pillar financial, authorization and regression defects."
+config_file = "agents/wealth-pillar-reviewer.toml"
+
+# These stacks are outside this project's current scope. Re-enable if scope changes.
+
+[skills]
+config = [
+  { name = "agents-sdk", enabled = false },
+  { name = "amazon-bedrock", enabled = false },
+  { name = "aws-ai-ml", enabled = false },
+  { name = "aws-auth", enabled = false },
+  { name = "aws-billing-and-cost-management", enabled = false },
+  { name = "aws-blocks", enabled = false },
+  { name = "aws-cdk", enabled = false },
+  { name = "aws-cloudformation", enabled = false },
+  { name = "aws-compute", enabled = false },
+  { name = "aws-containers", enabled = false },
+  { name = "aws-database", enabled = false },
+  { name = "aws-deployment", enabled = false },
+  { name = "aws-iam", enabled = false },
+  { name = "aws-investigation", enabled = false },
+  { name = "aws-messaging-and-streaming", enabled = false },
+  { name = "aws-networking", enabled = false },
+  { name = "aws-observability", enabled = false },
+  { name = "aws-sdk-js-v3-usage", enabled = false },
+  { name = "aws-sdk-python-usage", enabled = false },
+  { name = "aws-sdk-swift-usage", enabled = false },
+  { name = "aws-security", enabled = false },
+  { name = "aws-serverless", enabled = false },
+  { name = "aws-storage", enabled = false },
+  { name = "aws-well-architected-review", enabled = false },
+  { name = "cloudflare", enabled = false },
+  { name = "cloudflare-email-service", enabled = false },
+  { name = "durable-objects", enabled = false },
+  { name = "launch-with-aws", enabled = false },
+  { name = "payment-anomaly-triage", enabled = false },
+  { name = "payment-architecture", enabled = false },
+  { name = "sandbox-sdk", enabled = false },
+  { name = "signing-in-to-aws", enabled = false },
+  { name = "workers-best-practices", enabled = false },
+  { name = "wrangler", enabled = false },
+]

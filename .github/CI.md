@@ -22,7 +22,8 @@ of its cases; unrelated changes skip its database service entirely.
 - Documentation-only changes select no unit/integration files; lint, types and build
   still run. A source change with no importing tests is visible as an empty selection.
 - Planner and Quality logic have independent Node tests, including a real Git/Vitest
-  dependency fixture and cache invalidation checks. They run in the planner job.
+  dependency fixture and cache invalidation checks. They run in the planner job, alongside the portable AI harness validation and its
+  orchestration tests (Python 3.11+, standard library only).
 
 No test results are cached. All selected tests execute on every run. Use
 `workflow_dispatch` to request a full audit whenever needed. Browser E2E require
