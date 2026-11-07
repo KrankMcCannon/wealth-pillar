@@ -12,7 +12,7 @@ export async function withBudgetPeriodTransaction<T>(
     async (tx) => {
       // Transaction-scoped: released on both commit and rollback, also on pooled connections.
       await tx.execute(
-        sql`SELECT pg_advisory_xact_lock(hashtextextended(${`budget-periods:${userId}`}, 0))`
+        sql`SELECT pg_advisory_xact_lock(hashtextextended(${`budget-periods:${userId}`}::text, 0::bigint))`
       );
       return mutate(tx);
     },

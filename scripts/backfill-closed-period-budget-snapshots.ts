@@ -10,9 +10,12 @@
  *   pnpm exec tsx --env-file=.env scripts/backfill-closed-period-budget-snapshots.ts
  */
 import { config } from 'dotenv';
-import postgres from 'postgres';
+import type { Sql } from 'postgres';
+import { createPostgresClient } from '../src/server/db/postgres-client';
 
 config({ path: '.env' });
+
+type JSONValue = Parameters<Sql['json']>[0];
 
 const BUDGET_TYPES = new Set(['monthly', 'annually']);
 
@@ -26,7 +29,7 @@ function needsLiveCopy(raw: unknown): boolean {
   return Array.isArray(raw) && raw.length === 0;
 }
 
-function toSnapshotItem(row: Record<string, unknown>): postgres.JSONValue | null {
+function toSnapshotItem(row: Record<string, unknown>): JSONValue | null {
   const type = typeof row.type === 'string' ? row.type : '';
   if (!BUDGET_TYPES.has(type)) return null;
   const categories = Array.isArray(row.categories)
@@ -50,7 +53,7 @@ async function main(): Promise<void> {
   const url = process.env.DATABASE_URL;
   if (!url) throw new Error('DATABASE_URL is not set');
 
-  const sql = postgres(url, { prepare: false, max: 1 });
+  const sql = createPostgresClient(url, { max: 1 });
   try {
     const periods = await sql<
       { id: string; user_id: string; start_date: string; budgets_snapshot: unknown }[]
@@ -62,7 +65,7 @@ async function main(): Promise<void> {
 
     const targets = periods.filter((period) => needsLiveCopy(period.budgets_snapshot));
     const userIds = [...new Set(targets.map((period) => period.user_id))];
-    const liveByUser = new Map<string, postgres.JSONValue[]>();
+    const liveByUser = new Map<string, JSONValue[]>();
 
     for (const userId of userIds) {
       const rows = await sql<Record<string, unknown>[]>`
@@ -72,13 +75,13 @@ async function main(): Promise<void> {
       `;
       liveByUser.set(
         userId,
-        rows.map(toSnapshotItem).filter((row): row is postgres.JSONValue => row !== null)
+        rows.map(toSnapshotItem).filter((row): row is JSONValue => row !== null)
       );
     }
 
     let updated = 0;
     for (const period of targets) {
-      const snapshot: postgres.JSONValue = liveByUser.get(period.user_id) ?? {};
+      const snapshot: JSONValue = liveByUser.get(period.user_id) ?? [];
       await sql`
         UPDATE budget_periods
         SET budgets_snapshot = ${sql.json(snapshot)}, updated_at = now()

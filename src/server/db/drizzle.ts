@@ -1,5 +1,6 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
-import postgres from 'postgres';
+import type { Sql } from 'postgres';
+import { createPostgresClient } from './postgres-client';
 import { schemaBundle } from './schema-bundle';
 
 const connectionString = process.env.DATABASE_URL;
@@ -19,7 +20,7 @@ if (
 }
 
 const globalForDb = globalThis as unknown as {
-  pgClient?: ReturnType<typeof postgres>;
+  pgClient?: Sql;
   pgConnectionString?: string;
 };
 
@@ -30,14 +31,7 @@ const globalForDb = globalThis as unknown as {
 const client =
   connectionString && globalForDb.pgClient && globalForDb.pgConnectionString === connectionString
     ? globalForDb.pgClient
-    : postgres(connectionString ?? '', {
-        prepare: false,
-        // Each serverless instance owns a pool. Keep aggregate connections bounded.
-        max: 3,
-        idle_timeout: 20,
-        max_lifetime: 60 * 5,
-        connect_timeout: 10,
-      });
+    : createPostgresClient(connectionString ?? '');
 
 if (connectionString) {
   globalForDb.pgClient = client;
