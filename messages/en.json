@@ -2255,5 +2255,12 @@
     "unavailable": "Exchange rate unavailable: amounts remain visible in EUR. Try again later.",
     "rate": "1 EUR = {rate} {currency} · rate dated {date} · Frankfurter",
     "saveUnavailable": "The purchase-date exchange rate is unavailable. Your changes were not saved; try again later."
+  },
+  "FormStatus": {
+    "timeout": "The response timed out. Your entries have been kept. Check whether the save completed before trying again to avoid duplicates.",
+    "error": "The operation failed. Your entries have been kept. Please try again shortly.",
+    "referenceUnavailable": "Accounts and categories could not be refreshed. Reload the data before adding new items.",
+    "retry": "Reload data",
+    "loadError": "Loading failed. Try again or close the form."
   }
 }

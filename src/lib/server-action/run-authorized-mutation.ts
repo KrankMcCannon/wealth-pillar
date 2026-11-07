@@ -1,3 +1,4 @@
+import { actionErrorMessage } from './action-error';
 import { isAuthDenial, requireAuthenticatedUser } from '@/lib/permissions/action-auth';
 import type { User } from '@/lib/types';
 import type { ServiceResult } from '@/lib/types/service-result';
@@ -22,9 +23,7 @@ export async function runAuthorizedMutation<T>(options: {
   } catch (error) {
     return {
       data: null,
-      error:
-        options.formatError?.(error) ??
-        (error instanceof Error ? error.message : 'Unexpected error'),
+      error: options.formatError?.(error) ?? actionErrorMessage(error, 'Unexpected error'),
     };
   }
 }

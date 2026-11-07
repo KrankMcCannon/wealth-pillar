@@ -1,5 +1,7 @@
 'use client';
 
+import { withDeadline } from '@/lib/utils/with-deadline';
+
 import { parseDecimal } from '@/lib/utils/parse-decimal';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -200,7 +202,7 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
   );
 
   const loadEditValues = useCallback(async (id: string, signal: AbortSignal) => {
-    const result = await getRecurringSeriesByIdAction(id);
+    const result = await withDeadline(getRecurringSeriesByIdAction(id));
     if (signal.aborted) return null;
     if (!result.data) {
       return null;
@@ -219,7 +221,7 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
     [seedSeries]
   );
 
-  const { resetValues, isReady, isLoading } = useEntityFormRowReset({
+  const { resetValues, isReady, isLoading, loadFailed, retryLoad } = useEntityFormRowReset({
     editId,
     createValues: createDefaults,
     loadEditValues,
@@ -259,7 +261,7 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
   const handleToggleSeriesActive = useCallback(async () => {
     if (!editId || seriesIsActive === undefined) return;
     const nextActive = !seriesIsActive;
-    const result = await toggleRecurringSeriesActiveAction(editId, nextActive);
+    const result = await withDeadline(toggleRecurringSeriesActiveAction(editId, nextActive));
     if (result.error) {
       toast({ title: t('toast.errorTitle'), description: result.error, variant: 'destructive' });
       return;
@@ -275,7 +277,7 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
 
   const handleDeleteSeries = useCallback(async () => {
     if (!editId) return;
-    const result = await deleteRecurringSeriesAction(editId);
+    const result = await withDeadline(deleteRecurringSeriesAction(editId));
     if (result.error) {
       toast({ title: t('toast.errorTitle'), description: result.error, variant: 'destructive' });
       throw new Error(result.error);
@@ -302,11 +304,11 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
       schema={recurringSchema}
       defaultValues={createDefaults}
       resetValues={resetValues ?? createDefaults}
-      isLoading={Boolean(editId) && (isLoading || !isReady)}
+      isLoading={Boolean(editId) && !loadFailed && (isLoading || !isReady)}
       {...(isEditMode && editId
         ? {
             deletion: {
-              enabled: true,
+              enabled: isReady && !loadFailed,
               title: tDialogs('deleteRecurring.title'),
               message: tDialogs('deleteRecurring.message', {
                 description: deleteDialogDescription,
@@ -318,10 +320,13 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
             },
           }
         : {})}
+      loadFailed={loadFailed}
+      onRetryLoad={retryLoad}
       onSubmit={handleSubmit}
       footer={(_, isSubmitting) => (
         <EntityFormFooter
           isSubmitting={isSubmitting}
+          disabled={loadFailed || !isReady}
           submitLabel={isEditMode ? t('buttons.saveChanges') : t('buttons.createSeries')}
           onCancel={handleClose}
           secondaryAction={

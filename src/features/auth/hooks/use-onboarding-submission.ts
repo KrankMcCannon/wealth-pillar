@@ -1,5 +1,7 @@
 'use client';
 
+import { withDeadline } from '@/lib/utils/with-deadline';
+
 import { useCallback } from 'react';
 import { useAuth, useUser } from '@clerk/nextjs';
 import { useLocale, useTranslations } from 'next-intl';
@@ -82,17 +84,17 @@ export function useOnboardingSubmission(): {
         const isTimeout = err instanceof Error && err.message === 'timeout';
         console.error('[Onboarding] completeOnboardingAction failed:', err);
         if (isTimeout) {
-          const categoriesResult = await getAllCategoriesAction();
+          const categoriesResult = await withDeadline(getAllCategoriesAction());
           return {
             ok: false,
             error: t('errorOperationTimeout'),
             categories: categoriesResult.data || [],
           };
         }
-        const deleteResult = await deleteClerkUserAction(locale);
+        const deleteResult = await withDeadline(deleteClerkUserAction(locale));
         if (deleteResult.error) {
-          await registerOrphanUserAction(locale);
-          const categoriesResult = await getAllCategoriesAction();
+          await withDeadline(registerOrphanUserAction(locale));
+          const categoriesResult = await withDeadline(getAllCategoriesAction());
           return {
             ok: false,
             error: t('orphanSupportMessage'),
@@ -100,7 +102,7 @@ export function useOnboardingSubmission(): {
             isOrphanMessage: true,
           };
         }
-        const categoriesResult = await getAllCategoriesAction();
+        const categoriesResult = await withDeadline(getAllCategoriesAction());
         return {
           ok: false,
           error: t('errorUnexpected'),
@@ -110,10 +112,10 @@ export function useOnboardingSubmission(): {
 
       if (result.error) {
         if (result.errorCode !== 'already_configured') {
-          const deleteResult = await deleteClerkUserAction(locale);
+          const deleteResult = await withDeadline(deleteClerkUserAction(locale));
           if (deleteResult.error) {
-            await registerOrphanUserAction(locale);
-            const categoriesResult = await getAllCategoriesAction();
+            await withDeadline(registerOrphanUserAction(locale));
+            const categoriesResult = await withDeadline(getAllCategoriesAction());
             return {
               ok: false,
               error: t('orphanSupportMessage'),
@@ -122,7 +124,7 @@ export function useOnboardingSubmission(): {
             };
           }
         }
-        const categoriesResult = await getAllCategoriesAction();
+        const categoriesResult = await withDeadline(getAllCategoriesAction());
         return {
           ok: false,
           error: result.error,

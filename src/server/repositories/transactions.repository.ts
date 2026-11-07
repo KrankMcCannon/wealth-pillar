@@ -502,7 +502,7 @@ export class TransactionsRepository {
   static async updateAccountBalance(accountId: string, deltaAmount: number, executor?: DbExecutor) {
     const dbConn = resolveDb(executor);
     await dbConn.execute(
-      sql`UPDATE accounts SET balance = balance + ${deltaAmount}, updated_at = clock_timestamp() WHERE id = ${accountId}`
+      sql`UPDATE accounts SET balance = balance + ${deltaAmount}::numeric, updated_at = clock_timestamp() WHERE id = ${accountId}::uuid`
     );
   }
 }

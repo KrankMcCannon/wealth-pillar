@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { z } from 'zod';
 import { EntityFormModal } from './entity-form-modal';
@@ -135,4 +135,88 @@ it('keeps validation errors visible after submitting a pristine form', async () 
   await user.click(screen.getByRole('button', { name: 'Save' }));
   expect(await screen.findByRole('alert')).toHaveTextContent('Required');
   expect(submit).not.toHaveBeenCalled();
+});
+
+it('unlocks the form after an unexpected rejection and keeps the draft', async () => {
+  const user = userEvent.setup();
+  render(
+    <EntityFormModal
+      isOpen
+      onClose={() => {}}
+      title="Failure"
+      schema={schema}
+      defaultValues={{ name: 'Draft' }}
+      onSubmit={async () => {
+        throw new Error('database failure');
+      }}
+      footer={(_, pending) => (
+        <button disabled={pending} type="submit">
+          Save
+        </button>
+      )}
+    >
+      {(form) => <input aria-label="Draft" {...form.register('name')} />}
+    </EntityFormModal>
+  );
+  await user.click(screen.getByRole('button', { name: 'Save' }));
+  expect(await screen.findByRole('alert')).toHaveTextContent('error');
+  expect(screen.getByRole('button', { name: 'Save' })).toBeEnabled();
+  expect(screen.getByLabelText('Draft')).toHaveValue('Draft');
+});
+
+it('releases React Hook Form submitting state after a timeout without erasing the draft', async () => {
+  vi.useFakeTimers();
+  try {
+    render(
+      <EntityFormModal
+        isOpen
+        onClose={() => {}}
+        title="Timeout"
+        schema={schema}
+        defaultValues={{ name: 'Keep me' }}
+        onSubmit={() => new Promise(() => {})}
+        footer={(_, pending) => (
+          <button disabled={pending} type="submit">
+            Save
+          </button>
+        )}
+      >
+        {(form) => <input aria-label="Preserved draft" {...form.register('name')} />}
+      </EntityFormModal>
+    );
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    });
+    expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(25_000);
+    });
+    expect(screen.getByRole('alert')).toHaveTextContent('timeout');
+    expect(screen.getByRole('button', { name: 'Save' })).toBeEnabled();
+    expect(screen.getByLabelText('Preserved draft')).toHaveValue('Keep me');
+  } finally {
+    vi.useRealTimers();
+  }
+});
+
+it('shows recovery instead of editable defaults when loading the original entity fails', () => {
+  const retry = vi.fn();
+  render(
+    <EntityFormModal
+      isOpen
+      onClose={() => {}}
+      title="Unavailable"
+      schema={schema}
+      defaultValues={{ name: 'Incorrect default' }}
+      loadFailed
+      onRetryLoad={retry}
+      onSubmit={async () => {}}
+    >
+      {(form) => <input aria-label="Entity" {...form.register('name')} />}
+    </EntityFormModal>
+  );
+  expect(screen.getByRole('alert')).toHaveTextContent('loadError');
+  expect(screen.queryByLabelText('Entity')).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: 'retry' }));
+  expect(retry).toHaveBeenCalledOnce();
 });

@@ -1,5 +1,7 @@
 'use client';
 
+import { withDeadline } from '@/lib/utils/with-deadline';
+
 import { parseDecimal } from '@/lib/utils/parse-decimal';
 
 import { useCallback, useMemo } from 'react';
@@ -143,7 +145,7 @@ function BudgetFormModal({
         const budget = periodBudgets.find((item) => item.id === id);
         return budget ? mapBudgetToFormData(budget) : null;
       }
-      const result = await getBudgetByIdAction(id, locale);
+      const result = await withDeadline(getBudgetByIdAction(id, locale));
       if (signal.aborted) return null;
       if (!result.data) return null;
       return mapBudgetToFormData(result.data);
@@ -159,7 +161,7 @@ function BudgetFormModal({
     [isPeriodMode, periodBudgets, storeBudgets]
   );
 
-  const { resetValues, isReady, isLoading } = useEntityFormRowReset({
+  const { resetValues, isReady, isLoading, loadFailed, retryLoad } = useEntityFormRowReset({
     editId,
     createValues: createDefaults,
     loadEditValues,
@@ -259,7 +261,9 @@ function BudgetFormModal({
   const handleDelete = useCallback(async () => {
     if (!editId) return;
     if (isPeriodMode && periodId && periodUserId) {
-      const result = await deleteClosedPeriodBudgetAction(periodUserId, periodId, editId, locale);
+      const result = await withDeadline(
+        deleteClosedPeriodBudgetAction(periodUserId, periodId, editId, locale)
+      );
       if (result.error) {
         toast({
           title: t('toast.errorTitle'),
@@ -282,7 +286,9 @@ function BudgetFormModal({
     removeBudget(editId);
     let restored = false;
     try {
-      const result = await deleteBudgetAction(editId, locale, pathname.startsWith('/budgets/'));
+      const result = await withDeadline(
+        deleteBudgetAction(editId, locale, pathname.startsWith('/budgets/'))
+      );
       if (result.error) {
         addBudget(budget);
         restored = true;
@@ -331,12 +337,12 @@ function BudgetFormModal({
       schema={budgetSchema}
       defaultValues={createDefaults}
       resetValues={resetValues ?? createDefaults}
-      isLoading={Boolean(editId) && (isLoading || !isReady)}
+      isLoading={Boolean(editId) && !loadFailed && (isLoading || !isReady)}
       bodyClassName={cn(formModalStyles.scrollBody, 'overflow-x-hidden')}
       {...(isEditMode && editId
         ? {
             deletion: {
-              enabled: true,
+              enabled: isReady && !loadFailed,
               title: t('deleteDialogTitle'),
               message: t('deleteConfirm'),
               confirmText: t('buttons.deleteBudget'),
@@ -346,10 +352,13 @@ function BudgetFormModal({
             },
           }
         : {})}
+      loadFailed={loadFailed}
+      onRetryLoad={retryLoad}
       onSubmit={handleSubmit}
       footer={(_, isSubmitting) => (
         <EntityFormFooter
           isSubmitting={isSubmitting}
+          disabled={loadFailed || !isReady}
           submitLabel={isEditMode ? t('buttons.confirmChanges') : t('buttons.create')}
           onCancel={onClose}
         />

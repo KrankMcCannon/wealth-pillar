@@ -415,7 +415,7 @@ it('runs the production snapshot CLI against the local fixture', async () => {
   });
   const output = execFileSync(
     process.execPath,
-    ['node_modules/tsx/dist/cli.mjs', 'scripts/persist-portfolio-snapshots.ts'],
+    ['--import', 'tsx', 'scripts/persist-portfolio-snapshots.ts'],
     { encoding: 'utf8', env: process.env }
   );
   expect(output).toContain('Portfolio rebuilt:');

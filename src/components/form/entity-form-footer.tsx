@@ -7,6 +7,7 @@ import { ModalFooterActions } from '@/components/ui/modal-footer-actions';
 export interface EntityFormFooterProps {
   isSubmitting: boolean;
   isDeleting?: boolean;
+  disabled?: boolean;
   submitLabel: string;
   cancelLabel?: string;
   onCancel: () => void;
@@ -16,6 +17,7 @@ export interface EntityFormFooterProps {
 export function EntityFormFooter({
   isSubmitting,
   isDeleting = false,
+  disabled = false,
   submitLabel,
   cancelLabel,
   onCancel,
@@ -31,7 +33,7 @@ export function EntityFormFooter({
       onCancel={onCancel}
       submitType="submit"
       isSubmitting={isSubmitting}
-      disabled={isDeleting}
+      disabled={isDeleting || disabled}
       secondaryAction={secondaryAction}
     />
   );

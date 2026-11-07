@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { renderHook, waitFor } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react';
 import { useEntityFormRowReset } from './use-entity-form-row-reset';
 
 describe('useEntityFormRowReset', () => {
@@ -76,4 +76,41 @@ describe('useEntityFormRowReset', () => {
     expect(result.current.isLoading).toBe(false);
     expect(loadEditValues).not.toHaveBeenCalled();
   });
+});
+
+it('ends a stuck load, ignores late data, and supports retry', async () => {
+  vi.useFakeTimers();
+  try {
+    let finish!: (value: { name: string }) => void;
+    const pending = new Promise<{ name: string }>((resolve) => {
+      finish = resolve;
+    });
+    const loadEditValues = vi
+      .fn()
+      .mockReturnValueOnce(pending)
+      .mockResolvedValue({ name: 'Fresh' });
+    const { result } = renderHook(() =>
+      useEntityFormRowReset({
+        editId: 'row-1',
+        createValues: { name: '' },
+        loadEditValues,
+      })
+    );
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(20_000);
+    });
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.loadFailed).toBe(true);
+    await act(async () => {
+      finish({ name: 'Late' });
+    });
+    expect(result.current.resetValues).toBeUndefined();
+    await act(async () => {
+      result.current.retryLoad();
+    });
+    expect(result.current.loadFailed).toBe(false);
+    expect(result.current.resetValues).toEqual({ name: 'Fresh' });
+  } finally {
+    vi.useRealTimers();
+  }
 });

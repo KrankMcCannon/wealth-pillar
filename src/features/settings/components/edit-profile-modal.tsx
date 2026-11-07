@@ -1,5 +1,7 @@
 'use client';
 
+import { withDeadline } from '@/lib/utils/with-deadline';
+
 import { useMemo } from 'react';
 import { z } from 'zod';
 import { useTranslations } from 'next-intl';
@@ -79,7 +81,7 @@ export function EditProfileModal({
           isSubmitting={form.formState.isSubmitting}
         />
       )}
-      onSubmit={async (data, form) => {
+      onSubmit={async (data, form, signal) => {
         if (data.name === currentName && data.email === currentEmail) {
           toast({
             title: t('toast.noChangesTitle'),
@@ -110,11 +112,15 @@ export function EditProfileModal({
             return;
           }
         }
-        const { data: updatedUser, error } = await updateUserProfileAction(userId, {
-          name: data.name === currentName ? undefined : data.name,
-          email: data.email === currentEmail ? undefined : data.email,
-        });
+        if (signal?.aborted) return;
+        const { data: updatedUser, error } = await withDeadline(
+          updateUserProfileAction(userId, {
+            name: data.name === currentName ? undefined : data.name,
+            email: data.email === currentEmail ? undefined : data.email,
+          })
+        );
 
+        if (signal?.aborted) return;
         if (error) {
           toast({ title: t('toast.errorTitle'), description: error, variant: 'destructive' });
           throw new Error(error);

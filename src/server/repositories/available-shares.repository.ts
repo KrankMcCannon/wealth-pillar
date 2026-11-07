@@ -8,18 +8,18 @@ export class AvailableSharesRepository {
     const records = await db.execute<{ region: string }>(
       sql`SELECT region FROM get_available_share_regions()`
     );
-    return (records as unknown as { region: string }[]).map((r) => r.region);
+    return records.map((r) => r.region);
   }
 
   static async getAssetTypes(region: string | null): Promise<string[]> {
     const records = await db.execute<{ asset_type: string }>(
-      sql`SELECT asset_type FROM get_available_share_asset_types(${region})`
+      sql`SELECT asset_type FROM get_available_share_asset_types(${region}::text)`
     );
-    return (records as unknown as { asset_type: string }[]).map((r) => r.asset_type);
+    return records.map((r) => r.asset_type);
   }
 
   static async getPopular(limit: number) {
-    const records = await db.execute(sql`SELECT * FROM get_popular_shares(${limit})`);
+    const records = await db.execute(sql`SELECT * FROM get_popular_shares(${limit}::integer)`);
     return records;
   }
 

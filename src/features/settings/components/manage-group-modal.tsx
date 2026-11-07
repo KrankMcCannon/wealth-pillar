@@ -1,5 +1,7 @@
 'use client';
 
+import { withDeadline } from '@/lib/utils/with-deadline';
+
 import { useMemo } from 'react';
 import { z } from 'zod';
 import { useTranslations } from 'next-intl';
@@ -111,7 +113,7 @@ export function ManageGroupModal({
           return;
         }
 
-        const { data: updated, error } = await updateGroupAction(groupId, data.name);
+        const { data: updated, error } = await withDeadline(updateGroupAction(groupId, data.name));
 
         if (error) {
           toast({ title: t('toast.errorTitle'), description: error, variant: 'destructive' });

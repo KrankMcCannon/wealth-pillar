@@ -1,6 +1,6 @@
 import { db } from '@/server/db/drizzle';
 import { groups } from '@/server/db/schema';
-import { eq, sql } from 'drizzle-orm';
+import { eq, arrayOverlaps } from 'drizzle-orm';
 
 export class GroupsRepository {
   static async getById(id: string) {
@@ -27,11 +27,8 @@ export class GroupsRepository {
   }
 
   static async getByUserIds(userIds: string[]) {
-    // Check if any of the userIds in the groups.user_ids array overlap with the provided userIds
-    // In Drizzle/Postgres: user_ids && ARRAY['id1', 'id2']
-    return db
-      .select()
-      .from(groups)
-      .where(sql`${groups.user_ids} && ${userIds}`);
+    if (userIds.length === 0) return [];
+    // Let the UUID column encode the array as one parameter, not a SQL tuple.
+    return db.select().from(groups).where(arrayOverlaps(groups.user_ids, userIds));
   }
 }

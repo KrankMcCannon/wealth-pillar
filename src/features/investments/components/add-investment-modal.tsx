@@ -1,5 +1,7 @@
 'use client';
 
+import { withDeadline } from '@/lib/utils/with-deadline';
+
 import { CURRENCIES } from '@/lib/currency/types';
 import { parseDecimal } from '@/lib/utils/parse-decimal';
 import { todayDateString } from '@/lib/utils/date-utils';
@@ -89,7 +91,7 @@ export default function AddInvestmentModal({
 
   const loadEditValues = useCallback(
     async (id: string, signal: AbortSignal) => {
-      const res = await getInvestmentByIdAction(id);
+      const res = await withDeadline(getInvestmentByIdAction(id));
       if (signal.aborted) return null;
       if (res.error || !res.data) {
         const msg =
@@ -149,7 +151,7 @@ export default function AddInvestmentModal({
       defaultValues={createDefaults}
       resetValues={resetValues ?? createDefaults}
       repositionInputs={false}
-      isLoading={Boolean(editId) && (isLoading || !isReady)}
+      isLoading={Boolean(editId) && !loadFailed && (isLoading || !isReady)}
       onSubmit={handleSubmit}
       deletion={{
         enabled: Boolean(editId) && isReady && !loadFailed,
@@ -159,7 +161,7 @@ export default function AddInvestmentModal({
         cancelText: t('cancelButton'),
         onDelete: async () => {
           if (!editId) return;
-          const result = await deleteInvestmentAction(editId);
+          const result = await withDeadline(deleteInvestmentAction(editId));
           if (result.error) {
             toast({
               title: t('toast.errorTitle'),

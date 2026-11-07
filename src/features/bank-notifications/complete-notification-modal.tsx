@@ -1,5 +1,7 @@
 'use client';
 
+import { withDeadline } from '@/lib/utils/with-deadline';
+
 import { useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { EntityFormModal, EntityFormFooter } from '@/components/form';
@@ -72,19 +74,21 @@ export function CompleteNotificationModal({
       title={t('complete')}
       schema={schema}
       defaultValues={defaults}
-      onSubmit={async (values, form) => {
+      onSubmit={async (values, form, signal) => {
         try {
-          const result = await reviewBankNotificationAction({
-            id: event.id,
-            decision: 'import',
-            category: values.category,
-            manual: {
-              description: values.description,
-              amount: parseDecimal(values.amount),
-              type: values.type,
-              date: values.date,
-            },
-          });
+          const result = await withDeadline(
+            reviewBankNotificationAction({
+              id: event.id,
+              decision: 'import',
+              category: values.category,
+              manual: {
+                description: values.description,
+                amount: parseDecimal(values.amount),
+                type: values.type,
+                date: values.date,
+              },
+            })
+          );
           if (result.error) {
             form.setError('root', { message: t('errors.unavailable') });
             return;
@@ -93,8 +97,8 @@ export function CompleteNotificationModal({
             useReferenceDataStore
               .getState()
               .finishBalanceMutation(`notification:${event.id}`, result.data);
-          await onComplete();
-          onClose();
+          await withDeadline(onComplete());
+          if (!signal?.aborted) onClose();
         } catch {
           form.setError('root', { message: t('errors.unavailable') });
         }
