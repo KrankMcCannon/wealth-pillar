@@ -32,9 +32,10 @@ const client =
     ? globalForDb.pgClient
     : postgres(connectionString ?? '', {
         prepare: false,
-        max: 10,
+        // Each serverless instance owns a pool. Keep aggregate connections bounded.
+        max: 3,
         idle_timeout: 20,
-        max_lifetime: 60 * 30,
+        max_lifetime: 60 * 5,
         connect_timeout: 10,
       });
 

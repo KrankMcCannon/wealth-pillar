@@ -1,5 +1,7 @@
 'use client';
 
+import { withDeadline } from '@/lib/utils/with-deadline';
+
 import { useCurrency } from '@/providers/currency-provider';
 import { isCurrency } from '@/lib/currency/types';
 import { useCallback, useState } from 'react';
@@ -43,7 +45,9 @@ function usePreferenceModalSave(preferenceKey: keyof UserPreferencesUpdate) {
 
       setIsSaving(true);
       try {
-        const { data, error } = await updateUserPreferencesAction(currentUser.id, updates);
+        const { data, error } = await withDeadline(
+          updateUserPreferencesAction(currentUser.id, updates)
+        );
         if (error || !data) {
           toast({
             title: t('toast.errorTitle'),

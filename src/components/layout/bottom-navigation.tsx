@@ -31,7 +31,7 @@ export function BottomNavigation() {
           <Link
             key={item.href}
             href={item.href}
-            prefetch
+            prefetch={false}
             className={shell.bottomNavItem}
             aria-current={isCurrent ? 'page' : undefined}
             title={label}

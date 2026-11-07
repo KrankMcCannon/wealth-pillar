@@ -1,4 +1,6 @@
 'use client';
+
+import { withDeadline, ActionTimeoutError } from '@/lib/utils/with-deadline';
 import { useCurrency } from '@/providers/currency-provider';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -147,6 +149,7 @@ export default function ImportModal({ isOpen, onClose }: Readonly<ImportModalPro
   const { format: formatCurrencyLocale } = useCurrency();
 
   const t = useTranslations('Transactions.ImportModal');
+  const tStatus = useTranslations('FormStatus');
   const locale = useLocale();
   const router = useRouter();
   const currentUser = useRequiredCurrentUser();
@@ -220,14 +223,19 @@ export default function ImportModal({ isOpen, onClose }: Readonly<ImportModalPro
       } catch (error) {
         toast({
           title: t('errors.parseFailed'),
-          description: error instanceof Error ? error.message : t('errors.generic'),
+          description:
+            error instanceof ActionTimeoutError
+              ? tStatus('timeout')
+              : error instanceof Error
+                ? error.message
+                : t('errors.generic'),
           variant: 'destructive',
         });
       } finally {
         setIsBusy(false);
       }
     },
-    [defaultAccountId, defaultUserId, mappingForm, t, toast]
+    [defaultAccountId, defaultUserId, mappingForm, t, tStatus, toast]
   );
 
   const handlePrepare = mappingForm.handleSubmit(async (values) => {
@@ -264,10 +272,12 @@ export default function ImportModal({ isOpen, onClose }: Readonly<ImportModalPro
         return;
       }
 
-      const response = await prepareImportAction({
-        group_id: groupId,
-        rows: preparedInputs,
-      });
+      const response = await withDeadline(
+        prepareImportAction({
+          group_id: groupId,
+          rows: preparedInputs,
+        })
+      );
 
       if (response.error || !response.data) {
         toast({
@@ -298,7 +308,12 @@ export default function ImportModal({ isOpen, onClose }: Readonly<ImportModalPro
     } catch (error) {
       toast({
         title: t('errors.prepareFailed'),
-        description: error instanceof Error ? error.message : t('errors.generic'),
+        description:
+          error instanceof ActionTimeoutError
+            ? tStatus('timeout')
+            : error instanceof Error
+              ? error.message
+              : t('errors.generic'),
         variant: 'destructive',
       });
     } finally {
@@ -315,25 +330,27 @@ export default function ImportModal({ isOpen, onClose }: Readonly<ImportModalPro
 
     setIsBusy(true);
     try {
-      const response = await commitImportAction({
-        group_id: groupId,
-        rows: selected.map((row) => ({
-          rowId: row.rowId,
-          account_id: row.account_id,
-          date: row.date,
-          description: row.description,
-          amount: row.amount,
-          type: row.type,
-          import_hash: row.import_hash,
-          occurrence_index: row.occurrence_index,
-          preparation_token: row.preparation_token,
-          category: row.category,
-          user_id: row.user_id,
-          ...(row.suggestedRecurringSeriesId
-            ? { recurring_series_id: row.suggestedRecurringSeriesId }
-            : {}),
-        })),
-      });
+      const response = await withDeadline(
+        commitImportAction({
+          group_id: groupId,
+          rows: selected.map((row) => ({
+            rowId: row.rowId,
+            account_id: row.account_id,
+            date: row.date,
+            description: row.description,
+            amount: row.amount,
+            type: row.type,
+            import_hash: row.import_hash,
+            occurrence_index: row.occurrence_index,
+            preparation_token: row.preparation_token,
+            category: row.category,
+            user_id: row.user_id,
+            ...(row.suggestedRecurringSeriesId
+              ? { recurring_series_id: row.suggestedRecurringSeriesId }
+              : {}),
+          })),
+        })
+      );
 
       if (response.error || !response.data) {
         toast({
@@ -350,13 +367,18 @@ export default function ImportModal({ isOpen, onClose }: Readonly<ImportModalPro
     } catch (error) {
       toast({
         title: t('errors.commitFailed'),
-        description: error instanceof Error ? error.message : t('errors.generic'),
+        description:
+          error instanceof ActionTimeoutError
+            ? tStatus('timeout')
+            : error instanceof Error
+              ? error.message
+              : t('errors.generic'),
         variant: 'destructive',
       });
     } finally {
       setIsBusy(false);
     }
-  }, [groupId, previewRows, router, t, toast]);
+  }, [groupId, previewRows, router, t, tStatus, toast]);
 
   // Referential equality of unchanged rows is preserved by these updaters (see ImportPreviewRow),
   // which keeps the virtualized list from re-rendering rows the user didn't touch.

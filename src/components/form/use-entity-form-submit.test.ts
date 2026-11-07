@@ -3,6 +3,8 @@ import { renderHook, act } from '@testing-library/react';
 import type { UseFormReturn } from 'react-hook-form';
 import { useEntityFormSubmit } from './use-entity-form-submit';
 
+vi.mock('next-intl', () => ({ useTranslations: () => (key: string) => key }));
+
 const toastMock = vi.fn();
 vi.mock('@/hooks/use-toast', () => ({
   toast: (...args: unknown[]) => toastMock(...args),
@@ -112,4 +114,51 @@ describe('useEntityFormSubmit', () => {
     expect(updateAction).toHaveBeenCalledWith('row-1', { name: 'Edited' });
     expect(commitUpdate).toHaveBeenCalledWith('handle-1', { id: 'row-1' });
   });
+});
+
+it('rolls back and keeps the modal open on timeout, ignoring a late successful action', async () => {
+  vi.useFakeTimers();
+  try {
+    let finish!: (value: { data: { id: string }; error: null }) => void;
+    const request = new Promise<{ data: { id: string }; error: null }>((resolve) => {
+      finish = resolve;
+    });
+    const onClose = vi.fn();
+    const commitCreate = vi.fn();
+    const rollbackCreate = vi.fn();
+    const form = createFormMock();
+    const { result } = renderHook(() =>
+      useEntityFormSubmit({
+        isEditMode: false,
+        onClose,
+        buildPayload: (values: FormValues) => values,
+        createAction: () => request,
+        updateAction: () => request,
+        applyCreateOptimistic: () => 'pending',
+        commitCreate,
+        rollbackCreate,
+        getSuccessToast: () => ({ title: 'Saved', description: 'Saved' }),
+        errorToast: { title: 'Error' },
+        unknownErrorMessage: 'Failed',
+      })
+    );
+    let submission!: Promise<void>;
+    await act(async () => {
+      submission = result.current({ name: 'Draft' }, form);
+    });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(20_000);
+      await submission;
+    });
+    expect(form.setError).toHaveBeenCalledWith('root', { message: 'timeout' });
+    expect(rollbackCreate).toHaveBeenCalledWith('pending', 'timeout');
+    expect(onClose).not.toHaveBeenCalled();
+    await act(async () => {
+      finish({ data: { id: 'saved' }, error: null });
+    });
+    expect(commitCreate).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+  } finally {
+    vi.useRealTimers();
+  }
 });

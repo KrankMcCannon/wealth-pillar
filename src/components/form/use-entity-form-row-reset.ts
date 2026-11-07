@@ -1,5 +1,6 @@
 'use client';
 
+import { withDeadline } from '@/lib/utils/with-deadline';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 export interface UseEntityFormRowResetOptions<T> {
@@ -67,8 +68,7 @@ export function useEntityFormRowReset<T>({
     const controller = new AbortController();
     const requestId = retryToken;
 
-    loadEditValuesRef
-      .current(editId, controller.signal)
+    withDeadline(loadEditValuesRef.current(editId, controller.signal))
       .then((values) => {
         if (controller.signal.aborted) return;
         if (values) {

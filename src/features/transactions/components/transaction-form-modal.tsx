@@ -1,5 +1,7 @@
 'use client';
 
+import { withDeadline } from '@/lib/utils/with-deadline';
+
 import type { TransactionMutationResult } from '@/lib/types/financial-mutation';
 import { useSearchParams } from 'next/navigation';
 import { resolveTransactionCreateContext } from '../utils/create-transaction-context';
@@ -227,7 +229,7 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
   }, [handleClose, t, tPage, toast]);
 
   const loadEditValues = useCallback(async (id: string, signal: AbortSignal) => {
-    const result = await getTransactionByIdAction(id);
+    const result = await withDeadline(getTransactionByIdAction(id));
     if (signal.aborted) return null;
     if (result.error || !result.data) return null;
     return mapTransactionToFormData(result.data);
@@ -245,7 +247,7 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
     [seedTransaction]
   );
 
-  const { resetValues, isReady, isLoading } = useEntityFormRowReset({
+  const { resetValues, isReady, isLoading, loadFailed, retryLoad } = useEntityFormRowReset({
     editId,
     createValues,
     loadEditValues,
@@ -367,7 +369,7 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
     beginBalanceMutation(balanceId, Object.fromEntries(getTransactionBalanceDeltas(original, -1)));
     let result;
     try {
-      result = await deleteTransactionAction(editId);
+      result = await withDeadline(deleteTransactionAction(editId));
     } catch (error) {
       rollbackDeleteOptimisticStore(editId);
       finishBalanceMutation(balanceId);
@@ -409,11 +411,11 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
       schema={transactionSchema}
       defaultValues={createDefaults}
       resetValues={resetValues ?? createValues}
-      isLoading={!isReady || isLoading}
+      isLoading={!loadFailed && (!isReady || isLoading)}
       {...(isEditMode && editId
         ? {
             deletion: {
-              enabled: true,
+              enabled: isReady && !loadFailed,
               title: tPage('dialogs.deleteTransaction.title'),
               message: tPage('dialogs.deleteTransaction.message', {
                 description: deleteDialogDescription,
@@ -425,10 +427,13 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
             },
           }
         : {})}
+      loadFailed={loadFailed}
+      onRetryLoad={retryLoad}
       onSubmit={handleSubmit}
       footer={(_, isSubmitting) => (
         <EntityFormFooter
           isSubmitting={isSubmitting}
+          disabled={loadFailed || !isReady}
           submitLabel={isEditMode ? t('buttons.saveTransaction') : t('buttons.create')}
           onCancel={handleClose}
         />

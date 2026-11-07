@@ -10,6 +10,7 @@
  * @module lib/auth/cached-auth
  */
 
+import { withDeadline } from '@/lib/utils/with-deadline';
 import { cache } from 'react';
 import { auth } from '@clerk/nextjs/server';
 import { UsersRepository } from '@/server/repositories/users.repository';
@@ -55,7 +56,7 @@ export const getCurrentUser = cache(async (): Promise<User | null> => {
     return null;
   }
 
-  const user = await UsersRepository.findByClerkId(clerkId);
+  const user = await withDeadline(UsersRepository.findByClerkId(clerkId), 10_000);
   return user ? serialize(user) : null;
 });
 

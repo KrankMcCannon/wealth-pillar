@@ -1,5 +1,7 @@
 'use client';
 
+import { withDeadline } from '@/lib/utils/with-deadline';
+
 import { useCallback, useMemo } from 'react';
 import { z } from 'zod';
 import { useLocale, useTranslations } from 'next-intl';
@@ -251,7 +253,7 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
     removeAccount(account.id);
     let restored = false;
     try {
-      const result = await deleteAccountAction(account.id, locale);
+      const result = await withDeadline(deleteAccountAction(account.id, locale));
       if (result.error) {
         addAccount(account);
         restored = true;

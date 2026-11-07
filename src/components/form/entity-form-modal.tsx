@@ -8,6 +8,8 @@ import {
   type UseFormReturn,
   useForm,
 } from 'react-hook-form';
+import { useTranslations } from 'next-intl';
+import { withDeadline, ActionTimeoutError } from '@/lib/utils/with-deadline';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Trash2 } from 'lucide-react';
 import type { ZodType } from 'zod';
@@ -50,7 +52,7 @@ export interface EntityFormModalProps<T extends FieldValues> {
   schema: ZodType<T>;
   defaultValues: DefaultValues<T>;
   resetValues?: DefaultValues<T>;
-  onSubmit: (values: T, form: UseFormReturn<T>) => Promise<void>;
+  onSubmit: (values: T, form: UseFormReturn<T>, signal: AbortSignal) => Promise<void>;
   children: (form: UseFormReturn<T>) => ReactNode;
   footer?: (
     form: UseFormReturn<T>,
@@ -66,6 +68,8 @@ export interface EntityFormModalProps<T extends FieldValues> {
   wrapperProps?: EntityFormModalWrapperProps;
   isLoading?: boolean;
   autoRootError?: boolean;
+  loadFailed?: boolean;
+  onRetryLoad?: () => void;
 }
 
 export function EntityFormModal<T extends FieldValues>({
@@ -88,7 +92,10 @@ export function EntityFormModal<T extends FieldValues>({
   wrapperProps,
   isLoading = false,
   autoRootError = true,
+  loadFailed = false,
+  onRetryLoad,
 }: EntityFormModalProps<T>) {
+  const tStatus = useTranslations('FormStatus');
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -117,16 +124,32 @@ export function EntityFormModal<T extends FieldValues>({
     if (!deletion) return;
     setIsDeleting(true);
     try {
-      await deletion.onDelete();
+      await withDeadline(deletion.onDelete());
       setDeleteOpen(false);
       onClose();
-    } catch {
+    } catch (error) {
+      setDeleteOpen(false);
+      form.setError('root', {
+        message: tStatus(error instanceof ActionTimeoutError ? 'timeout' : 'error'),
+      });
+    } finally {
       setIsDeleting(false);
     }
-  }, [deletion, onClose]);
+  }, [deletion, onClose, form, tStatus]);
 
   const handleSubmit = form.handleSubmit(async (values) => {
-    await onSubmit(values, form);
+    if (isLoading || loadFailed) return;
+    const controller = new AbortController();
+    try {
+      // Action boundaries time out first; this also protects custom submit handlers.
+      await withDeadline(onSubmit(values, form, controller.signal), 25_000);
+    } catch (error) {
+      form.setError('root', {
+        message: tStatus(error instanceof ActionTimeoutError ? 'timeout' : 'error'),
+      });
+    } finally {
+      controller.abort();
+    }
   });
 
   const footerActions: EntityFormModalFooterActions = deletion?.enabled ? { openDeleteDialog } : {};
@@ -161,10 +184,18 @@ export function EntityFormModal<T extends FieldValues>({
         <form onSubmit={handleSubmit} className={cn('flex min-h-0 flex-1 flex-col', formClassName)}>
           <ModalBody className={bodyClassName}>
             <FieldGroup className={formModalStyles.fieldsColumn}>
+              {loadFailed ? (
+                <div role="alert">
+                  <p>{tStatus('loadError')}</p>
+                  <button type="button" onClick={onRetryLoad} className="underline">
+                    {tStatus('retry')}
+                  </button>
+                </div>
+              ) : null}
               {autoRootError && form.formState.errors.root?.message ? (
                 <ModalRootError message={form.formState.errors.root.message} />
               ) : null}
-              {children(form)}
+              {!loadFailed && children(form)}
             </FieldGroup>
           </ModalBody>
           {footer ? (

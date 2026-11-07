@@ -1,6 +1,8 @@
 'use client';
 
 import { useCallback } from 'react';
+import { useTranslations } from 'next-intl';
+import { withDeadline, ActionTimeoutError, isTechnicalError } from '@/lib/utils/with-deadline';
 import type { FieldValues, UseFormReturn } from 'react-hook-form';
 import { toast } from '@/hooks/use-toast';
 
@@ -53,12 +55,13 @@ export function useEntityFormSubmit<T extends FieldValues, Payload, Result, Hand
   unknownErrorMessage,
   closeBeforeSubmit = false,
 }: UseEntityFormSubmitOptions<T, Payload, Result, Handle>) {
+  const tStatus = useTranslations('FormStatus');
   return useCallback(
     async (values: T, form: UseFormReturn<T>) => {
-      const payload = buildPayload(values);
       let handle: Handle | undefined;
 
       try {
+        const payload = buildPayload(values);
         if (isEditMode && editId) {
           handle = applyUpdateOptimistic?.(editId, payload);
         } else {
@@ -69,11 +72,12 @@ export function useEntityFormSubmit<T extends FieldValues, Payload, Result, Hand
           onClose();
         }
 
-        const result =
-          isEditMode && editId ? await updateAction(editId, payload) : await createAction(payload);
+        const result = await withDeadline(
+          isEditMode && editId ? updateAction(editId, payload) : createAction(payload)
+        );
 
         if (result.error) {
-          const message = result.error;
+          const message = isTechnicalError(result.error) ? tStatus('error') : result.error;
           if (isEditMode && editId) {
             if (handle !== undefined) {
               rollbackUpdate?.(handle, message);
@@ -119,11 +123,11 @@ export function useEntityFormSubmit<T extends FieldValues, Payload, Result, Hand
       } catch (error) {
         const rawMessage = error instanceof Error ? error.message : unknownErrorMessage;
         const message =
-          /failed to fetch|fetch failed|networkerror|load failed|network request failed/i.test(
-            rawMessage
-          )
-            ? unknownErrorMessage
-            : rawMessage;
+          error instanceof ActionTimeoutError
+            ? tStatus('timeout')
+            : isTechnicalError(rawMessage)
+              ? unknownErrorMessage
+              : rawMessage;
 
         if (isEditMode && editId) {
           if (handle !== undefined) {
@@ -163,6 +167,7 @@ export function useEntityFormSubmit<T extends FieldValues, Payload, Result, Hand
       refreshAfterSuccess,
       unknownErrorMessage,
       closeBeforeSubmit,
+      tStatus,
     ]
   );
 }

@@ -1,5 +1,7 @@
 'use client';
 
+import { withDeadline } from '@/lib/utils/with-deadline';
+
 import { useCallback, useMemo } from 'react';
 import { z } from 'zod';
 import { useLocale, useTranslations } from 'next-intl';
@@ -231,7 +233,7 @@ function CategoryFormModal({ isOpen, onClose, editId }: Readonly<CategoryFormMod
     removeCategory(editId);
     let restored = false;
     try {
-      const result = await deleteCategoryAction(editId, locale);
+      const result = await withDeadline(deleteCategoryAction(editId, locale));
       if (result.error) {
         addCategory(category);
         restored = true;

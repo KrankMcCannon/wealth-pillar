@@ -6,7 +6,6 @@ import { BottomNavigation } from './bottom-navigation';
 import { Header } from './header';
 import { PageContainer } from './page-container';
 import { useDashboardHeaderStore } from './dashboard-header-store';
-import { DashboardRouteWarmer } from './dashboard-route-warmer';
 
 interface DashboardShellProps {
   children: ReactNode;
@@ -37,7 +36,6 @@ export function DashboardShell({ children }: Readonly<DashboardShellProps>) {
       </div>
 
       <BottomNavigation />
-      <DashboardRouteWarmer />
     </PageContainer>
   );
 }

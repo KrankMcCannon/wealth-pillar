@@ -1,5 +1,7 @@
 'use client';
 
+import { withDeadline } from '@/lib/utils/with-deadline';
+
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { BellRing, Copy, RefreshCw } from 'lucide-react';
@@ -36,7 +38,7 @@ export function BankNotificationsSection({ user }: { user: User }) {
   const [copied, setCopied] = useState(false);
   const [revision, setRevision] = useState(0);
   const refresh = useCallback(async () => {
-    const result = await getBankSettingsAction();
+    const result = await withDeadline(getBankSettingsAction());
     if (result.data) {
       setSettings(result.data);
       setRevision((value) => value + 1);
@@ -102,12 +104,14 @@ export function BankNotificationsSection({ user }: { user: User }) {
             onSubmit={(event) => {
               event.preventDefault();
               perform(async () => {
-                const result = await createBankConnectionAction({
-                  name,
-                  accountId,
-                  category,
-                  autoImport,
-                });
+                const result = await withDeadline(
+                  createBankConnectionAction({
+                    name,
+                    accountId,
+                    category,
+                    autoImport,
+                  })
+                );
                 if (result.data) {
                   setToken(result.data.token);
                   setName('');

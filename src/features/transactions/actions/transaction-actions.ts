@@ -1,5 +1,7 @@
 'use server';
 
+import { actionErrorMessage } from '@/lib/server-action/action-error';
+
 import { getCurrentUser } from '@/lib/auth/cached-auth';
 import { isAuthDenial, requireAuthenticatedUser } from '@/lib/permissions/action-auth';
 import type { ServiceResult } from '@/lib/types/service-result';
@@ -54,7 +56,7 @@ export async function createTransactionAction(
   } catch (error) {
     return {
       data: null,
-      error: error instanceof Error ? error.message : 'Failed to create transaction',
+      error: actionErrorMessage(error, 'Failed to create transaction'),
     };
   }
 }
@@ -130,7 +132,7 @@ export async function updateTransactionAction(
   } catch (error) {
     return {
       data: null,
-      error: error instanceof Error ? error.message : 'Failed to update transaction',
+      error: actionErrorMessage(error, 'Failed to update transaction'),
     };
   }
 }
@@ -166,7 +168,7 @@ export async function getTransactionByIdAction(id: string): Promise<ServiceResul
   } catch (error) {
     return {
       data: null,
-      error: error instanceof Error ? error.message : 'Failed to load transaction',
+      error: actionErrorMessage(error, 'Failed to load transaction'),
     };
   }
 }
@@ -206,7 +208,7 @@ export async function loadMoreTransactionsAction(input: LoadMoreTransactionsInpu
   } catch (error) {
     return {
       data: null,
-      error: error instanceof Error ? error.message : 'Failed to load more transactions',
+      error: actionErrorMessage(error, 'Failed to load more transactions'),
     };
   }
 }
@@ -251,7 +253,7 @@ export async function deleteTransactionAction(
   } catch (error) {
     return {
       data: null,
-      error: error instanceof Error ? error.message : 'Failed to delete transaction',
+      error: actionErrorMessage(error, 'Failed to delete transaction'),
     };
   }
 }

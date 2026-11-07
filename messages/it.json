@@ -2255,5 +2255,12 @@
     "unavailable": "Cambio non disponibile: gli importi restano visibili in EUR. Riprova più tardi.",
     "rate": "1 EUR = {rate} {currency} · cambio del {date} · Frankfurter",
     "saveUnavailable": "Cambio alla data di acquisto non disponibile. I dati non sono stati salvati: riprova più tardi."
+  },
+  "FormStatus": {
+    "timeout": "La risposta non è arrivata in tempo. I dati compilati sono conservati. Verifica se il salvataggio è riuscito prima di riprovare, per evitare duplicati.",
+    "error": "Operazione non riuscita. I dati compilati sono conservati. Riprova tra poco.",
+    "referenceUnavailable": "Non è stato possibile aggiornare conti e categorie. Ricarica i dati prima di inserire nuovi elementi.",
+    "retry": "Ricarica dati",
+    "loadError": "Caricamento non riuscito. Riprova o chiudi il modulo."
   }
 }

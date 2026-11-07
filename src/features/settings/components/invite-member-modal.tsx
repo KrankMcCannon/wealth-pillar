@@ -1,5 +1,7 @@
 'use client';
 
+import { withDeadline } from '@/lib/utils/with-deadline';
+
 import { useMemo } from 'react';
 import { z } from 'zod';
 import { useTranslations } from 'next-intl';
@@ -69,7 +71,9 @@ export function InviteMemberModal({
         />
       )}
       onSubmit={async (data) => {
-        const { error } = await sendGroupInvitationAction(groupId, currentUserId, data.email);
+        const { error } = await withDeadline(
+          sendGroupInvitationAction(groupId, currentUserId, data.email)
+        );
 
         if (error) {
           toast({

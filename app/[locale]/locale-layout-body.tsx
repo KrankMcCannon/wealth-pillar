@@ -9,6 +9,7 @@ import { Toaster } from '@/components/ui/sonner';
 import { ThemeProvider } from '@/components/theme-provider';
 import { routing } from '@/i18n/routing';
 import { getCurrentUser, getGroupUsers } from '@/lib/auth/cached-auth';
+import { withDeadline } from '@/lib/utils/with-deadline';
 import { withTimeout } from '@/lib/utils/with-timeout';
 import { AccessScope } from '@/lib/permissions/access-scope';
 import { getSelectableUsers } from '@/lib/utils/permissions';
@@ -18,6 +19,7 @@ import {
 } from '@/server/request-cache/services';
 import { getUsedCategoryKeysByGroupUseCase } from '@/server/use-cases/transactions/get-transactions.use-case';
 import { ModalProvider } from '@/providers/modal-provider';
+import { ReferenceDataUnavailable } from '@/providers/reference-data-unavailable';
 import { ReferenceDataInitializer } from '@/providers/reference-data-initializer';
 import { UserProvider } from '@/providers/user-provider';
 import { CurrencyProvider } from '@/providers/currency-provider';
@@ -151,14 +153,16 @@ async function ReferenceDataGate({
   currentUser: User;
   children: React.ReactNode;
 }) {
-  type GroupAccounts = Awaited<ReturnType<typeof getAccountsByGroupDeduped>>;
-
-  const [accounts, categories, usedCategoryKeys] = await Promise.all([
-    withTimeout(getAccountsByGroupDeduped(groupId), 1500, [] as GroupAccounts),
-    getAllCategoriesDeduped(currentUser.group_id ?? undefined),
+  const result = await Promise.all([
+    withDeadline(getAccountsByGroupDeduped(groupId)),
+    withDeadline(getAllCategoriesDeduped(currentUser.group_id ?? undefined)),
     withTimeout(getUsedCategoryKeysByGroupUseCase(groupId), 1500, [] as string[]),
-  ]);
+  ]).catch(() => null);
 
+  if (!result) {
+    return <ReferenceDataUnavailable>{children}</ReferenceDataUnavailable>;
+  }
+  const [accounts, categories, usedCategoryKeys] = result;
   const scopedAccounts = AccessScope.for(currentUser).filterShared(accounts || []);
 
   return (
