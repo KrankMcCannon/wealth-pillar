@@ -116,7 +116,7 @@ describe('useEntityFormSubmit', () => {
   });
 });
 
-it('rolls back and keeps the modal open on timeout, ignoring a late successful action', async () => {
+it('retains pending state after timeout, blocks duplicate submissions and commits late success', async () => {
   vi.useFakeTimers();
   try {
     let finish!: (value: { data: { id: string }; error: null }) => void;
@@ -127,12 +127,16 @@ it('rolls back and keeps the modal open on timeout, ignoring a late successful a
     const commitCreate = vi.fn();
     const rollbackCreate = vi.fn();
     const form = createFormMock();
+    const createAction = vi.fn(() => request);
+    const refreshAfterUncertain = vi.fn();
     const { result } = renderHook(() =>
       useEntityFormSubmit({
+        submissionKey: 'timeout-test',
+        refreshAfterUncertain,
         isEditMode: false,
         onClose,
         buildPayload: (values: FormValues) => values,
-        createAction: () => request,
+        createAction,
         updateAction: () => request,
         applyCreateOptimistic: () => 'pending',
         commitCreate,
@@ -150,14 +154,73 @@ it('rolls back and keeps the modal open on timeout, ignoring a late successful a
       await vi.advanceTimersByTimeAsync(20_000);
       await submission;
     });
-    expect(form.setError).toHaveBeenCalledWith('root', { message: 'timeout' });
-    expect(rollbackCreate).toHaveBeenCalledWith('pending', 'timeout');
+    expect(form.setError).toHaveBeenCalledWith('root', { message: 'pending' });
+    expect(rollbackCreate).not.toHaveBeenCalled();
+    expect(refreshAfterUncertain).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      await result.current({ name: 'Draft' }, form);
+    });
+    expect(createAction).toHaveBeenCalledTimes(1);
     expect(onClose).not.toHaveBeenCalled();
     await act(async () => {
       finish({ data: { id: 'saved' }, error: null });
     });
-    expect(commitCreate).not.toHaveBeenCalled();
+    expect(commitCreate).toHaveBeenCalledWith('pending', { id: 'saved' });
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(refreshAfterUncertain).toHaveBeenCalledTimes(2);
+  } finally {
+    vi.useRealTimers();
+  }
+});
+
+it('holds ownership across remounts and rolls back only a confirmed late failure', async () => {
+  vi.useFakeTimers();
+  try {
+    let finish!: (value: { data: null; error: string }) => void;
+    const request = new Promise<{ data: null; error: string }>((resolve) => {
+      finish = resolve;
+    });
+    const createAction = vi.fn(() => request);
+    const rollbackCreate = vi.fn();
+    const onClose = vi.fn();
+    const refreshAfterUncertain = vi.fn();
+    const options = {
+      submissionKey: 'remount-pending',
+      isEditMode: false,
+      onClose,
+      buildPayload: (values: FormValues) => values,
+      createAction,
+      updateAction: createAction,
+      applyCreateOptimistic: () => 'pending',
+      rollbackCreate,
+      getSuccessToast: () => ({ title: 'Saved', description: 'Saved' }),
+      errorToast: { title: 'Error' },
+      unknownErrorMessage: 'Unknown',
+      refreshAfterUncertain,
+    };
+    const first = renderHook(() => useEntityFormSubmit(options));
+    let submission!: Promise<void>;
+    await act(async () => {
+      submission = first.result.current({ name: 'Draft' }, createFormMock());
+    });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(20_000);
+      await submission;
+    });
+    first.unmount();
+    const second = renderHook(() => useEntityFormSubmit(options));
+    await act(async () => {
+      await second.result.current({ name: 'Draft' }, createFormMock());
+    });
+    expect(createAction).toHaveBeenCalledTimes(1);
+    expect(rollbackCreate).not.toHaveBeenCalled();
+    await act(async () => {
+      finish({ data: null, error: 'Rejected before commit' });
+    });
+    expect(rollbackCreate).toHaveBeenCalledExactlyOnceWith('pending', 'Rejected before commit');
     expect(onClose).not.toHaveBeenCalled();
+    expect(refreshAfterUncertain).toHaveBeenCalledTimes(2);
+    second.unmount();
   } finally {
     vi.useRealTimers();
   }

@@ -2,6 +2,7 @@ import { cached } from '@/lib/cache';
 import { cacheOptions } from '@/lib/cache/config';
 import { budgetCacheKeys } from '@/lib/cache/keys';
 import { BudgetsRepository, type BudgetScope } from '@/server/repositories/budgets.repository';
+import type { DbExecutor } from '@/server/repositories/db-executor';
 import type { Budget } from '@/lib/types';
 
 export async function getBudgetByIdUseCase(budgetId: string, scope?: BudgetScope): Promise<Budget> {
@@ -28,9 +29,21 @@ export async function getBudgetByIdUseCase(budgetId: string, scope?: BudgetScope
   return budget;
 }
 
-export async function getBudgetsByUserUseCase(userId: string): Promise<Budget[]> {
+export async function getBudgetsByUserUseCase(
+  userId: string,
+  executor?: DbExecutor
+): Promise<Budget[]> {
   if (!userId || userId.trim() === '') {
     throw new Error('User ID is required');
+  }
+
+  // A financial snapshot must read through its existing transaction, without
+  // waiting for another pool connection or consuming a previously cached value.
+  if (executor) {
+    return (await BudgetsRepository.getByUser(userId, executor)).map((budget) => ({
+      ...budget,
+      amount: Number(budget.amount),
+    }));
   }
 
   const getCachedBudgets = cached(

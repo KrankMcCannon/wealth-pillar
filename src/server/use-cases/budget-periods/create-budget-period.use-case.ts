@@ -79,8 +79,6 @@ export const createBudgetPeriodUseCase = async (
   if (!user) throw new Error('User not found');
   if (!user.group_id) throw new Error('User has no group');
 
-  const budgets = await getBudgetsByUserUseCase(userId);
-
   const newPeriod = await withBudgetPeriodTransaction(userId, async (tx) => {
     const active = await BudgetPeriodsRepository.findActiveByUser(userId, tx);
 
@@ -101,6 +99,7 @@ export const createBudgetPeriodUseCase = async (
         throw new Error('Invalid budget period closing date');
       }
 
+      const budgets = await getBudgetsByUserUseCase(userId, tx);
       const { transactions, accounts } = await loadPeriodLiquidityData(
         user.group_id,
         userId,

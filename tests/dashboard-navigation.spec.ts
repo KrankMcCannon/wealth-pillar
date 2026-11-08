@@ -3,11 +3,11 @@ import { test, expect } from './fixtures';
 test.describe('Dashboard navigation', () => {
   test('keeps bottom navigation mounted while switching tabs', async ({ page }) => {
     await page.goto('/it/home');
-    await page.waitForLoadState('domcontentloaded');
+    // The header becomes ready only after the client page sets it. Before that,
+    // the prerendered anchor can legitimately perform a full document navigation.
+    await expect(page.getByRole('banner').getByRole('heading', { level: 1 })).toBeVisible();
 
-    const bottomNav = page
-      .getByRole('navigation')
-      .filter({ hasText: /Home|Transazioni|Transactions/i });
+    const bottomNav = page.getByRole('navigation', { name: 'Navigazione principale' });
     await expect(bottomNav.first()).toBeVisible({ timeout: 10000 });
 
     const navElement = bottomNav.first();
@@ -23,7 +23,9 @@ test.describe('Dashboard navigation', () => {
 
   test('navigates to budgets with the persistent navigation', async ({ page }) => {
     await page.goto('/it/home');
-    await page.waitForLoadState('domcontentloaded');
+    // The header becomes ready only after the client page sets it. Before that,
+    // the prerendered anchor can legitimately perform a full document navigation.
+    await expect(page.getByRole('banner').getByRole('heading', { level: 1 })).toBeVisible();
 
     await page
       .getByRole('navigation', { name: 'Navigazione principale' })

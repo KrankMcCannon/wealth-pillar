@@ -33,6 +33,10 @@ vi.mock('@/features/settings/context/settings-modals-context', () => ({
   }),
 }));
 
+vi.mock('@/features/bank-notifications/bank-notifications-modal', () => ({
+  BankNotificationsModal: () => <div data-testid="bank-notifications-modal">notifications</div>,
+}));
+
 vi.mock('./manage-group-modal', () => ({
   ManageGroupModal: () => <div data-testid="manage-group-modal">group</div>,
 }));
@@ -94,4 +98,11 @@ describe('SettingsModalRenderer', () => {
 
     expect(await screen.findByTestId('manage-categories-modal')).toBeInTheDocument();
   });
+});
+
+it('opens notification import through the settings modal route', async () => {
+  modalState.modal = 'settings:notifications';
+  render(<SettingsModalRenderer />);
+  expect(await screen.findByTestId('bank-notifications-modal')).toBeInTheDocument();
+  expect(screen.queryByTestId('manage-categories-modal')).not.toBeInTheDocument();
 });

@@ -3,6 +3,7 @@ import { execFileSync } from 'node:child_process';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import { boolean, date, jsonb, numeric, pgTable, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { eq, sql } from 'drizzle-orm';
+import { readWithRetry } from '@/server/db/read-with-retry';
 import { createPostgresClient } from '@/server/db/postgres-client';
 import { db } from '@/server/db/drizzle';
 import { GroupsRepository } from '@/server/repositories/groups.repository';
@@ -129,6 +130,20 @@ it('rejects queued work without sending it when the pool is occupied', async () 
   }
   try {
     expect((await client`select 2::integer as ok`)[0]?.ok).toBe(2);
+  } finally {
+    await client.end({ timeout: 1 });
+  }
+});
+
+it('recovers a standalone read after a real server statement timeout', async () => {
+  const client = createPostgresClient(url, { connection: { statement_timeout: 20 } });
+  let attempts = 0;
+  try {
+    const result = await readWithRetry(() =>
+      ++attempts === 1 ? client`select pg_sleep(0.1)` : client`select 1::integer as ok`
+    );
+    expect(attempts).toBe(2);
+    expect(result[0]?.ok).toBe(1);
   } finally {
     await client.end({ timeout: 1 });
   }

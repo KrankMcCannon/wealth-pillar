@@ -229,6 +229,7 @@ function EditClosingDateModal({
     string | { startDate?: string; endDate?: string },
     BudgetPeriod
   >({
+    submissionKey: 'edit-period-dates',
     isEditMode: true,
     editId: closedPeriod?.id,
     onClose: handleClose,

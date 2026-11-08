@@ -39,7 +39,6 @@ export async function createBankConnectionAction(input: unknown) {
       .object({
         name: z.string().trim().min(1).max(80),
         accountId: z.uuid(),
-        category: z.string().min(1).max(100),
         autoImport: z.boolean(),
       })
       .strict()

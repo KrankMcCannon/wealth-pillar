@@ -47,7 +47,10 @@ test('only nonempty projects and related integration files are emitted', () => {
   assert.ok(calls.every(([, , base, mode]) => base === 'base' && mode === 'affected'));
 });
 const success = Object.fromEntries(
-  ['plan', 'checks', 'build', 'unit', 'integration'].map((name) => [name, { result: 'success' }])
+  ['plan', 'checks', 'build', 'e2e', 'unit', 'integration'].map((name) => [
+    name,
+    { result: 'success' },
+  ])
 );
 test('Quality requires every selected check', () => {
   assert.equal(qualityPassed(success, { unit: 'true', integration: 'true' }), true);

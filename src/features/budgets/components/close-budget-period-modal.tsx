@@ -134,6 +134,8 @@ function CloseBudgetPeriodModal({
   );
 
   const handleSubmit = useEntityFormSubmit<CloseBudgetPeriodFormData, string, BudgetPeriod>({
+    refreshAfterUncertain: () => router.refresh(),
+    submissionKey: 'close-period',
     isEditMode: false,
     onClose: handleClose,
     buildPayload,

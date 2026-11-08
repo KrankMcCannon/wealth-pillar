@@ -29,7 +29,7 @@ const payload = {
   occurredAt: '2026-10-30T19:30:00+01:00',
 };
 const connection = (autoImport = true) =>
-  createBankConnection(user, { name: 'iPhone', accountId, category: 'food', autoImport });
+  createBankConnection(user, { name: 'iPhone', accountId, autoImport });
 beforeAll(async () => {
   await db.execute(sql`CREATE TABLE groups (id uuid PRIMARY KEY)`);
   await db.execute(
@@ -54,6 +54,7 @@ beforeAll(async () => {
       )
     )
   );
+  await db.execute(sql`ALTER TABLE bank_connections DROP COLUMN default_category`);
 });
 beforeEach(async () => {
   await db.execute(
@@ -67,7 +68,7 @@ beforeEach(async () => {
     sql`INSERT INTO accounts (id,group_id,user_ids,balance) VALUES (${accountId},${user.group_id},ARRAY[${user.id}::uuid],100)`
   );
   await db.execute(
-    sql`INSERT INTO categories (key,group_id,label) VALUES ('food',${user.group_id},'Food'),('other',${user.group_id},'Other')`
+    sql`INSERT INTO categories (key,group_id,label) VALUES ('food',${user.group_id},'Food'),('other',${user.group_id},'Other'),('ristorazione',${user.group_id},'Ristorazione'),('shopping',${user.group_id},'Shopping')`
   );
 });
 afterAll(async () => {
@@ -82,7 +83,7 @@ it('stores only a token digest and refuses cross-tenant setup and review', async
   expect(digest[0]!.token_hash).not.toBe(device.token);
   expect(digest[0]!.token_hash).toMatch(/^[a-f0-9]{64}$/);
   await expect(
-    createBankConnection(other, { name: 'Intruder', accountId, category: 'food', autoImport: true })
+    createBankConnection(other, { name: 'Intruder', accountId, autoImport: true })
   ).rejects.toThrow();
   const event = await ingestBankNotification(device.token, payload);
   await expect(reviewBankNotification(other, event.id, 'import', 'food')).rejects.toThrow(
@@ -202,7 +203,6 @@ it('gives each shared-account owner a recoverable receipt without exposing anoth
   const secondDevice = await createBankConnection(member, {
     name: 'Second phone',
     accountId,
-    category: 'food',
     autoImport: true,
   });
   const [first, second] = await Promise.all([
@@ -377,4 +377,64 @@ it('throttles duplicate retry storms and accepts the retained event in the next 
     2
   );
   expect(Number((await db.execute(sql`SELECT balance FROM accounts`))[0]!.balance)).toBe(66);
+});
+
+it('classifies each notification independently and leaves unknown merchants pending', async () => {
+  const device = await connection();
+
+  await ingestBankNotification(device.token, { ...payload, eventId: 'dinner' });
+  await ingestBankNotification(device.token, {
+    ...payload,
+    eventId: 'shopping',
+    title: 'Amazon',
+    body: 'Hai speso 25 €',
+  });
+  const unknown = await ingestBankNotification(device.token, {
+    ...payload,
+    eventId: 'unknown',
+    title: 'Negozio sconosciuto',
+    body: 'Hai speso 8 €',
+  });
+  expect(unknown.status).toBe('pending');
+  const event = (await getBankNotificationEvents(user)).events.find(
+    (item) => item.id === unknown.id
+  )!;
+  expect(event.category).toBeNull();
+  expect(event.reason).toBe('category_required');
+  const rows = await db.execute(sql`SELECT category FROM transactions ORDER BY amount`);
+  expect(rows.map((row) => row.category)).toEqual(['ristorazione', 'shopping']);
+  expect(Number((await db.execute(sql`SELECT balance FROM accounts`))[0]!.balance)).toBe(58);
+});
+
+it('ignores recognized promotions and never touches the ledger', async () => {
+  const device = await connection();
+  const result = await ingestBankNotification(device.token, {
+    ...payload,
+    title: 'Prova Metal gratis',
+    body: "Fai l'upgrade. Si applicano i Termini e condizioni",
+  });
+  expect(result.status).toBe('ignored');
+  expect((await db.execute(sql`SELECT count(*)::int AS count FROM transactions`))[0]!.count).toBe(
+    0
+  );
+  expect(Number((await db.execute(sql`SELECT balance FROM accounts`))[0]!.balance)).toBe(100);
+});
+it('requires duplicate review for existing manual movements even without a suggested category', async () => {
+  const device = await connection();
+  await db.execute(
+    sql`INSERT INTO transactions(description,amount,type,category,date,account_id,user_id,group_id) VALUES ('Manually recorded',17,'expense','food','2026-10-30',${accountId},${user.id},${user.group_id})`
+  );
+  const result = await ingestBankNotification(device.token, {
+    ...payload,
+    title: 'Unknown merchant',
+  });
+  expect(result.status).toBe('pending');
+  const event = (await getBankNotificationEvents(user)).events.find(
+    (event) => event.id === result.id
+  )!;
+  expect(event.reason).toBe('possible_duplicate');
+  expect((await db.execute(sql`SELECT count(*)::int AS count FROM transactions`))[0]!.count).toBe(
+    1
+  );
+  expect(Number((await db.execute(sql`SELECT balance FROM accounts`))[0]!.balance)).toBe(100);
 });

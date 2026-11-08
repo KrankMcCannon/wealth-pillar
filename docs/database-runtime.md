@@ -47,9 +47,14 @@ Check the effective settings through the actual runtime connection with
 `SHOW idle_in_transaction_session_timeout`; never infer them from client options.
 
 Forms separately release loading state on error or timeout and preserve drafts.
-A UI deadline does not undo a write that already reached the server. No automatic
-mutation retries are introduced; after an uncertain result the message asks the
-user to check whether the entity was saved before submitting again.
+A UI deadline does not undo a write that already reached the server. Shared entity
+forms keep optimistic mutations pending until the real action settles, apply late
+results, and refresh authoritative data. In-flight ownership also blocks another
+submission of that entity type in the same tab across modal remounts. This is not
+persistent idempotency across tabs or a full reload. No mutation is retried
+automatically. Standalone ledger/account/catalog reads have one additional attempt
+for transient connection/queue failures or a server statement timeout; queries
+inside an existing transaction and permanent errors are never retried.
 
 ## Hosted pooler incident and deployment verification
 
@@ -73,3 +78,26 @@ also be checked with a test Clerk account.
 
 References: [Postgres.js 4.0](https://github.com/porsager/postgres/blob/v4.0.0/README.md),
 [Supabase timeouts](https://supabase.com/docs/guides/database/postgres/timeouts).
+
+## Complete Postgres.js 4 flow coverage
+
+`pnpm run test:postgres4` runs all database integration suites against the isolated
+loopback database `wealth_pillar_test`. It uses the pinned Postgres.js 4 driver and
+the application's Drizzle repositories/use cases. No Clerk or Supabase credentials
+are required. CI uses a disposable PostgreSQL 17 service; dependency/driver changes
+select the full integration suite through the existing test planner.
+
+The continuous financial-flow regression in `review-consistency.test.ts` invokes
+real Server Actions for budget/period creation and transaction create/update/delete,
+reloads the ledger through the page use case, checks report totals, starts the next
+period and verifies the stored snapshot and authoritative balances/revisions.
+Only Clerk session lookup, translations and Next cache APIs are replaced by test
+adapters; financial logic and database queries remain real. The other integration
+suites cover imports/deduplication, transfers, concurrent mutations, rollback,
+authorization and date/decimal/JSON compatibility. Chromium smoke adds browser
+coverage with the real development authentication flow.
+
+This coverage does not require a separate hosted Supabase project. Testing the
+provider's Supavisor transport would be a different infrastructure check, not a
+prerequisite for validating application flows with Postgres.js 4. No hosted-pooler
+workflow or test-environment provisioning is included in this change.

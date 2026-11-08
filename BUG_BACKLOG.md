@@ -1,5 +1,35 @@
 # Wealth Pillar: backlog della Daily Review
 
+## Findings e segnalazioni dell'8 novembre 2026
+
+- Il finding `retry`/`reset` della Daily Review #17 non si applica a Next.js
+  16.4.3: runtime e documentazione installati espongono `retry`, stabile dalla
+  16.3. Aggiunta una regressione della callback senza sostituirla con `reset`.
+- Periodi: riprodotti esaurimento del pool durante una lettura esterna alla
+  transazione e rifiuto degli snapshot che copiano categorie legacy già presenti
+  nei budget. Letture coerenti nella stessa transazione; migrazione limitata e
+  rollback in [procedura di rilascio](docs/releases/daily-review-november-8.md).
+- Import notifiche: rimozione completa di `default_category` con migrazione
+  dedicata; riconoscimento di accrediti nel titolo e denaro inviato, promozioni
+  archiviate come ignorate e precedenza alla revisione dei duplicati manuali.
+  Riga e pannello standard delle impostazioni, nessuna categoria
+  fissa per dispositivo. Suggerimenti/regole per movimento, revisione obbligatoria
+  se la categoria non viene riconosciuta. Preservati deduplicazione e saldi EUR.
+- Timeout form: mantengono l'operazione ottimistica in attesa, impediscono un altro
+  invio dello stesso tipo nello stesso tab, anche riaprendo il form, e applicano
+  l'esito tardivo con riconciliazione. Nessun reinvio automatico delle scritture.
+- Letture del ledger e dei suoi metadati: un solo nuovo tentativo per connessione,
+  coda o statement timeout. Errori permanenti e transazioni già aperte non vengono
+  ritentati. Il comportamento del pooler ospitato resta una verifica distinta dai
+  test PostgreSQL locali; nessun endpoint di produzione viene cambiato.
+- Copertura E2E: smoke Chromium seriale richiesto dal gate Quality, con Clerk
+  di sviluppo e PostgreSQL locale. Secret GitHub ancora da configurare prima
+  dell’attivazione del workflow.
+- Copertura Postgres.js 4: flusso continuo tramite Server Actions reali, lettura
+  ledger, report, avvio/chiusura periodo e snapshot; verifiche dei saldi e revisioni.
+  Suite completa su PostgreSQL locale isolato, senza credenziali Clerk/Supabase.
+  La verifica del trasporto Supavisor resta distinta e non è un requisito del lavoro.
+
 ## Findings residui del 4–5 novembre 2026
 
 Confrontate tutte le 15 review della chat con le correzioni integrate. Le osservazioni

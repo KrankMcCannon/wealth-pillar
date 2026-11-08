@@ -78,7 +78,7 @@ async function assertConnectionScope(
 
 export async function createBankConnection(
   user: User,
-  input: { name: string; accountId: string; category: string; autoImport: boolean }
+  input: { name: string; accountId: string; autoImport: boolean }
 ) {
   const token = `wpn_${randomBytes(32).toString('base64url')}`;
   const result = await db.transaction(async (tx) => {
@@ -89,8 +89,6 @@ export async function createBankConnection(
       .from(bankConnections)
       .where(and(own(user), isNull(bankConnections.revoked_at)));
     if (active.length >= 10) throw new NotificationError('device_limit');
-    if (!(await availableCategory(tx, input.category, user.group_id!)))
-      throw new NotificationError('invalid_category');
     const [connection] = await tx
       .insert(bankConnections)
       .values({
@@ -98,7 +96,6 @@ export async function createBankConnection(
         group_id: user.group_id!,
         account_id: input.accountId,
         name: input.name,
-        default_category: input.category,
         auto_import: input.autoImport,
         token_hash: hash(token),
       })
@@ -302,7 +299,7 @@ export async function ingestBankNotification(token: string, input: BankNotificat
           )
           .limit(1)
       : [];
-    let category = connection.default_category;
+    let category = '';
     if (parsed) {
       const [rule] = await tx
         .select()
@@ -346,10 +343,10 @@ export async function ingestBankNotification(token: string, input: BankNotificat
       : [];
     const reason =
       parsedResult.reason ??
-      (!validCategory
-        ? 'invalid_category'
-        : candidates.length || related.length
-          ? 'possible_duplicate'
+      (candidates.length || related.length
+        ? 'possible_duplicate'
+        : !validCategory
+          ? 'category_required'
           : !connection.auto_import
             ? 'review_mode'
             : null);
@@ -364,14 +361,14 @@ export async function ingestBankNotification(token: string, input: BankNotificat
         payload: input,
         parsed,
         category: validCategory ? category : null,
-        status: 'pending',
+        status: reason === 'non_transaction' ? 'ignored' : 'pending',
         reason,
       })
       .returning();
     if (parsed && !reason) await commitEvent(tx, event!, category);
     return {
       id: event!.id,
-      status: parsed && !reason ? 'imported' : 'pending',
+      status: reason === 'non_transaction' ? 'ignored' : parsed && !reason ? 'imported' : 'pending',
       duplicate: false,
       group_id: connection.group_id,
       account_id: connection.account_id,

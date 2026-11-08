@@ -2185,12 +2185,14 @@
     "home": "Back to home"
   },
   "BankNotifications": {
+    "sectionTitle": "Imports",
+    "categoryHelp": "A category is suggested for each movement. If it is not recognized, choose one before importing.",
     "title": "Import from notifications",
     "intro": "Import Revolut notifications into your EUR account. This is not a full bank sync: reconcile transactions with your statement. Uncertain messages stay in review.",
     "device": "Device name",
     "deviceExample": "Personal iPhone",
     "account": "Revolut EUR account",
-    "category": "Default category",
+    "category": "Category",
     "autoImport": "Automatically import recognized movements. Ambiguous notifications and possible duplicates require review.",
     "connect": "Connect device",
     "secretOnce": "Copy the token now: it is shown only once. Keep it only in your automation.",
@@ -2222,6 +2224,8 @@
       "ignored": "Ignored"
     },
     "reasons": {
+      "non_transaction": "Promotional notification: no transaction to import.",
+      "category_required": "Choose a category for this movement.",
       "unsupported_provider": "This bank’s mapping is not available yet.",
       "missing_date": "The original notification date is missing. Fix the automation and enter this movement manually.",
       "future_date": "The date is in the future. Check the format and time zone.",
@@ -2257,6 +2261,7 @@
     "saveUnavailable": "The purchase-date exchange rate is unavailable. Your changes were not saved; try again later."
   },
   "FormStatus": {
+    "pending": "The request is still awaiting confirmation. Your entries are preserved and another submission is blocked until the outcome arrives.",
     "timeout": "The response timed out. Your entries have been kept. Check whether the save completed before trying again to avoid duplicates.",
     "error": "The operation failed. Your entries have been kept. Please try again shortly.",
     "referenceUnavailable": "Accounts and categories could not be refreshed. Reload the data before adding new items.",

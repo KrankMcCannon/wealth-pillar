@@ -126,6 +126,7 @@ export default function AddInvestmentModal({
   );
 
   const handleSubmit = useEntityFormSubmit({
+    submissionKey: 'investment',
     isEditMode,
     editId,
     onClose,

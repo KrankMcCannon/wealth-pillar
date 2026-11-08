@@ -1,3 +1,4 @@
+import { readWithRetry } from '@/server/db/read-with-retry';
 import { db } from '@/server/db/drizzle';
 import { categories } from '@/server/db/schema';
 import { eq, or, sql } from 'drizzle-orm';
@@ -29,11 +30,13 @@ export class CategoriesRepository {
 
   /** Returns system categories + group-specific categories */
   static async findAvailable(groupId: string): Promise<Category[]> {
-    return db
-      .select()
-      .from(categories)
-      .where(or(eq(categories.group_id, groupId), eq(categories.group_id, SYSTEM_GROUP_ID)))
-      .orderBy(categories.label) as unknown as Category[];
+    return readWithRetry(() =>
+      db
+        .select()
+        .from(categories)
+        .where(or(eq(categories.group_id, groupId), eq(categories.group_id, SYSTEM_GROUP_ID)))
+        .orderBy(categories.label)
+    ) as unknown as Promise<Category[]>;
   }
 
   static async create(data: typeof categories.$inferInsert): Promise<Category> {

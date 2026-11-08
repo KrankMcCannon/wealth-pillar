@@ -26,6 +26,12 @@ const TimezonePreferenceModal = lazy(() =>
   import('./settings-preference-modals').then((m) => ({ default: m.TimezonePreferenceModal }))
 );
 
+const BankNotificationsModal = lazy(() =>
+  import('@/features/bank-notifications/bank-notifications-modal').then((m) => ({
+    default: m.BankNotificationsModal,
+  }))
+);
+
 function parseSettingsModalKind(modal: string | null): SettingsModalKind | null {
   if (!modal?.startsWith('settings:')) return null;
   return modal.replace('settings:', '') as SettingsModalKind;
@@ -75,6 +81,10 @@ export default function SettingsModalRenderer() {
           groupName={groupName}
           isAdmin={isAdmin}
         />
+      ) : null}
+
+      {activeKind === 'notifications' ? (
+        <BankNotificationsModal user={currentUser} onClose={closeModal} />
       ) : null}
 
       {activeKind === 'categories' ? <ManageCategoriesModal isOpen onClose={closeModal} /> : null}

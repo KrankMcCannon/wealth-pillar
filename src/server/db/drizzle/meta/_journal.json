@@ -64,6 +64,20 @@
       "when": 1793745000000,
       "tag": "0008_category_reference_guards",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1794175200000,
+      "tag": "20261108220000_budget_snapshot_legacy_categories",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1794178800000,
+      "tag": "20261108230000_remove_bank_default_category",
+      "breakpoints": true
     }
   ]
 }

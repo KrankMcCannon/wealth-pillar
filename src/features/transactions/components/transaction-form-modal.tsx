@@ -3,6 +3,7 @@
 import { withDeadline } from '@/lib/utils/with-deadline';
 
 import type { TransactionMutationResult } from '@/lib/types/financial-mutation';
+import { useRouter } from '@/i18n/routing';
 import { useSearchParams } from 'next/navigation';
 import { resolveTransactionCreateContext } from '../utils/create-transaction-context';
 import { createTransactionFormSchema } from '../utils/transaction-form-schema';
@@ -149,6 +150,7 @@ function TransactionFormModalBody({
 }
 
 function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionFormModalProps>) {
+  const router = useRouter();
   const t = useTranslations('Transactions.FormModal');
   const tPage = useTranslations('TransactionsContent');
   const { currentUser, groupUsers, groupId, shouldDisableUserField, userFieldHelperText } =
@@ -286,6 +288,8 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
     TransactionMutationResult,
     TransactionMutationHandle
   >({
+    submissionKey: 'transaction',
+    refreshAfterUncertain: () => router.refresh(),
     isEditMode,
     editId,
     onClose: handleClose,

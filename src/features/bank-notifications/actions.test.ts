@@ -1,13 +1,19 @@
 import { beforeEach, expect, it, vi } from 'vitest';
-import { getBankEventsAction, reviewBankNotificationAction } from './actions';
+import {
+  getBankEventsAction,
+  reviewBankNotificationAction,
+  createBankConnectionAction,
+} from './actions';
 import { getCurrentUser } from '@/lib/auth/cached-auth';
 import {
+  createBankConnection,
   getBankNotificationEvents,
   reviewBankNotification,
 } from '@/server/use-cases/bank-notifications/notification-service';
 import type { User } from '@/lib/types';
 vi.mock('@/lib/auth/cached-auth', () => ({ getCurrentUser: vi.fn() }));
 vi.mock('@/server/use-cases/bank-notifications/notification-service', () => ({
+  createBankConnection: vi.fn(),
   getBankNotificationEvents: vi.fn(),
   reviewBankNotification: vi.fn(),
   NotificationError: class extends Error {
@@ -73,4 +79,14 @@ it('validates manual EUR corrections without accepting account or owner override
       ).error
     ).toBeTruthy();
   expect(reviewBankNotification).toHaveBeenCalledTimes(1);
+});
+
+it('creates a device without a fixed category and rejects scope overrides', async () => {
+  const input = { name: 'iPhone', accountId: id, autoImport: true };
+  await createBankConnectionAction(input);
+  expect(createBankConnection).toHaveBeenCalledExactlyOnceWith(user, input);
+  expect(
+    (await createBankConnectionAction({ ...input, user_id: 'another-owner' })).error
+  ).toBeTruthy();
+  expect(createBankConnection).toHaveBeenCalledTimes(1);
 });

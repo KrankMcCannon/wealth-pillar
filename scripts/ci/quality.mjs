@@ -11,6 +11,7 @@ export function qualityPassed(results, selection) {
     plan: 'success',
     checks: 'success',
     build: 'success',
+    e2e: 'success',
     unit: selection.unit === 'true' ? 'success' : 'skipped',
     integration: selection.integration === 'true' ? 'success' : 'skipped',
   };

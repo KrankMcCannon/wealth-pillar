@@ -1,3 +1,4 @@
+import { readWithRetry } from '@/server/db/read-with-retry';
 import { financialDateKey } from '@/lib/utils/financial-date';
 import { db } from '@/server/db/drizzle';
 import { transactions, accounts } from '@/server/db/schema';
@@ -152,6 +153,16 @@ export class TransactionsRepository {
    * Get transactions by group with filtering
    */
   static async getByGroup(
+    groupId: string,
+    options?: TransactionFilterOptions,
+    executor?: DbExecutor
+  ) {
+    return executor
+      ? this.readGroupWindow(groupId, options, executor)
+      : readWithRetry(() => this.readGroupWindow(groupId, options));
+  }
+
+  private static async readGroupWindow(
     groupId: string,
     options?: TransactionFilterOptions,
     executor?: DbExecutor

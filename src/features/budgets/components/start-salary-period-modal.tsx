@@ -109,6 +109,8 @@ function StartSalaryPeriodModal({
   }, [onSuccess, router]);
 
   const handleSubmit = useEntityFormSubmit<StartSalaryPeriodFormData, string, BudgetPeriod>({
+    refreshAfterUncertain: () => router.refresh(),
+    submissionKey: 'start-period',
     isEditMode: false,
     onClose: handleClose,
     buildPayload: (data) => data.salary_date,

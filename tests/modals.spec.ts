@@ -84,3 +84,51 @@ test.describe('settings modals (mobile)', () => {
     await expect(page.getByRole('button', { name: /salva|save/i })).toBeVisible();
   });
 });
+
+test('opens notification import with the standard settings panel and no fixed category', async ({
+  page,
+}, testInfo) => {
+  for (const width of [320, 390, 1280]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto('/it/settings');
+    await page.getByRole('button', { name: 'Importa dalle notifiche, Revolut' }).click();
+    await expect(page).toHaveURL(/modal=settings%3Anotifications|modal=settings:notifications/);
+    const dialog = page.getByRole('dialog');
+    await expect(
+      dialog.getByRole('heading', { name: 'Importa dalle notifiche', exact: true })
+    ).toBeVisible();
+    await expect(dialog.getByLabel('Nome del dispositivo')).toBeVisible();
+    await expect(dialog.getByRole('combobox', { name: 'Categoria predefinita' })).toHaveCount(0);
+    await expect
+      .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth))
+      .toBe(true);
+    await expect
+      .poll(() =>
+        dialog.evaluate((element) => {
+          const bounds = element.getBoundingClientRect();
+          return (
+            bounds.top >= 0 &&
+            bounds.bottom <= innerHeight + 1 &&
+            element.scrollWidth <= element.clientWidth
+          );
+        })
+      )
+      .toBe(true);
+    await dialog
+      .getByRole('button', { name: 'Collega dispositivo', exact: true })
+      .scrollIntoViewIfNeeded();
+    await expect(
+      dialog.getByRole('button', { name: 'Collega dispositivo', exact: true })
+    ).toBeInViewport();
+    await page.screenshot({ path: testInfo.outputPath(`notification-settings-${width}.png`) });
+    await dialog.getByRole('button', { name: 'Chiudi finestra', exact: true }).click();
+  }
+  await page.goto('/it/settings?modal=settings:notifications');
+  const dialog = page.getByRole('dialog');
+  await dialog.getByLabel('Nome del dispositivo').fill('E2E notification device');
+  await dialog.getByRole('combobox', { name: 'Conto Revolut EUR', exact: true }).click();
+  await page.getByRole('option', { name: 'E2E Account', exact: true }).click();
+  await dialog.getByRole('button', { name: 'Collega dispositivo', exact: true }).click();
+  await expect(dialog.getByText('Copia ora il token:', { exact: false })).toBeVisible();
+  await expect(dialog.getByText('E2E notification device', { exact: true })).toBeVisible();
+});

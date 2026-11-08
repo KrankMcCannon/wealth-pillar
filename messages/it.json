@@ -2185,12 +2185,14 @@
     "home": "Torna alla home"
   },
   "BankNotifications": {
+    "sectionTitle": "Importazioni",
+    "categoryHelp": "La categoria viene suggerita per ogni movimento. Se non è riconosciuta, la scegli prima di importarlo.",
     "title": "Importa dalle notifiche",
     "intro": "Importa le notifiche Revolut sul tuo conto EUR. Non è una sincronizzazione bancaria completa: confronta i movimenti con l’estratto conto. I messaggi incerti restano da verificare.",
     "device": "Nome del dispositivo",
     "deviceExample": "iPhone personale",
     "account": "Conto Revolut EUR",
-    "category": "Categoria predefinita",
+    "category": "Categoria",
     "autoImport": "Importa automaticamente i movimenti riconosciuti. Le notifiche ambigue e i possibili duplicati richiedono verifica.",
     "connect": "Collega dispositivo",
     "secretOnce": "Copia ora il token: viene mostrato solo questa volta. Conservalo solo nella tua automazione.",
@@ -2222,6 +2224,8 @@
       "ignored": "Ignorata"
     },
     "reasons": {
+      "non_transaction": "Notifica promozionale: nessuna transazione da importare.",
+      "category_required": "Scegli la categoria per questo movimento.",
       "unsupported_provider": "La mappatura di questa banca non è ancora disponibile.",
       "missing_date": "Manca la data originale della notifica. Correggi l’automazione e inserisci questo movimento manualmente.",
       "future_date": "La data è nel futuro. Controlla il formato e il fuso orario.",
@@ -2257,6 +2261,7 @@
     "saveUnavailable": "Cambio alla data di acquisto non disponibile. I dati non sono stati salvati: riprova più tardi."
   },
   "FormStatus": {
+    "pending": "La richiesta è ancora in attesa di conferma. I dati sono conservati e un nuovo invio resta bloccato finché non arriva l’esito.",
     "timeout": "La risposta non è arrivata in tempo. I dati compilati sono conservati. Verifica se il salvataggio è riuscito prima di riprovare, per evitare duplicati.",
     "error": "Operazione non riuscita. I dati compilati sono conservati. Riprova tra poco.",
     "referenceUnavailable": "Non è stato possibile aggiornare conti e categorie. Ricarica i dati prima di inserire nuovi elementi.",

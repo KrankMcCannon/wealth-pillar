@@ -26,11 +26,17 @@ import {
   updateCategoryAction,
 } from '@/features/categories/actions/category-actions';
 import * as PeriodActions from '@/features/budgets/actions/budget-period-actions';
-import { getTransactionByIdAction } from '@/features/transactions/actions/transaction-actions';
+import {
+  createTransactionAction,
+  updateTransactionAction,
+  deleteTransactionAction,
+  getTransactionByIdAction,
+} from '@/features/transactions/actions/transaction-actions';
 import { getReportPeriodDetailPageData } from '@/server/use-cases/pages/report-period-detail-page.use-case';
 import { getReportsPageDataUseCase } from '@/server/use-cases/pages/reports-page.use-case';
 import { MarketDataRepository } from '@/server/repositories/market-data.repository';
 import { persistPortfolioSnapshotsUseCase } from '@/server/use-cases/investments/persist-portfolio-snapshots.use-case';
+import { getTransactionsListData } from '@/server/use-cases/pages/transactions-page.use-case';
 import { financialDateKey } from '@/lib/utils/financial-date';
 import type { User } from '@/lib/types';
 
@@ -515,4 +521,79 @@ it('persists mixed-currency history with dated FX and omits days before any requ
   const points = await PortfolioSnapshotRepository.findByUserIds([adminA]);
   expect(Number(points.find((point) => point.snapshot_date === '2026-10-30')?.value)).toBe(2000);
   expect(Number(points.find((point) => point.snapshot_date === '2026-11-02')?.value)).toBe(2120);
+});
+
+it('completes the Postgres.js 4 financial flow through real actions, ledger reads, reports and period snapshots', async () => {
+  await db.execute(
+    sql`INSERT INTO categories (key,label,group_id) VALUES ('food','Food',${groupA})`
+  );
+  const createdBudget = await createBudgetAction(budget(adminA));
+  expect(createdBudget.error).toBeNull();
+  const started = await PeriodActions.startPeriodAction(adminA, '2026-05-01');
+  expect(started.error).toBeNull();
+  expect(started.data?.is_active).toBe(true);
+
+  const created = await createTransactionAction({
+    description: 'Complete driver flow',
+    amount: 12.34,
+    type: 'expense',
+    category: 'food',
+    date: '2026-05-10',
+    user_id: adminA,
+    account_id: accountA,
+    group_id: groupA,
+  });
+  expect(created.error).toBeNull();
+  const transactionId = created.data!.id;
+  expect(created.data?.accountBalances[accountA]).toBe(-12.34);
+  expect(created.data?.accountBalanceVersions?.[accountA]).toBe('1');
+  const readLedger = () =>
+    getTransactionsListData(
+      groupA,
+      {
+        user: adminA,
+        dateRange: 'custom',
+        startDate: '2026-05-01',
+        endDate: '2026-05-31',
+      },
+      viewer
+    );
+  expect((await readLedger()).transactions).toMatchObject([
+    { id: transactionId, amount: 12.34, date: '2026-05-10' },
+  ]);
+
+  const edited = await updateTransactionAction(transactionId, { amount: 20.25 });
+  expect(edited.error).toBeNull();
+  expect(edited.data?.accountBalances[accountA]).toBe(-20.25);
+  expect(edited.data?.accountBalanceVersions?.[accountA]).toBe('2');
+  expect((await readLedger()).transactions).toMatchObject([{ id: transactionId, amount: 20.25 }]);
+  const report = await getReportsPageDataUseCase(groupA, [adminA, memberA], viewer, {
+    preset: 'custom',
+    customStart: '2026-05-01',
+    customEnd: '2026-05-31',
+  });
+  expect(report.sections.all.expenses).toBe(20.25);
+
+  // The user-facing "new period" action closes the previous one atomically.
+  const next = await PeriodActions.startPeriodAction(adminA, '2026-06-01');
+  expect(next.error).toBeNull();
+  const periods = await PeriodActions.getUserPeriodsAction(adminA);
+  expect(periods.data?.filter((period) => period.is_active)).toHaveLength(1);
+  const closed = periods.data!.find((period) => period.id === started.data!.id)!;
+  expect(closed.end_date).toBe('2026-05-31');
+  expect(Number(closed.spendable_spent)).toBe(20.25);
+  expect(closed.budgets_snapshot).toMatchObject([
+    { id: createdBudget.data!.id, amount: 100, categories: ['food'] },
+  ]);
+
+  const deleted = await deleteTransactionAction(transactionId);
+  expect(deleted.error).toBeNull();
+  expect(deleted.data?.accountBalances[accountA]).toBe(0);
+  expect(deleted.data?.accountBalanceVersions?.[accountA]).toBe('3');
+  expect((await readLedger()).transactions).toEqual([]);
+  const stored = (await PeriodActions.getUserPeriodsAction(adminA)).data!.find(
+    (period) => period.id === closed.id
+  )!;
+  expect(stored.spendable_spent).toEqual(closed.spendable_spent);
+  expect(stored.budgets_snapshot).toEqual(closed.budgets_snapshot);
 });

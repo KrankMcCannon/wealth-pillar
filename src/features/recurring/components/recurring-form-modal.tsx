@@ -246,6 +246,7 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
     RecurringTransactionSeriesData,
     RecurringTransactionSeries
   >({
+    submissionKey: 'recurring',
     isEditMode,
     editId,
     onClose: handleClose,
