@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from '@/i18n/routing';
 import { withDeadline } from '@/lib/utils/with-deadline';
 
 import { useCallback, useMemo } from 'react';
@@ -35,6 +36,7 @@ type AccountPayload = {
 };
 
 function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModalProps>) {
+  const router = useRouter();
   const t = useTranslations('Accounts.FormModal');
   const tContent = useTranslations('Accounts.Content');
   const locale = useLocale();
@@ -204,6 +206,8 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
     Account,
     string | { originalAccount: Account; id: string }
   >({
+    refreshAfterUncertain: () => router.refresh(),
+    submissionKey: 'account',
     isEditMode,
     editId,
     onClose,

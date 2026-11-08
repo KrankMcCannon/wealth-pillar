@@ -13,6 +13,9 @@ setup('seed local data and authenticate a real Clerk session', async ({ page }) 
   if (data.length !== 1)
     throw new Error('E2E_USER_EMAIL must identify an existing Clerk development user');
   await clerkSetup({ publishableKey: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY! });
+  // The SDK can include this short-lived token in failed request URLs.
+  if (process.env.GITHUB_ACTIONS === 'true' && process.env.CLERK_TESTING_TOKEN)
+    process.stdout.write(`::add-mask::${process.env.CLERK_TESTING_TOKEN}\n`);
   const fixture = await seedE2EDatabase(data[0]!.id, email);
   await mkdir('playwright/.auth', { recursive: true });
   await writeFile(fixtureFile, JSON.stringify(fixture));

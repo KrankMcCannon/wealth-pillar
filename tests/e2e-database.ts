@@ -51,6 +51,11 @@ export async function seedE2EDatabase(clerkId: string, email: string) {
         readFileSync('src/server/db/drizzle/20261101191621_account_balance_versions.sql', 'utf8')
       )
     );
+    // Replay the historical guard migration, then remove its obsolete column.
+    // The final fixture matches today's exported schema.
+    await db.unsafe(
+      "ALTER TABLE bank_connections ADD COLUMN default_category text NOT NULL DEFAULT ''"
+    );
     for (const statement of readFileSync(
       'src/server/db/drizzle/0008_category_reference_guards.sql',
       'utf8'
@@ -59,6 +64,15 @@ export async function seedE2EDatabase(clerkId: string, email: string) {
       .filter((part) => part.trim())) {
       await db.unsafe(statement);
     }
+    await db.begin(async (tx) => {
+      for (const statement of readFileSync(
+        'src/server/db/drizzle/20261108230000_remove_bank_default_category.sql',
+        'utf8'
+      )
+        .split('--> statement-breakpoint')
+        .filter((part) => part.trim()))
+        await tx.unsafe(statement);
+    });
     const groupId = randomUUID();
     const userId = randomUUID();
     const accountId = randomUUID();

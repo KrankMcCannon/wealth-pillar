@@ -40,3 +40,24 @@ concurrency are additionally covered by [the PostgreSQL suite](integration/READM
 Authentication files, `.env.e2e`, Playwright reports and traces are ignored by Git.
 The CI unit/integration workflow does not use these Clerk credentials. Run browser
 E2E explicitly in the configured local environment.
+
+## Required CI smoke
+
+`pnpm run test:e2e:smoke` uses the existing real Clerk setup and local PostgreSQL
+fixtures, runs Chromium with one worker, then tears down the fixture. It covers
+persistent navigation, creating a transaction, editing/deleting a transaction,
+and the notification settings panel. Creation and edits are checked immediately
+and after reload. The full browser matrix remains a separate command.
+
+The CI `E2E smoke (Chromium)` job is required by `Quality`. A failed, cancelled,
+missing or skipped smoke job fails that gate. Configure repository secrets
+`NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, and `E2E_USER_EMAIL` using a
+Clerk development instance and a dedicated existing test user. No production
+`DATABASE_URL` secret is used: the job provisions PostgreSQL 17 locally and the
+existing guard requires the database `wealth_pillar_e2e` on loopback.
+
+The preflight fails explicitly if development credentials are missing; no passing
+fallback or fake Clerk session is used. Secrets are not available to untrusted
+fork PRs, so their smoke gate requires a reviewed branch in the repository.
+Do not use `pull_request_target` to execute untrusted code with those credentials.
+No session files or traces containing authentication data are uploaded by the job.

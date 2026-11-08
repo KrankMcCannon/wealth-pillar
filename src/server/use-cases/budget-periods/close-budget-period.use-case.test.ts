@@ -70,6 +70,7 @@ describe('closing a budget period', () => {
     const result = await closeBudgetPeriodUseCase('u1', 'p1', '2024-05-31');
     expect(result?.is_active).toBe(false);
     expect(BudgetPeriodsRepository.findById).toHaveBeenCalledWith('p1', {});
+    expect(getBudgetsByUserUseCase).toHaveBeenCalledWith('u1', {});
     expect(BudgetPeriodsRepository.update).toHaveBeenCalledWith(
       'p1',
       expect.objectContaining({

@@ -1,4 +1,5 @@
 import { db } from '@/server/db/drizzle';
+import { resolveDb, type DbExecutor } from './db-executor';
 import { budgets } from '@/server/db/schema';
 import { and, eq } from 'drizzle-orm';
 import type { Budget } from '@/lib/types';
@@ -26,8 +27,11 @@ export class BudgetsRepository {
     return result.length > 0 ? (serialize(result[0]) as unknown as Budget) : null;
   }
 
-  static async getByUser(userId: string): Promise<Budget[]> {
-    const result = await db.select().from(budgets).where(eq(budgets.user_id, userId));
+  static async getByUser(userId: string, executor?: DbExecutor): Promise<Budget[]> {
+    const result = await resolveDb(executor)
+      .select()
+      .from(budgets)
+      .where(eq(budgets.user_id, userId));
     return serialize(result) as unknown as Budget[];
   }
 

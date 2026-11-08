@@ -1,5 +1,7 @@
 'use server';
 
+import { actionErrorMessage } from '@/lib/server-action/action-error';
+
 import { getTranslations } from 'next-intl/server';
 import {
   denyUnlessCanViewUser,
@@ -91,10 +93,10 @@ export async function startPeriodAction(
   } catch (error) {
     return {
       data: null,
-      error:
-        error instanceof Error
-          ? error.message
-          : (t?.('errors.startFailed') ?? 'Failed to start budget period'),
+      error: actionErrorMessage(
+        error,
+        t?.('errors.startFailed') ?? 'Failed to start budget period'
+      ),
     };
   }
 }
@@ -140,10 +142,10 @@ export async function closePeriodAction(
     }
     return {
       data: null,
-      error:
-        error instanceof Error
-          ? error.message
-          : (t?.('errors.closeFailed') ?? 'Failed to close budget period'),
+      error: actionErrorMessage(
+        error,
+        t?.('errors.closeFailed') ?? 'Failed to close budget period'
+      ),
     };
   }
 }

@@ -920,7 +920,6 @@ export const bankConnections = pgTable(
     name: text().notNull(),
     provider: text().notNull().default('revolut'),
     token_hash: text().notNull().unique(),
-    default_category: text().notNull(),
     auto_import: boolean().notNull().default(false),
     revoked_at: timestamp({ withTimezone: true }),
     last_used_at: timestamp({ withTimezone: true }),

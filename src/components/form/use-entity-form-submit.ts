@@ -1,10 +1,13 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { withDeadline, ActionTimeoutError, isTechnicalError } from '@/lib/utils/with-deadline';
 import type { FieldValues, UseFormReturn } from 'react-hook-form';
 import { toast } from '@/hooks/use-toast';
+
+// Retain in-flight ownership across closing/reopening a modal in this tab.
+const pendingSubmissions = new Set<string>();
 
 export type EntityFormActionResult<R> = { data: R | null; error: string | null };
 
@@ -15,6 +18,7 @@ export interface EntityFormSubmitToastMessages {
 
 export interface UseEntityFormSubmitOptions<T extends FieldValues, Payload, Result, Handle = void> {
   isEditMode: boolean;
+  submissionKey?: string;
   editId?: string | null | undefined;
   onClose: () => void;
   buildPayload: (values: T) => Payload;
@@ -30,6 +34,7 @@ export interface UseEntityFormSubmitOptions<T extends FieldValues, Payload, Resu
   errorToast: EntityFormSubmitToastMessages['error'];
   formatErrorDescription?: (error: string, isEditMode: boolean) => string | undefined;
   refreshAfterSuccess?: () => void;
+  refreshAfterUncertain?: () => void;
   unknownErrorMessage: string;
   /** When true, modal closes before the server action runs. */
   closeBeforeSubmit?: boolean;
@@ -37,6 +42,7 @@ export interface UseEntityFormSubmitOptions<T extends FieldValues, Payload, Resu
 
 export function useEntityFormSubmit<T extends FieldValues, Payload, Result, Handle = void>({
   isEditMode,
+  submissionKey,
   editId,
   onClose,
   buildPayload,
@@ -52,104 +58,108 @@ export function useEntityFormSubmit<T extends FieldValues, Payload, Result, Hand
   errorToast,
   formatErrorDescription,
   refreshAfterSuccess,
+  refreshAfterUncertain,
   unknownErrorMessage,
   closeBeforeSubmit = false,
 }: UseEntityFormSubmitOptions<T, Payload, Result, Handle>) {
   const tStatus = useTranslations('FormStatus');
+  const scope = submissionKey ? `${submissionKey}:${isEditMode ? editId : 'create'}` : null;
+  const currentScope = useRef(scope);
+  const mounted = useRef(true);
+  useEffect(() => {
+    currentScope.current = scope;
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, [scope]);
+  const localPending = useRef(false);
   return useCallback(
     async (values: T, form: UseFormReturn<T>) => {
+      if (localPending.current || (scope && pendingSubmissions.has(scope))) {
+        form.setError('root', { message: tStatus('pending') });
+        return;
+      }
       let handle: Handle | undefined;
-
+      let timedOut = false;
+      const canUpdateForm = () => mounted.current && currentScope.current === scope;
+      const rollback = (message: string) => {
+        if (handle === undefined) return;
+        if (isEditMode && editId) rollbackUpdate?.(handle, message);
+        else rollbackCreate?.(handle, message);
+      };
+      const fail = (error: unknown) => {
+        const raw = error instanceof Error ? error.message : unknownErrorMessage;
+        const message = isTechnicalError(raw) ? tStatus('error') : raw;
+        rollback(message);
+        if (!closeBeforeSubmit && canUpdateForm()) form.setError('root', { message });
+        toast({ title: errorToast.title, description: message, variant: 'destructive' });
+      };
       try {
         const payload = buildPayload(values);
-        if (isEditMode && editId) {
-          handle = applyUpdateOptimistic?.(editId, payload);
-        } else {
-          handle = applyCreateOptimistic?.(payload);
-        }
+        localPending.current = true;
+        if (scope) pendingSubmissions.add(scope);
+        handle =
+          isEditMode && editId
+            ? applyUpdateOptimistic?.(editId, payload)
+            : applyCreateOptimistic?.(payload);
+        if (closeBeforeSubmit) onClose();
 
-        if (closeBeforeSubmit) {
-          onClose();
-        }
-
-        const result = await withDeadline(
-          isEditMode && editId ? updateAction(editId, payload) : createAction(payload)
-        );
-
-        if (result.error) {
-          const message = isTechnicalError(result.error) ? tStatus('error') : result.error;
-          if (isEditMode && editId) {
-            if (handle !== undefined) {
-              rollbackUpdate?.(handle, message);
+        // Observe the actual action until it settles, even after the UI deadline.
+        const request = (async () => {
+          try {
+            const result = await (isEditMode && editId
+              ? updateAction(editId, payload)
+              : createAction(payload));
+            if (result.error) {
+              const message = isTechnicalError(result.error) ? tStatus('error') : result.error;
+              rollback(message);
+              if (!closeBeforeSubmit && canUpdateForm()) form.setError('root', { message });
+              toast({
+                title: errorToast.title,
+                description:
+                  formatErrorDescription?.(message, isEditMode) ??
+                  errorToast.description ??
+                  message,
+                variant: 'destructive',
+              });
+              return;
             }
-          } else if (handle !== undefined) {
-            rollbackCreate?.(handle, message);
-          }
-
-          if (!closeBeforeSubmit) {
-            form.setError('root', { message });
-          }
-
-          toast({
-            title: errorToast.title,
-            description:
-              formatErrorDescription?.(message, isEditMode) ?? errorToast.description ?? message,
-            variant: 'destructive',
-          });
-          return;
-        }
-
-        if (result.data) {
-          if (isEditMode && editId) {
-            if (handle !== undefined) {
-              commitUpdate?.(handle, result.data);
+            if (result.data && handle !== undefined) {
+              if (isEditMode && editId) commitUpdate?.(handle, result.data);
+              else commitCreate?.(handle, result.data);
             }
-          } else if (handle !== undefined) {
-            commitCreate?.(handle, result.data);
+            if (!closeBeforeSubmit && canUpdateForm()) onClose();
+            toast({ ...getSuccessToast(isEditMode), variant: 'success' });
+            if (!timedOut) refreshAfterSuccess?.();
+          } catch (error) {
+            fail(error);
+          } finally {
+            localPending.current = false;
+            if (scope) pendingSubmissions.delete(scope);
+            // Refresh after a late failure too, to reconcile authoritative data.
+            if (timedOut) (refreshAfterUncertain ?? refreshAfterSuccess)?.();
           }
-        }
-
-        if (!closeBeforeSubmit) {
-          onClose();
-        }
-
-        const successToast = getSuccessToast(isEditMode);
-        toast({
-          title: successToast.title,
-          description: successToast.description,
-          variant: 'success',
-        });
-        refreshAfterSuccess?.();
+        })();
+        await withDeadline(request);
       } catch (error) {
-        const rawMessage = error instanceof Error ? error.message : unknownErrorMessage;
-        const message =
-          error instanceof ActionTimeoutError
-            ? tStatus('timeout')
-            : isTechnicalError(rawMessage)
-              ? unknownErrorMessage
-              : rawMessage;
-
-        if (isEditMode && editId) {
-          if (handle !== undefined) {
-            rollbackUpdate?.(handle, message);
-          }
-        } else if (handle !== undefined) {
-          rollbackCreate?.(handle, message);
+        if (error instanceof ActionTimeoutError) {
+          timedOut = true;
+          const message = tStatus('pending');
+          // No rollback: a timeout does not establish that the write failed.
+          if (!closeBeforeSubmit && canUpdateForm()) form.setError('root', { message });
+          toast({ title: errorToast.title, description: message, variant: 'destructive' });
+          (refreshAfterUncertain ?? refreshAfterSuccess)?.();
+        } else {
+          localPending.current = false;
+          if (scope) pendingSubmissions.delete(scope);
+          fail(error);
         }
-
-        if (!closeBeforeSubmit) {
-          form.setError('root', { message });
-        }
-
-        toast({
-          title: errorToast.title,
-          description: message,
-          variant: 'destructive',
-        });
       }
     },
     [
       isEditMode,
+      scope,
       editId,
       onClose,
       buildPayload,
@@ -165,6 +175,7 @@ export function useEntityFormSubmit<T extends FieldValues, Payload, Result, Hand
       errorToast,
       formatErrorDescription,
       refreshAfterSuccess,
+      refreshAfterUncertain,
       unknownErrorMessage,
       closeBeforeSubmit,
       tStatus,

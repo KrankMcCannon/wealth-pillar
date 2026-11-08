@@ -80,7 +80,7 @@ export default function SettingsContent({
 
           <CategoriesSection onManageCategories={() => openSettingsModal('categories')} />
 
-          <BankNotificationsSection user={displayUser} />
+          <BankNotificationsSection onOpen={() => openSettingsModal('notifications')} />
 
           <PreferencesSection
             preferences={preferences}

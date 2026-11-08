@@ -1,10 +1,11 @@
+import { resolveDb, type DbExecutor } from './db-executor';
 import { db } from '@/server/db/drizzle';
 import { users } from '@/server/db/schema';
 import { eq, inArray } from 'drizzle-orm';
 
 export class UsersRepository {
-  static async findById(id: string) {
-    const records = await db.select().from(users).where(eq(users.id, id));
+  static async findById(id: string, executor?: DbExecutor) {
+    const records = await resolveDb(executor).select().from(users).where(eq(users.id, id));
     return records.length > 0 ? records[0] : null;
   }
 

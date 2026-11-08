@@ -56,6 +56,12 @@ test('creates a transaction and keeps it after a reload', async ({ page }) => {
   await page.getByRole('option', { name: 'E2E Food', exact: true }).click();
   await dialog.getByRole('button', { name: 'Crea transazione', exact: true }).click();
   await expect(dialog).toBeHidden();
+  await expect(
+    page.locator('[data-testid^="transaction-row-"]:visible').filter({ hasText: description })
+  ).toHaveCount(1);
+  await expect(
+    page.getByRole('heading', { name: 'Non siamo riusciti a caricare i movimenti' })
+  ).toHaveCount(0);
   await page.reload();
   await expect(
     page.locator('[data-testid^="transaction-row-"]:visible').filter({ hasText: description })
@@ -63,9 +69,9 @@ test('creates a transaction and keeps it after a reload', async ({ page }) => {
   await page.goto('/it/budgets');
   await expect(budget).toContainText(/Speso:\s*130,00/);
   await page.goto('/it/home');
-  await expect(page.getByRole('main')).toContainText('9.990,00');
+  await expect(page.getByRole('main')).toContainText(/9[.\s]?990,00/);
   await page.goto('/it/accounts');
-  await expect(page.getByRole('main')).toContainText('9.990,00');
+  await expect(page.getByRole('main')).toContainText(/9[.\s]?990,00/);
 });
 
 test('updates its own transaction, cancels deletion and then deletes it persistently', async ({
@@ -81,6 +87,10 @@ test('updates its own transaction, cancels deletion and then deletes it persiste
   await dialog.getByLabel('Descrizione', { exact: true }).fill(updated);
   await dialog.getByRole('button', { name: 'Salva transazione', exact: true }).click();
   await expect(dialog).toBeHidden();
+  await expect(row).toContainText(updated);
+  await expect(
+    page.getByRole('heading', { name: 'Non siamo riusciti a caricare i movimenti' })
+  ).toHaveCount(0);
   await page.reload();
   await expect(row).toContainText(updated);
   await row.click();

@@ -34,7 +34,7 @@ beforeAll(async () => {
     'CREATE TABLE groups (id uuid PRIMARY KEY)',
     'CREATE TABLE categories (id uuid PRIMARY KEY, key text UNIQUE, label text, icon text, color text, group_id uuid REFERENCES groups(id) ON DELETE CASCADE, created_at timestamptz DEFAULT now(), updated_at timestamptz DEFAULT now())',
     'CREATE TABLE transactions (category text, group_id uuid)',
-    'CREATE TABLE budgets (categories jsonb, group_id uuid)',
+    'CREATE TABLE budgets (categories jsonb, group_id uuid, id uuid DEFAULT gen_random_uuid(), user_id uuid)',
     'CREATE TABLE recurring_transactions (category text, account_id uuid)',
     'CREATE TABLE accounts (id uuid PRIMARY KEY, group_id uuid)',
     'CREATE TABLE users (id uuid PRIMARY KEY, group_id uuid)',
@@ -53,6 +53,13 @@ beforeAll(async () => {
     for (const statement of migration.split('--> statement-breakpoint').filter((s) => s.trim()))
       await tx.execute(sql.raw(statement));
   });
+  for (const statement of readFileSync(
+    'src/server/db/drizzle/20261108230000_remove_bank_default_category.sql',
+    'utf8'
+  )
+    .split('--> statement-breakpoint')
+    .filter((part) => part.trim()))
+    await db.execute(sql.raw(statement));
 });
 afterAll(async () => {
   await db.execute(sql.raw(`DROP TABLE ${tables.join(', ')} CASCADE`));
@@ -73,7 +80,10 @@ beforeEach(async () => {
 });
 const references = [
   ['transaction', () => sql`INSERT INTO transactions VALUES ('pets', ${group})`],
-  ['budget only', () => sql`INSERT INTO budgets VALUES ('["pets"]', ${group})`],
+  [
+    'budget only',
+    () => sql`INSERT INTO budgets (categories, group_id) VALUES ('["pets"]', ${group})`,
+  ],
   ['recurring only', () => sql`INSERT INTO recurring_transactions VALUES ('pets', ${group})`],
   [
     'historical budget only',
@@ -84,7 +94,6 @@ const references = [
     'historical spending only',
     () => sql`INSERT INTO budget_periods VALUES (${group}, ${group}, NULL, '{"pets":17}')`,
   ],
-  ['connection', () => sql`INSERT INTO bank_connections VALUES ('pets', ${group})`],
   [
     'pending notification',
     () => sql`INSERT INTO bank_notification_events VALUES ('pets', ${group})`,
@@ -108,13 +117,13 @@ it.each(references)(
 it('deletes unused categories and rejects writes with a removed key', async () => {
   expect(await deleteCategoryAction(category)).toEqual({ data: { id: category }, error: null });
   await expect(
-    db.execute(sql`INSERT INTO budgets VALUES ('["pets"]', ${group})`)
+    db.execute(sql`INSERT INTO budgets (categories, group_id) VALUES ('["pets"]', ${group})`)
   ).rejects.toThrow();
 });
 it('keeps foreign groups isolated and permits updates without changing valid references', async () => {
   vi.mocked(getCurrentUser).mockResolvedValue({ id: otherGroup, group_id: otherGroup } as never);
   expect((await deleteCategoryAction(category)).error).toBe('errors.permissionDenied');
-  await db.execute(sql`INSERT INTO budgets VALUES ('["pets"]', ${group})`);
+  await db.execute(sql`INSERT INTO budgets (categories, group_id) VALUES ('["pets"]', ${group})`);
   await db.execute(sql`UPDATE budgets SET categories = '["pets"]'`);
 });
 async function waitForLock() {
@@ -142,7 +151,7 @@ it.each(['reference-first', 'reference-first-direct', 'delete-first'])(
     const first = db.transaction(async (tx) => {
       await tx.execute(
         order !== 'delete-first'
-          ? sql`INSERT INTO budgets VALUES ('["pets"]', ${group})`
+          ? sql`INSERT INTO budgets (categories, group_id) VALUES ('["pets"]', ${group})`
           : sql`DELETE FROM categories WHERE id = ${category}`
       );
       entered();
@@ -154,7 +163,9 @@ it.each(['reference-first', 'reference-first-direct', 'delete-first'])(
         ? db.execute(sql`DELETE FROM categories WHERE id = ${category}`)
         : order === 'reference-first'
           ? CategoriesRepository.delete(category)
-          : db.execute(sql`INSERT INTO budgets VALUES ('["pets"]', ${group})`)
+          : db.execute(
+              sql`INSERT INTO budgets (categories, group_id) VALUES ('["pets"]', ${group})`
+            )
     ).then(
       () => null,
       (error) => error
@@ -192,7 +203,35 @@ it('preserves cached quotes and their timestamp on empty, invalid or unchanged r
 });
 
 it('does not prevent the parent group from cascading removal of its own catalog', async () => {
-  await db.execute(sql`INSERT INTO budgets VALUES ('["pets"]', ${group})`);
+  await db.execute(sql`INSERT INTO budgets (categories, group_id) VALUES ('["pets"]', ${group})`);
   await db.execute(sql`DELETE FROM groups WHERE id = ${group}`);
   expect(await CategoriesRepository.findById(category)).toBeNull();
+});
+
+it('removes device default categories and their trigger without blocking unrelated category deletion', async () => {
+  expect(
+    await db.execute(
+      sql`SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='bank_connections' AND column_name='default_category'`
+    )
+  ).toHaveLength(0);
+  expect(
+    await db.execute(
+      sql`SELECT 1 FROM pg_trigger WHERE tgrelid='bank_connections'::regclass AND NOT tgisinternal AND tgname='category_reference_guard'`
+    )
+  ).toHaveLength(0);
+  await db.execute(sql`INSERT INTO bank_connections(group_id) VALUES (${group})`);
+  expect(await CategoriesRepository.usedKeys(group)).toEqual([]);
+  expect((await deleteCategoryAction(category)).error).toBeNull();
+  for (const statement of readFileSync(
+    'src/server/db/drizzle/20261108230000_remove_bank_default_category.sql',
+    'utf8'
+  )
+    .split('--> statement-breakpoint')
+    .filter((part) => part.trim()))
+    await db.execute(sql.raw(statement));
+  expect(
+    await db.execute(
+      sql`SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='bank_connections' AND column_name='default_category'`
+    )
+  ).toHaveLength(0);
 });

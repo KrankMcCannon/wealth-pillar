@@ -25,3 +25,11 @@ The configuration accepts only a loopback host and the database name
 `wealth_pillar_test`. The suite creates and removes its own `accounts`,
 `transactions`, `budget_periods`, `user_preferences` and the resource-isolation fixture tables. It does not load the app's `.env`
 or use Supabase. Run these tests separately from the unit suite (`pnpm test`).
+
+## Postgres.js 4 application flows
+
+`pnpm run test:postgres4` runs this full suite with the pinned driver. No hosted
+project or real authentication credentials are needed. The continuous regression
+in `review-consistency.test.ts` covers Server Actions, persisted ledger rereads,
+report totals, the new-period operation, frozen snapshots, account balances and
+ordered revisions. Database repositories and financial use cases are not mocked.

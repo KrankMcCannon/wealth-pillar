@@ -43,10 +43,16 @@ function money(value: string): string | null {
 /** Each bank owns a parser; unknown formats stay in the review inbox. */
 export function parseBankNotification(input: BankNotification, now = new Date()): ParseResult {
   if (input.provider !== 'revolut') return { parsed: null, reason: 'unsupported_provider' };
+  const text = `${input.title}\n${input.body}`;
+  if (
+    !/(?:hai speso|hai ricevuto|hai inviato|you spent|you received|you sent)/i.test(text) &&
+    /si applicano i termini e condizioni/i.test(input.body) &&
+    /gratis|upgrade|carta in edizione limitata|dividi le spese di gruppo/i.test(input.body)
+  )
+    return { parsed: null, reason: 'non_transaction' };
   if (!input.occurredAt) return { parsed: null, reason: 'missing_date' };
   if (Date.parse(input.occurredAt) > now.getTime() + 5 * 60_000)
     return { parsed: null, reason: 'future_date' };
-  const text = `${input.title}\n${input.body}`;
   if (
     /rifiutat|annullat|stornat|in sospeso|preautorizz|declined|reversed|pending|refund|rimborso/i.test(
       text
@@ -54,10 +60,15 @@ export function parseBankNotification(input: BankNotification, now = new Date())
   )
     return { parsed: null, reason: 'unconfirmed_movement' };
   const patterns = [
-    { type: 'expense' as const, re: /^(?:Hai speso|You spent)\s+([\d.,\s]+)\s*(€|EUR)(.*)$/i },
+    {
+      type: 'expense' as const,
+      re: /^(?:Hai speso|You spent|Hai inviato|You sent)\s+([\d.,\s]+)\s*(€|EUR)(.*)$/i,
+    },
     { type: 'income' as const, re: /^(?:Hai ricevuto|You received)\s+([\d.,\s]+)\s*(€|EUR)(.*)$/i },
   ];
-  const matches = input.body.split(/\r?\n/).flatMap((line) =>
+  const incomeInTitle = /^(?:Hai ricevuto|You received)\s+/i.test(input.title);
+  const lines = incomeInTitle ? [input.title] : input.body.split(/\r?\n/);
+  const matches = lines.flatMap((line) =>
     patterns.flatMap((pattern) => {
       const match = pattern.re.exec(
         line
@@ -74,8 +85,19 @@ export function parseBankNotification(input: BankNotification, now = new Date())
   const suffix = match[3]!.trim();
   if (suffix && !/^(?:presso|da|a|at|to|from)\s+\S/i.test(suffix))
     return { parsed: null, reason: 'unknown_format' };
+  const receivedParty = incomeInTitle
+    ? /^(?:Pagamento ricevuto da|Payment received from)\s+(.+?)(?:[.]\s*(?:Premi per i dettagli|Tap for details))?[.]?$/i.exec(
+        input.body.trim()
+      )?.[1]
+    : undefined;
+  if (incomeInTitle && !receivedParty) return { parsed: null, reason: 'unknown_format' };
   const description =
-    suffix.replace(/^(?:presso|da|a|at|to|from)\s+/i, '').trim() || input.title.trim();
+    receivedParty?.trim() ||
+    suffix
+      .replace(/^(?:presso|da|a|at|to|from)\s+/i, '')
+      .replace(/[.]\s*(?:Arriverà in pochi secondi|It will arrive in a few seconds)[.]?$/i, '')
+      .trim() ||
+    input.title.trim();
   if (!description || /^revolut$/i.test(description))
     return { parsed: null, reason: 'missing_merchant' };
   const balanceMatch =

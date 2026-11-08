@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from '@/i18n/routing';
 import { withDeadline } from '@/lib/utils/with-deadline';
 
 import { useCallback, useMemo } from 'react';
@@ -37,6 +38,7 @@ interface CategoryFormModalProps {
 }
 
 function CategoryFormModal({ isOpen, onClose, editId }: Readonly<CategoryFormModalProps>) {
+  const router = useRouter();
   const t = useTranslations('Categories.FormModal');
   const locale = useLocale();
   const groupId = useRequiredGroupId();
@@ -202,6 +204,8 @@ function CategoryFormModal({ isOpen, onClose, editId }: Readonly<CategoryFormMod
     Category,
     string | { originalCategory: Category; id: string }
   >({
+    refreshAfterUncertain: () => router.refresh(),
+    submissionKey: 'category',
     isEditMode,
     editId,
     onClose,

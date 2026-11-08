@@ -187,6 +187,7 @@ function BudgetFormModal({
     Budget,
     string | { originalBudget: Budget; id: string }
   >({
+    submissionKey: 'budget',
     isEditMode,
     editId,
     onClose,

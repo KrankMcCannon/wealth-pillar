@@ -49,7 +49,7 @@ export const closeBudgetPeriodUseCase = async (
 
     const [liquidity, budgets] = await Promise.all([
       loadPeriodLiquidityData(period.group_id, userId, window, tx),
-      getBudgetsByUserUseCase(userId),
+      getBudgetsByUserUseCase(userId, tx),
     ]);
     const { transactions, accounts } = liquidity;
 

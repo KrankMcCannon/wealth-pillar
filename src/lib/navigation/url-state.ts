@@ -17,6 +17,7 @@ export const MODAL_TYPES = [
   'settings:invite',
   'settings:group',
   'settings:categories',
+  'settings:notifications',
 ] as const;
 
 export type ModalType = (typeof MODAL_TYPES)[number];
@@ -29,10 +30,18 @@ export const SETTINGS_MODAL_TYPES = [
   'settings:invite',
   'settings:group',
   'settings:categories',
+  'settings:notifications',
 ] as const;
 
 export type SettingsModalKind =
-  'profile' | 'currency' | 'language' | 'timezone' | 'invite' | 'group' | 'categories';
+  | 'profile'
+  | 'currency'
+  | 'language'
+  | 'timezone'
+  | 'invite'
+  | 'group'
+  | 'categories'
+  | 'notifications';
 
 export function isSettingsModalType(
   modal: string | null

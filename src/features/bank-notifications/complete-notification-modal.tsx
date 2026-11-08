@@ -72,6 +72,7 @@ export function CompleteNotificationModal({
       isOpen
       onClose={onClose}
       title={t('complete')}
+      wrapperProps={{ nested: true }}
       schema={schema}
       defaultValues={defaults}
       onSubmit={async (values, form, signal) => {

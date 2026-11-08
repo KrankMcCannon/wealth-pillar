@@ -14,13 +14,37 @@ rimangono da verificare finché i loro formati non saranno documentati.
    tabelle; non modifica i movimenti esistenti.
 2. Pubblicare il codice.
 3. In **Impostazioni → Importa dalle notifiche**, scegliere il proprio conto
-   Revolut EUR, un nome del dispositivo e una categoria predefinita.
+   Revolut EUR e un nome del dispositivo. Il pannello usa la stessa riga e lo stesso
+   foglio delle altre impostazioni.
 4. Iniziare con verifica manuale. L’opzione di importazione automatica può essere
    scelta alla creazione di un collegamento. Un collegamento può essere revocato
    e ricreato per modificarla. L’utente deriva dalla sessione; un amministratore
    non crea token a nome di un altro membro.
 5. Copiare il token mostrato una volta e inserirlo nell’automazione personale.
    Il token non viene messo negli URL, negli analytics o nei log del server.
+
+## Categorie per movimento
+
+Il dispositivo non imposta una categoria comune. Ogni notifica usa prima una
+regola appresa per esercente, poi i suggerimenti già condivisi con l’import CSV.
+Senza un suggerimento valido resta da verificare con categoria vuota, anche se
+l’importazione automatica è attiva. La scelta nella coda riguarda quel movimento;
+le correzioni esplicite vengono apprese per lo stesso esercente.
+
+Il dispositivo non contiene una categoria predefinita. La migrazione
+`20261108230000_remove_bank_default_category.sql` rimuove la colonna e i riferimenti
+nelle funzioni/trigger. Le migrazioni storiche restano invariate.
+
+Le promozioni riconosciute vengono archiviate come ignorate. I formati incerti
+restano da verificare, senza modificare movimenti o saldo. Un invio a una persona
+è un'uscita, un pagamento ricevuto è un'entrata: la notifica non permette di inferire
+un trasferimento tra due conti propri.
+
+Se i movimenti sono già inseriti a mano, un possibile duplicato sullo stesso conto,
+giorno, importo e direzione resta da verificare. Non confermarne una nuova
+importazione: ignoralo. Date, conti o direzioni differenti possono impedire il
+riconoscimento; evitare di inviare lo storico già registrato e iniziare dalle
+nuove notifiche. Usare sempre la data originale con fuso orario.
 
 ## Comandi Rapidi
 

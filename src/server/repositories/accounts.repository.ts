@@ -1,3 +1,4 @@
+import { readWithRetry } from '@/server/db/read-with-retry';
 import { db } from '@/server/db/drizzle';
 import { accounts } from '@/server/db/schema';
 import { eq, sql, getTableColumns } from 'drizzle-orm';
@@ -28,11 +29,13 @@ export class AccountsRepository {
   }
 
   static async findByGroup(groupId: string, executor?: DbExecutor): Promise<Account[]> {
-    return resolveDb(executor)
-      .select(accountColumns)
-      .from(accounts)
-      .where(eq(accounts.group_id, groupId))
-      .orderBy(accounts.created_at) as unknown as Account[];
+    const read = () =>
+      resolveDb(executor)
+        .select(accountColumns)
+        .from(accounts)
+        .where(eq(accounts.group_id, groupId))
+        .orderBy(accounts.created_at);
+    return (executor ? await read() : await readWithRetry(read)) as unknown as Account[];
   }
 
   static async findByUser(userId: string): Promise<Account[]> {
