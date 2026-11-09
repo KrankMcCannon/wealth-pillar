@@ -1,5 +1,7 @@
 'use server';
 
+import { runDurableAction } from '@/lib/server-action/run-durable-action';
+
 import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { runAuthorizedMutation } from '@/lib/server-action/run-authorized-mutation';
@@ -30,58 +32,61 @@ async function getBudgetsActionTranslator(locale?: string) {
  */
 export async function createBudgetAction(
   input: CreateBudgetInput,
-  locale?: string
+  locale?: string,
+  operationId?: string
 ): Promise<ServiceResult<Budget>> {
-  let t: Awaited<ReturnType<typeof getTranslations>> | null = null;
-  try {
-    t = await getBudgetsActionTranslator(locale);
-    // Authentication check (cached per request)
-    const currentUser = await getCurrentUser();
-    if (!currentUser) {
-      return { data: null, error: t('errors.unauthenticated') };
-    }
+  return runDurableAction('createBudgetAction', [input, locale], operationId, async () => {
+    let t: Awaited<ReturnType<typeof getTranslations>> | null = null;
+    try {
+      t = await getBudgetsActionTranslator(locale);
+      // Authentication check (cached per request)
+      const currentUser = await getCurrentUser();
+      if (!currentUser) {
+        return { data: null, error: t('errors.unauthenticated') };
+      }
 
-    // Permission validation: members can only create for themselves
-    if (isMember(currentUser) && input.user_id !== currentUser.id) {
+      // Permission validation: members can only create for themselves
+      if (isMember(currentUser) && input.user_id !== currentUser.id) {
+        return {
+          data: null,
+          error: t('errors.noPermissionCreateOthers'),
+        };
+      }
+
+      // Verify user_id is provided
+      if (!input.user_id) {
+        return {
+          data: null,
+          error: t('errors.userRequired'),
+        };
+      }
+
+      if (!AccessScope.for(currentUser).canViewUser(input.user_id)) {
+        return {
+          data: null,
+          error: t('errors.noPermissionUserData'),
+        };
+      }
+
+      const policy = new FinancialResourcePolicy(currentUser);
+      await policy.assertUsers([input.user_id]);
+      const budget = await createBudgetUseCase({ ...input, group_id: policy.groupId });
+
+      if (budget) {
+        return { data: budget, error: null };
+      }
+
+      return { data: null, error: t('errors.createFailed') };
+    } catch (error) {
       return {
         data: null,
-        error: t('errors.noPermissionCreateOthers'),
+        error:
+          error instanceof Error
+            ? error.message
+            : (t?.('errors.createFailed') ?? 'Failed to create budget'),
       };
     }
-
-    // Verify user_id is provided
-    if (!input.user_id) {
-      return {
-        data: null,
-        error: t('errors.userRequired'),
-      };
-    }
-
-    if (!AccessScope.for(currentUser).canViewUser(input.user_id)) {
-      return {
-        data: null,
-        error: t('errors.noPermissionUserData'),
-      };
-    }
-
-    const policy = new FinancialResourcePolicy(currentUser);
-    await policy.assertUsers([input.user_id]);
-    const budget = await createBudgetUseCase({ ...input, group_id: policy.groupId });
-
-    if (budget) {
-      return { data: budget, error: null };
-    }
-
-    return { data: null, error: t('errors.createFailed') };
-  } catch (error) {
-    return {
-      data: null,
-      error:
-        error instanceof Error
-          ? error.message
-          : (t?.('errors.createFailed') ?? 'Failed to create budget'),
-    };
-  }
+  });
 }
 
 /**
@@ -90,72 +95,75 @@ export async function createBudgetAction(
 export async function updateBudgetAction(
   id: string,
   input: Partial<CreateBudgetInput>,
-  locale?: string
+  locale?: string,
+  operationId?: string
 ): Promise<ServiceResult<Budget>> {
-  let t: Awaited<ReturnType<typeof getTranslations>> | null = null;
-  try {
-    t = await getBudgetsActionTranslator(locale);
-    // Authentication check (cached per request)
-    const currentUser = await getCurrentUser();
-    if (!currentUser) {
-      return { data: null, error: t('errors.unauthenticated') };
-    }
+  return runDurableAction('updateBudgetAction', [id, input, locale], operationId, async () => {
+    let t: Awaited<ReturnType<typeof getTranslations>> | null = null;
+    try {
+      t = await getBudgetsActionTranslator(locale);
+      // Authentication check (cached per request)
+      const currentUser = await getCurrentUser();
+      if (!currentUser) {
+        return { data: null, error: t('errors.unauthenticated') };
+      }
 
-    // Get existing budget to verify ownership
-    const policy = new FinancialResourcePolicy(currentUser);
-    const existingBudget = await getBudgetByIdUseCase(id, policy.resourceScope);
-    policy.assertGroup(existingBudget.group_id);
-    if (input.group_id !== undefined) policy.assertGroup(input.group_id);
+      // Get existing budget to verify ownership
+      const policy = new FinancialResourcePolicy(currentUser);
+      const existingBudget = await getBudgetByIdUseCase(id, policy.resourceScope);
+      policy.assertGroup(existingBudget.group_id);
+      if (input.group_id !== undefined) policy.assertGroup(input.group_id);
 
-    // Verify budget has a user_id
-    if (!existingBudget || !existingBudget.user_id) {
-      return {
-        data: null,
-        error: t('errors.userMissing'),
-      };
-    }
-
-    const scope = AccessScope.for(currentUser);
-    if (!scope.canViewOwned(existingBudget)) {
-      return {
-        data: null,
-        error: t('errors.noPermissionUpdate'),
-      };
-    }
-
-    if (input.user_id && input.user_id !== existingBudget.user_id) {
-      if (isMember(currentUser)) {
+      // Verify budget has a user_id
+      if (!existingBudget || !existingBudget.user_id) {
         return {
           data: null,
-          error: t('errors.cannotReassignAsMember'),
+          error: t('errors.userMissing'),
         };
       }
 
-      if (!scope.canViewUser(input.user_id)) {
+      const scope = AccessScope.for(currentUser);
+      if (!scope.canViewOwned(existingBudget)) {
         return {
           data: null,
-          error: t('errors.noPermissionAssignUser'),
+          error: t('errors.noPermissionUpdate'),
         };
       }
+
+      if (input.user_id && input.user_id !== existingBudget.user_id) {
+        if (isMember(currentUser)) {
+          return {
+            data: null,
+            error: t('errors.cannotReassignAsMember'),
+          };
+        }
+
+        if (!scope.canViewUser(input.user_id)) {
+          return {
+            data: null,
+            error: t('errors.noPermissionAssignUser'),
+          };
+        }
+      }
+
+      await policy.assertUsers([input.user_id ?? existingBudget.user_id]);
+      const budget = await updateBudgetUseCase(id, input, policy.resourceScope);
+
+      if (budget) {
+        return { data: budget, error: null };
+      }
+
+      return { data: null, error: t('errors.updateFailed') };
+    } catch (error) {
+      return {
+        data: null,
+        error:
+          error instanceof Error
+            ? error.message
+            : (t?.('errors.updateFailed') ?? 'Failed to update budget'),
+      };
     }
-
-    await policy.assertUsers([input.user_id ?? existingBudget.user_id]);
-    const budget = await updateBudgetUseCase(id, input, policy.resourceScope);
-
-    if (budget) {
-      return { data: budget, error: null };
-    }
-
-    return { data: null, error: t('errors.updateFailed') };
-  } catch (error) {
-    return {
-      data: null,
-      error:
-        error instanceof Error
-          ? error.message
-          : (t?.('errors.updateFailed') ?? 'Failed to update budget'),
-    };
-  }
+  });
 }
 
 export async function getBudgetByIdAction(
@@ -195,36 +203,41 @@ export async function getBudgetByIdAction(
 export async function deleteBudgetAction(
   id: string,
   locale?: string,
-  returnToList = false
+  returnToList = false,
+  operationId?: string
 ): Promise<ServiceResult<{ id: string }>> {
   const t = await getBudgetsActionTranslator(locale);
   let ownerId: string | undefined;
-  const result = await runAuthorizedMutation({
-    unauthenticatedError: t('errors.unauthenticated'),
-    authorize: async (currentUser) => {
-      const policy = new FinancialResourcePolicy(currentUser);
-      const existingBudget = await getBudgetByIdUseCase(id, policy.resourceScope);
-      policy.assertGroup(existingBudget.group_id);
-      if (!existingBudget?.user_id) {
-        return { data: null, error: t('errors.userMissing') };
-      }
-      if (!AccessScope.for(currentUser).canViewOwned(existingBudget)) {
-        return { data: null, error: t('errors.noPermissionDelete') };
-      }
-      ownerId = existingBudget.user_id;
-      return null;
-    },
-    mutate: async (currentUser) => {
-      const policy = new FinancialResourcePolicy(currentUser);
-      const result = await deleteBudgetUseCase(id, policy.resourceScope);
-      if (!result) {
-        throw new Error(t('errors.deleteFailed'));
-      }
-      return { id };
-    },
-    formatError: (error) => (error instanceof Error ? error.message : t('errors.deleteFailed')),
-  });
-  if (result.data && returnToList && ownerId)
-    redirect(`/${locale === 'en' ? 'en' : 'it'}/budgets?user=${encodeURIComponent(ownerId)}`);
+  const result = await runDurableAction('deleteBudgetAction', [id], operationId, () =>
+    runAuthorizedMutation({
+      unauthenticatedError: t('errors.unauthenticated'),
+      authorize: async (currentUser) => {
+        const policy = new FinancialResourcePolicy(currentUser);
+        const existingBudget = await getBudgetByIdUseCase(id, policy.resourceScope);
+        policy.assertGroup(existingBudget.group_id);
+        if (!existingBudget?.user_id) {
+          return { data: null, error: t('errors.userMissing') };
+        }
+        if (!AccessScope.for(currentUser).canViewOwned(existingBudget)) {
+          return { data: null, error: t('errors.noPermissionDelete') };
+        }
+        ownerId = existingBudget.user_id;
+        return null;
+      },
+      mutate: async (currentUser) => {
+        const policy = new FinancialResourcePolicy(currentUser);
+        const result = await deleteBudgetUseCase(id, policy.resourceScope);
+        if (!result) {
+          throw new Error(t('errors.deleteFailed'));
+        }
+        return { id };
+      },
+      formatError: (error) => (error instanceof Error ? error.message : t('errors.deleteFailed')),
+    })
+  );
+  if (result.data && returnToList)
+    redirect(
+      `/${locale === 'en' ? 'en' : 'it'}/budgets${ownerId ? `?user=${encodeURIComponent(ownerId)}` : ''}`
+    );
   return result;
 }

@@ -1,10 +1,10 @@
-import { db } from '@/server/db/drizzle';
+import { resolveDb } from './db-executor';
 import { userPreferences } from '@/server/db/schema';
 import { eq } from 'drizzle-orm';
 
 export class UserPreferencesRepository {
   static async getByUserId(userId: string) {
-    const records = await db
+    const records = await resolveDb()
       .select()
       .from(userPreferences)
       .where(eq(userPreferences.user_id, userId));
@@ -12,12 +12,12 @@ export class UserPreferencesRepository {
   }
 
   static async create(data: typeof userPreferences.$inferInsert) {
-    const records = await db.insert(userPreferences).values(data).returning();
+    const records = await resolveDb().insert(userPreferences).values(data).returning();
     return records[0] || null;
   }
 
   static async update(userId: string, data: Partial<typeof userPreferences.$inferInsert>) {
-    const records = await db
+    const records = await resolveDb()
       .update(userPreferences)
       .set({ ...data, updated_at: new Date() })
       .where(eq(userPreferences.user_id, userId))
@@ -26,6 +26,6 @@ export class UserPreferencesRepository {
   }
 
   static async delete(userId: string) {
-    await db.delete(userPreferences).where(eq(userPreferences.user_id, userId));
+    await resolveDb().delete(userPreferences).where(eq(userPreferences.user_id, userId));
   }
 }

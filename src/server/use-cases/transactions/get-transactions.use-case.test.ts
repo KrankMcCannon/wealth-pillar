@@ -38,7 +38,11 @@ it('does not reuse an administrator’s cached transaction for a different membe
   ).toBe('owner');
 });
 it('does not reuse an expense-only ledger for an income query', async () => {
-  vi.mocked(TransactionsRepository.getByUser).mockResolvedValue({ data: [], total: 0 });
+  vi.mocked(TransactionsRepository.getByUser).mockResolvedValue({
+    data: [],
+    total: 0,
+    hasMore: false,
+  });
   await getTransactionsByUserUseCase('owner', { type: 'expense' });
   await getTransactionsByUserUseCase('owner', { type: 'income' });
   expect(TransactionsRepository.getByUser).toHaveBeenCalledTimes(2);

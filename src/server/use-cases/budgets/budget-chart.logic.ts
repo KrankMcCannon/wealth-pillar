@@ -1,3 +1,4 @@
+import type { LedgerEntry } from '@/server/ledger/aggregate';
 import type { Account, Budget, Transaction, UserBudgetSummary } from '@/lib/types';
 import type { DateInput } from '@/lib/utils/date-utils';
 import { diffInDays, today as luxonToday, toDateString, toDateTime } from '@/lib/utils/date-utils';
@@ -12,22 +13,22 @@ export interface ChartDataPoint {
   isFuture: boolean;
 }
 
-export interface GroupedBudgetTransaction {
+export interface GroupedBudgetTransaction<T extends LedgerEntry = Transaction> {
   isPartial?: boolean;
   date: string;
-  transactions: Transaction[];
+  transactions: T[];
   total: number;
 }
 
 export interface BudgetChartViewModel {
   chartAggregateSpent: number;
   chartData: ChartDataPoint[] | null;
-  groupedTransactions: GroupedBudgetTransaction[];
-  periodTransactions: Transaction[];
+  groupedTransactions: GroupedBudgetTransaction<LedgerEntry>[];
+  periodTransactions: import('@/server/ledger/aggregate').LedgerEntry[];
 }
 
 export function buildBudgetChartViewModel(
-  transactions: Transaction[],
+  transactions: import('@/server/ledger/aggregate').LedgerEntry[],
   userBudgets: Budget[],
   userId: string,
   periodStart: DateInput | null,
@@ -55,7 +56,7 @@ export function buildBudgetChartViewModel(
   const chartAggregateSpent = effectiveSpentFromTransactions(periodTransactions, accounts, userId);
 
   const accountMap = accountsToMap(accounts);
-  const groupedMap: Record<string, Transaction[]> = {};
+  const groupedMap: Record<string, LedgerEntry[]> = {};
   for (const transaction of periodTransactions) {
     const dateKey = toDateString(transaction.date);
     if (!groupedMap[dateKey]) groupedMap[dateKey] = [];
@@ -97,7 +98,7 @@ export function buildBudgetChartViewModel(
 }
 
 function buildCumulativeChartPoints(
-  periodTransactions: Transaction[],
+  periodTransactions: LedgerEntry[],
   periodStart: DateInput,
   periodEnd: DateInput | null,
   totalBudget: number,

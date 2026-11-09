@@ -24,5 +24,5 @@ it('reports the latest actual quote date instead of the fetch time', () => {
     { datetime: '2026-11-02', close: 13 },
   ];
   expect(latestQuoteDate(values)).toBe('2026-11-02');
-  expect(validSeriesValues(values)[0]).toMatchObject({ datetime: '2026-10-30', close: 12.5 });
+  expect(validSeriesValues(values)[0]).toMatchObject({ datetime: '2026-10-30', close: '12.5' });
 });

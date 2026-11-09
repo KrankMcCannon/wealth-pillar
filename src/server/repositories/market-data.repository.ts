@@ -1,5 +1,4 @@
 import { resolveDb, type DbExecutor } from './db-executor';
-import { db } from '@/server/db/drizzle';
 import { marketDataCache } from '@/server/db/schema';
 import { eq, inArray, sql } from 'drizzle-orm';
 import { validSeriesValues } from '@/lib/types/market-data.types';
@@ -7,7 +6,7 @@ import type { MarketDataCacheRow, TimeSeriesEntry } from '@/lib/types/market-dat
 
 export class MarketDataRepository {
   static async findBySymbol(symbol: string): Promise<MarketDataCacheRow | null> {
-    const records = await db
+    const records = await resolveDb()
       .select()
       .from(marketDataCache)
       .where(eq(marketDataCache.symbol, symbol.toUpperCase()));
@@ -30,7 +29,7 @@ export class MarketDataRepository {
   static async upsert(symbol: string, data: TimeSeriesEntry[]) {
     const values = validSeriesValues(data);
     if (!values.length) throw new Error(`No valid quotes for ${symbol}`);
-    await db
+    await resolveDb()
       .insert(marketDataCache)
       .values({
         symbol: symbol.toUpperCase(),

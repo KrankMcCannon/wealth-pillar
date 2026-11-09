@@ -34,6 +34,7 @@ export interface MarketDataCacheRow {
 export interface ParsedSeriesPoint {
   date: string;
   close: number;
+  exactClose?: string;
 }
 
 /**
@@ -120,6 +121,7 @@ export function buildSeriesIndex(
         return {
           date,
           close: Number.isFinite(close) ? close : 0,
+          exactClose: String(entry.close),
         };
       })
       .filter((point) => point.date && point.close > 0)
@@ -144,6 +146,20 @@ export function getCloseForDate(
   for (const point of points ?? []) {
     if (targetDateKey && point.date > targetDateKey) break;
     if (Number.isFinite(point.close) && point.close > 0) close = point.close;
+  }
+  return close;
+}
+
+/** Decimal source for financial arithmetic; numeric close remains presentation-compatible. */
+export function getExactCloseForDate(
+  points: ParsedSeriesPoint[] | undefined,
+  targetDateKey?: string
+): string | null {
+  let close: string | null = null;
+  for (const point of points ?? []) {
+    if (targetDateKey && point.date > targetDateKey) break;
+    if (Number.isFinite(point.close) && point.close > 0)
+      close = point.exactClose ?? String(point.close);
   }
   return close;
 }
@@ -174,7 +190,7 @@ export function validSeriesValues(values: unknown): TimeSeriesEntry[] {
       return [];
     const date = new Date(`${day}T00:00:00Z`);
     if (!Number.isFinite(date.getTime()) || date.toISOString().slice(0, 10) !== day) return [];
-    return [{ ...entry, datetime: day, close }];
+    return [{ ...entry, datetime: day }];
   });
 }
 

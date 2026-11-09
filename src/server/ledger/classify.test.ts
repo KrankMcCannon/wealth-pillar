@@ -80,14 +80,14 @@ describe('classifyMovement', () => {
       accountsToMap([alicePayroll, bobPayroll])
     );
     expect(movement.kind).toBe('split_transfer');
-    expect(movement.cashFlowCents).toBe(0);
+    expect(movement.cashFlowCents).toBe(BigInt(0));
     expect(movement.budgetLegs).toEqual([
-      { userId: 'alice', signedCents: 8000 },
-      { userId: 'bob', signedCents: -8000 },
+      { userId: 'alice', signedCents: BigInt(8000) },
+      { userId: 'bob', signedCents: BigInt(-8000) },
     ]);
     expect(movement.cashLegs).toEqual(movement.budgetLegs);
-    expect(movement.spendableDeltaCents).toBe(0);
-    expect(movement.savingsDeltaCents).toBe(0);
+    expect(movement.spendableDeltaCents).toBe(BigInt(0));
+    expect(movement.savingsDeltaCents).toBe(BigInt(0));
   });
 
   it('dest-shared savings: source budget only, no cash-out', () => {
@@ -102,11 +102,11 @@ describe('classifyMovement', () => {
       accountsToMap([alicePayroll, jointSavings])
     );
     expect(movement.kind).toBe('savings_transfer');
-    expect(movement.budgetLegs).toEqual([{ userId: 'alice', signedCents: 5000 }]);
+    expect(movement.budgetLegs).toEqual([{ userId: 'alice', signedCents: BigInt(5000) }]);
     expect(movement.cashLegs).toEqual([]);
-    expect(movement.savingsDeltaCents).toBe(5000);
+    expect(movement.savingsDeltaCents).toBe(BigInt(5000));
     expect(movement.savingsUserId).toBe('alice');
-    expect(movement.cashFlowCents).toBe(0);
+    expect(movement.cashFlowCents).toBe(BigInt(0));
   });
 
   it('exclusive savings deposit counts as budget spent, not cash-out', () => {
@@ -120,9 +120,9 @@ describe('classifyMovement', () => {
       accountsToMap([alicePayroll, aliceSavings])
     );
     expect(movement.kind).toBe('savings_transfer');
-    expect(movement.budgetLegs).toEqual([{ userId: 'alice', signedCents: 7000 }]);
+    expect(movement.budgetLegs).toEqual([{ userId: 'alice', signedCents: BigInt(7000) }]);
     expect(movement.cashLegs).toEqual([]);
-    expect(movement.savingsDeltaCents).toBe(7000);
+    expect(movement.savingsDeltaCents).toBe(BigInt(7000));
     expect(
       budgetSignedForUser(
         tx({
@@ -148,9 +148,9 @@ describe('classifyMovement', () => {
       accountsToMap([alicePayroll, aliceSavings])
     );
     expect(movement.kind).toBe('savings_transfer');
-    expect(movement.budgetLegs).toEqual([{ userId: 'alice', signedCents: -2000 }]);
+    expect(movement.budgetLegs).toEqual([{ userId: 'alice', signedCents: BigInt(-2000) }]);
     expect(movement.cashLegs).toEqual([]);
-    expect(movement.savingsDeltaCents).toBe(-2000);
+    expect(movement.savingsDeltaCents).toBe(BigInt(-2000));
   });
 
   it('same-owner spendable shuffle is internal', () => {
@@ -166,7 +166,7 @@ describe('classifyMovement', () => {
     expect(movement.kind).toBe('internal_transfer');
     expect(movement.budgetLegs).toEqual([]);
     expect(movement.cashLegs).toEqual([]);
-    expect(movement.savingsDeltaCents).toBe(0);
+    expect(movement.savingsDeltaCents).toBe(BigInt(0));
   });
 
   it('pooling into joint spendable is internal, not savings or split', () => {
@@ -197,8 +197,8 @@ describe('classifyMovement', () => {
     );
     expect(movement.kind).toBe('split_transfer');
     expect(movement.budgetLegs).toEqual([
-      { userId: 'alice', signedCents: 4000 },
-      { userId: 'bob', signedCents: -4000 },
+      { userId: 'alice', signedCents: BigInt(4000) },
+      { userId: 'bob', signedCents: BigInt(-4000) },
     ]);
   });
 
@@ -208,8 +208,8 @@ describe('classifyMovement', () => {
       accountsToMap([jointChecking])
     );
     expect(movement.kind).toBe('expense');
-    expect(movement.cashFlowCents).toBe(-2500);
-    expect(movement.budgetLegs).toEqual([{ userId: 'alice', signedCents: 2500 }]);
+    expect(movement.cashFlowCents).toBe(BigInt(-2500));
+    expect(movement.budgetLegs).toEqual([{ userId: 'alice', signedCents: BigInt(2500) }]);
     expect(movement.cashLegs).toEqual(movement.budgetLegs);
   });
 

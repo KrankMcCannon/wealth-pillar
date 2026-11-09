@@ -1,7 +1,7 @@
+import { accountReadColumns, relationalReadsEnabled } from './relational-projections';
 import { readWithRetry } from '@/server/db/read-with-retry';
-import { db } from '@/server/db/drizzle';
 import { accounts } from '@/server/db/schema';
-import { eq, sql, getTableColumns } from 'drizzle-orm';
+import { eq, sql, getTableColumns, inArray, asc } from 'drizzle-orm';
 import type { Account } from '@/lib/types';
 import { resolveDb, type DbExecutor } from './db-executor';
 
@@ -11,9 +11,19 @@ const accountColumns = {
 };
 
 export class AccountsRepository {
+  static async findAuthorizationRows(ids: string[], executor?: DbExecutor) {
+    if (!ids.length) return [];
+    const columns = accountReadColumns();
+    const query = resolveDb(executor)
+      .select({ id: accounts.id, group_id: accounts.group_id, user_ids: columns.user_ids })
+      .from(accounts)
+      .where(inArray(accounts.id, [...new Set(ids)]))
+      .orderBy(asc(accounts.id));
+    return executor ? query.for('no key update') : query;
+  }
   static async findByIdForUpdate(id: string, executor: DbExecutor): Promise<Account | null> {
     const [row] = await executor
-      .select(accountColumns)
+      .select(accountReadColumns())
       .from(accounts)
       .where(eq(accounts.id, id))
       .for('update');
@@ -22,7 +32,7 @@ export class AccountsRepository {
 
   static async findById(id: string, executor?: DbExecutor): Promise<Account | null> {
     const rows = await resolveDb(executor)
-      .select(accountColumns)
+      .select(accountReadColumns())
       .from(accounts)
       .where(eq(accounts.id, id));
     return (rows[0] as unknown as Account) ?? null;
@@ -31,7 +41,7 @@ export class AccountsRepository {
   static async findByGroup(groupId: string, executor?: DbExecutor): Promise<Account[]> {
     const read = () =>
       resolveDb(executor)
-        .select(accountColumns)
+        .select(accountReadColumns())
         .from(accounts)
         .where(eq(accounts.group_id, groupId))
         .orderBy(accounts.created_at);
@@ -40,23 +50,31 @@ export class AccountsRepository {
 
   static async findByUser(userId: string): Promise<Account[]> {
     // user_ids is a uuid[] column – use @> (contains) operator
-    return db
-      .select(accountColumns)
+    return resolveDb()
+      .select(accountReadColumns())
       .from(accounts)
-      .where(sql`${accounts.user_ids} @> ARRAY[${userId}]::uuid[]`)
+      .where(
+        relationalReadsEnabled()
+          ? sql`exists(select 1 from account_users x where x.account_id=accounts.id and x.user_id=${userId}::uuid)`
+          : sql`${accounts.user_ids} @> ARRAY[${userId}]::uuid[]`
+      )
       .orderBy(accounts.created_at) as unknown as Account[];
   }
 
   static async countByUser(userId: string): Promise<number> {
-    const result = await db
+    const result = await resolveDb()
       .select({ count: sql<number>`count(*)` })
       .from(accounts)
-      .where(sql`${accounts.user_ids} @> ARRAY[${userId}]::uuid[]`);
+      .where(
+        relationalReadsEnabled()
+          ? sql`exists(select 1 from account_users x where x.account_id=accounts.id and x.user_id=${userId}::uuid)`
+          : sql`${accounts.user_ids} @> ARRAY[${userId}]::uuid[]`
+      );
     return Number(result[0]?.count ?? 0);
   }
 
   static async create(data: typeof accounts.$inferInsert): Promise<Account> {
-    const rows = await db.insert(accounts).values(data).returning(accountColumns);
+    const rows = await resolveDb().insert(accounts).values(data).returning(accountColumns);
     return rows[0] as unknown as Account;
   }
 

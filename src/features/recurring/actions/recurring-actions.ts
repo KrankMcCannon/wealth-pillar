@@ -1,5 +1,7 @@
 'use server';
 
+import { runDurableAction } from '@/lib/server-action/run-durable-action';
+
 import { financialDateKey } from '@/lib/utils/financial-date';
 import { validateRecurringDefinition } from '@/lib/recurring/recurring-validation';
 
@@ -104,53 +106,56 @@ function validateCreatePermissions(currentUser: User, userIds: string[]): string
  * @returns The created series or error
  */
 export async function createRecurringSeriesAction(
-  input: CreateRecurringSeriesInput
+  input: CreateRecurringSeriesInput,
+  operationId?: string
 ): Promise<ServiceResult<RecurringTransactionSeries>> {
-  try {
-    // Authentication check (cached per request)
-    const currentUser = await getCurrentUser();
-    if (!currentUser) {
-      return { data: null, error: 'Non autenticato. Effettua il login per continuare.' };
+  return runDurableAction('createRecurringSeriesAction', [input], operationId, async () => {
+    try {
+      // Authentication check (cached per request)
+      const currentUser = await getCurrentUser();
+      if (!currentUser) {
+        return { data: null, error: 'Non autenticato. Effettua il login per continuare.' };
+      }
+
+      // Validate input logic
+      const inputError = validateCreateInput(input) ?? validateRecurringDefinition(input);
+      if (inputError) return { data: null, error: inputError };
+
+      // Validate permissions logic
+      const permError = validateCreatePermissions(currentUser, input.user_ids);
+      if (permError) return { data: null, error: permError };
+
+      const policy = new FinancialResourcePolicy(currentUser);
+      await policy.assertRecurring(input);
+
+      const data = await createSeriesUseCase({
+        description: input.description.trim(),
+        amount: input.amount,
+        type: input.type,
+        category: input.category,
+        frequency: input.frequency,
+        user_ids: input.user_ids,
+        account_id: input.account_id,
+        start_date: financialDateKey(input.start_date),
+        end_date: input.end_date ? financialDateKey(input.end_date) : null,
+        due_day: input.due_day,
+        is_active: true,
+        total_executions: 0,
+      });
+
+      if (!data) {
+        return { data: null, error: 'Failed to create recurring series' };
+      }
+
+      return { data: serialize(data), error: null };
+    } catch (error) {
+      console.error('[createRecurringSeriesAction] Unexpected error:', error);
+      return {
+        data: null,
+        error: error instanceof Error ? error.message : 'Errore durante la creazione della serie',
+      };
     }
-
-    // Validate input logic
-    const inputError = validateCreateInput(input) ?? validateRecurringDefinition(input);
-    if (inputError) return { data: null, error: inputError };
-
-    // Validate permissions logic
-    const permError = validateCreatePermissions(currentUser, input.user_ids);
-    if (permError) return { data: null, error: permError };
-
-    const policy = new FinancialResourcePolicy(currentUser);
-    await policy.assertRecurring(input);
-
-    const data = await createSeriesUseCase({
-      description: input.description.trim(),
-      amount: input.amount,
-      type: input.type,
-      category: input.category,
-      frequency: input.frequency,
-      user_ids: input.user_ids,
-      account_id: input.account_id,
-      start_date: financialDateKey(input.start_date),
-      end_date: input.end_date ? financialDateKey(input.end_date) : null,
-      due_day: input.due_day,
-      is_active: true,
-      total_executions: 0,
-    });
-
-    if (!data) {
-      return { data: null, error: 'Failed to create recurring series' };
-    }
-
-    return { data: serialize(data), error: null };
-  } catch (error) {
-    console.error('[createRecurringSeriesAction] Unexpected error:', error);
-    return {
-      data: null,
-      error: error instanceof Error ? error.message : 'Errore durante la creazione della serie',
-    };
-  }
+  });
 }
 
 // Helper: Validate new user assignment permissions
@@ -227,58 +232,62 @@ function buildUpdatePayload(input: UpdateRecurringSeriesInput): {
  * @returns The updated series or error
  */
 export async function updateRecurringSeriesAction(
-  input: UpdateRecurringSeriesInput
+  input: UpdateRecurringSeriesInput,
+  operationId?: string
 ): Promise<ServiceResult<RecurringTransactionSeries>> {
-  try {
-    if (!input.id) {
-      return { data: null, error: 'ID serie obbligatorio' };
+  return runDurableAction('updateRecurringSeriesAction', [input], operationId, async () => {
+    try {
+      if (!input.id) {
+        return { data: null, error: 'ID serie obbligatorio' };
+      }
+
+      // Authentication check (cached per request)
+      const currentUser = await getCurrentUser();
+      if (!currentUser) {
+        return { data: null, error: 'Non autenticato. Effettua il login per continuare.' };
+      }
+
+      // Get old user_ids to invalidate cache for previous users
+      const policy = new FinancialResourcePolicy(currentUser);
+      const oldSeries = await getSeriesByIdUseCase(input.id, policy.resourceScope);
+      if (!oldSeries) {
+        return { data: null, error: 'Serie ricorrente non trovata' };
+      }
+
+      // Permission validation
+      const permError = validateUpdatePermission(currentUser, oldSeries, input.user_ids);
+      if (permError) return { data: null, error: permError };
+
+      await policy.assertRecurring(oldSeries);
+      await policy.assertRecurring({ ...oldSeries, ...input });
+
+      // Build update data
+      const { payload, error: payloadError } = buildUpdatePayload(input);
+      if (payloadError) return { data: null, error: payloadError };
+      const updatePayload = payload;
+      const pausingExistingSeries =
+        input.is_active === false &&
+        Object.keys(input).every((key) => ['id', 'is_active'].includes(key));
+      const definitionError = pausingExistingSeries
+        ? null
+        : validateRecurringDefinition({ ...oldSeries, ...input });
+      if (definitionError) return { data: null, error: definitionError };
+
+      const data = await updateSeriesUseCase(input.id, updatePayload, policy.resourceScope);
+      if (!data) {
+        return { data: null, error: 'Failed to update series' };
+      }
+
+      return { data: serialize(data), error: null };
+    } catch (error) {
+      console.error('[updateRecurringSeriesAction] Unexpected error:', error);
+      return {
+        data: null,
+        error:
+          error instanceof Error ? error.message : "Errore durante l'aggiornamento della serie",
+      };
     }
-
-    // Authentication check (cached per request)
-    const currentUser = await getCurrentUser();
-    if (!currentUser) {
-      return { data: null, error: 'Non autenticato. Effettua il login per continuare.' };
-    }
-
-    // Get old user_ids to invalidate cache for previous users
-    const policy = new FinancialResourcePolicy(currentUser);
-    const oldSeries = await getSeriesByIdUseCase(input.id, policy.resourceScope);
-    if (!oldSeries) {
-      return { data: null, error: 'Serie ricorrente non trovata' };
-    }
-
-    // Permission validation
-    const permError = validateUpdatePermission(currentUser, oldSeries, input.user_ids);
-    if (permError) return { data: null, error: permError };
-
-    await policy.assertRecurring(oldSeries);
-    await policy.assertRecurring({ ...oldSeries, ...input });
-
-    // Build update data
-    const { payload, error: payloadError } = buildUpdatePayload(input);
-    if (payloadError) return { data: null, error: payloadError };
-    const updatePayload = payload;
-    const pausingExistingSeries =
-      input.is_active === false &&
-      Object.keys(input).every((key) => ['id', 'is_active'].includes(key));
-    const definitionError = pausingExistingSeries
-      ? null
-      : validateRecurringDefinition({ ...oldSeries, ...input });
-    if (definitionError) return { data: null, error: definitionError };
-
-    const data = await updateSeriesUseCase(input.id, updatePayload, policy.resourceScope);
-    if (!data) {
-      return { data: null, error: 'Failed to update series' };
-    }
-
-    return { data: serialize(data), error: null };
-  } catch (error) {
-    console.error('[updateRecurringSeriesAction] Unexpected error:', error);
-    return {
-      data: null,
-      error: error instanceof Error ? error.message : "Errore durante l'aggiornamento della serie",
-    };
-  }
+  });
 }
 
 /**
@@ -290,39 +299,42 @@ export async function updateRecurringSeriesAction(
  * @returns Success status or error
  */
 export async function deleteRecurringSeriesAction(
-  seriesId: string
+  seriesId: string,
+  operationId?: string
 ): Promise<ServiceResult<{ success: boolean }>> {
-  try {
-    if (!seriesId) {
-      return { data: null, error: 'ID serie obbligatorio' };
+  return runDurableAction('deleteRecurringSeriesAction', [seriesId], operationId, async () => {
+    try {
+      if (!seriesId) {
+        return { data: null, error: 'ID serie obbligatorio' };
+      }
+
+      const currentUser = await getCurrentUser();
+      if (!currentUser) {
+        return { data: null, error: 'Non autenticato. Effettua il login per continuare.' };
+      }
+
+      const policy = new FinancialResourcePolicy(currentUser);
+      const series = await getSeriesByIdUseCase(seriesId, policy.resourceScope);
+      if (!series) {
+        return { data: null, error: 'Serie ricorrente non trovata' };
+      }
+
+      if (!AccessScope.for(currentUser).canViewShared(series)) {
+        return { data: null, error: 'Permesso negato' };
+      }
+
+      await policy.assertRecurring(series);
+      await deleteSeriesUseCase(seriesId, policy.resourceScope);
+
+      return { data: { success: true }, error: null };
+    } catch (error) {
+      console.error('[deleteRecurringSeriesAction] Unexpected error:', error);
+      return {
+        data: null,
+        error: error instanceof Error ? error.message : "Errore durante l'eliminazione della serie",
+      };
     }
-
-    const currentUser = await getCurrentUser();
-    if (!currentUser) {
-      return { data: null, error: 'Non autenticato. Effettua il login per continuare.' };
-    }
-
-    const policy = new FinancialResourcePolicy(currentUser);
-    const series = await getSeriesByIdUseCase(seriesId, policy.resourceScope);
-    if (!series) {
-      return { data: null, error: 'Serie ricorrente non trovata' };
-    }
-
-    if (!AccessScope.for(currentUser).canViewShared(series)) {
-      return { data: null, error: 'Permesso negato' };
-    }
-
-    await policy.assertRecurring(series);
-    await deleteSeriesUseCase(seriesId, policy.resourceScope);
-
-    return { data: { success: true }, error: null };
-  } catch (error) {
-    console.error('[deleteRecurringSeriesAction] Unexpected error:', error);
-    return {
-      data: null,
-      error: error instanceof Error ? error.message : "Errore durante l'eliminazione della serie",
-    };
-  }
+  });
 }
 
 /**
@@ -363,7 +375,15 @@ export async function getRecurringSeriesByIdAction(
 
 export async function toggleRecurringSeriesActiveAction(
   seriesId: string,
-  isActive: boolean
+  isActive: boolean,
+  operationId?: string
 ): Promise<ServiceResult<RecurringTransactionSeries>> {
-  return updateRecurringSeriesAction({ id: seriesId, is_active: isActive });
+  return runDurableAction(
+    'toggleRecurringSeriesActiveAction',
+    [seriesId, isActive],
+    operationId,
+    async () => {
+      return updateRecurringSeriesAction({ id: seriesId, is_active: isActive });
+    }
+  );
 }

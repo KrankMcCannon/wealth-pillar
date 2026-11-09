@@ -136,14 +136,15 @@ function CloseBudgetPeriodModal({
   const handleSubmit = useEntityFormSubmit<CloseBudgetPeriodFormData, string, BudgetPeriod>({
     refreshAfterUncertain: () => router.refresh(),
     submissionKey: 'close-period',
+    operationKinds: { create: 'closePeriodAction', update: 'closePeriodAction' },
     isEditMode: false,
     onClose: handleClose,
     buildPayload,
-    createAction: (endDate) => {
+    createAction: (endDate, operationId) => {
       if (!activePeriod?.id) {
         return Promise.resolve({ data: null, error: t('noActivePeriodAlert') });
       }
-      return closePeriodAction(userId, activePeriod.id, endDate, locale);
+      return closePeriodAction(userId, activePeriod.id, endDate, locale, operationId);
     },
     updateAction: async () => ({ data: null, error: t('errors.operationFailed') }),
     getSuccessToast,

@@ -1,3 +1,4 @@
+import { withDatabaseOperation } from '@/server/db/telemetry';
 import { cacheLife, cacheTag } from 'next/cache';
 import { financialDateTime, financialDateKey } from '@/lib/utils/financial-date';
 import { CACHE_TAGS } from '@/lib/cache/config';
@@ -161,7 +162,9 @@ export async function getReportsPageDataUseCase(
 ): Promise<ReportsPageData> {
   // The selected member changes presentation only, not the cached financial dataset.
   const { memberUserId, ...financialParams } = params;
-  const data = await getCachedReportsPageData(groupId, groupUserIds, financialParams);
+  const data = await withDatabaseOperation('reports', () =>
+    getCachedReportsPageData(groupId, groupUserIds, financialParams)
+  );
   return scopeReportsPageData(
     {
       ...data,

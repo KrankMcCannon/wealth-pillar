@@ -50,8 +50,8 @@ function toSnapshotItem(row: Record<string, unknown>): JSONValue | null {
 }
 
 async function main(): Promise<void> {
-  const url = process.env.DATABASE_URL;
-  if (!url) throw new Error('DATABASE_URL is not set');
+  const url = process.env.DATABASE_ADMIN_URL;
+  if (!url) throw new Error('DATABASE_ADMIN_URL is not set');
 
   const sql = createPostgresClient(url, { max: 1 });
   try {

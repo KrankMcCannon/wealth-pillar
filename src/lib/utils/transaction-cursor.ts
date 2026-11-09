@@ -7,7 +7,7 @@ export type TransactionCursorPayloadV1 = {
   /** ISO date YYYY-MM-DD (transaction business date) */
   d: string;
   /** ISO-8601 timestamp for created_at */
-  c: string;
+  c: string | null;
   i: string;
 };
 
@@ -19,14 +19,15 @@ function toDateOnly(value: string | Date): string {
   return financialDateKey(value);
 }
 
-function toIsoTimestamp(value: string | Date): string {
+function toIsoTimestamp(value: string | Date | null): string | null {
+  if (value === null) return null;
   if (typeof value === 'string') return value;
   return value.toISOString();
 }
 
 export function encodeTransactionCursor(row: {
   date: string | Date;
-  created_at: string | Date;
+  created_at: string | Date | null;
   id: string;
 }): string {
   const payload: TransactionCursorPayloadV1 = {
@@ -41,7 +42,7 @@ export function encodeTransactionCursor(row: {
 export function decodeTransactionCursor(token: string):
   | {
       date: string;
-      createdAt: string;
+      createdAt: string | null;
       id: string;
     }
   | undefined {
@@ -52,13 +53,12 @@ export function decodeTransactionCursor(token: string):
     if (parsed.v !== TRANSACTION_CURSOR_V1) return undefined;
     if (
       typeof parsed.d !== 'string' ||
-      typeof parsed.c !== 'string' ||
+      (parsed.c !== null && typeof parsed.c !== 'string') ||
       typeof parsed.i !== 'string'
     ) {
       return undefined;
     }
-    const createdAt = new Date(parsed.c);
-    if (Number.isNaN(createdAt.getTime())) return undefined;
+    if (parsed.c !== null && Number.isNaN(new Date(parsed.c).getTime())) return undefined;
     if (!/^\d{4}-\d{2}-\d{2}$/.test(parsed.d)) return undefined;
     return { date: parsed.d, createdAt: parsed.c, id: parsed.i };
   } catch {

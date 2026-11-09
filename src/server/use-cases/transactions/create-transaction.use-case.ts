@@ -1,4 +1,4 @@
-import { db } from '@/server/db/drizzle';
+import { financialTransaction } from '@/server/repositories/db-executor';
 import { TransactionsRepository } from '@/server/repositories/transactions.repository';
 import type { CreateTransactionInput } from '@/server/use-cases/transactions/types';
 import type { TransactionMutationResult } from '@/lib/types/financial-mutation';
@@ -47,7 +47,7 @@ export async function createTransactionUseCase(
     group_id: data.group_id,
   };
 
-  const transaction = await db.transaction(async (tx) => {
+  const transaction = await financialTransaction(async (tx) => {
     const created = await TransactionsRepository.create(insertData, tx);
     if (!created) throw new Error('Failed to create transaction');
     await applyTransactionBalanceAdjustments(created, 1, tx);

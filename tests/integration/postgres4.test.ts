@@ -135,15 +135,17 @@ it('rejects queued work without sending it when the pool is occupied', async () 
   }
 });
 
-it('recovers a standalone read after a real server statement timeout', async () => {
+it('does not amplify a real server statement timeout with another read', async () => {
   const client = createPostgresClient(url, { connection: { statement_timeout: 20 } });
   let attempts = 0;
   try {
-    const result = await readWithRetry(() =>
-      ++attempts === 1 ? client`select pg_sleep(0.1)` : client`select 1::integer as ok`
-    );
-    expect(attempts).toBe(2);
-    expect(result[0]?.ok).toBe(1);
+    await expect(
+      readWithRetry(() => {
+        attempts++;
+        return client`select pg_sleep(0.1)`;
+      })
+    ).rejects.toMatchObject({ code: '57014' });
+    expect(attempts).toBe(1);
   } finally {
     await client.end({ timeout: 1 });
   }

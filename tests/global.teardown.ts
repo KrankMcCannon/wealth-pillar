@@ -9,7 +9,7 @@ teardown('remove only the owned local fixture database contents', async () => {
   const db = fixtureDatabase();
   try {
     await db.unsafe(
-      'DROP SCHEMA public CASCADE; CREATE SCHEMA public; DROP SCHEMA IF EXISTS auth CASCADE;'
+      'DROP SCHEMA public CASCADE; CREATE SCHEMA public; DROP SCHEMA IF EXISTS auth CASCADE; DROP SCHEMA IF EXISTS extensions CASCADE; DROP SCHEMA IF EXISTS wealth_pillar_migrations CASCADE; DROP ROLE IF EXISTS anon; DROP ROLE IF EXISTS authenticated; DROP ROLE IF EXISTS service_role; DROP ROLE IF EXISTS pool_user;'
     );
   } finally {
     await db.end();

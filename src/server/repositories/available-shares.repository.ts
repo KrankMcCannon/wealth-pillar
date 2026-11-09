@@ -1,30 +1,32 @@
-import { db } from '@/server/db/drizzle';
+import { resolveDb } from './db-executor';
 import { availableShares } from '@/server/db/schema';
 import { eq, and, ilike, or } from 'drizzle-orm';
 import { sql } from 'drizzle-orm';
 
 export class AvailableSharesRepository {
   static async getRegions(): Promise<string[]> {
-    const records = await db.execute<{ region: string }>(
+    const records = await resolveDb().execute<{ region: string }>(
       sql`SELECT region FROM get_available_share_regions()`
     );
     return records.map((r) => r.region);
   }
 
   static async getAssetTypes(region: string | null): Promise<string[]> {
-    const records = await db.execute<{ asset_type: string }>(
+    const records = await resolveDb().execute<{ asset_type: string }>(
       sql`SELECT asset_type FROM get_available_share_asset_types(${region}::text)`
     );
     return records.map((r) => r.asset_type);
   }
 
   static async getPopular(limit: number) {
-    const records = await db.execute(sql`SELECT * FROM get_popular_shares(${limit}::integer)`);
+    const records = await resolveDb().execute(
+      sql`SELECT * FROM get_popular_shares(${limit}::integer)`
+    );
     return records;
   }
 
   static async findByFilters(region: string, assetType: string) {
-    return await db
+    return await resolveDb()
       .select()
       .from(availableShares)
       .where(and(eq(availableShares.region, region), eq(availableShares.asset_type, assetType)))
@@ -42,7 +44,7 @@ export class AvailableSharesRepository {
       whereClause = and(whereClause, eq(availableShares.asset_type, assetType));
     }
 
-    return await db
+    return await resolveDb()
       .select()
       .from(availableShares)
       .where(whereClause)
@@ -51,7 +53,7 @@ export class AvailableSharesRepository {
   }
 
   static async findBySymbol(symbol: string) {
-    const records = await db
+    const records = await resolveDb()
       .select()
       .from(availableShares)
       .where(eq(availableShares.symbol, symbol.toUpperCase()));
@@ -59,7 +61,7 @@ export class AvailableSharesRepository {
   }
 
   static async create(data: typeof availableShares.$inferInsert) {
-    const records = await db.insert(availableShares).values(data).returning();
+    const records = await resolveDb().insert(availableShares).values(data).returning();
     return records.length > 0 ? records[0] : null;
   }
 }

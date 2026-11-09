@@ -1,4 +1,6 @@
 import { unstable_cache as nextUnstableCache } from 'next/cache';
+import { transactionContext } from '@/server/db/transaction-context';
+import { recordDatabaseEvent } from '@/server/db/telemetry';
 
 /**
  * Cache Utilities
@@ -35,5 +37,18 @@ export function cached<T extends (...args: unknown[]) => Promise<unknown>>(
   keyParts: readonly string[],
   options?: CacheOptions
 ): T {
-  return nextUnstableCache(fn, [...keyParts], options);
+  // Authorization and read-modify-write paths read through their transaction.
+  if (transactionContext.getStore()) return fn;
+  const read = nextUnstableCache(
+    async (...args: unknown[]) => {
+      recordDatabaseEvent('cache.miss');
+      return fn(...args);
+    },
+    [...keyParts],
+    options
+  );
+  return ((...args: unknown[]) => {
+    recordDatabaseEvent('cache.read');
+    return read(...args);
+  }) as T;
 }

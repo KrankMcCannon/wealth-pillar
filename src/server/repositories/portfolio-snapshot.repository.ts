@@ -1,5 +1,4 @@
 import { resolveDb, type DbExecutor } from './db-executor';
-import { db } from '@/server/db/drizzle';
 import { portfolioValueSnapshots } from '@/server/db/schema';
 import { and, eq, gte, inArray, lte, sql } from 'drizzle-orm';
 
@@ -17,7 +16,7 @@ export class PortfolioSnapshotRepository {
 
   static async findByUserIds(userIds: string[]) {
     if (userIds.length === 0) return [];
-    return await db
+    return await resolveDb()
       .select()
       .from(portfolioValueSnapshots)
       .where(inArray(portfolioValueSnapshots.user_id, userIds))
@@ -25,7 +24,7 @@ export class PortfolioSnapshotRepository {
   }
 
   static async findByUserAndDateRange(userId: string, startDate: string, endDate: string) {
-    return await db
+    return await resolveDb()
       .select()
       .from(portfolioValueSnapshots)
       .where(

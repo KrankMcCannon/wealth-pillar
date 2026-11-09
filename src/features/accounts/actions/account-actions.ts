@@ -1,5 +1,7 @@
 'use server';
 
+import { runDurableAction } from '@/lib/server-action/run-durable-action';
+
 import { getTranslations } from 'next-intl/server';
 import { runAuthorizedMutation } from '@/lib/server-action/run-authorized-mutation';
 import { getCurrentUser } from '@/lib/auth/cached-auth';
@@ -34,39 +36,47 @@ async function getAccountsActionTranslator(locale?: string) {
 export async function createAccountAction(
   input: CreateAccountInput,
   isDefault: boolean = false,
-  locale?: string
+  locale?: string,
+  operationId?: string
 ): Promise<ServiceResult<Account>> {
-  let t: Awaited<ReturnType<typeof getTranslations>> | null = null;
-  try {
-    t = await getAccountsActionTranslator(locale);
-    const currentUser = await getCurrentUser();
-    if (!currentUser) {
-      return { data: null, error: t('errors.unauthenticated') };
+  return runDurableAction(
+    'createAccountAction',
+    [input, isDefault, locale],
+    operationId,
+    async () => {
+      let t: Awaited<ReturnType<typeof getTranslations>> | null = null;
+      try {
+        t = await getAccountsActionTranslator(locale);
+        const currentUser = await getCurrentUser();
+        if (!currentUser) {
+          return { data: null, error: t('errors.unauthenticated') };
+        }
+
+        if (!input.name?.trim()) return { data: null, error: t('errors.nameRequired') };
+        if (!input.type) return { data: null, error: t('errors.typeRequired') };
+        if (!input.group_id) return { data: null, error: t('errors.groupRequired') };
+        if (!input.user_ids?.length) return { data: null, error: t('errors.userRequired') };
+
+        const policy = new FinancialResourcePolicy(currentUser);
+        policy.assertGroup(input.group_id);
+        await policy.assertUsers(input.user_ids);
+        const account = await createAccountUseCase({ ...input, group_id: policy.groupId });
+
+        const defaultUserId = defaultAccountUserId(isDefault, input.user_ids, currentUser.id);
+        if (defaultUserId) await setUserDefaultAccountUseCase(defaultUserId, account.id);
+
+        return { data: account, error: null };
+      } catch (error) {
+        return {
+          data: null,
+          error:
+            error instanceof Error
+              ? error.message
+              : (t?.('errors.createFailed') ?? 'Failed to create account'),
+        };
+      }
     }
-
-    if (!input.name?.trim()) return { data: null, error: t('errors.nameRequired') };
-    if (!input.type) return { data: null, error: t('errors.typeRequired') };
-    if (!input.group_id) return { data: null, error: t('errors.groupRequired') };
-    if (!input.user_ids?.length) return { data: null, error: t('errors.userRequired') };
-
-    const policy = new FinancialResourcePolicy(currentUser);
-    policy.assertGroup(input.group_id);
-    await policy.assertUsers(input.user_ids);
-    const account = await createAccountUseCase({ ...input, group_id: policy.groupId });
-
-    const defaultUserId = defaultAccountUserId(isDefault, input.user_ids, currentUser.id);
-    if (defaultUserId) await setUserDefaultAccountUseCase(defaultUserId, account.id);
-
-    return { data: account, error: null };
-  } catch (error) {
-    return {
-      data: null,
-      error:
-        error instanceof Error
-          ? error.message
-          : (t?.('errors.createFailed') ?? 'Failed to create account'),
-    };
-  }
+  );
 }
 
 /**
@@ -76,61 +86,69 @@ export async function updateAccountAction(
   accountId: string,
   input: UpdateAccountInput,
   isDefault: boolean = false,
-  locale?: string
+  locale?: string,
+  operationId?: string
 ): Promise<ServiceResult<Account>> {
-  let t: Awaited<ReturnType<typeof getTranslations>> | null = null;
-  try {
-    t = await getAccountsActionTranslator(locale);
-    const currentUser = await getCurrentUser();
-    if (!currentUser) {
-      return { data: null, error: t('errors.unauthenticated') };
-    }
+  return runDurableAction(
+    'updateAccountAction',
+    [accountId, input, isDefault, locale],
+    operationId,
+    async () => {
+      let t: Awaited<ReturnType<typeof getTranslations>> | null = null;
+      try {
+        t = await getAccountsActionTranslator(locale);
+        const currentUser = await getCurrentUser();
+        if (!currentUser) {
+          return { data: null, error: t('errors.unauthenticated') };
+        }
 
-    const existingAccount = await getAccountByIdUseCase(accountId);
+        const existingAccount = await getAccountByIdUseCase(accountId);
 
-    if (currentUser.group_id !== existingAccount.group_id) {
-      return { data: null, error: t('errors.noPermissionUpdate') };
-    }
-
-    const scope = AccessScope.for(currentUser);
-    if (!scope.canViewShared(existingAccount)) {
-      return { data: null, error: t('errors.noPermissionUpdate') };
-    }
-
-    if (input.user_ids) {
-      for (const userId of input.user_ids) {
-        if (!scope.canViewUser(userId)) {
+        if (currentUser.group_id !== existingAccount.group_id) {
           return { data: null, error: t('errors.noPermissionUpdate') };
         }
+
+        const scope = AccessScope.for(currentUser);
+        if (!scope.canViewShared(existingAccount)) {
+          return { data: null, error: t('errors.noPermissionUpdate') };
+        }
+
+        if (input.user_ids) {
+          for (const userId of input.user_ids) {
+            if (!scope.canViewUser(userId)) {
+              return { data: null, error: t('errors.noPermissionUpdate') };
+            }
+          }
+        }
+
+        if (input.name !== undefined && input.name.trim() === '')
+          return { data: null, error: t('errors.nameEmpty') };
+        if (input.user_ids?.length === 0) return { data: null, error: t('errors.userRequired') };
+
+        const policy = new FinancialResourcePolicy(currentUser);
+        if ('group_id' in input) policy.assertGroup(input.group_id);
+        if (input.user_ids) await policy.assertUsers(input.user_ids);
+        const account = await updateAccountUseCase(accountId, input);
+
+        const defaultUserId = defaultAccountUserId(
+          isDefault,
+          input.user_ids ?? existingAccount.user_ids,
+          currentUser.id
+        );
+        if (defaultUserId) await setUserDefaultAccountUseCase(defaultUserId, accountId);
+
+        return { data: account, error: null };
+      } catch (error) {
+        return {
+          data: null,
+          error:
+            error instanceof Error
+              ? error.message
+              : (t?.('errors.updateFailed') ?? 'Failed to update account'),
+        };
       }
     }
-
-    if (input.name !== undefined && input.name.trim() === '')
-      return { data: null, error: t('errors.nameEmpty') };
-    if (input.user_ids?.length === 0) return { data: null, error: t('errors.userRequired') };
-
-    const policy = new FinancialResourcePolicy(currentUser);
-    if ('group_id' in input) policy.assertGroup(input.group_id);
-    if (input.user_ids) await policy.assertUsers(input.user_ids);
-    const account = await updateAccountUseCase(accountId, input);
-
-    const defaultUserId = defaultAccountUserId(
-      isDefault,
-      input.user_ids ?? existingAccount.user_ids,
-      currentUser.id
-    );
-    if (defaultUserId) await setUserDefaultAccountUseCase(defaultUserId, accountId);
-
-    return { data: account, error: null };
-  } catch (error) {
-    return {
-      data: null,
-      error:
-        error instanceof Error
-          ? error.message
-          : (t?.('errors.updateFailed') ?? 'Failed to update account'),
-    };
-  }
+  );
 }
 
 /**
@@ -138,26 +156,29 @@ export async function updateAccountAction(
  */
 export async function deleteAccountAction(
   accountId: string,
-  locale?: string
+  locale?: string,
+  operationId?: string
 ): Promise<ServiceResult<boolean>> {
-  const t = await getAccountsActionTranslator(locale);
-  return runAuthorizedMutation({
-    unauthenticatedError: t('errors.unauthenticated'),
-    authorize: async (currentUser) => {
-      const existingAccount = await getAccountByIdUseCase(accountId);
-      if (currentUser.group_id !== existingAccount.group_id) {
-        return { data: null, error: t('errors.noPermissionDelete') };
-      }
-      if (!AccessScope.for(currentUser).canViewShared(existingAccount)) {
-        return { data: null, error: t('errors.noPermissionDelete') };
-      }
-      return null;
-    },
-    mutate: async () => {
-      await deleteAccountUseCase(accountId);
-      return true;
-    },
-    formatError: (error) => (error instanceof Error ? error.message : t('errors.deleteFailed')),
+  return runDurableAction('deleteAccountAction', [accountId, locale], operationId, async () => {
+    const t = await getAccountsActionTranslator(locale);
+    return runAuthorizedMutation({
+      unauthenticatedError: t('errors.unauthenticated'),
+      authorize: async (currentUser) => {
+        const existingAccount = await getAccountByIdUseCase(accountId);
+        if (currentUser.group_id !== existingAccount.group_id) {
+          return { data: null, error: t('errors.noPermissionDelete') };
+        }
+        if (!AccessScope.for(currentUser).canViewShared(existingAccount)) {
+          return { data: null, error: t('errors.noPermissionDelete') };
+        }
+        return null;
+      },
+      mutate: async () => {
+        await deleteAccountUseCase(accountId);
+        return true;
+      },
+      formatError: (error) => (error instanceof Error ? error.message : t('errors.deleteFailed')),
+    });
   });
 }
 
@@ -166,23 +187,31 @@ export async function deleteAccountAction(
  */
 export async function recalculateAccountBalanceAction(
   accountId: string,
-  locale?: string
+  locale?: string,
+  operationId?: string
 ): Promise<ServiceResult<Account>> {
-  const t = await getAccountsActionTranslator(locale);
-  return runAuthorizedMutation({
-    unauthenticatedError: t('errors.unauthenticated'),
-    authorize: async (currentUser) => {
-      const existingAccount = await getAccountByIdUseCase(accountId);
-      if (currentUser.group_id !== existingAccount.group_id) {
-        return { data: null, error: t('errors.noPermissionUpdate') };
-      }
-      if (!AccessScope.for(currentUser).canViewShared(existingAccount)) {
-        return { data: null, error: t('errors.noPermissionUpdate') };
-      }
-      return null;
-    },
-    mutate: async () => recalculateAccountBalanceUseCase(accountId),
-    formatError: (error) =>
-      error instanceof Error ? error.message : t('errors.recalculateFailed'),
-  });
+  return runDurableAction(
+    'recalculateAccountBalanceAction',
+    [accountId, locale],
+    operationId,
+    async () => {
+      const t = await getAccountsActionTranslator(locale);
+      return runAuthorizedMutation({
+        unauthenticatedError: t('errors.unauthenticated'),
+        authorize: async (currentUser) => {
+          const existingAccount = await getAccountByIdUseCase(accountId);
+          if (currentUser.group_id !== existingAccount.group_id) {
+            return { data: null, error: t('errors.noPermissionUpdate') };
+          }
+          if (!AccessScope.for(currentUser).canViewShared(existingAccount)) {
+            return { data: null, error: t('errors.noPermissionUpdate') };
+          }
+          return null;
+        },
+        mutate: async () => recalculateAccountBalanceUseCase(accountId),
+        formatError: (error) =>
+          error instanceof Error ? error.message : t('errors.recalculateFailed'),
+      });
+    }
+  );
 }

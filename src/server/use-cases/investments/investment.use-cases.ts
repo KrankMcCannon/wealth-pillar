@@ -1,3 +1,4 @@
+import { financialTransaction } from '@/server/repositories/db-executor';
 import { historicalPurchaseRate } from '@/lib/currency/frankfurter';
 import { financialDateKey } from '@/lib/utils/financial-date';
 import { portfolioMarketSymbols } from './currency-conversion';
@@ -91,11 +92,11 @@ export async function addInvestmentUseCase(data: InvestmentInsert) {
     created_at: data.created_at ? new Date(data.created_at) : new Date(),
   } as typeof investments.$inferInsert;
 
-  return await InvestmentRepository.create(depositData);
+  return financialTransaction((tx) => InvestmentRepository.create(depositData, tx));
 }
 
 export async function deleteInvestmentUseCase(id: string, userId: string) {
-  return await InvestmentRepository.delete(id, userId);
+  return financialTransaction((tx) => InvestmentRepository.delete(id, userId, tx));
 }
 
 export async function updateInvestmentUseCase(
@@ -126,7 +127,7 @@ export async function updateInvestmentUseCase(
     created_at: data.created_at ? new Date(data.created_at) : undefined,
   } as Partial<typeof investments.$inferInsert>;
 
-  return await InvestmentRepository.update(id, updateData, userId);
+  return financialTransaction((tx) => InvestmentRepository.update(id, updateData, userId, tx));
 }
 
 export async function getInvestmentByIdForUserUseCase(id: string, userId: string) {

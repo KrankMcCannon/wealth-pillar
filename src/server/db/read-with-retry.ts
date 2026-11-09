@@ -1,7 +1,8 @@
 import { setTimeout as delay } from 'node:timers/promises';
+import { transactionContext } from './transaction-context';
+import { recordDatabaseEvent } from './telemetry';
 
 const TRANSIENT_READ_CODES = new Set([
-  'QUEUE_TIMEOUT',
   'CONNECT_TIMEOUT',
   'CONNECTION_CLOSED',
   'CONNECTION_ENDED',
@@ -21,7 +22,6 @@ function isTransientReadError(error: unknown): boolean {
   while (error && typeof error === 'object' && !seen.has(error)) {
     seen.add(error);
     const cause = error as { code?: string; message?: string; cause?: unknown };
-    if (cause.code === '57014' && /statement timeout/i.test(cause.message ?? '')) return true;
     if (cause.code && TRANSIENT_READ_CODES.has(cause.code)) return true;
     error = cause.cause;
   }
@@ -29,12 +29,23 @@ function isTransientReadError(error: unknown): boolean {
 }
 
 /** One fresh attempt for standalone reads only. Never wrap writes or an active transaction. */
-export async function readWithRetry<T>(read: () => PromiseLike<T>): Promise<T> {
+export async function readWithRetry<T>(
+  read: () => PromiseLike<T>,
+  options: { deadline?: number } = {}
+): Promise<T> {
+  if (transactionContext.getStore()) return await read();
   try {
     return await read();
   } catch (error) {
     if (!isTransientReadError(error)) throw error;
-    await delay(150);
+    const backoff = 100 + Math.floor(Math.random() * 101);
+    // A retry must still have time for connection establishment. Never retry
+    // saturation or server cancellation: doing so amplifies the original load.
+    if (options.deadline !== undefined && options.deadline - Date.now() < backoff + 5000) {
+      throw error;
+    }
+    recordDatabaseEvent('read.retry');
+    await delay(backoff);
     return await read();
   }
 }

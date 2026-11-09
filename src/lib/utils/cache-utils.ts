@@ -7,6 +7,7 @@
 
 import { revalidateTag } from 'next/cache';
 import { CACHE_TAGS } from '@/lib/cache/config';
+import { deferUntilCommit } from '@/server/db/transaction-context';
 
 /**
  * Options for transaction cache invalidation
@@ -301,6 +302,13 @@ export function invalidateTransactionUpdateCaches(
 function expireTags(tags: string[]): void {
   for (const tag of new Set(tags)) {
     // These use cases also run in Clerk webhooks, where updateTag is unavailable.
-    revalidateTag(tag, { expire: 0 });
+    const expire = () => revalidateTag(tag, { expire: 0 });
+    if (!deferUntilCommit(`tag:${tag}`, expire)) {
+      try {
+        expire();
+      } catch {
+        console.warn(JSON.stringify({ event: 'database.cache_invalidation_failed' }));
+      }
+    }
   }
 }

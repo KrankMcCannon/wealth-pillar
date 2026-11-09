@@ -1,11 +1,12 @@
-import type { Account, Transaction } from '@/lib/types';
+import type { LedgerEntry as Transaction } from '@/server/ledger/aggregate';
+import type { Account } from '@/lib/types';
 import {
   isReserveAccount,
   isSpendableAccount,
   resolveAccountLiquidity,
 } from '@/lib/utils/account-classification';
-import { toCents } from '@/lib/utils/money';
-import { computeBalanceDeltas } from '../use-cases/transactions/transaction-balance-delta.core';
+import { moneyToMinorUnits } from '@/lib/utils/exact-money';
+import { computeExactBalanceDeltas } from '../use-cases/transactions/transaction-balance-delta.core';
 
 export type MovementKind =
   'income' | 'expense' | 'split_transfer' | 'savings_transfer' | 'internal_transfer' | 'ignored';
@@ -13,18 +14,18 @@ export type MovementKind =
 /** Expense +, income − (same sign as budget spent). */
 export interface LedgerLeg {
   userId: string;
-  signedCents: number;
+  signedCents: bigint;
 }
 
 export interface Movement {
   kind: MovementKind;
   /** Household P&L: external income/expense only. Transfers are 0. */
-  cashFlowCents: number;
+  cashFlowCents: bigint;
   budgetLegs: LedgerLeg[];
   /** Per-person P&L. Savings transfers omitted. */
   cashLegs: LedgerLeg[];
-  spendableDeltaCents: number;
-  savingsDeltaCents: number;
+  spendableDeltaCents: bigint;
+  savingsDeltaCents: bigint;
   savingsUserId: string | null;
 }
 
@@ -45,14 +46,14 @@ function sourceActorUserId(tx: Transaction, source: Account | undefined): string
   return exclusiveUserId(source) ?? tx.user_id;
 }
 
-function pushLeg(legs: LedgerLeg[], userId: string | null, signedCents: number): void {
-  if (!userId || signedCents === 0) return;
+function pushLeg(legs: LedgerLeg[], userId: string | null, signedCents: bigint): void {
+  if (!userId || signedCents === BigInt(0)) return;
   legs.push({ userId, signedCents });
 }
 
-function spendableDeltaCentsFor(tx: Transaction, accountMap: Map<string, Account>): number {
-  const deltas = computeBalanceDeltas(tx, 1);
-  let sum = 0;
+function spendableDeltaCentsFor(tx: Transaction, accountMap: Map<string, Account>): bigint {
+  const deltas = computeExactBalanceDeltas(tx, 1);
+  let sum = BigInt(0);
   for (const [accountId, delta] of deltas) {
     const account = accountMap.get(accountId);
     if (account) {
@@ -61,7 +62,7 @@ function spendableDeltaCentsFor(tx: Transaction, accountMap: Map<string, Account
     }
     if (tx.type !== 'transfer') sum += delta;
   }
-  return toCents(sum);
+  return sum;
 }
 
 export function classifyTransferSavingsDeltaCents(
@@ -85,17 +86,17 @@ function isSplitTransfer(source: Account, dest: Account, sourceActorId: string |
 }
 
 export function classifyMovement(tx: Transaction, accountMap: Map<string, Account>): Movement {
-  const amountCents = toCents(Number(tx.amount) || 0);
+  const amountCents = moneyToMinorUnits(tx.amount);
   const source = accountMap.get(tx.account_id);
   const dest = tx.to_account_id ? accountMap.get(tx.to_account_id) : undefined;
   const spendableDeltaCents = spendableDeltaCentsFor(tx, accountMap);
   const empty: Movement = {
     kind: 'ignored',
-    cashFlowCents: 0,
+    cashFlowCents: BigInt(0),
     budgetLegs: [],
     cashLegs: [],
     spendableDeltaCents,
-    savingsDeltaCents: 0,
+    savingsDeltaCents: BigInt(0),
     savingsUserId: null,
   };
 
@@ -110,7 +111,7 @@ export function classifyMovement(tx: Transaction, accountMap: Map<string, Accoun
       budgetLegs: legs,
       cashLegs: legs,
       spendableDeltaCents,
-      savingsDeltaCents: 0,
+      savingsDeltaCents: BigInt(0),
       savingsUserId: null,
     };
   }
@@ -121,15 +122,16 @@ export function classifyMovement(tx: Transaction, accountMap: Map<string, Accoun
 
   const sourceUserId = sourceActorUserId(tx, source);
   const destUserId = exclusiveUserId(dest);
-  const savingsDeltaCents = classifyTransferSavingsDeltaCents(source, dest, amountCents);
+  const savingsDeltaCents =
+    amountCents * BigInt(classifyTransferSavingsDeltaCents(source, dest, 1));
 
-  if (savingsDeltaCents !== 0) {
+  if (savingsDeltaCents !== BigInt(0)) {
     const savingsUserId = isShared(dest) ? sourceUserId : (destUserId ?? sourceUserId);
     const budgetLegs: LedgerLeg[] = [];
     pushLeg(budgetLegs, savingsUserId, savingsDeltaCents);
     return {
       kind: 'savings_transfer',
-      cashFlowCents: 0,
+      cashFlowCents: BigInt(0),
       budgetLegs,
       cashLegs: [],
       spendableDeltaCents,
@@ -147,22 +149,22 @@ export function classifyMovement(tx: Transaction, accountMap: Map<string, Accoun
     pushLeg(cashLegs, destUserId, -amountCents);
     return {
       kind: 'split_transfer',
-      cashFlowCents: 0,
+      cashFlowCents: BigInt(0),
       budgetLegs,
       cashLegs,
       spendableDeltaCents,
-      savingsDeltaCents: 0,
+      savingsDeltaCents: BigInt(0),
       savingsUserId: null,
     };
   }
 
   return {
     kind: 'internal_transfer',
-    cashFlowCents: 0,
+    cashFlowCents: BigInt(0),
     budgetLegs: [],
     cashLegs: [],
     spendableDeltaCents,
-    savingsDeltaCents: 0,
+    savingsDeltaCents: BigInt(0),
     savingsUserId: null,
   };
 }

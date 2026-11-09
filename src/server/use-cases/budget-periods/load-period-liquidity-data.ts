@@ -1,4 +1,5 @@
-import type { Account, Transaction } from '@/lib/types';
+import type { LedgerEntry as Transaction } from '@/server/ledger/aggregate';
+import type { Account } from '@/lib/types';
 import type { DateWindow } from '../reports/report.logic';
 import type { DbExecutor } from '@/server/repositories/db-executor';
 import { AccountsRepository } from '@/server/repositories/accounts.repository';

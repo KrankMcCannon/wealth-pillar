@@ -1,3 +1,5 @@
+import { resolveDb } from '@/server/repositories/db-executor';
+import { financialTransaction } from '@/server/repositories/db-executor';
 import { createHash, randomBytes } from 'node:crypto';
 import { and, eq, ne, or, desc, isNull, sql, getTableColumns } from 'drizzle-orm';
 import {
@@ -7,7 +9,6 @@ import {
   type NotificationPageInput,
 } from '@/lib/bank-notifications/review';
 import { TransactionsRepository } from '@/server/repositories/transactions.repository';
-import { db } from '@/server/db/drizzle';
 import {
   accounts,
   users,
@@ -81,7 +82,7 @@ export async function createBankConnection(
   input: { name: string; accountId: string; autoImport: boolean }
 ) {
   const token = `wpn_${randomBytes(32).toString('base64url')}`;
-  const result = await db.transaction(async (tx) => {
+  const result = await financialTransaction(async (tx) => {
     // Serializes concurrent setup requests and caps persistent devices per user.
     await tx.select().from(users).where(eq(users.id, user.id)).for('update');
     const active = await tx
@@ -116,7 +117,7 @@ export async function getBankNotificationEvents(
     eq(bankNotificationEvents.user_id, user.id),
     eq(bankNotificationEvents.group_id, user.group_id!)
   );
-  const rows = await db
+  const rows = await resolveDb()
     .select({
       ...getTableColumns(bankNotificationEvents),
       // Preserve PostgreSQL microseconds in the cursor rather than round through a JS Date.
@@ -136,7 +137,7 @@ export async function getBankNotificationEvents(
     )
     .orderBy(desc(bankNotificationEvents.received_at), desc(bankNotificationEvents.id))
     .limit(26);
-  const [counts] = await db
+  const [counts] = await resolveDb()
     .select({ pending: sql<number>`count(*)::int` })
     .from(bankNotificationEvents)
     .where(and(scope, eq(bankNotificationEvents.status, 'pending')));
@@ -150,7 +151,7 @@ export async function getBankNotificationEvents(
 }
 
 export async function getBankNotificationSettings(user: User) {
-  const connections = await db
+  const connections = await resolveDb()
     .select({
       id: bankConnections.id,
       name: bankConnections.name,
@@ -163,7 +164,7 @@ export async function getBankNotificationSettings(user: User) {
     .where(own(user))
     .orderBy(desc(bankConnections.created_at))
     .limit(50);
-  const availableAccounts = await db
+  const availableAccounts = await resolveDb()
     .select({ id: accounts.id, name: accounts.name })
     .from(accounts)
     .where(
@@ -173,7 +174,7 @@ export async function getBankNotificationSettings(user: User) {
   return { connections, accounts: availableAccounts, categories: availableCategories };
 }
 export async function revokeBankConnection(user: User, id: string) {
-  await db
+  await resolveDb()
     .update(bankConnections)
     .set({ revoked_at: new Date() })
     .where(and(own(user), eq(bankConnections.id, id)));
@@ -224,7 +225,7 @@ function invalidate(event: { group_id: string; account_id: string; user_id: stri
 
 export async function ingestBankNotification(token: string, input: BankNotification) {
   if (!/^wpn_[A-Za-z0-9_-]{43}$/.test(token)) throw new NotificationError('unauthorized', 401);
-  const result = await db.transaction(async (tx) => {
+  const result = await financialTransaction(async (tx) => {
     const [connection] = await tx
       .select()
       .from(bankConnections)
@@ -389,7 +390,7 @@ export async function reviewBankNotification(
 ) {
   own(user);
   const corrected = manual === undefined ? undefined : manualNotificationSchema.parse(manual);
-  const event = await db.transaction(async (tx) => {
+  const event = await financialTransaction(async (tx) => {
     // Match ingestion lock order: connection, account, event.
     const [target] = await tx
       .select()

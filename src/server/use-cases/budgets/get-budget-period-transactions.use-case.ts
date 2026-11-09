@@ -1,4 +1,5 @@
-import type { BudgetPeriod, Transaction } from '@/lib/types';
+import type { LedgerEntry as Transaction } from '@/server/ledger/aggregate';
+import type { BudgetPeriod } from '@/lib/types';
 import { parsePeriodDates } from '../shared/period.logic';
 import { getFinancialLedgerUseCase } from '../transactions/get-transactions.use-case';
 

@@ -1,5 +1,6 @@
+import type { LedgerEntry as Transaction } from '@/server/ledger/aggregate';
 import { financialDateKey as toDateOnlyString } from '@/lib/utils/financial-date';
-import type { Account, BudgetPeriod, Transaction } from '@/lib/types';
+import type { Account, BudgetPeriod } from '@/lib/types';
 import { toDateTime, todayDateString } from '@/lib/utils/date-utils';
 import { BudgetPeriodsRepository } from '@/server/repositories/budget-periods.repository';
 import {

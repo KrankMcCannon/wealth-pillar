@@ -1,4 +1,3 @@
-import { db } from '@/server/db/drizzle';
 import { budgetPeriods } from '@/server/db/schema';
 import { and, desc, eq, inArray } from 'drizzle-orm';
 import type { BudgetPeriod } from '@/lib/types';
@@ -42,9 +41,19 @@ export class BudgetPeriodsRepository {
     return serialize(result) as unknown as BudgetPeriod[];
   }
 
+  static async findByUserIds(userIds: string[]): Promise<BudgetPeriod[]> {
+    if (userIds.length === 0) return [];
+    const result = await resolveDb()
+      .select()
+      .from(budgetPeriods)
+      .where(inArray(budgetPeriods.user_id, [...new Set(userIds)]))
+      .orderBy(desc(budgetPeriods.start_date));
+    return serialize(result) as unknown as BudgetPeriod[];
+  }
+
   static async findActiveByUserIds(userIds: string[]): Promise<BudgetPeriod[]> {
     if (userIds.length === 0) return [];
-    const result = await db
+    const result = await resolveDb()
       .select()
       .from(budgetPeriods)
       .where(and(inArray(budgetPeriods.user_id, userIds), eq(budgetPeriods.is_active, true)));

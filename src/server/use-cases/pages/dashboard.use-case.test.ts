@@ -1,6 +1,11 @@
+import { RecentActivityRepository } from '@/server/repositories/recent-activity.repository';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Account, Budget, BudgetPeriod, User } from '@/lib/types';
 import { getBudgetsPageData } from './budgets-page.use-case';
+
+vi.mock('@/server/repositories/recent-activity.repository', () => ({
+  RecentActivityRepository: { byGroupScopes: vi.fn() },
+}));
 
 vi.mock('next/cache', () => ({
   cacheLife: vi.fn(),
@@ -74,6 +79,10 @@ describe('getDashboardPageData', () => {
   beforeEach(() => {
     vi.mocked(getFinancialLedgerUseCase).mockReset().mockResolvedValue([]);
     vi.clearAllMocks();
+    vi.mocked(RecentActivityRepository.byGroupScopes).mockResolvedValue({
+      all: [],
+      byUserId: { u1: [] },
+    });
     vi.mocked(getGroupUsersByGroupIdDeduped).mockResolvedValue(groupUsers);
     vi.mocked(getAccountsByGroupDeduped).mockResolvedValue(accounts);
     vi.mocked(getTransactionsByGroupUseCase).mockResolvedValue({
@@ -90,7 +99,7 @@ describe('getDashboardPageData', () => {
   it.each([
     getGroupUsersByGroupIdDeduped,
     getAccountsByGroupDeduped,
-    getTransactionsByGroupUseCase,
+    RecentActivityRepository.byGroupScopes,
     getFinancialLedgerUseCase,
     getBudgetsByGroupUseCase,
     getSeriesByGroupUseCase,
@@ -117,7 +126,7 @@ describe('getDashboardPageData', () => {
     expect(result.recentActivityByScope).toEqual({ all: [], byUserId: { u1: [] } });
   });
 
-  it('slices recent activity to 3 per scope from the year window', async () => {
+  it('uses bounded per-scope activity without loading a display ledger', async () => {
     const txs = Array.from({ length: 4 }, (_, i) => ({
       id: `tx${i}`,
       user_id: 'u1',
@@ -131,10 +140,9 @@ describe('getDashboardPageData', () => {
       created_at: '2024-06-01',
       updated_at: '2024-06-01',
     }));
-    vi.mocked(getTransactionsByGroupUseCase).mockResolvedValue({
-      data: txs,
-      total: 4,
-      hasMore: false,
+    vi.mocked(RecentActivityRepository.byGroupScopes).mockResolvedValue({
+      all: txs.slice(0, 3),
+      byUserId: { u1: txs.slice(0, 3) },
     });
 
     const result = await getDashboardPageData('g1', groupUsers[0]);
@@ -142,6 +150,12 @@ describe('getDashboardPageData', () => {
     expect(result.recentActivityByScope.all).toHaveLength(3);
     expect(result.recentActivityByScope.byUserId.u1).toHaveLength(3);
     expect(result.recentActivityByScope.all[0]?.id).toBe('tx0');
+    expect(RecentActivityRepository.byGroupScopes).toHaveBeenCalledExactlyOnceWith(
+      'g1',
+      ['u1'],
+      accounts
+    );
+    expect(getTransactionsByGroupUseCase).not.toHaveBeenCalled();
   });
 
   it('uses all 2,500 period transactions, including dates older than the activity window', async () => {

@@ -1,6 +1,7 @@
-import type { Account, DateString, Transaction } from '@/lib/types';
+import type { LedgerEntry as Transaction } from '@/server/ledger/aggregate';
+import type { Account, DateString } from '@/lib/types';
 import { toDateTime } from '@/lib/utils/date-utils';
-import { fromCents } from '@/lib/utils/money';
+import { minorUnitsToPresentation as fromCents } from '@/lib/utils/exact-money';
 import { ledgerRowCount } from './aggregate';
 import { accountsToMap, classifyMovement, type LedgerLeg, type Movement } from './classify';
 
@@ -62,7 +63,7 @@ export function budgetSignedForUser(
   return fromCents(
     classifyMovement(tx, accountMap)
       .budgetLegs.filter((leg) => leg.userId === userId)
-      .reduce((sum, leg) => sum + leg.signedCents, 0)
+      .reduce((sum, leg) => sum + leg.signedCents, BigInt(0))
   );
 }
 
@@ -72,14 +73,14 @@ export function foldBudgetSpent(
   userId?: string
 ): number {
   const accountMap = accountsToMap(accounts);
-  let spentCents = 0;
+  let spentCents = BigInt(0);
   for (const tx of transactions) {
     const movement = classifyMovement(tx, accountMap);
     for (const leg of movement.budgetLegs) {
       if (userId === undefined || leg.userId === userId) spentCents += leg.signedCents;
     }
   }
-  return fromCents(Math.max(0, spentCents));
+  return fromCents(spentCents > BigInt(0) ? spentCents : BigInt(0));
 }
 
 /** Per-category signed budget legs (income −). Does not floor; callers can hide zeros. */
@@ -89,14 +90,14 @@ export function foldBudgetCategorySpending(
   userId?: string
 ): Record<string, number> {
   const accountMap = accountsToMap(accounts);
-  const cents: Record<string, number> = {};
+  const cents: Record<string, bigint> = {};
   for (const tx of transactions) {
-    let signedCents = 0;
+    let signedCents = BigInt(0);
     for (const leg of classifyMovement(tx, accountMap).budgetLegs) {
       if (userId === undefined || leg.userId === userId) signedCents += leg.signedCents;
     }
-    if (signedCents === 0) continue;
-    cents[tx.category] = (cents[tx.category] ?? 0) + signedCents;
+    if (signedCents === BigInt(0)) continue;
+    cents[tx.category] = (cents[tx.category] ?? BigInt(0)) + signedCents;
   }
   const spending: Record<string, number> = {};
   for (const [key, value] of Object.entries(cents)) {
@@ -112,8 +113,8 @@ export function foldCashFlow(
   userId?: string
 ): { income: number; expenses: number } {
   const accountMap = accountsToMap(accounts);
-  let incomeCents = 0;
-  let expensesCents = 0;
+  let incomeCents = BigInt(0);
+  let expensesCents = BigInt(0);
   for (const tx of transactions) {
     const movement = classifyMovement(tx, accountMap);
     if (userId === undefined) {
@@ -158,17 +159,17 @@ export function computeNetSavings(
   userId?: string
 ): NetSavingsResult {
   const accountMap = accountsToMap(accounts);
-  let depositsCents = 0;
-  let withdrawalsCents = 0;
+  let depositsCents = BigInt(0);
+  let withdrawalsCents = BigInt(0);
   let count = 0;
 
   for (const tx of transactions) {
     if (!isInWindow(tx.date, window)) continue;
     const movement = classifyMovement(tx, accountMap);
-    if (movement.savingsDeltaCents === 0) continue;
+    if (movement.savingsDeltaCents === BigInt(0)) continue;
     if (userId !== undefined && movement.savingsUserId !== userId) continue;
     if (movement.savingsDeltaCents > 0) depositsCents += movement.savingsDeltaCents;
-    else withdrawalsCents += Math.abs(movement.savingsDeltaCents);
+    else withdrawalsCents += -movement.savingsDeltaCents;
     count += ledgerRowCount([tx]);
   }
 
@@ -188,18 +189,19 @@ export function foldPeriodAmounts(
   categoryKeys?: Set<string>
 ): { spent: number; categorySpending: Record<string, number> } {
   const accountMap = accountsToMap(accounts);
-  let spentCents = 0;
-  const categorySpendingCents: Record<string, number> = {};
+  let spentCents = BigInt(0);
+  const categorySpendingCents: Record<string, bigint> = {};
 
   for (const tx of transactions) {
     if (!isInWindow(tx.date, window)) continue;
     if (categoryKeys && !categoryKeys.has(tx.category)) continue;
     const signedCents = classifyMovement(tx, accountMap)
       .budgetLegs.filter((leg) => leg.userId === userId)
-      .reduce((sum, leg) => sum + leg.signedCents, 0);
-    if (signedCents === 0) continue;
+      .reduce((sum, leg) => sum + leg.signedCents, BigInt(0));
+    if (signedCents === BigInt(0)) continue;
     spentCents += signedCents;
-    categorySpendingCents[tx.category] = (categorySpendingCents[tx.category] ?? 0) + signedCents;
+    categorySpendingCents[tx.category] =
+      (categorySpendingCents[tx.category] ?? BigInt(0)) + signedCents;
   }
 
   const categorySpending: Record<string, number> = {};
@@ -208,7 +210,7 @@ export function foldPeriodAmounts(
   }
 
   return {
-    spent: fromCents(Math.max(0, spentCents)),
+    spent: fromCents(spentCents > BigInt(0) ? spentCents : BigInt(0)),
     categorySpending,
   };
 }

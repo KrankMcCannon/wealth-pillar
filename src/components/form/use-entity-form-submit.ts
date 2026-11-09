@@ -5,11 +5,17 @@ import { useTranslations } from 'next-intl';
 import { withDeadline, ActionTimeoutError, isTechnicalError } from '@/lib/utils/with-deadline';
 import type { FieldValues, UseFormReturn } from 'react-hook-form';
 import { toast } from '@/hooks/use-toast';
+import { useCurrentUser } from '@/providers/user-provider';
+import { runPendingFinancialOperation } from '@/lib/utils/pending-financial-operations';
 
 // Retain in-flight ownership across closing/reopening a modal in this tab.
 const pendingSubmissions = new Set<string>();
 
-export type EntityFormActionResult<R> = { data: R | null; error: string | null };
+export type EntityFormActionResult<R> = {
+  data: R | null;
+  error: string | null;
+  errorCode?: string;
+};
 
 export interface EntityFormSubmitToastMessages {
   success: { title: string; description: string };
@@ -22,8 +28,13 @@ export interface UseEntityFormSubmitOptions<T extends FieldValues, Payload, Resu
   editId?: string | null | undefined;
   onClose: () => void;
   buildPayload: (values: T) => Payload;
-  createAction: (payload: Payload) => Promise<EntityFormActionResult<Result>>;
-  updateAction: (id: string, payload: Payload) => Promise<EntityFormActionResult<Result>>;
+  createAction: (payload: Payload, operationId?: string) => Promise<EntityFormActionResult<Result>>;
+  updateAction: (
+    id: string,
+    payload: Payload,
+    operationId?: string
+  ) => Promise<EntityFormActionResult<Result>>;
+  operationKinds?: { create: string; update: string };
   applyCreateOptimistic?: (payload: Payload) => Handle;
   commitCreate?: (handle: Handle, result: Result) => void;
   rollbackCreate?: (handle: Handle, error: string) => void;
@@ -48,6 +59,7 @@ export function useEntityFormSubmit<T extends FieldValues, Payload, Result, Hand
   buildPayload,
   createAction,
   updateAction,
+  operationKinds,
   applyCreateOptimistic,
   commitCreate,
   rollbackCreate,
@@ -63,6 +75,8 @@ export function useEntityFormSubmit<T extends FieldValues, Payload, Result, Hand
   closeBeforeSubmit = false,
 }: UseEntityFormSubmitOptions<T, Payload, Result, Handle>) {
   const tStatus = useTranslations('FormStatus');
+  const actor = useCurrentUser();
+  const durableScope = actor?.group_id && operationKinds ? `${actor.group_id}:${actor.id}` : null;
   const scope = submissionKey ? `${submissionKey}:${isEditMode ? editId : 'create'}` : null;
   const currentScope = useRef(scope);
   const mounted = useRef(true);
@@ -108,10 +122,35 @@ export function useEntityFormSubmit<T extends FieldValues, Payload, Result, Hand
         // Observe the actual action until it settles, even after the UI deadline.
         const request = (async () => {
           try {
-            const result = await (isEditMode && editId
-              ? updateAction(editId, payload)
-              : createAction(payload));
+            const send = (operationId?: string) =>
+              isEditMode && editId
+                ? operationId
+                  ? updateAction(editId, payload, operationId)
+                  : updateAction(editId, payload)
+                : operationId
+                  ? createAction(payload, operationId)
+                  : createAction(payload);
+            const result =
+              durableScope && operationKinds
+                ? await runPendingFinancialOperation(
+                    durableScope,
+                    isEditMode ? operationKinds.update : operationKinds.create,
+                    { editId, payload },
+                    send
+                  )
+                : await send();
             if (result.error) {
+              if (result.errorCode === 'OUTCOME_UNKNOWN') {
+                timedOut = true;
+                if (!closeBeforeSubmit && canUpdateForm())
+                  form.setError('root', { message: tStatus('pending') });
+                toast({
+                  title: errorToast.title,
+                  description: tStatus('pending'),
+                  variant: 'destructive',
+                });
+                return;
+              }
               const message = isTechnicalError(result.error) ? tStatus('error') : result.error;
               rollback(message);
               if (!closeBeforeSubmit && canUpdateForm()) form.setError('root', { message });
@@ -133,7 +172,16 @@ export function useEntityFormSubmit<T extends FieldValues, Payload, Result, Hand
             toast({ ...getSuccessToast(isEditMode), variant: 'success' });
             if (!timedOut) refreshAfterSuccess?.();
           } catch (error) {
-            fail(error);
+            if (durableScope) {
+              timedOut = true;
+              if (!closeBeforeSubmit && canUpdateForm())
+                form.setError('root', { message: tStatus('pending') });
+              toast({
+                title: errorToast.title,
+                description: tStatus('pending'),
+                variant: 'destructive',
+              });
+            } else fail(error);
           } finally {
             localPending.current = false;
             if (scope) pendingSubmissions.delete(scope);
@@ -165,6 +213,8 @@ export function useEntityFormSubmit<T extends FieldValues, Payload, Result, Hand
       buildPayload,
       createAction,
       updateAction,
+      operationKinds,
+      durableScope,
       applyCreateOptimistic,
       commitCreate,
       rollbackCreate,

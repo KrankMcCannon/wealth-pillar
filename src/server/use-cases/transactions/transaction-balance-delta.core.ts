@@ -1,4 +1,5 @@
 import { roundMoney } from '@/lib/utils/money';
+import { moneyToMinorUnits } from '@/lib/utils/exact-money';
 
 export type BalanceAdjustableRow = {
   amount: string | number | null;
@@ -6,6 +7,26 @@ export type BalanceAdjustableRow = {
   account_id: string | null;
   to_account_id?: string | null;
 };
+
+/** Persisted ledger deltas never pass through binary floating point. */
+export function computeExactBalanceDeltas(
+  transaction: BalanceAdjustableRow,
+  multiplier: number
+): Map<string, bigint> {
+  if (multiplier !== 1 && multiplier !== -1) throw new Error('Invalid balance multiplier');
+  const deltas = new Map<string, bigint>();
+  if (!transaction.account_id) return deltas;
+  if (transaction.amount === null) throw new Error('Missing ledger amount');
+  const amount = moneyToMinorUnits(transaction.amount) * BigInt(multiplier);
+  const add = (id: string, delta: bigint) => deltas.set(id, (deltas.get(id) ?? BigInt(0)) + delta);
+  if (transaction.type === 'income') add(transaction.account_id, amount);
+  else if (transaction.type === 'expense') add(transaction.account_id, -amount);
+  else if (transaction.type === 'transfer' && transaction.to_account_id) {
+    add(transaction.account_id, -amount);
+    add(transaction.to_account_id, amount);
+  }
+  return deltas;
+}
 
 /** Account id → balance delta for income/expense/transfer rules shared by server and client. */
 export function computeBalanceDeltas(

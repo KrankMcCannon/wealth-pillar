@@ -1,5 +1,7 @@
 'use server';
 
+import { runDurableAction } from '@/lib/server-action/run-durable-action';
+
 import { actionErrorMessage } from '@/lib/server-action/action-error';
 
 import { getCurrentUser } from '@/lib/auth/cached-auth';
@@ -33,32 +35,35 @@ import {
  * Validates permissions: members can only create transactions for themselves
  */
 export async function createTransactionAction(
-  input: CreateTransactionInput
+  input: CreateTransactionInput,
+  operationId?: string
 ): Promise<ServiceResult<TransactionMutationResult>> {
-  try {
-    const currentUser = await getCurrentUser();
-    if (!currentUser) return { data: null, error: 'Non autenticato' };
-    if (!input.user_id) return { data: null, error: 'User ID richiesto' };
+  return runDurableAction('createTransactionAction', [input], operationId, async () => {
+    try {
+      const currentUser = await getCurrentUser();
+      if (!currentUser) return { data: null, error: 'Non autenticato' };
+      if (!input.user_id) return { data: null, error: 'User ID richiesto' };
 
-    const parsed = createTransactionSchema.safeParse(input);
-    if (!parsed.success) {
-      return { data: null, error: parsed.error.issues[0]?.message ?? 'Invalid input' };
+      const parsed = createTransactionSchema.safeParse(input);
+      if (!parsed.success) {
+        return { data: null, error: parsed.error.issues[0]?.message ?? 'Invalid input' };
+      }
+
+      const policy = new FinancialResourcePolicy(currentUser);
+      await policy.assertTransaction(parsed.data);
+      const data = await createTransactionUseCase({
+        ...parsed.data,
+        group_id: policy.groupId,
+      } as CreateTransactionInput);
+
+      return { data, error: null };
+    } catch (error) {
+      return {
+        data: null,
+        error: actionErrorMessage(error, 'Failed to create transaction'),
+      };
     }
-
-    const policy = new FinancialResourcePolicy(currentUser);
-    await policy.assertTransaction(parsed.data);
-    const data = await createTransactionUseCase({
-      ...parsed.data,
-      group_id: policy.groupId,
-    } as CreateTransactionInput);
-
-    return { data, error: null };
-  } catch (error) {
-    return {
-      data: null,
-      error: actionErrorMessage(error, 'Failed to create transaction'),
-    };
-  }
+  });
 }
 
 /**
@@ -68,73 +73,76 @@ export async function createTransactionAction(
  */
 export async function updateTransactionAction(
   id: string,
-  input: Partial<CreateTransactionInput>
+  input: Partial<CreateTransactionInput>,
+  operationId?: string
 ): Promise<ServiceResult<TransactionMutationResult>> {
-  try {
-    // Authentication check (cached per request)
-    const currentUser = await getCurrentUser();
-    if (!currentUser) {
-      return { data: null, error: 'Non autenticato. Effettua il login per continuare.' };
-    }
-
-    // Get existing transaction to verify ownership
-    const policy = new FinancialResourcePolicy(currentUser);
-    const repoScope = {
-      groupId: policy.groupId,
-      ...(!AccessScope.for(currentUser).isAdmin ? { userId: currentUser.id } : {}),
-    };
-    const existingTransaction = await getTransactionByIdUseCase(id, repoScope);
-    if (!existingTransaction) {
-      return { data: null, error: 'Transazione non trovata' };
-    }
-    policy.assertGroup(existingTransaction.group_id);
-
-    // Verify transaction has a user_id
-    if (!existingTransaction.user_id) {
-      return {
-        data: null,
-        error: 'La transazione non ha un utente assegnato',
-      };
-    }
-
-    const scope = AccessScope.for(currentUser);
-    if (!scope.canViewOwned(existingTransaction)) {
-      return { data: null, error: 'Permesso negato' };
-    }
-
-    if (input.user_id && input.user_id !== existingTransaction.user_id) {
-      if (isMember(currentUser)) {
-        return { data: null, error: 'Non puoi assegnare la transazione a un altro utente' };
+  return runDurableAction('updateTransactionAction', [id, input], operationId, async () => {
+    try {
+      // Authentication check (cached per request)
+      const currentUser = await getCurrentUser();
+      if (!currentUser) {
+        return { data: null, error: 'Non autenticato. Effettua il login per continuare.' };
       }
-      if (!scope.canViewUser(input.user_id)) {
+
+      // Get existing transaction to verify ownership
+      const policy = new FinancialResourcePolicy(currentUser);
+      const repoScope = {
+        groupId: policy.groupId,
+        ...(!AccessScope.for(currentUser).isAdmin ? { userId: currentUser.id } : {}),
+      };
+      const existingTransaction = await getTransactionByIdUseCase(id, repoScope);
+      if (!existingTransaction) {
+        return { data: null, error: 'Transazione non trovata' };
+      }
+      policy.assertGroup(existingTransaction.group_id);
+
+      // Verify transaction has a user_id
+      if (!existingTransaction.user_id) {
+        return {
+          data: null,
+          error: 'La transazione non ha un utente assegnato',
+        };
+      }
+
+      const scope = AccessScope.for(currentUser);
+      if (!scope.canViewOwned(existingTransaction)) {
         return { data: null, error: 'Permesso negato' };
       }
+
+      if (input.user_id && input.user_id !== existingTransaction.user_id) {
+        if (isMember(currentUser)) {
+          return { data: null, error: 'Non puoi assegnare la transazione a un altro utente' };
+        }
+        if (!scope.canViewUser(input.user_id)) {
+          return { data: null, error: 'Permesso negato' };
+        }
+      }
+
+      const parsed = updateTransactionSchema.safeParse(input);
+      if (!parsed.success) {
+        return { data: null, error: parsed.error.issues[0]?.message ?? 'Invalid input' };
+      }
+
+      const updates = parsed.data as Partial<CreateTransactionInput>;
+      await policy.assertTransaction({
+        ...existingTransaction,
+        ...updates,
+        group_id: updates.group_id ?? existingTransaction.group_id ?? null,
+      });
+      const data = await updateTransactionUseCase(
+        id,
+        parsed.data as Partial<CreateTransactionInput>,
+        repoScope
+      );
+
+      return { data, error: null };
+    } catch (error) {
+      return {
+        data: null,
+        error: actionErrorMessage(error, 'Failed to update transaction'),
+      };
     }
-
-    const parsed = updateTransactionSchema.safeParse(input);
-    if (!parsed.success) {
-      return { data: null, error: parsed.error.issues[0]?.message ?? 'Invalid input' };
-    }
-
-    const updates = parsed.data as Partial<CreateTransactionInput>;
-    await policy.assertTransaction({
-      ...existingTransaction,
-      ...updates,
-      group_id: updates.group_id ?? existingTransaction.group_id ?? null,
-    });
-    const data = await updateTransactionUseCase(
-      id,
-      parsed.data as Partial<CreateTransactionInput>,
-      repoScope
-    );
-
-    return { data, error: null };
-  } catch (error) {
-    return {
-      data: null,
-      error: actionErrorMessage(error, 'Failed to update transaction'),
-    };
-  }
+  });
 }
 
 /**
@@ -214,46 +222,49 @@ export async function loadMoreTransactionsAction(input: LoadMoreTransactionsInpu
 }
 
 export async function deleteTransactionAction(
-  id: string
+  id: string,
+  operationId?: string
 ): Promise<ServiceResult<TransactionDeleteResult>> {
-  try {
-    // Authentication check (cached per request)
-    const currentUser = await getCurrentUser();
-    if (!currentUser) {
-      return { data: null, error: 'Non autenticato. Effettua il login per continuare.' };
-    }
+  return runDurableAction('deleteTransactionAction', [id], operationId, async () => {
+    try {
+      // Authentication check (cached per request)
+      const currentUser = await getCurrentUser();
+      if (!currentUser) {
+        return { data: null, error: 'Non autenticato. Effettua il login per continuare.' };
+      }
 
-    // Get existing transaction to verify ownership
-    const policy = new FinancialResourcePolicy(currentUser);
-    const repoScope = {
-      groupId: policy.groupId,
-      ...(!AccessScope.for(currentUser).isAdmin ? { userId: currentUser.id } : {}),
-    };
-    const existingTransaction = await getTransactionByIdUseCase(id, repoScope);
-    if (!existingTransaction) {
-      return { data: null, error: 'Transazione non trovata' };
-    }
-    policy.assertGroup(existingTransaction.group_id);
+      // Get existing transaction to verify ownership
+      const policy = new FinancialResourcePolicy(currentUser);
+      const repoScope = {
+        groupId: policy.groupId,
+        ...(!AccessScope.for(currentUser).isAdmin ? { userId: currentUser.id } : {}),
+      };
+      const existingTransaction = await getTransactionByIdUseCase(id, repoScope);
+      if (!existingTransaction) {
+        return { data: null, error: 'Transazione non trovata' };
+      }
+      policy.assertGroup(existingTransaction.group_id);
 
-    // Verify transaction has a user_id
-    if (!existingTransaction.user_id) {
+      // Verify transaction has a user_id
+      if (!existingTransaction.user_id) {
+        return {
+          data: null,
+          error: 'La transazione non ha un utente assegnato',
+        };
+      }
+
+      if (!AccessScope.for(currentUser).canViewOwned(existingTransaction)) {
+        return { data: null, error: 'Permesso negato' };
+      }
+
+      const data = await deleteTransactionUseCase(id, repoScope);
+
+      return { data, error: null };
+    } catch (error) {
       return {
         data: null,
-        error: 'La transazione non ha un utente assegnato',
+        error: actionErrorMessage(error, 'Failed to delete transaction'),
       };
     }
-
-    if (!AccessScope.for(currentUser).canViewOwned(existingTransaction)) {
-      return { data: null, error: 'Permesso negato' };
-    }
-
-    const data = await deleteTransactionUseCase(id, repoScope);
-
-    return { data, error: null };
-  } catch (error) {
-    return {
-      data: null,
-      error: actionErrorMessage(error, 'Failed to delete transaction'),
-    };
-  }
+  });
 }

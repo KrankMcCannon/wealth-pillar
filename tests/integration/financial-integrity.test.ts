@@ -939,9 +939,9 @@ describe('balance recalculation coordinated with ledger mutations', () => {
       const accountId = operation === 'transfer-in' ? b : a;
       const read = gate();
       const resume = gate();
-      const getByAccount = TransactionsRepository.getByAccount.bind(TransactionsRepository);
+      const getByAccount = TransactionsRepository.sumBalanceByAccount.bind(TransactionsRepository);
       const spy = vi
-        .spyOn(TransactionsRepository, 'getByAccount')
+        .spyOn(TransactionsRepository, 'sumBalanceByAccount')
         .mockImplementationOnce(async (...args) => {
           const rows = await getByAccount(...args);
           read.resolve();
@@ -1030,7 +1030,7 @@ describe('balance recalculation coordinated with ledger mutations', () => {
 
   it('rolls back and does not invalidate caches if ledger loading fails', async () => {
     const spy = vi
-      .spyOn(TransactionsRepository, 'getByAccount')
+      .spyOn(TransactionsRepository, 'sumBalanceByAccount')
       .mockRejectedValueOnce(new Error('unavailable'));
     try {
       await expect(recalculateAccountBalanceUseCase(a)).rejects.toThrow('unavailable');

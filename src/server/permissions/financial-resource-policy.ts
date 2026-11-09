@@ -2,6 +2,7 @@ import type { User } from '@/lib/types';
 import { AccessScope } from '@/lib/permissions/access-scope';
 import { AccountsRepository } from '@/server/repositories/accounts.repository';
 import { UsersRepository } from '@/server/repositories/users.repository';
+import { transactionContext } from '@/server/db/transaction-context';
 
 /** Admin visibility is restricted to the authenticated group, just like member visibility. */
 export class FinancialResourcePolicy {
@@ -52,6 +53,23 @@ export class FinancialResourcePolicy {
     }
   }
 
+  async assertAccounts(accountIds: string[]): Promise<void> {
+    if (process.env.DB_RELATIONAL_READS === 'false') {
+      for (const id of [...new Set(accountIds)].sort()) await this.assertAccount(id);
+      return;
+    }
+    const ids = [...new Set(accountIds)].sort();
+    const rows = await AccountsRepository.findAuthorizationRows(
+      ids,
+      transactionContext.getStore()?.executor
+    );
+    if (
+      rows.length !== ids.length ||
+      rows.some((row) => row.group_id !== this.groupId || !this.scope.canViewShared(row))
+    )
+      throw new Error('Permesso negato');
+  }
+
   async assertTransaction(input: {
     group_id: string | null;
     user_id: string | null;
@@ -61,7 +79,9 @@ export class FinancialResourcePolicy {
     this.assertGroup(input.group_id);
     if (!input.user_id) throw new Error('User ID richiesto');
     await this.assertUsers([input.user_id]);
-    await this.assertAccount(input.account_id);
-    if (input.to_account_id) await this.assertAccount(input.to_account_id);
+    await this.assertAccounts([
+      input.account_id,
+      ...(input.to_account_id ? [input.to_account_id] : []),
+    ]);
   }
 }

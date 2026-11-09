@@ -18,6 +18,8 @@
  */
 import {
   pgTable,
+  primaryKey,
+  unique,
   index,
   uniqueIndex,
   uuid,
@@ -40,7 +42,7 @@ import { sql } from 'drizzle-orm';
 export const orphanUsers = pgTable(
   'orphan_users',
   {
-    id: uuid().defaultRandom().notNull(),
+    id: uuid().defaultRandom().primaryKey(),
     clerk_id: text('clerk_id').notNull(),
     created_at: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
@@ -59,7 +61,7 @@ export const orphanUsers = pgTable(
 export const investments = pgTable(
   'investments',
   {
-    id: uuid().defaultRandom().notNull(),
+    id: uuid().defaultRandom().primaryKey(),
     user_id: uuid('user_id').notNull(),
     name: text().notNull(),
     symbol: text().notNull(),
@@ -116,11 +118,10 @@ export const portfolioValueSnapshots = pgTable(
     created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
   },
   (table) => [
-    uniqueIndex('portfolio_value_snapshots_user_date_unique').using(
-      'btree',
-      table.user_id.asc().nullsLast().op('uuid_ops'),
-      table.snapshot_date.asc().nullsLast().op('date_ops')
-    ),
+    primaryKey({
+      name: 'portfolio_value_snapshots_pkey',
+      columns: [table.user_id, table.snapshot_date],
+    }),
     index('idx_portfolio_snapshots_user_id').using(
       'btree',
       table.user_id.asc().nullsLast().op('uuid_ops')
@@ -154,8 +155,8 @@ export const portfolioValueSnapshots = pgTable(
 export const userPreferences = pgTable(
   'user_preferences',
   {
-    id: uuid().defaultRandom().notNull(),
-    user_id: uuid('user_id').notNull(),
+    id: uuid().defaultRandom().primaryKey(),
+    user_id: uuid('user_id').notNull().unique('user_preferences_user_id_key'),
     currency: varchar({ length: 3 }).default('EUR').notNull(),
     language: varchar({ length: 5 }).default('it-IT').notNull(),
     timezone: varchar({ length: 50 }).default('Europe/Rome').notNull(),
@@ -201,10 +202,10 @@ export const transactions = pgTable(
   {
     id: uuid()
       .default(sql`extensions.uuid_generate_v4()`)
-      .notNull(),
+      .primaryKey(),
     description: text().notNull(),
     amount: numeric({ precision: 15, scale: 2 }).notNull(),
-    type: varchar({ length: 10 }).notNull(),
+    type: varchar({ length: 10 }).$type<'income' | 'expense' | 'transfer'>().notNull(),
     category: varchar({ length: 255 }).notNull(),
     date: date().notNull(),
     account_id: uuid('account_id').notNull(),
@@ -212,12 +213,45 @@ export const transactions = pgTable(
     created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
     updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow(),
     user_id: uuid('user_id'),
-    group_id: uuid('group_id'),
+    group_id: uuid('group_id').notNull(),
     recurring_series_id: uuid('recurring_series_id'),
     frequency: varchar({ length: 20 }),
     import_hash: text('import_hash'),
   },
   (table) => [
+    index('transactions_group_keyset_idx').on(
+      table.group_id,
+      table.date.desc(),
+      table.created_at.desc().nullsLast(),
+      table.id.desc()
+    ),
+    index('transactions_group_user_keyset_idx').on(
+      table.group_id,
+      table.user_id,
+      table.date.desc(),
+      table.created_at.desc().nullsLast(),
+      table.id.desc()
+    ),
+    index('transactions_group_transfer_keyset_idx')
+      .on(table.group_id, table.date.desc(), table.created_at.desc().nullsLast(), table.id.desc())
+      .where(sql`type = 'transfer'`),
+
+    foreignKey({
+      name: 'transactions_account_group_fkey',
+      columns: [table.account_id, table.group_id],
+      foreignColumns: [accounts.id, accounts.group_id],
+    }).onDelete('no action'),
+    foreignKey({
+      name: 'transactions_destination_group_fkey',
+      columns: [table.to_account_id, table.group_id],
+      foreignColumns: [accounts.id, accounts.group_id],
+    }).onDelete('no action'),
+    foreignKey({
+      name: 'transactions_user_group_fkey',
+      columns: [table.user_id, table.group_id],
+      foreignColumns: [users.id, users.group_id],
+    }).onDelete('cascade'),
+
     uniqueIndex('transactions_account_import_hash_unique')
       .using(
         'btree',
@@ -359,10 +393,10 @@ export const transactions = pgTable(
 export const users = pgTable(
   'users',
   {
-    id: uuid().defaultRandom().notNull(),
-    clerk_id: text('clerk_id'),
+    id: uuid().defaultRandom().primaryKey(),
+    clerk_id: text('clerk_id').unique('users_clerk_id_key'),
     name: text().notNull(),
-    email: text().notNull(),
+    email: text().notNull().unique('users_email_key'),
     avatar: text().default(''),
     theme_color: text('theme_color').default('#3B82F6'),
     budget_start_date: integer('budget_start_date').default(1),
@@ -373,6 +407,15 @@ export const users = pgTable(
     default_account_id: uuid('default_account_id'),
   },
   (table) => [
+    index('users_default_account_idx').on(table.default_account_id),
+
+    foreignKey({
+      name: 'users_group_id_fkey',
+      columns: [table.group_id],
+      foreignColumns: [groups.id],
+    }).onDelete('set null'),
+    unique('users_id_group_unique').on(table.id, table.group_id),
+
     index('idx_users_clerk_id').using('btree', table.clerk_id.asc().nullsLast().op('text_ops')),
     index('idx_users_email').using('btree', table.email.asc().nullsLast().op('text_ops')),
     index('idx_users_group_id').using('btree', table.group_id.asc().nullsLast().op('uuid_ops')),
@@ -411,7 +454,7 @@ export const users = pgTable(
 export const accounts = pgTable(
   'accounts',
   {
-    id: uuid().defaultRandom().notNull(),
+    id: uuid().defaultRandom().primaryKey(),
     name: text().notNull(),
     type: text().notNull(),
     user_ids: uuid('user_ids').array().default([]).notNull(),
@@ -425,6 +468,13 @@ export const accounts = pgTable(
     liquidity: text(),
   },
   (table) => [
+    foreignKey({
+      name: 'accounts_group_id_fkey',
+      columns: [table.group_id],
+      foreignColumns: [groups.id],
+    }).onDelete('cascade'),
+    unique('accounts_id_group_unique').on(table.id, table.group_id),
+
     index('idx_accounts_group_id').using('btree', table.group_id.asc().nullsLast().op('uuid_ops')),
     index('idx_accounts_type').using('btree', table.type.asc().nullsLast().op('text_ops')),
     index('idx_accounts_user_ids').using('gin', table.user_ids.asc().nullsLast().op('array_ops')),
@@ -461,7 +511,7 @@ export const accounts = pgTable(
 export const budgets = pgTable(
   'budgets',
   {
-    id: uuid().defaultRandom().notNull(),
+    id: uuid().defaultRandom().primaryKey(),
     description: text().notNull(),
     amount: numeric({ precision: 10, scale: 2 }).notNull(),
     type: text().default('monthly').notNull(),
@@ -470,9 +520,22 @@ export const budgets = pgTable(
     user_id: uuid('user_id').notNull(),
     created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
     updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow(),
-    group_id: uuid('group_id'),
+    group_id: uuid('group_id').notNull(),
   },
   (table) => [
+    index('budgets_group_idx').on(table.group_id),
+
+    foreignKey({
+      name: 'budgets_group_id_fkey',
+      columns: [table.group_id],
+      foreignColumns: [groups.id],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'budgets_user_group_fkey',
+      columns: [table.user_id, table.group_id],
+      foreignColumns: [users.id, users.group_id],
+    }).onDelete('cascade'),
+
     index('idx_budgets_amount').using('btree', table.amount.asc().nullsLast().op('numeric_ops')),
     index('idx_budgets_categories').using(
       'gin',
@@ -511,8 +574,8 @@ export const budgets = pgTable(
 export const categories = pgTable(
   'categories',
   {
-    id: uuid().defaultRandom().notNull(),
-    key: text().notNull(),
+    id: uuid().defaultRandom().primaryKey(),
+    key: text().notNull().unique('categories_key_key'),
     label: text().notNull(),
     icon: text().notNull(),
     color: text().notNull(),
@@ -526,10 +589,7 @@ export const categories = pgTable(
       table.group_id.asc().nullsLast().op('uuid_ops')
     ),
     index('idx_categories_key').using('btree', table.key.asc().nullsLast().op('text_ops')),
-    uniqueIndex('idx_categories_key_unique').using(
-      'btree',
-      table.key.asc().nullsLast().op('text_ops')
-    ),
+    ...[],
     index('idx_categories_label').using('btree', table.label.asc().nullsLast().op('text_ops')),
     foreignKey({
       columns: [table.group_id],
@@ -549,18 +609,22 @@ export const categories = pgTable(
 export const groupInvitations = pgTable(
   'group_invitations',
   {
-    id: uuid().defaultRandom().notNull(),
+    id: uuid().defaultRandom().primaryKey(),
     group_id: uuid('group_id').notNull(),
     invited_by_user_id: uuid('invited_by_user_id').notNull(),
     email: varchar({ length: 255 }).notNull(),
     status: varchar({ length: 20 }).default('pending').notNull(),
-    invitation_token: varchar('invitation_token', { length: 255 }).notNull(),
+    invitation_token: varchar('invitation_token', { length: 255 })
+      .notNull()
+      .unique('group_invitations_invitation_token_key'),
     expires_at: timestamp('expires_at', { withTimezone: true }).notNull(),
     accepted_at: timestamp('accepted_at', { withTimezone: true }),
     created_at: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
+    index('invitations_inviter_idx').on(table.invited_by_user_id),
+
     index('idx_group_invitations_email').using(
       'btree',
       table.email.asc().nullsLast().op('text_ops')
@@ -630,7 +694,7 @@ export const groupInvitations = pgTable(
 export const marketDataCache = pgTable(
   'market_data_cache',
   {
-    symbol: text().notNull(),
+    symbol: text().primaryKey(),
     data: jsonb().default([]).notNull(),
     last_updated: timestamp('last_updated', { precision: 6, withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
@@ -647,7 +711,7 @@ export const marketDataCache = pgTable(
 export const recurringTransactions = pgTable(
   'recurring_transactions',
   {
-    id: uuid().defaultRandom().notNull(),
+    id: uuid().defaultRandom().primaryKey(),
     description: text().notNull(),
     amount: numeric({ precision: 12, scale: 2 }).notNull(),
     type: varchar({ length: 50 }).notNull(),
@@ -722,7 +786,7 @@ export const recurringTransactions = pgTable(
 export const groups = pgTable(
   'groups',
   {
-    id: uuid().defaultRandom().notNull(),
+    id: uuid().defaultRandom().primaryKey(),
     name: text().notNull(),
     description: text(),
     user_ids: uuid('user_ids').array().default([]).notNull(),
@@ -772,8 +836,8 @@ export const groups = pgTable(
 export const availableShares = pgTable(
   'available_shares',
   {
-    id: uuid().defaultRandom().notNull(),
-    symbol: varchar({ length: 20 }).notNull(),
+    id: uuid().defaultRandom().primaryKey(),
+    symbol: varchar({ length: 20 }).notNull().unique('available_shares_symbol_key'),
     name: varchar({ length: 255 }).notNull(),
     region: varchar({ length: 50 }).notNull(),
     asset_type: varchar('asset_type', { length: 50 }).notNull(),
@@ -806,7 +870,7 @@ export const availableShares = pgTable(
 export const budgetPeriods = pgTable(
   'budget_periods',
   {
-    id: uuid().defaultRandom().notNull(),
+    id: uuid().defaultRandom().primaryKey(),
     user_id: uuid('user_id').notNull(),
     start_date: date('start_date').notNull(),
     end_date: date('end_date'),
@@ -925,9 +989,21 @@ export const bankConnections = pgTable(
     last_used_at: timestamp({ withTimezone: true }),
     rate_window: timestamp({ withTimezone: true }).notNull().defaultNow(),
     rate_count: integer().notNull().default(0),
-    created_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
+    created_at: timestamp({ withTimezone: true })
+      .notNull()
+      .default(sql`clock_timestamp()`),
   },
-  (table) => [index('bank_connections_owner').on(table.user_id, table.group_id)]
+  (table) => [
+    index('bank_connections_account_idx').on(table.account_id),
+    index('bank_connections_group_idx').on(table.group_id),
+
+    foreignKey({
+      name: 'bank_connections_account_group_fkey',
+      columns: [table.account_id, table.group_id],
+      foreignColumns: [accounts.id, accounts.group_id],
+    }).onDelete('cascade'),
+    index('bank_connections_owner').on(table.user_id, table.group_id),
+  ]
 ).enableRLS();
 
 export const bankNotificationEvents = pgTable(
@@ -956,6 +1032,21 @@ export const bankNotificationEvents = pgTable(
     received_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
+    index('bank_events_connection_idx').on(table.connection_id),
+    index('bank_events_group_idx').on(table.group_id),
+    index('bank_events_transaction_idx').on(table.transaction_id),
+
+    foreignKey({
+      name: 'bank_events_account_group_fkey',
+      columns: [table.account_id, table.group_id],
+      foreignColumns: [accounts.id, accounts.group_id],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'bank_events_transaction_fkey',
+      columns: [table.transaction_id],
+      foreignColumns: [transactions.id],
+    }).onDelete('set null'),
+
     uniqueIndex('bank_notification_identity').on(table.account_id, table.fingerprint),
     index('bank_notification_inbox').on(table.user_id, table.group_id, table.received_at),
     check('bank_notification_status', sql`${table.status} IN ('pending','imported','ignored')`),
@@ -977,11 +1068,131 @@ export const bankMerchantRules = pgTable(
     category: text().notNull(),
   },
   (table) => [
+    index('bank_rules_user_idx').on(table.user_id),
+
     uniqueIndex('bank_merchant_rule_identity').on(
       table.group_id,
       table.user_id,
       table.provider,
       table.merchant
     ),
+  ]
+).enableRLS();
+
+/** Expansion tables; legacy array columns remain a rollback bridge. */
+export const accountUsers = pgTable(
+  'account_users',
+  {
+    account_id: uuid().notNull(),
+    user_id: uuid().notNull(),
+    position: integer().notNull(),
+  },
+  (table) => [
+    foreignKey({
+      name: 'account_users_account_id_fkey',
+      columns: [table.account_id],
+      foreignColumns: [accounts.id],
+    }).onDelete('cascade'),
+    unique('account_users_account_id_position_key').on(table.account_id, table.position),
+    check('account_users_position_check', sql.raw('(("position" > 0))')),
+    foreignKey({
+      name: 'account_users_user_id_fkey',
+      columns: [table.user_id],
+      foreignColumns: [users.id],
+    }).onDelete('cascade'),
+
+    primaryKey({ name: 'account_users_pkey', columns: [table.account_id, table.user_id] }),
+    ...[],
+    index('account_users_user').on(table.user_id, table.account_id),
+  ]
+).enableRLS();
+export const recurringUsers = pgTable(
+  'recurring_users',
+  {
+    recurring_id: uuid().notNull(),
+    user_id: uuid().notNull(),
+    position: integer().notNull(),
+  },
+  (table) => [
+    check('recurring_users_position_check', sql.raw('(("position" > 0))')),
+    foreignKey({
+      name: 'recurring_users_recurring_id_fkey',
+      columns: [table.recurring_id],
+      foreignColumns: [recurringTransactions.id],
+    }).onDelete('cascade'),
+    unique('recurring_users_recurring_id_position_key').on(table.recurring_id, table.position),
+    foreignKey({
+      name: 'recurring_users_user_id_fkey',
+      columns: [table.user_id],
+      foreignColumns: [users.id],
+    }).onDelete('cascade'),
+
+    primaryKey({ name: 'recurring_users_pkey', columns: [table.recurring_id, table.user_id] }),
+    ...[],
+    index('recurring_users_user').on(table.user_id, table.recurring_id),
+  ]
+).enableRLS();
+export const budgetCategories = pgTable(
+  'budget_categories',
+  {
+    budget_id: uuid().notNull(),
+    category_key: text().notNull(),
+    position: integer().notNull(),
+  },
+  (table) => [
+    foreignKey({
+      name: 'budget_categories_budget_id_fkey',
+      columns: [table.budget_id],
+      foreignColumns: [budgets.id],
+    }).onDelete('cascade'),
+    unique('budget_categories_budget_id_position_key').on(table.budget_id, table.position),
+    foreignKey({
+      name: 'budget_categories_category_key_fkey',
+      columns: [table.category_key],
+      foreignColumns: [categories.key],
+    }).onDelete('no action'),
+    check('budget_categories_position_check', sql.raw('(("position" > 0))')),
+
+    primaryKey({ name: 'budget_categories_pkey', columns: [table.budget_id, table.category_key] }),
+    ...[],
+    index('budget_categories_category').on(table.category_key, table.budget_id),
+  ]
+).enableRLS();
+export const financialOperations = pgTable(
+  'financial_operations',
+  {
+    group_id: uuid().notNull(),
+    actor_id: uuid().notNull(),
+    kind: text().notNull(),
+    operation_id: uuid().notNull(),
+    payload_hash: text().notNull(),
+    result: jsonb(),
+    committed_at: timestamp({ withTimezone: true }),
+    created_at: timestamp({ withTimezone: true })
+      .notNull()
+      .default(sql`clock_timestamp()`),
+  },
+  (table) => [
+    foreignKey({
+      name: 'financial_operations_actor_id_fkey',
+      columns: [table.actor_id],
+      foreignColumns: [users.id],
+    }).onDelete('cascade'),
+    check('financial_operations_check', sql.raw('(((result IS NULL) = (committed_at IS NULL)))')),
+    foreignKey({
+      name: 'financial_operations_group_id_fkey',
+      columns: [table.group_id],
+      foreignColumns: [groups.id],
+    }).onDelete('cascade'),
+    check(
+      'financial_operations_payload_hash_check',
+      sql.raw("((payload_hash ~ '^[a-f0-9]{64}$'::text))")
+    ),
+
+    primaryKey({
+      name: 'financial_operations_pkey',
+      columns: [table.group_id, table.actor_id, table.kind, table.operation_id],
+    }),
+    index('financial_operations_actor').on(table.actor_id, table.created_at),
   ]
 ).enableRLS();

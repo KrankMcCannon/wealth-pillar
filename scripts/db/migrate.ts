@@ -1,0 +1,14 @@
+import { config } from 'dotenv';
+import { createPostgresClient } from '../../src/server/db/postgres-client';
+import { migrateDatabase } from './migrations.mjs';
+
+config({ path: '.env', quiet: true });
+const url = process.env.DATABASE_ADMIN_URL;
+if (!url) throw new Error('DATABASE_ADMIN_URL is required');
+const client = createPostgresClient(url, { max: 1, connection: { statement_timeout: 60_000 } });
+try {
+  const result = await client.begin((tx) => migrateDatabase(tx, process.argv[2] ?? 'migrate'));
+  process.stdout.write(JSON.stringify(result) + '\n');
+} finally {
+  await client.end({ timeout: 5 });
+}

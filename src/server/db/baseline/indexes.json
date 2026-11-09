@@ -1,0 +1,62 @@
+[
+  {
+    "name": "bank_connections_account_idx",
+    "table": "bank_connections",
+    "sql": "CREATE INDEX bank_connections_account_idx ON public.bank_connections USING btree (account_id)"
+  },
+  {
+    "name": "bank_connections_group_idx",
+    "table": "bank_connections",
+    "sql": "CREATE INDEX bank_connections_group_idx ON public.bank_connections USING btree (group_id)"
+  },
+  {
+    "name": "bank_rules_user_idx",
+    "table": "bank_merchant_rules",
+    "sql": "CREATE INDEX bank_rules_user_idx ON public.bank_merchant_rules USING btree (user_id)"
+  },
+  {
+    "name": "bank_events_connection_idx",
+    "table": "bank_notification_events",
+    "sql": "CREATE INDEX bank_events_connection_idx ON public.bank_notification_events USING btree (connection_id)"
+  },
+  {
+    "name": "bank_events_group_idx",
+    "table": "bank_notification_events",
+    "sql": "CREATE INDEX bank_events_group_idx ON public.bank_notification_events USING btree (group_id)"
+  },
+  {
+    "name": "invitations_inviter_idx",
+    "table": "group_invitations",
+    "sql": "CREATE INDEX invitations_inviter_idx ON public.group_invitations USING btree (invited_by_user_id)"
+  },
+  {
+    "name": "users_default_account_idx",
+    "table": "users",
+    "sql": "CREATE INDEX users_default_account_idx ON public.users USING btree (default_account_id)"
+  },
+  {
+    "name": "bank_events_transaction_idx",
+    "table": "bank_notification_events",
+    "sql": "CREATE INDEX bank_events_transaction_idx ON public.bank_notification_events USING btree (transaction_id)"
+  },
+  {
+    "name": "budgets_group_idx",
+    "table": "budgets",
+    "sql": "CREATE INDEX budgets_group_idx ON public.budgets USING btree (group_id)"
+  },
+  {
+    "name": "transactions_group_keyset_idx",
+    "table": "transactions",
+    "sql": "CREATE INDEX transactions_group_keyset_idx ON public.transactions USING btree (group_id, date DESC, created_at DESC NULLS LAST, id DESC)"
+  },
+  {
+    "name": "transactions_group_user_keyset_idx",
+    "table": "transactions",
+    "sql": "CREATE INDEX transactions_group_user_keyset_idx ON public.transactions USING btree (group_id, user_id, date DESC, created_at DESC NULLS LAST, id DESC)"
+  },
+  {
+    "name": "transactions_group_transfer_keyset_idx",
+    "table": "transactions",
+    "sql": "CREATE INDEX transactions_group_transfer_keyset_idx ON public.transactions USING btree (group_id, date DESC, created_at DESC NULLS LAST, id DESC) WHERE type = 'transfer'"
+  }
+]

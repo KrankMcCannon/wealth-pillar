@@ -1,3 +1,4 @@
+import { withDatabaseOperation } from '@/server/db/telemetry';
 import { cacheLife, cacheTag } from 'next/cache';
 import { getAccountsByGroupDeduped } from '@/server/request-cache/services';
 import { computeAccountsStatsViewModel, type AccountStats } from '../accounts/account.logic';
@@ -49,6 +50,8 @@ export async function getAccountsPageData(
   groupUserIds: string[] = [],
   currentUser: User
 ): Promise<AccountsPageData> {
-  const data = await getCachedAccountsPageData(groupId, groupUserIds);
+  const data = await withDatabaseOperation('accounts', () =>
+    getCachedAccountsPageData(groupId, groupUserIds)
+  );
   return scopeAccountsPageData(data, currentUser);
 }

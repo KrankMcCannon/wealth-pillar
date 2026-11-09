@@ -1,6 +1,7 @@
+import { measureDatabaseMapping } from '@/server/db/telemetry';
+import { minorUnitsToMoney } from '@/lib/utils/exact-money';
 import { readWithRetry } from '@/server/db/read-with-retry';
 import { financialDateKey } from '@/lib/utils/financial-date';
-import { db } from '@/server/db/drizzle';
 import { transactions, accounts } from '@/server/db/schema';
 import { and, desc, eq, or, sql, count, inArray, ilike, lt, getTableColumns } from 'drizzle-orm';
 import { resolveDb, type DbExecutor } from '@/server/repositories/db-executor';
@@ -14,7 +15,7 @@ export interface TransactionScope {
 /** Exclusive lower bound for keyset pagination (same ordering as list: date desc, created_at desc, id desc). */
 export interface TransactionCursorAfter {
   date: string;
-  createdAt: string;
+  createdAt: string | null;
   id: string;
 }
 
@@ -31,7 +32,7 @@ export interface TransactionFilterOptions {
   offset?: number;
   /** When set, fetches rows strictly after this cursor; do not pass offset together with this. */
   cursorAfter?: TransactionCursorAfter;
-  /** When false, skips COUNT(*) and uses limit+1 overflow for hasMore (keyset / infinite scroll). Default true. */
+  /** When false, skips COUNT(*) and uses limit+1 overflow for hasMore (keyset / infinite scroll). Default false. */
   countTotal?: boolean;
 }
 
@@ -92,15 +93,7 @@ export class TransactionsRepository {
         transactions.type,
         transactions.category
       );
-    return rows.map((row, index) => ({
-      ...row,
-      id: `aggregate:${index}`,
-      group_id: groupId,
-      description: '',
-      created_at: row.date,
-      updated_at: row.date,
-      amount: Number(row.amount),
-    })) as FinancialLedgerRow[];
+    return rows;
   }
 
   static async getAccountBalanceState(accountIds: string[], executor: DbExecutor) {
@@ -130,7 +123,7 @@ export class TransactionsRepository {
   ): AsyncGenerator<TransactionLedgerRow[]> {
     let cursorAfter: TransactionCursorAfter | undefined;
     do {
-      const page = await this.getByGroup(
+      const page = await this.readGroupWindow(
         groupId,
         {
           ...options,
@@ -144,7 +137,7 @@ export class TransactionsRepository {
       if (rows.length) yield rows;
       if (!page.hasMore) return;
       const last = rows.at(-1);
-      if (!last?.date || !last.created_at) throw new Error('Invalid ledger pagination cursor');
+      if (!last?.date) throw new Error('Invalid ledger pagination cursor');
       cursorAfter = { date: last.date, createdAt: last.created_at, id: last.id };
     } while (true);
   }
@@ -157,18 +150,22 @@ export class TransactionsRepository {
     options?: TransactionFilterOptions,
     executor?: DbExecutor
   ) {
+    if (options?.cursorAfter && options.offset)
+      throw new Error('Cursor and offset are mutually exclusive');
+    const bounded = { ...options, limit: Math.min(100, Math.max(1, options?.limit ?? 50)) };
     return executor
-      ? this.readGroupWindow(groupId, options, executor)
-      : readWithRetry(() => this.readGroupWindow(groupId, options));
+      ? this.readGroupWindow(groupId, bounded, executor)
+      : readWithRetry(() => this.readGroupWindow(groupId, bounded));
   }
 
   private static async readGroupWindow(
-    groupId: string,
+    groupId: string | undefined,
     options?: TransactionFilterOptions,
     executor?: DbExecutor
   ) {
     const dbConn = resolveDb(executor);
-    const filterConditions = [eq(transactions.group_id, groupId)];
+    const filterConditions = groupId ? [eq(transactions.group_id, groupId)] : [];
+    if (!groupId && !options?.userId) throw new Error('Missing transaction scope');
 
     if (options?.startDate) {
       filterConditions.push(sql`${transactions.date} >= ${financialDateKey(options.startDate)}`);
@@ -208,11 +205,15 @@ export class TransactionsRepository {
           lt(transactions.date, cur.date),
           and(
             eq(transactions.date, cur.date),
-            sql`${transactions.created_at} < ${cur.createdAt}::timestamptz`
+            cur.createdAt === null
+              ? sql`${transactions.created_at} is null and ${transactions.id} < ${cur.id}::uuid`
+              : sql`(${transactions.created_at} < ${cur.createdAt}::timestamptz or ${transactions.created_at} is null)`
           ),
           and(
             eq(transactions.date, cur.date),
-            sql`${transactions.created_at} = ${cur.createdAt}::timestamptz`,
+            cur.createdAt === null
+              ? sql`false`
+              : sql`${transactions.created_at} = ${cur.createdAt}::timestamptz`,
             lt(transactions.id, cur.id)
           )
         )!
@@ -221,7 +222,7 @@ export class TransactionsRepository {
 
     const listWhere = and(...dataConditions);
 
-    const countTotal = options?.countTotal !== false;
+    const countTotal = options?.countTotal === true;
     const pageLimit = options?.limit ?? 0;
 
     let total = 0;
@@ -246,7 +247,11 @@ export class TransactionsRepository {
       })
       .from(transactions)
       .where(listWhere)
-      .orderBy(desc(transactions.date), desc(transactions.created_at), desc(transactions.id));
+      .orderBy(
+        desc(transactions.date),
+        sql`${transactions.created_at} desc nulls last`,
+        desc(transactions.id)
+      );
 
     if (fetchLimit) {
       query = query.limit(fetchLimit);
@@ -270,58 +275,41 @@ export class TransactionsRepository {
       hasMore = offset + data.length < total;
     }
 
-    return {
-      data,
-      total,
-      hasMore,
-    };
+    return measureDatabaseMapping(() => ({ data, total, hasMore }));
   }
 
   /**
    * Get transactions by user with filtering
    */
   static async getByUser(userId: string, options?: TransactionFilterOptions) {
-    const conditions = [eq(transactions.user_id, userId)];
-
-    if (options?.startDate) {
-      conditions.push(sql`${transactions.date} >= ${financialDateKey(options.startDate)}`);
-    }
-    if (options?.endDate) {
-      conditions.push(sql`${transactions.date} <= ${financialDateKey(options.endDate)}`);
-    }
-    if (options?.category) {
-      conditions.push(eq(transactions.category, options.category));
-    }
-    if (options?.categoryKeys?.length) {
-      conditions.push(inArray(transactions.category, options.categoryKeys));
-    }
-    if (options?.type) {
-      conditions.push(eq(transactions.type, options.type));
-    }
-
-    const listWhere = and(...conditions);
-
-    let query = db
-      .select()
-      .from(transactions)
-      .where(listWhere)
-      .orderBy(desc(transactions.date), desc(transactions.created_at));
-
-    if (options?.limit) {
-      query = query.limit(options.limit) as typeof query;
-    }
-
-    const data = await query;
-
-    return {
-      data,
-      total: data.length,
-    };
+    if (options?.cursorAfter && options.offset)
+      throw new Error('Cursor and offset are mutually exclusive');
+    const bounded = { ...options, userId, limit: Math.min(100, Math.max(1, options?.limit ?? 50)) };
+    return readWithRetry(() => this.readGroupWindow(undefined, bounded));
   }
 
   /**
    * Get transactions by account (including transfers)
    */
+  /** Called only after the use case has locked the account row. */
+  static async sumBalanceByAccount(accountId: string, executor: DbExecutor): Promise<string> {
+    const [row] = await executor
+      .select({
+        balance: sql<string>`coalesce(sum(
+        case when ${transactions.account_id} = ${accountId}::uuid then
+          case when ${transactions.type} = 'income' then ${transactions.amount}
+               when ${transactions.type} in ('expense', 'transfer') then -${transactions.amount}
+               else 0 end
+        else 0 end +
+        case when ${transactions.type} = 'transfer' and ${transactions.to_account_id} = ${accountId}::uuid
+          then ${transactions.amount} else 0 end
+      ), 0)::text`,
+      })
+      .from(transactions)
+      .where(or(eq(transactions.account_id, accountId), eq(transactions.to_account_id, accountId)));
+    return row!.balance;
+  }
+
   static async getByAccount(accountId: string, executor?: DbExecutor) {
     const data = await resolveDb(executor)
       .select()
@@ -497,7 +485,7 @@ export class TransactionsRepository {
    * Distinct category keys referenced by transactions in a group
    */
   static async getUsedCategoryKeysByGroup(groupId: string): Promise<string[]> {
-    const rows = await db
+    const rows = await resolveDb()
       .selectDistinct({ category: transactions.category })
       .from(transactions)
       .where(and(eq(transactions.group_id, groupId), sql`${transactions.category} IS NOT NULL`));
@@ -510,10 +498,10 @@ export class TransactionsRepository {
   /**
    * Apply balance delta to an account
    */
-  static async updateAccountBalance(accountId: string, deltaAmount: number, executor?: DbExecutor) {
+  static async updateAccountBalance(accountId: string, deltaAmount: bigint, executor: DbExecutor) {
     const dbConn = resolveDb(executor);
     await dbConn.execute(
-      sql`UPDATE accounts SET balance = balance + ${deltaAmount}::numeric, updated_at = clock_timestamp() WHERE id = ${accountId}::uuid`
+      sql`UPDATE accounts SET balance = balance + ${minorUnitsToMoney(deltaAmount)}::numeric, updated_at = clock_timestamp() WHERE id = ${accountId}::uuid`
     );
   }
 }

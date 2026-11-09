@@ -13,8 +13,13 @@ export default defineConfig({
     {
       ...config.projects!.find((project) => project.name === 'chromium')!,
       name: 'smoke',
-      testMatch: ['dashboard-navigation.spec.ts', 'transactions.spec.ts', 'modals.spec.ts'],
-      grep: /keeps bottom navigation mounted|creates a transaction and keeps it|updates its own transaction|opens notification import/,
+      testMatch: [
+        'dashboard-navigation.spec.ts',
+        'transactions.spec.ts',
+        'modals.spec.ts',
+        'pending-operations.spec.ts',
+      ],
+      grep: /keeps bottom navigation mounted|creates a transaction and keeps it|updates its own transaction|opens notification import|retains the same pending operation/,
     },
   ],
 });

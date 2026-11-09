@@ -1,3 +1,4 @@
+import { withDatabaseOperation } from '@/server/db/telemetry';
 import { cacheLife, cacheTag } from 'next/cache';
 import { getTransactionsByGroupUseCase } from '../transactions/get-transactions.use-case';
 import {
@@ -12,7 +13,7 @@ import { decodeTransactionCursor, encodeTransactionCursor } from '@/lib/utils/tr
 import { resolveTransactionDateRangeBounds } from '@/lib/utils/transaction-date-range';
 
 /** Fixed window size for transactions list (keyset infinite scroll). */
-export const TRANSACTIONS_LIST_PAGE_SIZE = 30;
+export const TRANSACTIONS_LIST_PAGE_SIZE = 50;
 
 export interface TransactionsListQuery {
   user?: string;
@@ -142,7 +143,7 @@ export function buildTransactionRepositoryOptions(
     : undefined;
 
   return {
-    limit: options?.limit ?? TRANSACTIONS_LIST_PAGE_SIZE,
+    limit: Math.min(100, Math.max(1, options?.limit ?? TRANSACTIONS_LIST_PAGE_SIZE)),
     countTotal: false,
     ...(decodedCursor
       ? {
@@ -179,11 +180,8 @@ export async function getTransactionsListData(
   query: TransactionsListQuery,
   currentUser: User
 ): Promise<TransactionsListData> {
-  const data = await getCachedTransactionsListData(
-    groupId,
-    query,
-    currentUser.id,
-    currentUser.role
+  const data = await withDatabaseOperation('transactions', () =>
+    getCachedTransactionsListData(groupId, query, currentUser.id, currentUser.role)
   );
   return scopeTransactionsListData(data, currentUser);
 }

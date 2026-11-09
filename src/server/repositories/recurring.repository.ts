@@ -1,6 +1,7 @@
-import { db } from '@/server/db/drizzle';
-import { recurringTransactions, accounts } from '@/server/db/schema';
-import { eq, arrayOverlaps, arrayContains, and, sql, getTableColumns, exists } from 'drizzle-orm';
+import { recurringReadColumns, relationalReadsEnabled } from './relational-projections';
+import { resolveDb } from './db-executor';
+import { recurringTransactions, accounts, transactions } from '@/server/db/schema';
+import { eq, arrayOverlaps, arrayContains, and, sql, exists } from 'drizzle-orm';
 
 export interface RecurringScope {
   groupId: string;
@@ -12,7 +13,7 @@ function seriesConditions(id: string, scope?: RecurringScope) {
     eq(recurringTransactions.id, id),
     scope
       ? exists(
-          db
+          resolveDb()
             .select({ id: accounts.id })
             .from(accounts)
             .where(
@@ -27,24 +28,35 @@ function seriesConditions(id: string, scope?: RecurringScope) {
   );
 }
 
-// The series remains a plan; only actual ledger rows mark an occurrence as recorded.
-// Keep these qualified identifiers literal: Drizzle removes Column qualifiers in a
-// single-table projection, which would bind the correlated id to the inner ledger.
-const recordedDates = sql<string[]>`coalesce((
-  select array_agg(distinct recorded_ledger.date::text)
-  from transactions as recorded_ledger
-  where recorded_ledger.recurring_series_id = recurring_transactions.id
-), ARRAY[]::text[])`;
+// Aggregate occurrences once for the selected query rather than a correlated
+// aggregate for every recurring row. The planner may push the series filter down.
+function occurrenceDates() {
+  return resolveDb()
+    .$with('recorded_occurrences')
+    .as(
+      resolveDb()
+        .select({
+          series: transactions.recurring_series_id,
+          dates: sql<string[]>`array_agg(distinct ${transactions.date}::text)`.as('dates'),
+        })
+        .from(transactions)
+        .groupBy(transactions.recurring_series_id)
+    );
+}
+const recordedDates = sql<string[]>`coalesce(recorded_occurrences.dates, ARRAY[]::text[])`;
 
 export class RecurringRepository {
   static async findById(id: string, scope?: RecurringScope) {
-    const results = await db
+    const recorded = occurrenceDates();
+    const results = await resolveDb()
+      .with(recorded)
       .select({
-        recurring: recurringTransactions,
+        recurring: recurringReadColumns(),
         account: accounts,
         recorded_dates: recordedDates,
       })
       .from(recurringTransactions)
+      .leftJoin(recorded, eq(recorded.series, recurringTransactions.id))
       .leftJoin(accounts, eq(recurringTransactions.account_id, accounts.id))
       .where(seriesConditions(id, scope));
 
@@ -61,19 +73,31 @@ export class RecurringRepository {
   }
 
   static async findByUser(userId: string) {
-    return await db
-      .select({ ...getTableColumns(recurringTransactions), recorded_dates: recordedDates })
+    const recorded = occurrenceDates();
+    return await resolveDb()
+      .with(recorded)
+      .select({ ...recurringReadColumns(), recorded_dates: recordedDates })
       .from(recurringTransactions)
-      .where(arrayContains(recurringTransactions.user_ids, [userId]));
+      .leftJoin(recorded, eq(recorded.series, recurringTransactions.id))
+      .where(
+        relationalReadsEnabled()
+          ? sql`exists(select 1 from recurring_users x where x.recurring_id=recurring_transactions.id and x.user_id=${userId}::uuid)`
+          : arrayContains(recurringTransactions.user_ids, [userId])
+      );
   }
 
   static async findByUserIds(userIds: string[], groupId?: string) {
-    return await db
-      .select({ ...getTableColumns(recurringTransactions), recorded_dates: recordedDates })
+    const recorded = occurrenceDates();
+    return await resolveDb()
+      .with(recorded)
+      .select({ ...recurringReadColumns(), recorded_dates: recordedDates })
       .from(recurringTransactions)
+      .leftJoin(recorded, eq(recorded.series, recurringTransactions.id))
       .where(
         and(
-          arrayOverlaps(recurringTransactions.user_ids, userIds),
+          relationalReadsEnabled()
+            ? sql`exists(select 1 from recurring_users x where x.recurring_id=recurring_transactions.id and x.user_id=any(${sql.param(userIds, accounts.user_ids)}::uuid[]))`
+            : arrayOverlaps(recurringTransactions.user_ids, userIds),
           groupId
             ? sql`${recurringTransactions.account_id} in
         (select ${accounts.id} from ${accounts} where ${accounts.group_id} = ${groupId})`
@@ -83,7 +107,7 @@ export class RecurringRepository {
   }
 
   static async create(data: typeof recurringTransactions.$inferInsert) {
-    const results = await db.insert(recurringTransactions).values(data).returning();
+    const results = await resolveDb().insert(recurringTransactions).values(data).returning();
     return results.length > 0 ? results[0] : null;
   }
 
@@ -92,7 +116,7 @@ export class RecurringRepository {
     data: Partial<typeof recurringTransactions.$inferInsert>,
     scope?: RecurringScope
   ) {
-    const results = await db
+    const results = await resolveDb()
       .update(recurringTransactions)
       .set({ ...data, updated_at: new Date() })
       .where(seriesConditions(id, scope))
@@ -101,7 +125,7 @@ export class RecurringRepository {
   }
 
   static async delete(id: string, scope?: RecurringScope) {
-    const results = await db
+    const results = await resolveDb()
       .delete(recurringTransactions)
       .where(seriesConditions(id, scope))
       .returning();
@@ -109,9 +133,12 @@ export class RecurringRepository {
   }
 
   static async findActiveByAccount(accountId: string) {
-    return await db
-      .select({ ...getTableColumns(recurringTransactions), recorded_dates: recordedDates })
+    const recorded = occurrenceDates();
+    return await resolveDb()
+      .with(recorded)
+      .select({ ...recurringReadColumns(), recorded_dates: recordedDates })
       .from(recurringTransactions)
+      .leftJoin(recorded, eq(recorded.series, recurringTransactions.id))
       .where(
         and(
           eq(recurringTransactions.account_id, accountId),

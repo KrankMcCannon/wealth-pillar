@@ -1,3 +1,4 @@
+import { financialDecimal } from '@/lib/utils/financial-decimal';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { buildPortfolioHistory, type SeriesIndex } from './investment.portfolio.logic';
 import { financialDateKey } from '@/lib/utils/financial-date';
@@ -64,7 +65,7 @@ it.each(
   }
 );
 
-// Pre-optimization daily valuation: guards exact rounding, missing data and acquisition semantics.
+// Pre-optimization daily valuation: guards decimal arithmetic, missing data and acquisition semantics.
 function buildReferenceHistory(
   rows: InvestmentRow[],
   seriesIndex: SeriesIndex
@@ -74,7 +75,7 @@ function buildReferenceHistory(
   const lots = rows.map((row) => ({
     start: financialDateKey(row.created_at ?? new Date()),
     symbol: row.symbol.toUpperCase(),
-    units: Number(row.shares_acquired),
+    units: financialDecimal(row.shares_acquired),
     currency: row.currency,
     rateSymbol: conversionSymbol(row.currency),
   }));
@@ -96,7 +97,7 @@ function buildReferenceHistory(
       }
     }
     let complete = true;
-    let value = 0;
+    let value = financialDecimal(0);
     for (const lot of lots) {
       if (lot.start > date) continue;
       const price = states.get(lot.symbol)!.price;
@@ -106,10 +107,10 @@ function buildReferenceHistory(
         complete = false;
         break;
       }
-      value += price * lot.units * rate;
+      value = value.plus(financialDecimal(price).times(lot.units).times(rate));
     }
     // Incomplete totals must never become immutable financial snapshots.
-    if (complete) history.push({ date, value });
+    if (complete) history.push({ date, value: value.toNumber() });
     current.setUTCDate(current.getUTCDate() + 1);
   }
   return history;

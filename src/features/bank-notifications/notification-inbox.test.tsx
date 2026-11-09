@@ -70,10 +70,13 @@ it('shows the recovery form for an unparsed event and can still ignore it', asyn
   await click.click(await screen.findByRole('button', { name: 'complete' }));
   expect(screen.getByRole('dialog')).toHaveTextContent('Manual form');
   await click.click(screen.getByRole('button', { name: 'ignore' }));
-  expect(reviewBankNotificationAction).toHaveBeenCalledExactlyOnceWith({
-    id: 'unknown',
-    decision: 'ignore',
-  });
+  expect(reviewBankNotificationAction).toHaveBeenCalledExactlyOnceWith(
+    {
+      id: 'unknown',
+      decision: 'ignore',
+    },
+    undefined
+  );
 });
 it('ignores an obsolete pending response after switching to history', async () => {
   const click = userEvent.setup();

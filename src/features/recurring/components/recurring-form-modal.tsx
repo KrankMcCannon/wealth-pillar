@@ -1,5 +1,7 @@
 'use client';
 
+import { useFinancialCommand } from '@/hooks/use-financial-command';
+
 import { withDeadline } from '@/lib/utils/with-deadline';
 
 import { parseDecimal } from '@/lib/utils/parse-decimal';
@@ -159,6 +161,8 @@ function RecurringFormModalBody({
 }
 
 function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormModalProps>) {
+  const financialCommand = useFinancialCommand();
+
   const t = useTranslations('Recurring.FormModal');
   const tSeriesCard = useTranslations('Recurring.SeriesCard');
   const tDialogs = useTranslations('TransactionsContent.dialogs');
@@ -247,12 +251,17 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
     RecurringTransactionSeries
   >({
     submissionKey: 'recurring',
+    operationKinds: {
+      create: 'createRecurringSeriesAction',
+      update: 'updateRecurringSeriesAction',
+    },
     isEditMode,
     editId,
     onClose: handleClose,
     buildPayload,
-    createAction: (payload) => createRecurringSeriesAction(payload),
-    updateAction: (id, payload) => updateRecurringSeriesAction({ id, ...payload }),
+    createAction: (payload, operationId) => createRecurringSeriesAction(payload, operationId),
+    updateAction: (id, payload, operationId) =>
+      updateRecurringSeriesAction({ id, ...payload }, operationId),
     getSuccessToast,
     errorToast: { title: t('toast.errorTitle') },
     refreshAfterSuccess: () => router.refresh(),
@@ -262,7 +271,13 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
   const handleToggleSeriesActive = useCallback(async () => {
     if (!editId || seriesIsActive === undefined) return;
     const nextActive = !seriesIsActive;
-    const result = await withDeadline(toggleRecurringSeriesActiveAction(editId, nextActive));
+    const result = await withDeadline(
+      financialCommand(
+        'toggleRecurringSeriesActiveAction',
+        [editId, nextActive],
+        (operationId, args) => toggleRecurringSeriesActiveAction(...args, operationId)
+      )
+    );
     if (result.error) {
       toast({ title: t('toast.errorTitle'), description: result.error, variant: 'destructive' });
       return;
@@ -274,11 +289,15 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
       variant: 'success',
     });
     router.refresh();
-  }, [editId, seriesIsActive, router, t, tSeriesCard]);
+  }, [editId, seriesIsActive, financialCommand, tSeriesCard, t, router]);
 
   const handleDeleteSeries = useCallback(async () => {
     if (!editId) return;
-    const result = await withDeadline(deleteRecurringSeriesAction(editId));
+    const result = await withDeadline(
+      financialCommand('deleteRecurringSeriesAction', [editId], (operationId, args) =>
+        deleteRecurringSeriesAction(...args, operationId)
+      )
+    );
     if (result.error) {
       toast({ title: t('toast.errorTitle'), description: result.error, variant: 'destructive' });
       throw new Error(result.error);
@@ -289,7 +308,7 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
       variant: 'success',
     });
     router.refresh();
-  }, [editId, router, t, tSeriesCard]);
+  }, [editId, financialCommand, router, t, tSeriesCard]);
 
   const deleteDialogDescription =
     resetValues?.description.trim() || tDialogs('deleteRecurring.fallbackDescription');

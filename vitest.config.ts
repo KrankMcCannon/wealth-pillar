@@ -12,6 +12,7 @@ export default defineConfig({
   plugins: [react()],
   resolve: { alias: { '@': path.resolve(import.meta.dirname, './src') } },
   test: {
+    env: { DB_DURABLE_OPERATIONS: 'false', DB_RELATIONAL_READS: 'false' },
     pool: 'threads',
     // Preserve per-file isolation; only browser-dependent suites pay for jsdom.
     projects: [

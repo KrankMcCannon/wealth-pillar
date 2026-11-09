@@ -1,4 +1,5 @@
-import type { Account, Budget, BudgetPeriod, Transaction } from '@/lib/types';
+import type { LedgerEntry as Transaction } from '@/server/ledger/aggregate';
+import type { Account, Budget, BudgetPeriod } from '@/lib/types';
 import { toDateTime } from '@/lib/utils/date-utils';
 import { withBudgetPeriodTransaction } from './budget-period-transaction';
 import type { DbExecutor } from '@/server/repositories/db-executor';

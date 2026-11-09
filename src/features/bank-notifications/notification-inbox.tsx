@@ -1,5 +1,7 @@
 'use client';
 
+import { useFinancialCommand } from '@/hooks/use-financial-command';
+
 import { useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useCurrency } from '@/providers/currency-provider';
@@ -152,17 +154,25 @@ function NotificationRow({
   busy: boolean;
   perform: (action: () => Promise<{ error: string | null }>) => Promise<void>;
 }) {
+  const financialCommand = useFinancialCommand();
+
   const { format: formatCurrency } = useCurrency();
   const t = useTranslations('BankNotifications');
   const categories = useCategories();
   const [category, setCategory] = useState(event.category ?? '');
   const [completing, setCompleting] = useState(false);
   const review = async (decision: 'import' | 'ignore') => {
-    const result = await reviewBankNotificationAction({
-      id: event.id,
-      decision,
-      ...(decision === 'import' ? { category } : {}),
-    });
+    const result = await financialCommand(
+      'reviewBankNotificationAction',
+      [
+        {
+          id: event.id,
+          decision,
+          ...(decision === 'import' ? { category } : {}),
+        },
+      ],
+      (operationId, args) => reviewBankNotificationAction(...args, operationId)
+    );
     if (result.data)
       useReferenceDataStore
         .getState()

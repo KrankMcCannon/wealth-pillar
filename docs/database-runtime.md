@@ -1,103 +1,83 @@
 # Database runtime: Postgres.js 4.0
 
-`postgres` is pinned to **4.0.0** (the JavaScript driver, not the PostgreSQL
-server). Drizzle uses the shared `createPostgresClient` factory; the budget
-snapshot backfill uses the same defaults. No driver internals are patched.
+The driver remains pinned to 4.0.0; Drizzle is not upgraded. Runtime persistence
+uses the process-wide client in `src/server/db/drizzle.ts`.
 
-## SQL compatibility
+## Connection contract
 
-Keep server-side parameter inference (`infer: false`) and unnamed statements
-(`prepare: false`). Drizzle serializes column values; raw SQL must provide casts
-where PostgreSQL cannot determine the parameter type. UUID identifiers, numeric
-balance deltas, RPC arguments and advisory-lock inputs have explicit SQL types.
-UUID overlap uses Drizzle's `arrayOverlaps` column encoder instead of interpolating
-a JavaScript array as a SQL list. Empty budget snapshots remain JSON arrays.
-Financial dates remain strings and decimal amounts remain exact database decimals.
+- `DATABASE_URL`: the provider-supplied **direct PostgreSQL** runtime endpoint.
+- `DATABASE_ADMIN_URL`: separate administrative credentials for Drizzle tooling and
+  the closed-period snapshot maintenance script. Never expose either variable to clients.
+- `DIRECT_URL` is not consulted. No code rewrites credentials, hosts or ports.
+- Supabase pooler hosts and port 6543 are rejected before connecting, including
+  session poolers on port 5432. Remote clients default to certificate-verified TLS.
+  Loopback test databases may use plaintext. TLS must be verified from Netlify too.
 
-## Bounded waits
+This is a deployment prerequisite: an existing pooler URL must be replaced with
+the actual provider-supplied direct URL before releasing this client. Changing the
+code does not configure Netlify, enable IPv4, purchase add-ons or move functions.
 
-Each server instance has at most three connections. Connection establishment and
-pool queue waits are limited to five seconds; idle connections close after twenty
-seconds and connections recycle after five minutes. `max_pipeline: 1` limits
-concurrent exchanges but is **not** a workaround for every Supavisor protocol bug.
+Initial per-process profile: `max: 3`, `max_pipeline: 8`, `infer: false`,
+`queue_timeout: 2`, `connect_timeout: 5`, `idle_timeout: 20`, `max_lifetime: 300`
+(seconds). Queries remain unnamed by default (`prepare: false`); stable prepared
+Drizzle queries require separate measurement before adoption. PostgreSQL session
+settings use milliseconds: statement 10,000, lock 5,000, idle transaction 15,000,
+and timezone UTC. A total transaction/transport deadline and coordinated pool
+replacement are not yet implemented. These settings are limits, not certification.
 
-For direct PostgreSQL or session pooling, connection defaults set UTC,
-`statement_timeout = 10000`, `lock_timeout = 5000` and
-`idle_in_transaction_session_timeout = 15000` (milliseconds). These are statement
-and lock limits, not a total transaction deadline. Caller overrides are supported
-for isolated tests and maintenance jobs with deliberately different requirements.
+Before activation verify the Netlify plan/region (`fra`), direct endpoint network
+reachability and certificate chain, IPv6 or the required IPv4 add-on, runtime role
+permissions and an aggregate connection budget. A reviewed administrative change
+may set `ALTER ROLE pool_user CONNECTION LIMIT 30`; this repository does not apply
+that change automatically. Never provision this limit using runtime credentials.
 
-Supabase transaction pooling on port 6543 does not support session settings.
-The factory omits these GUCs on that port; it cannot promise server cancellation
-there. Custom transaction-pooler endpoints must likewise supply appropriate
-server/role settings. Configure defaults for the dedicated runtime role through
-an administrative connection, then recycle the pooler's backend connections and
-verify the effective settings. A reviewed deployment change could use:
+## Precision and recovery
 
-```sql
-ALTER ROLE pool_user SET statement_timeout = '10s';
-ALTER ROLE pool_user SET lock_timeout = '5s';
-ALTER ROLE pool_user SET idle_in_transaction_session_timeout = '15s';
-ALTER ROLE pool_user SET timezone = 'UTC';
-```
+Ledger balance mutations parse persisted EUR decimals to bigint cents, accumulate
+exact deltas and serialize decimal strings into numeric SQL parameters. Invalid
+values or fractional cents fail instead of becoming zero. Account recalculation
+uses a complete SQL aggregate after locking the account row, at READ COMMITTED.
+Presentation types and investment calculations still have number-based paths;
+this is not a completed migration of all financial arithmetic.
 
-These statements are **not automatically applied by the application or this PR**.
-Check the effective settings through the actual runtime connection with
-`SHOW statement_timeout`, `SHOW lock_timeout`, and
-`SHOW idle_in_transaction_session_timeout`; never infer them from client options.
+`readWithRetry` is only for autonomous reads: at most one additional attempt with
+100–200ms jitter for transient connection/transport failures. It does not retry
+queue saturation, statement cancellation/timeouts, writes or active transactions.
+Callers may provide an epoch-millisecond deadline; no retry starts if fewer than
+five seconds plus backoff remain. An omitted deadline does not establish a global
+request deadline. UI timeouts do not prove a write failed. Persistent operation
+identity and authenticated recovery after an uncertain commit remain outstanding.
 
-Forms separately release loading state on error or timeout and preserve drafts.
-A UI deadline does not undo a write that already reached the server. Shared entity
-forms keep optimistic mutations pending until the real action settles, apply late
-results, and refresh authoritative data. In-flight ownership also blocks another
-submission of that entity type in the same tab across modal remounts. This is not
-persistent idempotency across tabs or a full reload. No mutation is retried
-automatically. Standalone ledger/account/catalog reads have one additional attempt
-for transient connection/queue failures or a server statement timeout; queries
-inside an existing transaction and permanent errors are never retried.
+## Opt-in metrics
 
-## Hosted pooler incident and deployment verification
+Set `DB_TELEMETRY_ENABLED=true` to subscribe once per process to native Postgres.js
+query, connection, transaction and pool diagnostics. The sink emits JSON with an
+explicit scalar allowlist: query duration, pool wait, round trip, returned row
+count, SQLSTATE/driver code, connection/transaction duration and pool occupancy.
+It excludes SQL text, parameters, result values, hosts, database/user names and
+error messages. Sink failures cannot change a financial result.
 
-A timeout tagged `PARSE` with the backend waiting on `ClientRead`, rather than a
-lock, is consistent with a stalled protocol exchange. Supabase issue
-[#50358](https://github.com/supabase/supabase/issues/50358) reports this signature
-with Postgres.js 3.x too. This is evidence of a possible pooler fault, not proof
-that the affected hosted instance has a particular Supavisor version.
+Dashboard operations currently attach a generated correlation id and operation
+summary (query count, sum of query durations and wall time). The sum can exceed
+wall time for parallel queries. Round trip includes network/protocol time and is
+not PostgreSQL execution time. Environment/release come from Netlify `CONTEXT`
+and `COMMIT_REF`. Full action/request propagation, cache hit/miss, transformation
+and payload-byte metrics are not yet covered.
 
-If it persists, verify the Supavisor fixes with the provider or use the **session
-pooler** connection string supplied by the Supabase dashboard for `DATABASE_URL`.
-Do not construct a new endpoint by blindly replacing its port. Session pooling
-holds backend connections longer: account for three connections per warm
-application instance and the project's connection budget before switching.
+## Verification and remaining rollout gates
 
-No production connection string is changed here. Before deploying, verify the
-chosen endpoint, role timeouts, concurrent page loads and a transaction save in
-an isolated preview. Local tests use direct PostgreSQL and cannot reproduce or
-certify the hosted pooler transport. Authentication-dependent browser flows must
-also be checked with a test Clerk account.
+Use `tests/integration/README.md` for the loopback-only `wealth_pillar_test` suite.
+Current integration fixtures still include reduced tables: they do not certify
+empty-database reconstruction from real migrations. The historical `0000` file is
+a marker, not a full baseline. Do not run generic migrations on production before
+catalog equivalence and journal adoption have been implemented and reviewed.
 
-References: [Postgres.js 4.0](https://github.com/porsager/postgres/blob/v4.0.0/README.md),
-[Supabase timeouts](https://supabase.com/docs/guides/database/postgres/timeouts).
+Local tests do not certify serverless networking or latency. The complete
+consolidation still requires a reproducible baseline/adoption migrator, relational
+association backfills and application adoption, persistent idempotency, bounded
+Dashboard/list queries, aggregate-specific domain types, cache consolidation,
+measured FK/index work, fault injection, synthetic benchmarks and authenticated
+E2E/Preview validation. No capacity or p95 target is claimed by these changes.
 
-## Complete Postgres.js 4 flow coverage
-
-`pnpm run test:postgres4` runs all database integration suites against the isolated
-loopback database `wealth_pillar_test`. It uses the pinned Postgres.js 4 driver and
-the application's Drizzle repositories/use cases. No Clerk or Supabase credentials
-are required. CI uses a disposable PostgreSQL 17 service; dependency/driver changes
-select the full integration suite through the existing test planner.
-
-The continuous financial-flow regression in `review-consistency.test.ts` invokes
-real Server Actions for budget/period creation and transaction create/update/delete,
-reloads the ledger through the page use case, checks report totals, starts the next
-period and verifies the stored snapshot and authoritative balances/revisions.
-Only Clerk session lookup, translations and Next cache APIs are replaced by test
-adapters; financial logic and database queries remain real. The other integration
-suites cover imports/deduplication, transfers, concurrent mutations, rollback,
-authorization and date/decimal/JSON compatibility. Chromium smoke adds browser
-coverage with the real development authentication flow.
-
-This coverage does not require a separate hosted Supabase project. Testing the
-provider's Supavisor transport would be a different infrastructure check, not a
-prerequisite for validating application flows with Postgres.js 4. No hosted-pooler
-workflow or test-environment provisioning is included in this change.
+References: [Postgres.js 4 tracing](https://github.com/porsager/postgres/blob/v4.0.0/README.md#tracing),
+[Supabase direct connections](https://supabase.com/docs/guides/database/connecting-to-postgres).

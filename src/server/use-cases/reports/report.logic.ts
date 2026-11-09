@@ -1,5 +1,7 @@
+import { moneyToMinorUnits, minorUnitsToPresentation } from '@/lib/utils/exact-money';
+import type { LedgerEntry as Transaction } from '@/server/ledger/aggregate';
 import { financialDateKey } from '@/lib/utils/financial-date';
-import type { Account, Category, Transaction } from '@/lib/types';
+import type { Account, Category } from '@/lib/types';
 import { resolveAccountLiquidity } from '@/lib/utils/account-classification';
 import type { NetSavingsResult } from '@/server/ledger';
 import {
@@ -97,7 +99,7 @@ export function computeCategoryStats(
     const impact = computeTransactionImpact(tx, accountMap);
     if (userId === undefined) {
       if (tx.type !== 'expense') continue;
-      addExpense(tx, tx.amount);
+      addExpense(tx, minorUnitsToPresentation(moneyToMinorUnits(tx.amount)));
       continue;
     }
     for (const leg of impact.cashLegs) {

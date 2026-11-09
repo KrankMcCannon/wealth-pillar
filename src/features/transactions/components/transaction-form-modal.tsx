@@ -1,5 +1,7 @@
 'use client';
 
+import { useFinancialCommand } from '@/hooks/use-financial-command';
+
 import { withDeadline } from '@/lib/utils/with-deadline';
 
 import type { TransactionMutationResult } from '@/lib/types/financial-mutation';
@@ -150,6 +152,8 @@ function TransactionFormModalBody({
 }
 
 function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionFormModalProps>) {
+  const financialCommand = useFinancialCommand();
+
   const router = useRouter();
   const t = useTranslations('Transactions.FormModal');
   const tPage = useTranslations('TransactionsContent');
@@ -289,13 +293,14 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
     TransactionMutationHandle
   >({
     submissionKey: 'transaction',
+    operationKinds: { create: 'createTransactionAction', update: 'updateTransactionAction' },
     refreshAfterUncertain: () => router.refresh(),
     isEditMode,
     editId,
     onClose: handleClose,
     buildPayload,
-    createAction: (payload) => createTransactionAction(payload),
-    updateAction: (id, payload) => updateTransactionAction(id, payload),
+    createAction: (payload, operationId) => createTransactionAction(payload, operationId),
+    updateAction: (id, payload, operationId) => updateTransactionAction(id, payload, operationId),
     applyCreateOptimistic: (payload) => {
       const tempId = getTempId('temp-tx');
       const optimistic = buildOptimisticTransaction(payload, tempId);
@@ -373,7 +378,11 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
     beginBalanceMutation(balanceId, Object.fromEntries(getTransactionBalanceDeltas(original, -1)));
     let result;
     try {
-      result = await withDeadline(deleteTransactionAction(editId));
+      result = await withDeadline(
+        financialCommand('deleteTransactionAction', [editId], (operationId, args) =>
+          deleteTransactionAction(...args, operationId)
+        )
+      );
     } catch (error) {
       rollbackDeleteOptimisticStore(editId);
       finishBalanceMutation(balanceId);
@@ -392,16 +401,17 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
     finishBalanceMutation(balanceId, result.data ?? undefined);
     commitDeleteOptimisticStore(editId);
   }, [
-    applyDeleteOptimisticStore,
-    commitDeleteOptimisticStore,
     editId,
-    rollbackDeleteOptimisticStore,
     seedTransaction,
+    applyDeleteOptimisticStore,
     beginBalanceMutation,
     finishBalanceMutation,
-    t,
-    tPage,
+    commitDeleteOptimisticStore,
     toast,
+    tPage,
+    t,
+    financialCommand,
+    rollbackDeleteOptimisticStore,
   ]);
 
   return (

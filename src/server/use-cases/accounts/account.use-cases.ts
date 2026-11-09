@@ -1,3 +1,4 @@
+import { financialTransaction } from '@/server/repositories/db-executor';
 import { serialize } from '@/lib/utils/serializer';
 import { cached } from '@/lib/cache';
 import { cacheOptions } from '@/lib/cache/config';
@@ -9,12 +10,8 @@ import {
   validateNonEmptyArray,
 } from '@/lib/utils/validation-utils';
 import { invalidateAccountCaches, invalidateTransactionCaches } from '@/lib/utils/cache-utils';
-import { db } from '@/server/db/drizzle';
 import { TransactionsRepository } from '@/server/repositories/transactions.repository';
-import {
-  computeBalanceDeltas,
-  sumAccountBalanceFromRows,
-} from '@/server/use-cases/transactions/transaction-balance-delta.core';
+import { computeExactBalanceDeltas } from '@/server/use-cases/transactions/transaction-balance-delta.core';
 import type { Account, AccountLiquidity } from '@/lib/types';
 import { defaultLiquidityForType } from '@/lib/utils/account-classification';
 
@@ -160,7 +157,7 @@ export const updateAccountUseCase = async (
 export const recalculateAccountBalanceUseCase = async (accountId: string): Promise<Account> => {
   validateId(accountId, 'Account ID');
 
-  const account = await db.transaction(
+  const account = await financialTransaction(
     async (tx) => {
       // Balance deltas UPDATE this same row. Lock before reading the ledger, using
       // READ COMMITTED so a writer that committed while we waited is included.
@@ -168,13 +165,8 @@ export const recalculateAccountBalanceUseCase = async (accountId: string): Promi
       if (!(await AccountsRepository.findByIdForUpdate(accountId, tx))) {
         throw new Error('Account not found');
       }
-      const rows = await TransactionsRepository.getByAccount(accountId, tx);
-      const balance = sumAccountBalanceFromRows(accountId, rows);
-      const updated = await AccountsRepository.update(
-        accountId,
-        { balance: balance.toFixed(2) },
-        tx
-      );
+      const balance = await TransactionsRepository.sumBalanceByAccount(accountId, tx);
+      const updated = await AccountsRepository.update(accountId, { balance }, tx);
       if (!updated) throw new Error('Failed to update account');
       return updated;
     },
@@ -193,16 +185,16 @@ export const recalculateAccountBalanceUseCase = async (accountId: string): Promi
 export const deleteAccountUseCase = async (accountId: string): Promise<boolean> => {
   validateId(accountId, 'Account ID');
 
-  const { account, removed } = await db.transaction(async (tx) => {
+  const { account, removed } = await financialTransaction(async (tx) => {
     const account = await AccountsRepository.findById(accountId, tx);
     if (!account) throw new Error('Account not found');
 
     // RETURNING gives the exact rows removed, so concurrent deletes cannot reverse them twice.
     const removed = await TransactionsRepository.deleteByAccount(accountId, tx);
-    const deltas = new Map<string, number>();
+    const deltas = new Map<string, bigint>();
     for (const row of removed) {
-      for (const [id, delta] of computeBalanceDeltas(row, -1)) {
-        if (id !== accountId) deltas.set(id, (deltas.get(id) ?? 0) + delta);
+      for (const [id, delta] of computeExactBalanceDeltas(row, -1)) {
+        if (id !== accountId) deltas.set(id, (deltas.get(id) ?? BigInt(0)) + delta);
       }
     }
     for (const [id, delta] of [...deltas].sort(([a], [b]) => a.localeCompare(b))) {
