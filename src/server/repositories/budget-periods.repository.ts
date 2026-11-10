@@ -60,8 +60,8 @@ export class BudgetPeriodsRepository {
     return serialize(result) as unknown as BudgetPeriod[];
   }
 
-  static async create(data: InsertBudgetPeriod, executor?: DbExecutor): Promise<BudgetPeriod> {
-    const dbConn = resolveDb(executor);
+  static async create(data: InsertBudgetPeriod, executor: DbExecutor): Promise<BudgetPeriod> {
+    const dbConn = executor;
     const result = await dbConn.insert(budgetPeriods).values(data).returning();
     return serialize(result[0]) as unknown as BudgetPeriod;
   }

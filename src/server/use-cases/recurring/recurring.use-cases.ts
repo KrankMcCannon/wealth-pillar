@@ -12,6 +12,7 @@ import { serialize } from '@/lib/utils/serializer';
 import { invalidateRecurringCaches } from '@/lib/utils/cache-utils';
 import type { RecurringTransactionSeries } from '@/lib/types';
 import type { Database } from '@/lib/types/database.types';
+import { financialTransaction } from '@/server/repositories/db-executor';
 
 type RecurringInsert = Database['public']['Tables']['recurring_transactions']['Insert'];
 type RecurringUpdate = Database['public']['Tables']['recurring_transactions']['Update'];
@@ -79,10 +80,15 @@ export async function getActiveSeriesByUserUseCase(
 export async function createSeriesUseCase(
   data: RecurringInsert
 ): Promise<RecurringTransactionSeries> {
-  const series = await RecurringRepository.create({
-    ...data,
-    amount: data.amount.toString(),
-  } as typeof recurringTransactions.$inferInsert);
+  const series = await financialTransaction((tx) =>
+    RecurringRepository.create(
+      {
+        ...data,
+        amount: data.amount.toString(),
+      } as typeof recurringTransactions.$inferInsert,
+      tx
+    )
+  );
   if (!series) throw new Error('Failed to create series');
 
   let groupId: string | undefined;
@@ -112,10 +118,13 @@ export async function updateSeriesUseCase(
     amount: data.amount !== undefined ? data.amount.toString() : undefined,
   } as Partial<typeof recurringTransactions.$inferInsert>;
 
-  const previous = await RecurringRepository.findById(id, scope);
-  if (!previous) throw new Error('Recurring series not found');
-  const series = await RecurringRepository.update(id, updatePayload, scope);
-  if (!series) throw new Error('Failed to update series');
+  const { previous, series } = await financialTransaction(async (tx) => {
+    const previous = await RecurringRepository.findById(id, scope, tx);
+    if (!previous) throw new Error('Recurring series not found');
+    const series = await RecurringRepository.update(id, updatePayload, tx, scope);
+    if (!series) throw new Error('Failed to update series');
+    return { previous, series };
+  });
 
   let groupId: string | undefined;
   if (series.user_ids && series.user_ids.length > 0 && typeof series.user_ids[0] === 'string') {
@@ -136,10 +145,14 @@ export async function updateSeriesUseCase(
 }
 
 export async function deleteSeriesUseCase(id: string, scope?: RecurringScope): Promise<void> {
-  const series = await RecurringRepository.findById(id, scope);
+  const series = await financialTransaction(async (tx) => {
+    const existing = await RecurringRepository.findById(id, scope, tx);
+    if (!existing) return null;
+    if (!(await RecurringRepository.delete(id, tx, scope)))
+      throw new Error('Recurring series not found');
+    return existing;
+  });
   if (!series) return;
-
-  if (!(await RecurringRepository.delete(id, scope))) throw new Error('Recurring series not found');
 
   let groupId: string | undefined;
   if (series.user_ids && series.user_ids.length > 0 && typeof series.user_ids[0] === 'string') {

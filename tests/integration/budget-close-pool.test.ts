@@ -51,12 +51,15 @@ afterAll(async () => {
 it.each([null, groupId])(
   'closes with one available connection, including legacy group %s',
   async (periodGroup) => {
-    const period = await BudgetPeriodsRepository.create({
-      user_id: userId,
-      group_id: periodGroup,
-      start_date: '2026-10-01',
-      is_active: true,
-    });
+    const period = await BudgetPeriodsRepository.create(
+      {
+        user_id: userId,
+        group_id: periodGroup,
+        start_date: '2026-10-01',
+        is_active: true,
+      },
+      db
+    );
     const held = await Promise.all([db.$client.reserve(), db.$client.reserve()]);
     try {
       const result = await closeBudgetPeriodUseCase(userId, period.id, '2026-10-31');
@@ -72,12 +75,15 @@ it.each([null, groupId])(
 it('archives a legacy budget without deleting its unavailable category references', async () => {
   // This budget predates the reference guard, as in the observed production state.
   await db.execute(sql`UPDATE budgets SET categories='["food","legacy-category"]'`);
-  const active = await BudgetPeriodsRepository.create({
-    user_id: userId,
-    group_id: groupId,
-    start_date: '2026-11-01',
-    is_active: true,
-  });
+  const active = await BudgetPeriodsRepository.create(
+    {
+      user_id: userId,
+      group_id: groupId,
+      start_date: '2026-11-01',
+      is_active: true,
+    },
+    db
+  );
   await expect(closeBudgetPeriodUseCase(userId, active.id, '2026-11-02')).rejects.toThrow();
   expect((await BudgetPeriodsRepository.findById(active.id))?.is_active).toBe(true);
   await expect(createBudgetPeriodUseCase(userId, '2026-11-03')).rejects.toThrow();
@@ -104,39 +110,51 @@ it('archives a legacy budget without deleting its unavailable category reference
     )
   );
   await expect(
-    BudgetPeriodsRepository.create({
-      user_id: userId,
-      group_id: groupId,
-      start_date: '2026-11-03',
-      is_active: false,
-      budgets_snapshot: [{ id: 'invented', categories: ['invented-category'] }],
-    })
+    BudgetPeriodsRepository.create(
+      {
+        user_id: userId,
+        group_id: groupId,
+        start_date: '2026-11-03',
+        is_active: false,
+        budgets_snapshot: [{ id: 'invented', categories: ['invented-category'] }],
+      },
+      db
+    )
   ).rejects.toThrow();
   await expect(
-    BudgetPeriodsRepository.create({
-      user_id: '33333333-3333-4333-8333-333333333333',
-      group_id: groupId,
-      start_date: '2026-11-03',
-      is_active: false,
-      budgets_snapshot: closed?.budgets_snapshot,
-    })
+    BudgetPeriodsRepository.create(
+      {
+        user_id: '33333333-3333-4333-8333-333333333333',
+        group_id: groupId,
+        start_date: '2026-11-03',
+        is_active: false,
+        budgets_snapshot: closed?.budgets_snapshot,
+      },
+      db
+    )
   ).rejects.toThrow();
   await expect(
-    BudgetPeriodsRepository.create({
+    BudgetPeriodsRepository.create(
+      {
+        user_id: userId,
+        group_id: '44444444-4444-4444-8444-444444444444',
+        start_date: '2026-11-03',
+        is_active: false,
+        budgets_snapshot: closed?.budgets_snapshot,
+      },
+      db
+    )
+  ).rejects.toThrow();
+  const legacyNullGroup = await BudgetPeriodsRepository.create(
+    {
       user_id: userId,
-      group_id: '44444444-4444-4444-8444-444444444444',
-      start_date: '2026-11-03',
+      group_id: null,
+      start_date: '2026-09-01',
       is_active: false,
       budgets_snapshot: closed?.budgets_snapshot,
-    })
-  ).rejects.toThrow();
-  const legacyNullGroup = await BudgetPeriodsRepository.create({
-    user_id: userId,
-    group_id: null,
-    start_date: '2026-09-01',
-    is_active: false,
-    budgets_snapshot: closed?.budgets_snapshot,
-  });
+    },
+    db
+  );
   expect(legacyNullGroup.budgets_snapshot).toEqual(closed?.budgets_snapshot);
   await db.execute(
     sql.raw(
