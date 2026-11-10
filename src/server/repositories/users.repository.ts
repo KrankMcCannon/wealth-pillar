@@ -1,16 +1,8 @@
 import { resolveDb, type DbExecutor } from './db-executor';
 import { users } from '@/server/db/schema';
-import { eq, inArray, placeholder } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 import { transactionContext } from '@/server/db/transaction-context';
 import { readWithRetry } from '@/server/db/read-with-retry';
-
-const clerkLookup = () =>
-  resolveDb()
-    .select()
-    .from(users)
-    .where(eq(users.clerk_id, placeholder('clerkId')))
-    .prepare('wealth_pillar_user_by_clerk');
-let preparedClerkLookup: ReturnType<typeof clerkLookup> | undefined;
 
 export class UsersRepository {
   static async findById(id: string, executor?: DbExecutor) {
@@ -21,10 +13,9 @@ export class UsersRepository {
   static async findByClerkId(clerkId: string) {
     const records = transactionContext.getStore()
       ? await resolveDb().select().from(users).where(eq(users.clerk_id, clerkId))
-      : await readWithRetry(() => {
-          preparedClerkLookup ??= clerkLookup();
-          return preparedClerkLookup.execute({ clerkId });
-        });
+      : await readWithRetry(() =>
+          resolveDb().select().from(users).where(eq(users.clerk_id, clerkId))
+        );
     return records.length > 0 ? records[0] : null;
   }
 

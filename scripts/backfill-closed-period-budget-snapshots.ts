@@ -12,6 +12,7 @@
 import { config } from 'dotenv';
 import type { Sql } from 'postgres';
 import { createPostgresClient } from '../src/server/db/postgres-client';
+import { validateDatabaseUrl } from '../src/server/db/connection-config';
 
 config({ path: '.env' });
 
@@ -52,6 +53,7 @@ function toSnapshotItem(row: Record<string, unknown>): JSONValue | null {
 async function main(): Promise<void> {
   const url = process.env.DATABASE_ADMIN_URL;
   if (!url) throw new Error('DATABASE_ADMIN_URL is not set');
+  validateDatabaseUrl(url, 'DATABASE_ADMIN_URL', true);
 
   const sql = createPostgresClient(url, { max: 1 });
   try {

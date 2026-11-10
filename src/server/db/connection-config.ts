@@ -1,5 +1,5 @@
 /** Validate without ever including credentials in errors. No endpoint rewriting. */
-export function validateDatabaseUrl(value: string, name = 'DATABASE_URL'): URL {
+export function validateDatabaseUrl(value: string, name = 'DATABASE_URL', directOnly = false): URL {
   let url: URL;
   try {
     url = new URL(value);
@@ -14,7 +14,7 @@ export function validateDatabaseUrl(value: string, name = 'DATABASE_URL'): URL {
     throw new Error(`${name} must identify a PostgreSQL database`);
   }
   if (/YOUR-PASSWORD/i.test(value)) throw new Error(`${name} contains a password placeholder`);
-  if (url.port === '6543' || /(^|\.)pooler\.supabase\.com$/i.test(url.hostname)) {
+  if (directOnly && (url.port === '6543' || /(^|\.)pooler\.supabase\.com$/i.test(url.hostname))) {
     throw new Error(`${name} must use the provider-supplied direct endpoint, not a pooler`);
   }
   if (url.searchParams.get('host') || url.searchParams.get('port')) {

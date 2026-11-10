@@ -1,10 +1,12 @@
 import { readFileSync } from 'node:fs';
 import { config } from 'dotenv';
 import { createPostgresClient } from '../../src/server/db/postgres-client';
+import { validateDatabaseUrl } from '../../src/server/db/connection-config';
 
 config({ path: '.env', quiet: true });
 const url = process.env.DATABASE_ADMIN_URL;
 if (!url) throw new Error('DATABASE_ADMIN_URL is required');
+validateDatabaseUrl(url, 'DATABASE_ADMIN_URL', true);
 const specs = JSON.parse(readFileSync('src/server/db/baseline/indexes.json', 'utf8')) as {
   name: string;
   table: string;

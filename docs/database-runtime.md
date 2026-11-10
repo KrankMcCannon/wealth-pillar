@@ -1,15 +1,16 @@
 # Database runtime and release gates
 
-Runtime uses the direct PostgreSQL endpoint in `DATABASE_URL`; administrative tools
-use `DATABASE_ADMIN_URL`. Neither value belongs in client bundles or logs. Pooler
-hosts and port 6543 are rejected. Remote connections require certificate-verified
+Runtime accepts the existing Supabase pooler or a direct endpoint in `DATABASE_URL`;
+administrative migration tools require a direct `DATABASE_ADMIN_URL`. Neither value
+belongs in client bundles or logs. Remote connections require certificate-verified
 TLS; loopback fixtures can use plaintext. `DIRECT_URL` is not read. Postgres.js is
 pinned to 4.0.0 and Drizzle remains at the installed version.
 
-Each warm process reuses a pool with at most three connections and pipeline depth
-eight. Connection, queue, statement, lock and transaction timeouts are separate.
-The runtime defaults are 5 s, 2 s, 10 s, 5 s and 15 s respectively. The named
-Drizzle lookup by Clerk ID is explicitly prepared; other queries remain unnamed.
+Each warm process reuses a pool with at most three connections. Direct connections
+use pipeline depth eight; transaction poolers on port 6543 use depth one, a 5 s
+queue timeout and no session timeout settings. Direct connections use 5 s, 2 s,
+10 s, 5 s and 15 s for connection, queue, statement, lock and transaction timeouts.
+Queries remain unnamed so they can run through a transaction pooler.
 The transport watchdog is enabled by default (`DB_POOL_RECOVERY_ENABLED=false`
 temporarily disables it): after a
 20 s deadline it retires the affected pool generation once and does not replay a
