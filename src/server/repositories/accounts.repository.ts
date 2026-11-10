@@ -94,8 +94,8 @@ export class AccountsRepository {
     return rows[0] as unknown as Account;
   }
 
-  static async delete(id: string, executor?: DbExecutor): Promise<Account> {
-    const rows = await resolveDb(executor)
+  static async delete(id: string, executor: DbExecutor): Promise<Account> {
+    const rows = await executor
       .delete(accounts)
       .where(eq(accounts.id, id))
       .returning(accountColumns);

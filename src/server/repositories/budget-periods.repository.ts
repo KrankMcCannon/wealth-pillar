@@ -69,9 +69,9 @@ export class BudgetPeriodsRepository {
   static async update(
     id: string,
     data: UpdateBudgetPeriod,
-    executor?: DbExecutor
+    executor: DbExecutor
   ): Promise<BudgetPeriod> {
-    const dbConn = resolveDb(executor);
+    const dbConn = executor;
     const result = await dbConn
       .update(budgetPeriods)
       .set({ ...data, updated_at: new Date() })
@@ -80,8 +80,8 @@ export class BudgetPeriodsRepository {
     return serialize(result[0]) as unknown as BudgetPeriod;
   }
 
-  static async delete(id: string, executor?: DbExecutor): Promise<void> {
-    const dbConn = resolveDb(executor);
+  static async delete(id: string, executor: DbExecutor): Promise<void> {
+    const dbConn = executor;
     await dbConn.delete(budgetPeriods).where(eq(budgetPeriods.id, id));
   }
 }
