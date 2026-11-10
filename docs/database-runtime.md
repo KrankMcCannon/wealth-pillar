@@ -6,6 +6,13 @@ belongs in client bundles or logs. Remote connections require certificate-verifi
 TLS; loopback fixtures can use plaintext. `DIRECT_URL` is not read. Postgres.js is
 pinned to 4.0.0 and Drizzle remains at the installed version.
 
+Supabase pooler and direct database hostnames add the bundled Supabase public root
+CA to Node's bundled public roots, with certificate and hostname verification.
+Other remote hosts use Node's normal trust store. The Supabase root expires on
+26 April 2031; review provider certificate
+rotation and replace it from a verified Supabase source before expiry. Do not trust
+a certificate solely because the server presented it during the same connection.
+
 Each warm process reuses a pool with at most three connections. Direct connections
 use pipeline depth eight; transaction poolers on port 6543 use depth one, a 5 s
 queue timeout and no session timeout settings. Direct connections use 5 s, 2 s,
