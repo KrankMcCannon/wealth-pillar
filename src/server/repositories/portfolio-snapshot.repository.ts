@@ -39,10 +39,10 @@ export class PortfolioSnapshotRepository {
 
   static async upsertMany(
     rows: Array<{ user_id: string; snapshot_date: string; value: string }>,
-    executor?: DbExecutor
+    executor: DbExecutor
   ) {
     for (let index = 0; index < rows.length; index += 500) {
-      await resolveDb(executor)
+      await executor
         .insert(portfolioValueSnapshots)
         .values(rows.slice(index, index + 500))
         .onConflictDoUpdate({

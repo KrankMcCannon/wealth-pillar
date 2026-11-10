@@ -1,5 +1,5 @@
 import { recurringReadColumns, relationalReadsEnabled } from './relational-projections';
-import { resolveDb } from './db-executor';
+import { resolveDb, type DbExecutor } from './db-executor';
 import { recurringTransactions, accounts, transactions } from '@/server/db/schema';
 import { eq, arrayOverlaps, arrayContains, and, sql, exists } from 'drizzle-orm';
 
@@ -8,12 +8,12 @@ export interface RecurringScope {
   userId?: string;
 }
 
-function seriesConditions(id: string, scope?: RecurringScope) {
+function seriesConditions(id: string, scope?: RecurringScope, executor?: DbExecutor) {
   return and(
     eq(recurringTransactions.id, id),
     scope
       ? exists(
-          resolveDb()
+          resolveDb(executor)
             .select({ id: accounts.id })
             .from(accounts)
             .where(
@@ -30,11 +30,11 @@ function seriesConditions(id: string, scope?: RecurringScope) {
 
 // Aggregate occurrences once for the selected query rather than a correlated
 // aggregate for every recurring row. The planner may push the series filter down.
-function occurrenceDates() {
-  return resolveDb()
+function occurrenceDates(executor?: DbExecutor) {
+  return resolveDb(executor)
     .$with('recorded_occurrences')
     .as(
-      resolveDb()
+      resolveDb(executor)
         .select({
           series: transactions.recurring_series_id,
           dates: sql<string[]>`array_agg(distinct ${transactions.date}::text)`.as('dates'),
@@ -46,9 +46,9 @@ function occurrenceDates() {
 const recordedDates = sql<string[]>`coalesce(recorded_occurrences.dates, ARRAY[]::text[])`;
 
 export class RecurringRepository {
-  static async findById(id: string, scope?: RecurringScope) {
-    const recorded = occurrenceDates();
-    const results = await resolveDb()
+  static async findById(id: string, scope?: RecurringScope, executor?: DbExecutor) {
+    const recorded = occurrenceDates(executor);
+    const results = await resolveDb(executor)
       .with(recorded)
       .select({
         recurring: recurringReadColumns(),
@@ -58,7 +58,7 @@ export class RecurringRepository {
       .from(recurringTransactions)
       .leftJoin(recorded, eq(recorded.series, recurringTransactions.id))
       .leftJoin(accounts, eq(recurringTransactions.account_id, accounts.id))
-      .where(seriesConditions(id, scope));
+      .where(seriesConditions(id, scope, executor));
 
     if (results.length === 0) return null;
 
@@ -106,28 +106,29 @@ export class RecurringRepository {
       );
   }
 
-  static async create(data: typeof recurringTransactions.$inferInsert) {
-    const results = await resolveDb().insert(recurringTransactions).values(data).returning();
+  static async create(data: typeof recurringTransactions.$inferInsert, executor: DbExecutor) {
+    const results = await executor.insert(recurringTransactions).values(data).returning();
     return results.length > 0 ? results[0] : null;
   }
 
   static async update(
     id: string,
     data: Partial<typeof recurringTransactions.$inferInsert>,
+    executor: DbExecutor,
     scope?: RecurringScope
   ) {
-    const results = await resolveDb()
+    const results = await executor
       .update(recurringTransactions)
       .set({ ...data, updated_at: new Date() })
-      .where(seriesConditions(id, scope))
+      .where(seriesConditions(id, scope, executor))
       .returning();
     return results.length > 0 ? results[0] : null;
   }
 
-  static async delete(id: string, scope?: RecurringScope) {
-    const results = await resolveDb()
+  static async delete(id: string, executor: DbExecutor, scope?: RecurringScope) {
+    const results = await executor
       .delete(recurringTransactions)
-      .where(seriesConditions(id, scope))
+      .where(seriesConditions(id, scope, executor))
       .returning();
     return results.length > 0 ? results[0] : null;
   }

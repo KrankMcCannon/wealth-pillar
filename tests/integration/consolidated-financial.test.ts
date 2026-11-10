@@ -15,6 +15,9 @@ import {
   deleteTransactionAction,
 } from '@/features/transactions/actions/transaction-actions';
 import { AccountsRepository } from '@/server/repositories/accounts.repository';
+import { RecurringRepository } from '@/server/repositories/recurring.repository';
+import { PortfolioSnapshotRepository } from '@/server/repositories/portfolio-snapshot.repository';
+import { updateAccountUseCase } from '@/server/use-cases/accounts/account.use-cases';
 import { BudgetsRepository } from '@/server/repositories/budgets.repository';
 import { financialTransaction } from '@/server/repositories/db-executor';
 import { GroupsRepository } from '@/server/repositories/groups.repository';
@@ -79,6 +82,37 @@ it('rolls back budget mutations with their owning transaction', async () => {
     })
   ).rejects.toThrow('rollback');
   expect(await BudgetsRepository.getById(budget.id)).not.toBeNull();
+});
+
+it('rolls back account, recurring and portfolio writes with their owning transaction', async () => {
+  const seriesId = randomUUID();
+  await expect(
+    financialTransaction(async (tx) => {
+      await updateAccountUseCase(account, { name: 'Uncommitted' });
+      await RecurringRepository.create(
+        {
+          id: seriesId,
+          description: 'Synthetic',
+          amount: '10.00',
+          type: 'expense',
+          category: 'synthetic_food',
+          account_id: account,
+          start_date: '2026-11-01',
+          frequency: 'monthly',
+          user_ids: [actorId],
+        },
+        tx
+      );
+      await PortfolioSnapshotRepository.upsertMany(
+        [{ user_id: actorId, snapshot_date: '2026-11-01', value: '10.00' }],
+        tx
+      );
+      throw new Error('rollback');
+    })
+  ).rejects.toThrow('rollback');
+  expect((await AccountsRepository.findById(account))?.name).toBe('Source');
+  expect(await RecurringRepository.findById(seriesId)).toBeNull();
+  expect(await PortfolioSnapshotRepository.findByUserIds([actorId])).toEqual([]);
 });
 const input = () => ({
   description: 'Synthetic expense',

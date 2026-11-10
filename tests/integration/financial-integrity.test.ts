@@ -135,24 +135,30 @@ beforeEach(async () => {
   vi.stubEnv('CLERK_SECRET_KEY', 'local-integration-test-key');
   vi.mocked(getBudgetsByUserUseCase).mockResolvedValue([foodBudget()]);
   await db.execute(sql`TRUNCATE accounts, transactions, budget_periods, user_preferences`);
-  await AccountsRepository.create({
-    id: a,
-    name: 'A',
-    type: 'payroll',
-    liquidity: 'spendable',
-    user_ids: [userId],
-    group_id: groupId,
-    balance: '800',
-  });
-  await AccountsRepository.create({
-    id: b,
-    name: 'B',
-    type: 'payroll',
-    liquidity: 'spendable',
-    user_ids: [userId],
-    group_id: groupId,
-    balance: '700',
-  });
+  await AccountsRepository.create(
+    {
+      id: a,
+      name: 'A',
+      type: 'payroll',
+      liquidity: 'spendable',
+      user_ids: [userId],
+      group_id: groupId,
+      balance: '800',
+    },
+    db
+  );
+  await AccountsRepository.create(
+    {
+      id: b,
+      name: 'B',
+      type: 'payroll',
+      liquidity: 'spendable',
+      user_ids: [userId],
+      group_id: groupId,
+      balance: '700',
+    },
+    db
+  );
 });
 
 afterEach(() => {
@@ -185,7 +191,7 @@ describe('account deletion against PostgreSQL', () => {
     'reconciles %s transfers and preserves unrelated rows',
     async (direction) => {
       const outgoing = direction === 'outgoing';
-      await AccountsRepository.update(b, { balance: outgoing ? '700' : '300' });
+      await AccountsRepository.update(b, { balance: outgoing ? '700' : '300' }, db);
       const transfer = await TransactionsRepository.create(
         {
           description: 'Transfer',
@@ -268,24 +274,27 @@ describe('historical snapshots against PostgreSQL', () => {
       SELECT 'Historical', 1, 'expense', 'food', DATE '2024-05-10', ${a}::uuid, ${userId}::uuid, ${groupId}::uuid FROM generate_series(1, 6000)
       UNION ALL
       SELECT 'Recent', 10, 'expense', 'food', DATE '2026-05-10', ${a}::uuid, ${userId}::uuid, ${groupId}::uuid FROM generate_series(1, 6000)`);
-    const period = await BudgetPeriodsRepository.create({
-      user_id: userId,
-      group_id: groupId,
-      start_date: '2024-05-01',
-      end_date: '2024-05-31',
-      is_active: false,
-      budgets_snapshot: [
-        {
-          id: 'food-budget',
-          description: 'Food',
-          amount: 10000,
-          type: 'monthly',
-          categories: ['food'],
-          user_id: userId,
-          group_id: groupId,
-        },
-      ],
-    });
+    const period = await BudgetPeriodsRepository.create(
+      {
+        user_id: userId,
+        group_id: groupId,
+        start_date: '2024-05-01',
+        end_date: '2024-05-31',
+        is_active: false,
+        budgets_snapshot: [
+          {
+            id: 'food-budget',
+            description: 'Food',
+            amount: 10000,
+            type: 'monthly',
+            categories: ['food'],
+            user_id: userId,
+            group_id: groupId,
+          },
+        ],
+      },
+      db
+    );
     await recalculateClosedPeriodSnapshotUseCase(userId, period.id);
     const saved = await BudgetPeriodsRepository.findById(period.id);
     expect(Number(saved?.spendable_spent)).toBe(6000);
@@ -294,14 +303,17 @@ describe('historical snapshots against PostgreSQL', () => {
   });
 
   it('does not overwrite a snapshot if ledger loading fails', async () => {
-    const period = await BudgetPeriodsRepository.create({
-      user_id: userId,
-      group_id: groupId,
-      start_date: '2024-05-01',
-      end_date: '2024-05-31',
-      spendable_spent: '42',
-      snapshot_at: new Date('2024-06-01'),
-    });
+    const period = await BudgetPeriodsRepository.create(
+      {
+        user_id: userId,
+        group_id: groupId,
+        start_date: '2024-05-01',
+        end_date: '2024-05-31',
+        spendable_spent: '42',
+        snapshot_at: new Date('2024-06-01'),
+      },
+      db
+    );
     const spy = vi
       .spyOn(TransactionsRepository, 'aggregateByGroup')
       .mockRejectedValueOnce(new Error('unavailable'));
@@ -317,8 +329,8 @@ describe('historical snapshots against PostgreSQL', () => {
 });
 
 async function seedMovement(type: 'expense' | 'transfer') {
-  await AccountsRepository.update(a, { balance: '90' });
-  await AccountsRepository.update(b, { balance: type === 'transfer' ? '510' : '500' });
+  await AccountsRepository.update(a, { balance: '90' }, db);
+  await AccountsRepository.update(b, { balance: type === 'transfer' ? '510' : '500' }, db);
   const row = await TransactionsRepository.create(
     {
       description: 'Movement',
@@ -409,8 +421,8 @@ describe('concurrent financial mutations against PostgreSQL', () => {
       db
     );
     if (!second) throw new Error('Failed to seed transfer');
-    await AccountsRepository.update(a, { balance: '100' });
-    await AccountsRepository.update(b, { balance: '500' });
+    await AccountsRepository.update(a, { balance: '100' }, db);
+    await AccountsRepository.update(b, { balance: '500' }, db);
     await Promise.all([
       updateTransactionUseCase(first.id, { amount: 20 }, { groupId }),
       updateTransactionUseCase(second.id, { amount: 30 }, { groupId }),
@@ -598,43 +610,55 @@ function foodBudget(overrides: Partial<Budget> = {}): Budget {
 }
 
 async function createTimeline() {
-  const previous = await BudgetPeriodsRepository.create({
-    user_id: userId,
-    group_id: groupId,
-    start_date: '2024-04-01',
-    end_date: '2024-04-30',
-    is_active: false,
-    budgets_snapshot: [foodBudget()],
-    snapshot_at: new Date('2024-05-01'),
-  });
-  const current = await BudgetPeriodsRepository.create({
-    user_id: userId,
-    group_id: groupId,
-    start_date: '2024-05-01',
-    end_date: '2024-05-31',
-    is_active: false,
-    budgets_snapshot: [foodBudget()],
-    snapshot_at: new Date('2024-06-01'),
-  });
-  const next = await BudgetPeriodsRepository.create({
-    user_id: userId,
-    group_id: groupId,
-    start_date: '2024-06-01',
-    end_date: null,
-    is_active: true,
-  });
+  const previous = await BudgetPeriodsRepository.create(
+    {
+      user_id: userId,
+      group_id: groupId,
+      start_date: '2024-04-01',
+      end_date: '2024-04-30',
+      is_active: false,
+      budgets_snapshot: [foodBudget()],
+      snapshot_at: new Date('2024-05-01'),
+    },
+    db
+  );
+  const current = await BudgetPeriodsRepository.create(
+    {
+      user_id: userId,
+      group_id: groupId,
+      start_date: '2024-05-01',
+      end_date: '2024-05-31',
+      is_active: false,
+      budgets_snapshot: [foodBudget()],
+      snapshot_at: new Date('2024-06-01'),
+    },
+    db
+  );
+  const next = await BudgetPeriodsRepository.create(
+    {
+      user_id: userId,
+      group_id: groupId,
+      start_date: '2024-06-01',
+      end_date: null,
+      is_active: true,
+    },
+    db
+  );
   return { previous, current, next };
 }
 
 describe('budget period lifecycle and timeline integrity', () => {
   it('refuses a second close without replacing historical budgets or totals', async () => {
-    const active = await BudgetPeriodsRepository.create({
-      user_id: userId,
-      group_id: groupId,
-      start_date: '2024-05-01',
-      end_date: null,
-      is_active: true,
-    });
+    const active = await BudgetPeriodsRepository.create(
+      {
+        user_id: userId,
+        group_id: groupId,
+        start_date: '2024-05-01',
+        end_date: null,
+        is_active: true,
+      },
+      db
+    );
     await closeBudgetPeriodUseCase(userId, active.id, '2024-05-31');
     const before = await BudgetPeriodsRepository.findById(active.id);
     vi.mocked(getBudgetsByUserUseCase).mockResolvedValue([foodBudget({ amount: 999 })]);
@@ -646,13 +670,16 @@ describe('budget period lifecycle and timeline integrity', () => {
   });
 
   it('allows only one of two concurrent closing requests to succeed', async () => {
-    const active = await BudgetPeriodsRepository.create({
-      user_id: userId,
-      group_id: groupId,
-      start_date: '2024-05-01',
-      end_date: null,
-      is_active: true,
-    });
+    const active = await BudgetPeriodsRepository.create(
+      {
+        user_id: userId,
+        group_id: groupId,
+        start_date: '2024-05-01',
+        end_date: null,
+        is_active: true,
+      },
+      db
+    );
     const results = await Promise.allSettled([
       closeBudgetPeriodUseCase(userId, active.id, '2024-05-30'),
       closeBudgetPeriodUseCase(userId, active.id, '2024-05-31'),
@@ -732,13 +759,16 @@ describe('budget period lifecycle and timeline integrity', () => {
       id: userId,
       group_id: groupId,
     } as Awaited<ReturnType<typeof UsersRepository.findById>>);
-    const active = await BudgetPeriodsRepository.create({
-      user_id: userId,
-      group_id: groupId,
-      start_date: '2024-05-01',
-      end_date: null,
-      is_active: true,
-    });
+    const active = await BudgetPeriodsRepository.create(
+      {
+        user_id: userId,
+        group_id: groupId,
+        start_date: '2024-05-01',
+        end_date: null,
+        is_active: true,
+      },
+      db
+    );
     const results = await Promise.allSettled([
       closeBudgetPeriodUseCase(userId, active.id, '2024-05-31'),
       createBudgetPeriodUseCase(userId, '2024-06-01'),
@@ -754,16 +784,19 @@ describe('budget period lifecycle and timeline integrity', () => {
 
 describe('complete period totals independently of report windows', () => {
   it('keeps budget remaining unchanged when only the custom report range changes', async () => {
-    const period = await BudgetPeriodsRepository.create({
-      user_id: userId,
-      group_id: groupId,
-      start_date: '2024-05-01',
-      end_date: '2024-05-24',
-      is_active: false,
-      budgets_snapshot: [foodBudget()],
-      spendable_spent: '0',
-      snapshot_at: new Date('2024-06-01'),
-    });
+    const period = await BudgetPeriodsRepository.create(
+      {
+        user_id: userId,
+        group_id: groupId,
+        start_date: '2024-05-01',
+        end_date: '2024-05-24',
+        is_active: false,
+        budgets_snapshot: [foodBudget()],
+        spendable_spent: '0',
+        snapshot_at: new Date('2024-06-01'),
+      },
+      db
+    );
     for (const [date, amount] of [
       ['2024-05-05', '40'],
       ['2024-05-22', '10'],
@@ -827,14 +860,17 @@ describe('complete period totals independently of report windows', () => {
   });
 
   it('loads the whole period across month boundaries', async () => {
-    const period = await BudgetPeriodsRepository.create({
-      user_id: userId,
-      group_id: groupId,
-      start_date: '2024-04-20',
-      end_date: '2024-05-10',
-      is_active: false,
-      budgets_snapshot: [foodBudget()],
-    });
+    const period = await BudgetPeriodsRepository.create(
+      {
+        user_id: userId,
+        group_id: groupId,
+        start_date: '2024-04-20',
+        end_date: '2024-05-10',
+        is_active: false,
+        budgets_snapshot: [foodBudget()],
+      },
+      db
+    );
     for (const date of ['2024-04-25', '2024-05-05'])
       await TransactionsRepository.create(
         {
@@ -860,14 +896,17 @@ describe('complete period totals independently of report windows', () => {
   });
 
   it('ignores the 5,000-row display limit when calculating a budget period', async () => {
-    const period = await BudgetPeriodsRepository.create({
-      user_id: userId,
-      group_id: groupId,
-      start_date: '2024-05-01',
-      end_date: '2024-05-31',
-      is_active: false,
-      budgets_snapshot: [foodBudget({ amount: 10000 })],
-    });
+    const period = await BudgetPeriodsRepository.create(
+      {
+        user_id: userId,
+        group_id: groupId,
+        start_date: '2024-05-01',
+        end_date: '2024-05-31',
+        is_active: false,
+        budgets_snapshot: [foodBudget({ amount: 10000 })],
+      },
+      db
+    );
     await db.execute(sql`INSERT INTO transactions (description, amount, type, category, date, account_id, user_id, group_id)
       SELECT 'Food', 1, 'expense', 'food', DATE '2024-05-10', ${a}::uuid, ${userId}::uuid, ${groupId}::uuid FROM generate_series(1, 5001)`);
     const window = { start: new Date('2024-05-01'), end: new Date('2024-05-31T23:59:59Z') };
@@ -920,8 +959,8 @@ function gate() {
 }
 
 async function seedRecalculationLedger() {
-  await AccountsRepository.update(a, { balance: '0' });
-  await AccountsRepository.update(b, { balance: '0' });
+  await AccountsRepository.update(a, { balance: '0' }, db);
+  await AccountsRepository.update(b, { balance: '0' }, db);
   for (const accountId of [a, b]) {
     await createTransactionUseCase({
       description: 'Opening ledger income',
