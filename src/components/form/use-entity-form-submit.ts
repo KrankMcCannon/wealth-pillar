@@ -136,7 +136,8 @@ export function useEntityFormSubmit<T extends FieldValues, Payload, Result, Hand
                     durableScope,
                     isEditMode ? operationKinds.update : operationKinds.create,
                     { editId, payload },
-                    send
+                    send,
+                    () => timedOut
                   )
                 : await send();
             if (result.error) {

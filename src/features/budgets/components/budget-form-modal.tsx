@@ -88,6 +88,7 @@ function BudgetFormModal({
   const financialCommand = useFinancialCommand();
 
   const t = useTranslations('Budgets.FormModal');
+  const tStatus = useTranslations('FormStatus');
   const locale = useLocale();
   const router = useRouter();
   const pathname = usePathname();
@@ -303,8 +304,7 @@ function BudgetFormModal({
     const budget = storeBudgets.find((item) => item.id === editId);
     if (!budget) return;
 
-    removeBudget(editId);
-    let restored = false;
+    let rejected = false;
     try {
       const result = await withDeadline(
         financialCommand(
@@ -314,33 +314,30 @@ function BudgetFormModal({
         )
       );
       if (result.error) {
-        addBudget(budget);
-        restored = true;
+        rejected = true;
         toast({
           title: t('toast.errorTitle'),
-          description: result.error,
+          description: result.errorCode === 'OUTCOME_UNKNOWN' ? tStatus('pending') : result.error,
           variant: 'destructive',
         });
         throw new Error(result.error);
       }
+      removeBudget(editId);
       toast({
         title: t('toast.deletedTitle'),
         description: t('toast.deletedDescription'),
         variant: 'success',
       });
     } catch {
-      if (!restored) {
-        addBudget(budget);
+      if (!rejected)
         toast({
           title: t('toast.errorTitle'),
-          description: t('errors.unknown'),
+          description: tStatus('pending'),
           variant: 'destructive',
         });
-      }
       throw new Error('delete failed');
     }
   }, [
-    addBudget,
     editId,
     financialCommand,
     isPeriodMode,
@@ -352,6 +349,7 @@ function BudgetFormModal({
     router,
     storeBudgets,
     t,
+    tStatus,
   ]);
 
   return (

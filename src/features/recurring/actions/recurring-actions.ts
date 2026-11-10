@@ -1,5 +1,7 @@
 'use server';
 
+import { actionErrorMessage, logServerActionError } from '@/lib/server-action/action-error';
+
 import { runDurableAction } from '@/lib/server-action/run-durable-action';
 
 import { financialDateKey } from '@/lib/utils/financial-date';
@@ -149,10 +151,10 @@ export async function createRecurringSeriesAction(
 
       return { data: serialize(data), error: null };
     } catch (error) {
-      console.error('[createRecurringSeriesAction] Unexpected error:', error);
+      logServerActionError('[createRecurringSeriesAction] Unexpected error:', error);
       return {
         data: null,
-        error: error instanceof Error ? error.message : 'Errore durante la creazione della serie',
+        error: actionErrorMessage(error, 'Errore durante la creazione della serie'),
       };
     }
   });
@@ -280,11 +282,10 @@ export async function updateRecurringSeriesAction(
 
       return { data: serialize(data), error: null };
     } catch (error) {
-      console.error('[updateRecurringSeriesAction] Unexpected error:', error);
+      logServerActionError('[updateRecurringSeriesAction] Unexpected error:', error);
       return {
         data: null,
-        error:
-          error instanceof Error ? error.message : "Errore durante l'aggiornamento della serie",
+        error: actionErrorMessage(error, "Errore durante l'aggiornamento della serie"),
       };
     }
   });
@@ -328,10 +329,10 @@ export async function deleteRecurringSeriesAction(
 
       return { data: { success: true }, error: null };
     } catch (error) {
-      console.error('[deleteRecurringSeriesAction] Unexpected error:', error);
+      logServerActionError('[deleteRecurringSeriesAction] Unexpected error:', error);
       return {
         data: null,
-        error: error instanceof Error ? error.message : "Errore durante l'eliminazione della serie",
+        error: actionErrorMessage(error, "Errore durante l'eliminazione della serie"),
       };
     }
   });

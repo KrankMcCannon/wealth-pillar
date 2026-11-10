@@ -8,6 +8,10 @@ DECLARE issues jsonb;
 BEGIN
   SELECT jsonb_build_object(
     'user_group', (SELECT count(*) FROM users u LEFT JOIN groups g ON g.id=u.group_id WHERE u.group_id IS NOT NULL AND g.id IS NULL),
+    'group_membership_mismatch', (SELECT count(*) FROM groups g WHERE
+      cardinality(g.user_ids)<>(SELECT count(DISTINCT x.id) FROM unnest(g.user_ids) x(id)) OR
+      EXISTS(SELECT id FROM unnest(g.user_ids) x(id) EXCEPT SELECT u.id FROM users u WHERE u.group_id=g.id) OR
+      EXISTS(SELECT u.id FROM users u WHERE u.group_id=g.id EXCEPT SELECT id FROM unnest(g.user_ids) x(id))),
     'account_group', (SELECT count(*) FROM accounts a LEFT JOIN groups g ON g.id=a.group_id WHERE g.id IS NULL),
     'account_members', (SELECT count(*) FROM accounts a CROSS JOIN LATERAL unnest(a.user_ids) x(id) LEFT JOIN users u ON u.id=x.id AND u.group_id=a.group_id WHERE u.id IS NULL),
     'account_duplicates', (SELECT count(*) FROM accounts a WHERE cardinality(a.user_ids)<>(SELECT count(DISTINCT x.member_id) FROM unnest(a.user_ids) x(member_id))),
@@ -143,6 +147,26 @@ END $$;
 CREATE TRIGGER accounts_associations AFTER INSERT OR UPDATE OF user_ids,group_id ON accounts FOR EACH ROW EXECUTE FUNCTION sync_legacy_associations();
 CREATE TRIGGER recurring_associations AFTER INSERT OR UPDATE OF user_ids,account_id ON recurring_transactions FOR EACH ROW EXECUTE FUNCTION sync_legacy_associations();
 CREATE TRIGGER budgets_associations AFTER INSERT OR UPDATE OF categories,group_id ON budgets FOR EACH ROW EXECUTE FUNCTION sync_legacy_associations();
+
+-- Keep the old group array usable by the previous application during rollback.
+-- Element-wise updates operate on the locked latest group row under concurrency.
+CREATE FUNCTION sync_legacy_group_members() RETURNS trigger LANGUAGE plpgsql SET search_path='' AS $$
+BEGIN
+  -- Stable lock order when a member moves between two groups.
+  IF TG_OP = 'UPDATE' THEN
+    PERFORM 1 FROM public.groups WHERE id IN (OLD.group_id,NEW.group_id) ORDER BY id FOR UPDATE;
+  END IF;
+  IF TG_OP <> 'INSERT' AND (TG_OP = 'DELETE' OR OLD.group_id IS DISTINCT FROM NEW.group_id) THEN
+    UPDATE public.groups SET user_ids=array_remove(user_ids, OLD.id) WHERE id=OLD.group_id;
+  END IF;
+  IF TG_OP <> 'DELETE' AND (TG_OP = 'INSERT' OR OLD.group_id IS DISTINCT FROM NEW.group_id) THEN
+    UPDATE public.groups SET user_ids=CASE WHEN NEW.id=ANY(user_ids) THEN user_ids ELSE array_append(user_ids,NEW.id) END WHERE id=NEW.group_id;
+  END IF;
+  RETURN COALESCE(NEW,OLD);
+END $$;
+CREATE TRIGGER users_group_legacy AFTER INSERT OR UPDATE OF group_id OR DELETE ON users FOR EACH ROW EXECUTE FUNCTION sync_legacy_group_members();
+REVOKE ALL ON FUNCTION sync_legacy_group_members() FROM PUBLIC,anon,authenticated;
+GRANT EXECUTE ON FUNCTION sync_legacy_group_members() TO pool_user,service_role;
 
 CREATE FUNCTION verify_association_backfill() RETURNS void LANGUAGE plpgsql SET search_path='' AS $$
 BEGIN

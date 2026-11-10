@@ -11,6 +11,10 @@ import {
 const client = createPostgresClient(process.env.DATABASE_URL!, { max: 1 });
 const prerequisites = readFileSync('tests/integration/platform-prerequisites.sql', 'utf8');
 const baseline = readFileSync('src/server/db/baseline/0000_verified_baseline.sql', 'utf8');
+const indexes = JSON.parse(readFileSync('src/server/db/baseline/indexes.json', 'utf8')) as {
+  name: string;
+  sql: string;
+}[];
 const rollback = new Error('rollback test fixture');
 afterAll(() => client.end());
 
@@ -51,6 +55,50 @@ it('refuses divergent catalogs and unknown journals without adopting them', asyn
       const [journal] =
         await tx`select to_regclass('wealth_pillar_migrations.journal')::text as name`;
       expect(journal?.name).toBeNull();
+      throw rollback;
+    })
+  ).rejects.toBe(rollback);
+});
+
+it('accepts verified indexes prepared after adoption and completes all migrations', async () => {
+  await expect(
+    client.begin(async (tx) => {
+      await tx.unsafe(prerequisites);
+      await tx.unsafe(baseline);
+      await migrateDatabase(tx, 'adopt');
+      // CREATE INDEX CONCURRENTLY cannot run inside this rollback-only fixture;
+      // its resulting catalog is identical to CREATE INDEX.
+      for (const index of indexes) await tx.unsafe(index.sql);
+      expect(await migrateDatabase(tx, 'migrate')).toEqual({ applied: 4, pending: 0 });
+      expect(await migrateDatabase(tx, 'verify')).toEqual({ applied: 4, pending: 0 });
+      throw rollback;
+    })
+  ).rejects.toBe(rollback);
+});
+
+it('refuses a prepared index with an unexpected definition', async () => {
+  await expect(
+    client.begin(async (tx) => {
+      await tx.unsafe(prerequisites);
+      await tx.unsafe(baseline);
+      await migrateDatabase(tx, 'adopt');
+      await tx.unsafe(
+        'CREATE INDEX bank_connections_account_idx ON public.bank_connections (group_id)'
+      );
+      await expect(migrateDatabase(tx, 'migrate')).rejects.toThrow('catalog diverges');
+      throw rollback;
+    })
+  ).rejects.toBe(rollback);
+});
+
+it('stops the backfill if the legacy group list disagrees with membership', async () => {
+  await expect(
+    client.begin(async (tx) => {
+      await tx.unsafe(prerequisites);
+      await tx.unsafe(baseline);
+      await migrateDatabase(tx, 'adopt');
+      await tx`insert into groups(id,name,user_ids) values('11111111-1111-4111-8111-111111111111','Synthetic',ARRAY['22222222-2222-4222-8222-222222222222'::uuid])`;
+      await expect(migrateDatabase(tx, 'migrate')).rejects.toThrow('group_membership_mismatch');
       throw rollback;
     })
   ).rejects.toBe(rollback);

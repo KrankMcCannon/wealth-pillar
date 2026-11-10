@@ -1,5 +1,7 @@
 'use server';
 
+import { logServerActionError } from '@/lib/server-action/action-error';
+
 import { runDurableAction } from '@/lib/server-action/run-durable-action';
 
 import { getTranslations } from 'next-intl/server';
@@ -22,7 +24,7 @@ export async function getInvestmentByIdAction(id: string): Promise<ServiceResult
     if (!data) return { data: null, error: 'NOT_FOUND' };
     return { data, error: null };
   } catch (error) {
-    console.error('Error fetching investment:', error);
+    logServerActionError('Error fetching investment:', error);
     return {
       data: null,
       error: error instanceof Error ? error.message : 'Failed to fetch investment',
@@ -67,7 +69,7 @@ export async function updateInvestmentAction(
       invalidateInvestmentCaches({ groupId: currentUser.group_id, userId: currentUser.id });
       return { data: updated, error: null };
     } catch (error) {
-      console.error('Error updating investment:', error);
+      logServerActionError('Error updating investment:', error);
       return {
         data: null,
         error:
@@ -120,7 +122,7 @@ export async function createInvestmentAction(
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error creating investment:', error);
+      logServerActionError('Error creating investment:', error);
       return {
         data: null,
         error:

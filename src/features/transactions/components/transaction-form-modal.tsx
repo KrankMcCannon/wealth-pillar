@@ -157,6 +157,7 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
   const router = useRouter();
   const t = useTranslations('Transactions.FormModal');
   const tPage = useTranslations('TransactionsContent');
+  const tStatus = useTranslations('FormStatus');
   const { currentUser, groupUsers, groupId, shouldDisableUserField, userFieldHelperText } =
     useEntityFormPermissions();
   const accounts = useAccounts();
@@ -183,9 +184,6 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
   );
   const commitDeleteOptimisticStore = useOptimisticTransactionStore(
     (state) => state.commitDeleteOptimistic
-  );
-  const rollbackDeleteOptimisticStore = useOptimisticTransactionStore(
-    (state) => state.rollbackDeleteOptimistic
   );
 
   const handleClose = useCallback(() => {
@@ -373,9 +371,6 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
       throw new Error(t('errors.notFound'));
     }
 
-    const balanceId = getTempId('balance-delete');
-    applyDeleteOptimisticStore(editId, original);
-    beginBalanceMutation(balanceId, Object.fromEntries(getTransactionBalanceDeltas(original, -1)));
     let result;
     try {
       result = await withDeadline(
@@ -384,20 +379,27 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
         )
       );
     } catch (error) {
-      rollbackDeleteOptimisticStore(editId);
-      finishBalanceMutation(balanceId);
+      toast({
+        title: tPage('errors.title'),
+        description: tStatus('pending'),
+        variant: 'destructive',
+      });
       throw error;
     }
     if (result.error) {
-      rollbackDeleteOptimisticStore(editId);
-      finishBalanceMutation(balanceId);
       toast({
         title: tPage('errors.title'),
-        description: `${tPage('errors.deleteTransactionFailed')} ${tPage('errors.retryHint')}`,
+        description:
+          result.errorCode === 'OUTCOME_UNKNOWN'
+            ? tStatus('pending')
+            : `${tPage('errors.deleteTransactionFailed')} ${tPage('errors.retryHint')}`,
         variant: 'destructive',
       });
       throw new Error(result.error);
     }
+    const balanceId = getTempId('balance-delete');
+    applyDeleteOptimisticStore(editId, original);
+    beginBalanceMutation(balanceId, Object.fromEntries(getTransactionBalanceDeltas(original, -1)));
     finishBalanceMutation(balanceId, result.data ?? undefined);
     commitDeleteOptimisticStore(editId);
   }, [
@@ -410,8 +412,8 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
     toast,
     tPage,
     t,
+    tStatus,
     financialCommand,
-    rollbackDeleteOptimisticStore,
   ]);
 
   return (

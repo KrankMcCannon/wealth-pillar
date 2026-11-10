@@ -152,6 +152,8 @@ export class TransactionsRepository {
   ) {
     if (options?.cursorAfter && options.offset)
       throw new Error('Cursor and offset are mutually exclusive');
+    if (options?.offset && !options.countTotal)
+      throw new Error('Offset pagination requires an explicit total');
     const bounded = { ...options, limit: Math.min(100, Math.max(1, options?.limit ?? 50)) };
     return executor
       ? this.readGroupWindow(groupId, bounded, executor)
@@ -234,8 +236,7 @@ export class TransactionsRepository {
       total = countResult[0]?.total ?? 0;
     }
 
-    const fetchLimit =
-      pageLimit > 0 && !countTotal ? pageLimit + 1 : pageLimit > 0 ? pageLimit : undefined;
+    const fetchLimit = pageLimit > 0 ? pageLimit + 1 : undefined;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let query: any = dbConn
@@ -265,14 +266,11 @@ export class TransactionsRepository {
     let data = rawData;
     let hasMore = false;
 
-    if (!countTotal && pageLimit > 0) {
+    if (pageLimit > 0) {
       hasMore = rawData.length > pageLimit;
       if (hasMore) {
         data = rawData.slice(0, pageLimit);
       }
-    } else if (countTotal && pageLimit > 0) {
-      const offset = options?.offset ?? 0;
-      hasMore = offset + data.length < total;
     }
 
     return measureDatabaseMapping(() => ({ data, total, hasMore }));
@@ -284,6 +282,8 @@ export class TransactionsRepository {
   static async getByUser(userId: string, options?: TransactionFilterOptions) {
     if (options?.cursorAfter && options.offset)
       throw new Error('Cursor and offset are mutually exclusive');
+    if (options?.offset && !options.countTotal)
+      throw new Error('Offset pagination requires an explicit total');
     const bounded = { ...options, userId, limit: Math.min(100, Math.max(1, options?.limit ?? 50)) };
     return readWithRetry(() => this.readGroupWindow(undefined, bounded));
   }
@@ -351,7 +351,7 @@ export class TransactionsRepository {
   /**
    * Create a transaction
    */
-  static async create(data: InsertTransaction, executor?: DbExecutor) {
+  static async create(data: InsertTransaction, executor: DbExecutor) {
     const dbConn = resolveDb(executor);
     const [row] = await dbConn.insert(transactions).values(data).returning();
     return row;
@@ -360,7 +360,7 @@ export class TransactionsRepository {
   /**
    * Bulk insert transactions; skips rows that conflict on (account_id, import_hash).
    */
-  static async createMany(data: InsertTransaction[], executor?: DbExecutor) {
+  static async createMany(data: InsertTransaction[], executor: DbExecutor) {
     if (data.length === 0) return [];
     const dbConn = resolveDb(executor);
     return dbConn
@@ -438,7 +438,7 @@ export class TransactionsRepository {
   /**
    * Update a transaction
    */
-  static async update(id: string, data: Partial<UpdateTransaction>, executor?: DbExecutor) {
+  static async update(id: string, data: Partial<UpdateTransaction>, executor: DbExecutor) {
     const dbConn = resolveDb(executor);
     const [row] = await dbConn
       .update(transactions)
@@ -452,7 +452,7 @@ export class TransactionsRepository {
   /**
    * Delete a transaction
    */
-  static async delete(id: string, executor?: DbExecutor, scope?: TransactionScope) {
+  static async delete(id: string, executor: DbExecutor, scope?: TransactionScope) {
     const dbConn = resolveDb(executor);
     const [row] = await dbConn
       .delete(transactions)
@@ -464,7 +464,7 @@ export class TransactionsRepository {
   /**
    * Delete all transactions for a user
    */
-  static async deleteByUser(userId: string, executor?: DbExecutor) {
+  static async deleteByUser(userId: string, executor: DbExecutor) {
     return resolveDb(executor)
       .delete(transactions)
       .where(eq(transactions.user_id, userId))
@@ -474,7 +474,7 @@ export class TransactionsRepository {
   /**
    * Delete all transactions for an account
    */
-  static async deleteByAccount(accountId: string, executor?: DbExecutor) {
+  static async deleteByAccount(accountId: string, executor: DbExecutor) {
     return resolveDb(executor)
       .delete(transactions)
       .where(or(eq(transactions.account_id, accountId), eq(transactions.to_account_id, accountId)))

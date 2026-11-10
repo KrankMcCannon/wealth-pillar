@@ -1,5 +1,6 @@
 /** A deadline releases the caller; it does NOT cancel a server-side mutation. */
 export const ACTION_TIMEOUT_MS = 20_000;
+export const DEADLINE_EXPIRED = Symbol('deadline-expired');
 
 export class ActionTimeoutError extends Error {
   constructor() {
@@ -17,7 +18,10 @@ export async function withDeadline<T>(
     return await Promise.race([
       promise,
       new Promise<never>((_resolve, reject) => {
-        timer = setTimeout(() => reject(new ActionTimeoutError()), timeoutMs);
+        timer = setTimeout(() => {
+          (promise as Promise<T> & { [DEADLINE_EXPIRED]?: () => void })[DEADLINE_EXPIRED]?.();
+          reject(new ActionTimeoutError());
+        }, timeoutMs);
       }),
     ]);
   } finally {

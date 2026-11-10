@@ -17,4 +17,16 @@ describe('sumAccountBalanceFromRows', () => {
   it('returns 0 when the account has no affecting transactions', () => {
     expect(sumAccountBalanceFromRows('a1', [])).toBe(0);
   });
+
+  it('adds decimal cents exactly and rejects malformed ledger values', () => {
+    expect(
+      sumAccountBalanceFromRows('a1', [
+        { amount: '0.10', type: 'income', account_id: 'a1' },
+        { amount: '0.20', type: 'income', account_id: 'a1' },
+      ])
+    ).toBe(0.3);
+    expect(() =>
+      sumAccountBalanceFromRows('a1', [{ amount: '0.001', type: 'income', account_id: 'a1' }])
+    ).toThrow();
+  });
 });

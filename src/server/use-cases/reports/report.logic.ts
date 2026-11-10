@@ -6,6 +6,7 @@ import { resolveAccountLiquidity } from '@/lib/utils/account-classification';
 import type { NetSavingsResult } from '@/server/ledger';
 import {
   accountsToMap,
+  classifyMovement,
   computeNetSavings,
   computeTransactionImpact,
   foldCashFlow,
@@ -70,11 +71,11 @@ export function computeCategoryStats(
   const categoryByKey = new Map(categories.map((c) => [c.key.toLowerCase(), c]));
   const statsMap = new Map<
     string,
-    { id: string; key: string; name: string; type: string; total: number; color: string }
+    { id: string; key: string; name: string; type: string; total: bigint; color: string }
   >();
 
-  const addExpense = (tx: Transaction, amount: number) => {
-    if (amount <= 0) return;
+  const addExpense = (tx: Transaction, amount: bigint) => {
+    if (amount <= BigInt(0)) return;
     const catId = tx.category;
     let catKey = catId;
     const category = categoryMap.get(catId) || categoryByKey.get(catId.toLowerCase());
@@ -86,7 +87,7 @@ export function computeCategoryStats(
         key: category?.key ?? catId,
         name: category?.label || formatCategoryFallback(catId),
         type: 'expense',
-        total: 0,
+        total: BigInt(0),
         color: category?.color || 'var(--color-muted-foreground)',
       });
     }
@@ -96,19 +97,22 @@ export function computeCategoryStats(
   for (const tx of transactions) {
     const d = financialDateKey(tx.date);
     if (d < t0 || d > t1) continue;
-    const impact = computeTransactionImpact(tx, accountMap);
+    const movement = classifyMovement(tx, accountMap);
     if (userId === undefined) {
       if (tx.type !== 'expense') continue;
-      addExpense(tx, minorUnitsToPresentation(moneyToMinorUnits(tx.amount)));
+      addExpense(tx, moneyToMinorUnits(tx.amount));
       continue;
     }
-    for (const leg of impact.cashLegs) {
-      if (leg.userId !== userId || leg.signed <= 0) continue;
-      addExpense(tx, leg.signed);
+    for (const leg of movement.cashLegs) {
+      if (leg.userId !== userId || leg.signedCents <= BigInt(0)) continue;
+      addExpense(tx, leg.signedCents);
     }
   }
 
-  return Array.from(statsMap.values()).sort((a, b) => b.total - a.total);
+  return Array.from(statsMap.values(), (row) => ({
+    ...row,
+    total: minorUnitsToPresentation(row.total),
+  })).sort((a, b) => b.total - a.total);
 }
 
 export function computeUserFlows(

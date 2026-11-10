@@ -6,12 +6,9 @@ import ts from 'typescript';
 // network outcome lookup is replaced; no alternate storage implementation is used.
 const source = readFileSync('src/lib/utils/pending-financial-operations.ts', 'utf8')
   .replace(/^import .*;$/gm, '')
-  .replace(
-    'export async function runPendingFinancialOperation',
-    'async function runPendingFinancialOperation'
-  );
+  .replace('export function runPendingFinancialOperation', 'function runPendingFinancialOperation');
 const script = ts.transpileModule(
-  `const getFinancialOperationAction = async () => ({data:{status:'unknown'},error:null});\n${source}\nObject.assign(window,{runPendingFinancialOperation});`,
+  `const DEADLINE_EXPIRED = Symbol('deadline-expired');\nconst getFinancialOperationAction = async () => ({data:{status:'unknown'},error:null});\n${source}\nObject.assign(window,{runPendingFinancialOperation});`,
   { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.None } }
 ).outputText;
 
@@ -46,5 +43,44 @@ test('retains the same pending operation across two tabs and reload', async ({ p
   await page.reload();
   await page.addScriptTag({ content: script });
   expect(await acquire(page)).toBe(first);
+  const late = await page.evaluate(async () => {
+    const run = (
+      window as unknown as {
+        runPendingFinancialOperation: (...args: unknown[]) => Promise<unknown>;
+      }
+    ).runPendingFinancialOperation;
+    let firstId = '';
+    let release!: () => void;
+    let started!: () => void;
+    const ready = new Promise<void>((resolve) => {
+      started = resolve;
+    });
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const operation = run(
+      'browser-test',
+      'late-command',
+      { amount: '0.40' },
+      async (id: string) => {
+        firstId = id;
+        started();
+        await gate;
+        return { data: true, error: null };
+      }
+    );
+    await ready;
+    const timeout = Object.getOwnPropertySymbols(operation)[0]!;
+    (operation as unknown as Record<symbol, () => void>)[timeout]!();
+    release();
+    await operation;
+    let secondId = '';
+    await run('browser-test', 'late-command', { amount: '0.40' }, async (id: string) => {
+      secondId = id;
+      return { data: null, error: 'uncertain', errorCode: 'OUTCOME_UNKNOWN' };
+    });
+    return { firstId, secondId };
+  });
+  expect(late.secondId).toBe(late.firstId);
   await second.close();
 });

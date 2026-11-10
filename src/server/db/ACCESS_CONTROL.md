@@ -2,7 +2,7 @@
 
 Wealth Pillar autentica gli utenti con Clerk e applica i permessi nelle Server
 Actions. I browser non interrogano direttamente Supabase. Drizzle usa il ruolo
-`pool_user` tramite il pooler; l'onboarding e i job di mercato usano `service_role`.
+`pool_user` server-side; il percorso diretto richiede la configurazione di rilascio; l'onboarding e i job di mercato usano `service_role`.
 Entrambi i ruoli backend hanno `BYPASSRLS` e devono restare esclusivamente sul server.
 
 ## Audit e correzione del 30 ottobre 2026

@@ -4,6 +4,26 @@ import { baselineDirectory } from './baseline.mjs';
 import { assertCatalogEquivalent, expectedCatalog, readCatalog } from './catalog.mjs';
 
 const digest = (text) => createHash('sha256').update(text).digest('hex');
+
+// Concurrent indexes are prepared between adoption and migration. Accept only
+// the exact, valid definitions registered for the pending index migration.
+function assertMigrationCatalog(expected, actual, version, files) {
+  const indexMigration = files.find((file) => file.name === '0003_verified_indexes');
+  if (!indexMigration || version >= indexMigration.version) {
+    return assertCatalogEquivalent(expected, actual);
+  }
+  const specs = JSON.parse(readFileSync(new URL('indexes.json', baselineDirectory), 'utf8'));
+  const names = new Set(specs.map((spec) => spec.name));
+  const prepared = actual.indexes.filter((index) => names.has(index.name));
+  const expectedPrepared = indexMigration.catalog.indexes.filter((index) =>
+    prepared.some((actualIndex) => actualIndex.name === index.name)
+  );
+  assertCatalogEquivalent({ indexes: expectedPrepared }, { indexes: prepared });
+  assertCatalogEquivalent(expected, {
+    ...actual,
+    indexes: actual.indexes.filter((index) => !names.has(index.name)),
+  });
+}
 export function migrationFiles() {
   const manifest = JSON.parse(readFileSync(new URL('migrations.json', baselineDirectory), 'utf8'));
   const known = new Set(manifest.map((entry) => `${entry.name}.sql`));
@@ -72,7 +92,12 @@ export async function migrateDatabase(
       throw new Error('Unknown or modified migration history');
   }
   if (applied.length) {
-    await assertCatalogEquivalent(files[applied.length - 1].catalog, await readCatalog(executor));
+    assertMigrationCatalog(
+      files[applied.length - 1].catalog,
+      await readCatalog(executor),
+      applied.length - 1,
+      migrationFiles()
+    );
   } else {
     const actual = await readCatalog(executor);
     const empty = !actual.tables?.length && !actual.views?.length && !actual.functions?.length;
@@ -98,7 +123,12 @@ export async function migrateDatabase(
     return { applied: applied.length, pending: files.length - applied.length };
   for (const file of files.slice(applied.length)) {
     await executor.unsafe(file.sql);
-    assertCatalogEquivalent(file.catalog, await readCatalog(executor));
+    assertMigrationCatalog(
+      file.catalog,
+      await readCatalog(executor),
+      file.version,
+      migrationFiles()
+    );
     await executor`insert into wealth_pillar_migrations.journal (version, hash) values (${file.version}, ${file.hash})`;
   }
   return { applied: files.length, pending: 0 };

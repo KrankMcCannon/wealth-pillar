@@ -48,7 +48,7 @@ if (process.env.DB_TELEMETRY_ENABLED === 'true' && !globalForDb.pgTelemetryInsta
 const client =
   connectionString && globalForDb.pgClient && globalForDb.pgConnectionString === connectionString
     ? globalForDb.pgClient
-    : process.env.DB_POOL_RECOVERY_ENABLED === 'true'
+    : process.env.DB_POOL_RECOVERY_ENABLED !== 'false'
       ? createManagedPostgresClient(() => createPostgresClient(connectionString ?? ''))
       : createPostgresClient(connectionString ?? '');
 

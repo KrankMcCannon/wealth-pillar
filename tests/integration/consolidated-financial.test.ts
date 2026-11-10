@@ -114,6 +114,23 @@ it('persists one effect for concurrent submissions and replays the authoritative
   expect((await createTransactionAction({ ...input(), amount: 1 }, operation)).error).toBeTruthy();
 });
 
+it('does not disclose a stored receipt after account visibility is revoked', async () => {
+  const operationId = randomUUID();
+  const created = await createTransactionAction(input(), operationId);
+  expect(created.error).toBeNull();
+  const replacement = randomUUID();
+  await client`insert into users(id,group_id,role,name,email,clerk_id) values(${replacement},${group},'member','Replacement','replacement@example.test','replacement')`;
+  await client`update accounts set user_ids=ARRAY[${replacement}]::uuid[] where id=${account}`;
+  await client`update users set role='member' where id=${actorId}`;
+  const member = { ...actor, role: 'member' } as User;
+  await expect(
+    readFinancialOperation(member, 'createTransactionAction', operationId)
+  ).rejects.toThrow();
+  session.actor = member;
+  expect((await createTransactionAction(input(), operationId)).error).toBeTruthy();
+  expect((await client`select count(*)::int as count from transactions`)[0]?.count).toBe(1);
+});
+
 it('preserves a committed success when invalidation fails and reconciles edits/deletes', async () => {
   cache.invalidate.mockImplementation(() => {
     throw new Error('cache offline');
@@ -172,6 +189,32 @@ it('uses normalized associations and authoritative user membership', async () =>
     client`update users set group_id=${foreignGroup} where id=${actorId}`
   ).rejects.toMatchObject({ code: '23503' });
   await client`select verify_association_backfill()`;
+});
+
+it('keeps the legacy group membership usable across concurrent joins, moves and deletion', async () => {
+  const ids = [randomUUID(), randomUUID()] as const;
+  const concurrent = createPostgresClient(process.env.DATABASE_URL!, {
+    max: 2,
+    onnotice: () => {},
+  });
+  try {
+    await Promise.all(
+      ids.map(
+        (id) => concurrent`insert into users(id,group_id,role,name,email,clerk_id)
+      values(${id},${group},'member','Synthetic',${`${id}@example.test`},${id})`
+      )
+    );
+    let [legacy] = await client`select user_ids from groups where id=${group}`;
+    expect(new Set(legacy?.user_ids)).toEqual(new Set([actorId, ...ids]));
+    await client`update users set group_id=${foreignGroup} where id=${ids[0]}`;
+    await client`delete from users where id=${ids[1]}`;
+    [legacy] = await client`select user_ids from groups where id=${group}`;
+    expect(legacy?.user_ids).toEqual([actorId]);
+    const [other] = await client`select user_ids from groups where id=${foreignGroup}`;
+    expect(new Set(other?.user_ids)).toEqual(new Set([otherId, ids[0]]));
+  } finally {
+    await concurrent.end();
+  }
 });
 
 it('refuses cross-group and revoked authorization and keeps lookup isolated', async () => {
@@ -253,6 +296,9 @@ it('matches activity SQL to the domain for all shared, ownerless and transfer co
 });
 
 it('returns bounded activity and keyset pages across null and microsecond timestamps', async () => {
+  await expect(TransactionsRepository.getByGroup(group, { offset: 1 })).rejects.toThrow(
+    'Offset pagination requires an explicit total'
+  );
   await client`insert into transactions(description,amount,type,category,date,account_id,user_id,group_id,created_at)
     select 'Synthetic page',0.01,'expense','synthetic_food','2026-11-01',${account},${actorId},${group},
       case when n>70 then null else '2026-11-01 12:00:00+00'::timestamptz+n*interval '1 microsecond' end from generate_series(1,130) n`;
@@ -268,7 +314,9 @@ it('returns bounded activity and keyset pages across null and microsecond timest
     const page = await TransactionsRepository.getByGroup(group, {
       ...(cursor ? { cursorAfter: cursor } : {}),
       limit: 50,
+      countTotal: true,
     });
+    expect(page.total).toBe(130);
     expect(page.data.length).toBeLessThanOrEqual(50);
     for (const row of page.data) {
       expect(ids.has(row.id)).toBe(false);

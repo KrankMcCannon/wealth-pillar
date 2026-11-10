@@ -1,5 +1,5 @@
-import { migrateDatabase } from '../scripts/db/migrations.mjs';
-import { readFileSync } from 'node:fs';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import { randomUUID } from 'node:crypto';
 import postgres from 'postgres';
 import { requireE2EEnvironment } from './e2e-environment';
@@ -18,10 +18,9 @@ export async function seedE2EDatabase(clerkId: string, email: string) {
     const count = counts[0]?.count;
     if (count !== 0) throw new Error('The disposable E2E database must be empty before setup');
     ownsDatabase = true;
-    await db.begin(async (tx) => {
-      await tx.unsafe(readFileSync('tests/integration/platform-prerequisites.sql', 'utf8'));
-      await migrateDatabase(tx);
-    });
+    // Playwright's CommonJS transform cannot load import.meta from the native
+    // migration modules. Run the same migrator in a native Node ESM process.
+    await promisify(execFile)(process.execPath, ['tests/e2e-migrate.mjs']);
     const groupId = randomUUID();
     const userId = randomUUID();
     const accountId = randomUUID();

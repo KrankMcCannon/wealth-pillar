@@ -42,6 +42,7 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
 
   const router = useRouter();
   const t = useTranslations('Accounts.FormModal');
+  const tStatus = useTranslations('FormStatus');
   const tContent = useTranslations('Accounts.Content');
   const locale = useLocale();
   const { currentUser, groupUsers, groupId, shouldDisableUserField, defaultFormUserId } =
@@ -261,8 +262,7 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
     const account = storeAccounts.find((acc) => acc.id === editId);
     if (!account) return;
 
-    removeAccount(account.id);
-    let restored = false;
+    let rejected = false;
     try {
       const result = await withDeadline(
         financialCommand('deleteAccountAction', [account.id, locale], (operationId, args) =>
@@ -270,32 +270,30 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
         )
       );
       if (result.error) {
-        addAccount(account);
-        restored = true;
+        rejected = true;
         toast({
           title: t('toast.errorTitle'),
-          description: result.error,
+          description: result.errorCode === 'OUTCOME_UNKNOWN' ? tStatus('pending') : result.error,
           variant: 'destructive',
         });
         throw new Error(result.error);
       }
+      removeAccount(account.id);
       toast({
         title: t('toast.deletedTitle'),
         description: t('toast.deletedDescription'),
         variant: 'success',
       });
     } catch {
-      if (!restored) {
-        addAccount(account);
+      if (!rejected)
         toast({
           title: t('toast.errorTitle'),
-          description: t('errors.unknown'),
+          description: tStatus('pending'),
           variant: 'destructive',
         });
-      }
       throw new Error('delete failed');
     }
-  }, [addAccount, editId, financialCommand, locale, removeAccount, storeAccounts, t]);
+  }, [editId, financialCommand, locale, removeAccount, storeAccounts, t, tStatus]);
 
   return (
     <EntityFormModal<AccountFormData>

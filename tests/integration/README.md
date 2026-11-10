@@ -33,3 +33,7 @@ project or real authentication credentials are needed. The continuous regression
 in `review-consistency.test.ts` covers Server Actions, persisted ledger rereads,
 report totals, the new-period operation, frozen snapshots, account balances and
 ordered revisions. Database repositories and financial use cases are not mocked.
+
+## Production-shaped schema
+
+`baseline-migrations.test.ts` verifies empty reconstruction, guarded adoption, concurrent-index catalog equivalence and rejection of drift. `consolidated-financial.test.ts` uses the active migrations and local-only Supabase auth prerequisites for command, authorization, association, reconciliation and keyset checks. Some older integration tests retain narrower fixtures and do not themselves certify the full schema. `transport-recovery.test.ts` injects a lost post-commit response through a local TCP proxy.

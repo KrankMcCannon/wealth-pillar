@@ -1,5 +1,4 @@
-import { roundMoney } from '@/lib/utils/money';
-import { moneyToMinorUnits } from '@/lib/utils/exact-money';
+import { minorUnitsToPresentation, moneyToMinorUnits } from '@/lib/utils/exact-money';
 
 export type BalanceAdjustableRow = {
   amount: string | number | null;
@@ -33,28 +32,19 @@ export function computeBalanceDeltas(
   transaction: BalanceAdjustableRow,
   multiplier: number
 ): Map<string, number> {
-  const deltas = new Map<string, number>();
-  if (!transaction.account_id) return deltas;
-
-  const amount = Number(transaction.amount) * multiplier;
-
-  if (transaction.type === 'income') {
-    deltas.set(transaction.account_id, amount);
-  } else if (transaction.type === 'expense') {
-    deltas.set(transaction.account_id, -amount);
-  } else if (transaction.type === 'transfer' && transaction.to_account_id) {
-    deltas.set(transaction.account_id, -amount);
-    deltas.set(transaction.to_account_id, amount);
-  }
-
-  return deltas;
+  return new Map(
+    [...computeExactBalanceDeltas(transaction, multiplier)].map(([id, amount]) => [
+      id,
+      minorUnitsToPresentation(amount),
+    ])
+  );
 }
 
 /** Rebuild stored account balance from all related transactions (ignores the current stored total). */
 export function sumAccountBalanceFromRows(accountId: string, rows: BalanceAdjustableRow[]): number {
-  let balance = 0;
+  let balance = BigInt(0);
   for (const row of rows) {
-    balance += computeBalanceDeltas(row, 1).get(accountId) ?? 0;
+    balance += computeExactBalanceDeltas(row, 1).get(accountId) ?? BigInt(0);
   }
-  return roundMoney(balance);
+  return minorUnitsToPresentation(balance);
 }

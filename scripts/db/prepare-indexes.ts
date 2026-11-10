@@ -15,7 +15,7 @@ const catalog = JSON.parse(readFileSync('src/server/db/baseline/0003_catalog.jso
 };
 const client = createPostgresClient(url, {
   max: 1,
-  connection: { statement_timeout: 0, lock_timeout: 5000 },
+  connection: { statement_timeout: 0, lock_timeout: 5000, transaction_timeout: 0 },
 });
 try {
   // Session advisory lock: concurrent index DDL cannot run inside a transaction.

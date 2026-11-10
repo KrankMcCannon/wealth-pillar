@@ -6439,6 +6439,12 @@
       "definition": "CREATE TRIGGER trigger_users_updated_at BEFORE UPDATE ON public.users FOR EACH ROW EXECUTE FUNCTION update_users_updated_at()"
     },
     {
+      "name": "users_group_legacy",
+      "table": "users",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER users_group_legacy AFTER INSERT OR DELETE OR UPDATE OF group_id ON public.users FOR EACH ROW EXECUTE FUNCTION sync_legacy_group_members()"
+    },
+    {
       "name": "users_membership_scope",
       "table": "users",
       "enabled": "O",
@@ -6690,6 +6696,12 @@
       "name": "sync_legacy_associations",
       "identity": "",
       "definition": "CREATE OR REPLACE FUNCTION public.sync_legacy_associations()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO ''\nAS $function$\nBEGIN\n  IF TG_TABLE_NAME='accounts' THEN\n    DELETE FROM public.account_users WHERE account_id=NEW.id;\n    INSERT INTO public.account_users SELECT NEW.id,x.id,x.position FROM unnest(NEW.user_ids) WITH ORDINALITY x(id,position);\n  ELSIF TG_TABLE_NAME='recurring_transactions' THEN\n    DELETE FROM public.recurring_users WHERE recurring_id=NEW.id;\n    INSERT INTO public.recurring_users SELECT NEW.id,x.id::uuid,x.position FROM unnest(NEW.user_ids) WITH ORDINALITY x(id,position);\n  ELSE\n    DELETE FROM public.budget_categories WHERE budget_id=NEW.id;\n    INSERT INTO public.budget_categories SELECT NEW.id,x.key,x.position FROM jsonb_array_elements_text(NEW.categories) WITH ORDINALITY x(key,position);\n  END IF;\n  RETURN NEW;\nEND $function$\n",
+      "securityDefiner": false
+    },
+    {
+      "name": "sync_legacy_group_members",
+      "identity": "",
+      "definition": "CREATE OR REPLACE FUNCTION public.sync_legacy_group_members()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO ''\nAS $function$\nBEGIN\n  -- Stable lock order when a member moves between two groups.\n  IF TG_OP = 'UPDATE' THEN\n    PERFORM 1 FROM public.groups WHERE id IN (OLD.group_id,NEW.group_id) ORDER BY id FOR UPDATE;\n  END IF;\n  IF TG_OP <> 'INSERT' AND (TG_OP = 'DELETE' OR OLD.group_id IS DISTINCT FROM NEW.group_id) THEN\n    UPDATE public.groups SET user_ids=array_remove(user_ids, OLD.id) WHERE id=OLD.group_id;\n  END IF;\n  IF TG_OP <> 'DELETE' AND (TG_OP = 'INSERT' OR OLD.group_id IS DISTINCT FROM NEW.group_id) THEN\n    UPDATE public.groups SET user_ids=CASE WHEN NEW.id=ANY(user_ids) THEN user_ids ELSE array_append(user_ids,NEW.id) END WHERE id=NEW.group_id;\n  END IF;\n  RETURN COALESCE(NEW,OLD);\nEND $function$\n",
       "securityDefiner": false
     },
     {
@@ -7481,17 +7493,17 @@
   ],
   "schemaGrants": [
     {
+      "role": "postgres",
+      "grantable": false,
+      "privilege": "USAGE"
+    },
+    {
       "role": "pg_database_owner",
       "grantable": false,
       "privilege": "CREATE"
     },
     {
       "role": "pg_database_owner",
-      "grantable": false,
-      "privilege": "USAGE"
-    },
-    {
-      "role": "postgres",
       "grantable": false,
       "privilege": "USAGE"
     },
@@ -8363,6 +8375,27 @@
     },
     {
       "name": "sync_legacy_associations",
+      "role": "pool_user",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "sync_legacy_group_members",
+      "role": "postgres",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "sync_legacy_group_members",
+      "role": "service_role",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "sync_legacy_group_members",
       "role": "pool_user",
       "identity": "",
       "grantable": false,

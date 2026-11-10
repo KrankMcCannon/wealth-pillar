@@ -2,6 +2,7 @@
 
 import { getFinancialOperationAction } from '@/features/transactions/actions/operation-actions';
 import type { ServiceResult } from '@/lib/types/service-result';
+import { DEADLINE_EXPIRED } from './with-deadline';
 
 type Pending = { key: string; id: string; createdAt: number };
 const database = () =>
@@ -53,11 +54,29 @@ async function operationKey(scope: string, kind: string, payload: unknown) {
   return `${scope}:${kind}:${Array.from(new Uint8Array(bytes), (byte) => byte.toString(16).padStart(2, '0')).join('')}`;
 }
 
-export async function runPendingFinancialOperation<T>(
+export function runPendingFinancialOperation<T>(
   scope: string,
   kind: string,
   payload: unknown,
-  execute: (operationId: string) => Promise<ServiceResult<T>>
+  execute: (operationId: string) => Promise<ServiceResult<T>>,
+  abandoned: () => boolean = () => false
+): Promise<ServiceResult<T>> {
+  let timedOut = false;
+  const result = runOperation(scope, kind, payload, execute, () => timedOut || abandoned());
+  Object.assign(result, {
+    [DEADLINE_EXPIRED]: () => {
+      timedOut = true;
+    },
+  });
+  return result;
+}
+
+async function runOperation<T>(
+  scope: string,
+  kind: string,
+  payload: unknown,
+  execute: (operationId: string) => Promise<ServiceResult<T>>,
+  abandoned: () => boolean
 ): Promise<ServiceResult<T>> {
   const key = await operationKey(scope, kind, payload);
   const pending = await registry<{ record: Pending; reused: boolean }>((store, done) => {
@@ -79,12 +98,13 @@ export async function runPendingFinancialOperation<T>(
         ? (recovered.data.result as ServiceResult<T>)
         : await execute(pending.record.id);
   } else result = await execute(pending.record.id);
-  if (result.errorCode !== 'OUTCOME_UNKNOWN') {
+  if (result.errorCode !== 'OUTCOME_UNKNOWN' && !abandoned()) {
     try {
       await registry<void>((store, done) => {
         const request = store.get(key);
         request.onsuccess = () => {
-          if ((request.result as Pending | undefined)?.id === pending.record.id) store.delete(key);
+          if (!abandoned() && (request.result as Pending | undefined)?.id === pending.record.id)
+            store.delete(key);
           done();
         };
       });

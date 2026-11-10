@@ -10,8 +10,8 @@
           "Total Cost": 5.48,
           "Plan Rows": 50,
           "Plan Width": 28,
-          "Actual Startup Time": 0.023,
-          "Actual Total Time": 0.034,
+          "Actual Startup Time": 0.013,
+          "Actual Total Time": 0.022,
           "Actual Rows": 50,
           "Actual Loops": 1,
           "Shared Hit Blocks": 52,
@@ -38,11 +38,11 @@
               "Total Cost": 1070.04,
               "Plan Rows": 10293,
               "Plan Width": 28,
-              "Actual Startup Time": 0.022,
-              "Actual Total Time": 0.031,
+              "Actual Startup Time": 0.013,
+              "Actual Total Time": 0.02,
               "Actual Rows": 50,
               "Actual Loops": 1,
-              "Index Cond": "(group_id = '526ce572-4ec3-4046-9d90-2c7d7af40e2d'::uuid)",
+              "Index Cond": "(group_id = '93a9aff2-0365-450f-b13c-d30d46206e65'::uuid)",
               "Rows Removed by Index Recheck": 0,
               "Heap Fetches": 50,
               "Shared Hit Blocks": 52,
@@ -70,9 +70,9 @@
           "Temp Read Blocks": 0,
           "Temp Written Blocks": 0
         },
-        "Planning Time": 0.152,
+        "Planning Time": 0.082,
         "Triggers": [],
-        "Execution Time": 0.056
+        "Execution Time": 0.029
       }
     ]
   }
