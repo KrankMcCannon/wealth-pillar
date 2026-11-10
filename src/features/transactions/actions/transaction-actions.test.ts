@@ -116,11 +116,8 @@ describe('transaction-actions', () => {
       group_id: 'group-1',
       user_ids: ['user-1'],
     } as Awaited<ReturnType<typeof AccountsRepository.findById>>);
-    vi.mocked(UsersRepository.findByIds).mockImplementation(
-      async (ids) =>
-        ids.map((id) => ({ id, group_id: 'group-1' })) as Awaited<
-          ReturnType<typeof UsersRepository.findByIds>
-        >
+    vi.mocked(UsersRepository.findByIds).mockImplementation(async (ids) =>
+      ids.map((id) => ({ id, group_id: 'group-1' }))
     );
   });
 

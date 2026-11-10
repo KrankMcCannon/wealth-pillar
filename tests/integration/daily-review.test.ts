@@ -197,8 +197,8 @@ it('preserves cached quotes and their timestamp on empty, invalid or unchanged r
   await MarketDataRepository.upsert('AAA', [{ datetime: '2026-11-02', close: '12' }]);
   const updated = await MarketDataRepository.findBySymbol('AAA');
   expect(updated?.data).toEqual([
-    { datetime: '2026-11-02', close: 12 },
-    { datetime: '2026-10-30', close: 10 },
+    { datetime: '2026-11-02', close: '12' },
+    { datetime: '2026-10-30', close: '10' },
   ]);
 });
 

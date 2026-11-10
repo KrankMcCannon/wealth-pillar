@@ -1,5 +1,7 @@
 'use client';
 
+import { useFinancialCommand } from '@/hooks/use-financial-command';
+
 import { useRouter } from '@/i18n/routing';
 import { withDeadline } from '@/lib/utils/with-deadline';
 
@@ -36,8 +38,11 @@ type AccountPayload = {
 };
 
 function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModalProps>) {
+  const financialCommand = useFinancialCommand();
+
   const router = useRouter();
   const t = useTranslations('Accounts.FormModal');
+  const tStatus = useTranslations('FormStatus');
   const tContent = useTranslations('Accounts.Content');
   const locale = useLocale();
   const { currentUser, groupUsers, groupId, shouldDisableUserField, defaultFormUserId } =
@@ -208,14 +213,15 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
   >({
     refreshAfterUncertain: () => router.refresh(),
     submissionKey: 'account',
+    operationKinds: { create: 'createAccountAction', update: 'updateAccountAction' },
     isEditMode,
     editId,
     onClose,
     buildPayload,
-    createAction: (payload) =>
+    createAction: (payload, operationId) =>
       createAccountAction(
         {
-          id: crypto.randomUUID(),
+          id: operationId ?? crypto.randomUUID(),
           name: payload.name,
           type: payload.type,
           liquidity: payload.liquidity,
@@ -223,9 +229,10 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
           group_id: groupId,
         },
         payload.isDefault,
-        locale
+        locale,
+        operationId
       ),
-    updateAction: (id, payload) =>
+    updateAction: (id, payload, operationId) =>
       updateAccountAction(
         id,
         {
@@ -235,7 +242,8 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
           user_ids: payload.user_ids,
         },
         payload.isDefault,
-        locale
+        locale,
+        operationId
       ),
     applyCreateOptimistic,
     commitCreate,
@@ -254,37 +262,38 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
     const account = storeAccounts.find((acc) => acc.id === editId);
     if (!account) return;
 
-    removeAccount(account.id);
-    let restored = false;
+    let rejected = false;
     try {
-      const result = await withDeadline(deleteAccountAction(account.id, locale));
+      const result = await withDeadline(
+        financialCommand('deleteAccountAction', [account.id, locale], (operationId, args) =>
+          deleteAccountAction(...args, operationId)
+        )
+      );
       if (result.error) {
-        addAccount(account);
-        restored = true;
+        rejected = true;
         toast({
           title: t('toast.errorTitle'),
-          description: result.error,
+          description: result.errorCode === 'OUTCOME_UNKNOWN' ? tStatus('pending') : result.error,
           variant: 'destructive',
         });
         throw new Error(result.error);
       }
+      removeAccount(account.id);
       toast({
         title: t('toast.deletedTitle'),
         description: t('toast.deletedDescription'),
         variant: 'success',
       });
     } catch {
-      if (!restored) {
-        addAccount(account);
+      if (!rejected)
         toast({
           title: t('toast.errorTitle'),
-          description: t('errors.unknown'),
+          description: tStatus('pending'),
           variant: 'destructive',
         });
-      }
       throw new Error('delete failed');
     }
-  }, [addAccount, editId, locale, removeAccount, storeAccounts, t]);
+  }, [editId, financialCommand, locale, removeAccount, storeAccounts, t, tStatus]);
 
   return (
     <EntityFormModal<AccountFormData>

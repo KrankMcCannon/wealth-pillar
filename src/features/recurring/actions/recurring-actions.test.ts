@@ -68,11 +68,8 @@ describe('deleteRecurringSeriesAction', () => {
       group_id: 'g1',
       user_ids: [member.id],
     } as Awaited<ReturnType<typeof AccountsRepository.findById>>);
-    vi.mocked(UsersRepository.findByIds).mockImplementation(
-      async (ids) =>
-        ids.map((id) => ({ id, group_id: 'g1' })) as Awaited<
-          ReturnType<typeof UsersRepository.findByIds>
-        >
+    vi.mocked(UsersRepository.findByIds).mockImplementation(async (ids) =>
+      ids.map((id) => ({ id, group_id: 'g1' }))
     );
     vi.mocked(getCurrentUser).mockResolvedValue(member);
     vi.mocked(getSeriesByIdUseCase).mockResolvedValue(otherSeries);
@@ -95,11 +92,8 @@ describe('recurring definition guards', () => {
       group_id: 'g1',
       user_ids: [member.id],
     } as Awaited<ReturnType<typeof AccountsRepository.findById>>);
-    vi.mocked(UsersRepository.findByIds).mockImplementation(
-      async (ids) =>
-        ids.map((id) => ({ id, group_id: 'g1' })) as Awaited<
-          ReturnType<typeof UsersRepository.findByIds>
-        >
+    vi.mocked(UsersRepository.findByIds).mockImplementation(async (ids) =>
+      ids.map((id) => ({ id, group_id: 'g1' }))
     );
     vi.mocked(getCurrentUser).mockResolvedValue(member);
     vi.mocked(getSeriesByIdUseCase).mockResolvedValue({ ...otherSeries, user_ids: [member.id] });

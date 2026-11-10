@@ -1,5 +1,7 @@
 'use client';
 
+import { useFinancialCommand } from '@/hooks/use-financial-command';
+
 import { withDeadline } from '@/lib/utils/with-deadline';
 
 import { CURRENCIES } from '@/lib/currency/types';
@@ -62,6 +64,8 @@ export default function AddInvestmentModal({
   onClose,
   editId,
 }: Readonly<AddInvestmentModalProps>) {
+  const financialCommand = useFinancialCommand();
+
   const t = useTranslations('Investments.AddModal');
   const router = useRouter();
   const investmentSchema = useMemo(() => createInvestmentSchema(t), [t]);
@@ -127,12 +131,14 @@ export default function AddInvestmentModal({
 
   const handleSubmit = useEntityFormSubmit({
     submissionKey: 'investment',
+    operationKinds: { create: 'createInvestmentAction', update: 'updateInvestmentAction' },
     isEditMode,
     editId,
     onClose,
     buildPayload,
     createAction: createInvestmentAction,
-    updateAction: (id, payload) => updateInvestmentAction({ id, ...payload }),
+    updateAction: (id, payload, operationId) =>
+      updateInvestmentAction({ id, ...payload }, operationId),
     getSuccessToast,
     errorToast: { title: t('toast.errorTitle') },
     unknownErrorMessage: t('toast.saveError'),
@@ -162,7 +168,11 @@ export default function AddInvestmentModal({
         cancelText: t('cancelButton'),
         onDelete: async () => {
           if (!editId) return;
-          const result = await withDeadline(deleteInvestmentAction(editId));
+          const result = await withDeadline(
+            financialCommand('deleteInvestmentAction', [editId], (operationId, args) =>
+              deleteInvestmentAction(...args, operationId)
+            )
+          );
           if (result.error) {
             toast({
               title: t('toast.errorTitle'),

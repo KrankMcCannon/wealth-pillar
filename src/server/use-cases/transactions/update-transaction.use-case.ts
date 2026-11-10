@@ -1,5 +1,5 @@
+import { financialTransaction } from '@/server/repositories/db-executor';
 import { rememberNotificationCategory } from '@/server/use-cases/bank-notifications/remember-category';
-import { db } from '@/server/db/drizzle';
 import { TransactionsRepository } from '@/server/repositories/transactions.repository';
 import type { UpdateTransactionInput } from '@/server/use-cases/transactions/types';
 import type { TransactionMutationResult } from '@/lib/types/financial-mutation';
@@ -30,7 +30,7 @@ export async function updateTransactionUseCase(
   if (data.account_id !== undefined) updateData.account_id = data.account_id;
   if (data.to_account_id !== undefined) updateData.to_account_id = data.to_account_id;
 
-  const { existing, updated, accountBalances, accountBalanceVersions } = await db.transaction(
+  const { existing, updated, accountBalances, accountBalanceVersions } = await financialTransaction(
     async (tx) => {
       const existing = await TransactionsRepository.getByIdForUpdate(id, scope, tx);
       if (!existing) throw new Error('Transaction not found');
@@ -77,7 +77,7 @@ export async function updateTransactionUseCase(
       userId: updated.user_id,
       accountId: updated.account_id,
       toAccountId: updated.to_account_id ?? null,
-      groupId: updated.group_id!,
+      groupId: updated.group_id,
     }
   );
 

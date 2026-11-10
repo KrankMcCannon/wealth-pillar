@@ -1,5 +1,7 @@
 'use client';
 
+import { useFinancialCommand } from '@/hooks/use-financial-command';
+
 import { withDeadline } from '@/lib/utils/with-deadline';
 
 import { useMemo } from 'react';
@@ -29,6 +31,8 @@ export function CompleteNotificationModal({
   onClose: () => void;
   onComplete: () => Promise<void>;
 }) {
+  const financialCommand = useFinancialCommand();
+
   const t = useTranslations('BankNotifications');
   const tForm = useTranslations('Transactions.FormModal');
   const accounts = useAccounts().filter((account) => account.id === event.account_id);
@@ -78,17 +82,23 @@ export function CompleteNotificationModal({
       onSubmit={async (values, form, signal) => {
         try {
           const result = await withDeadline(
-            reviewBankNotificationAction({
-              id: event.id,
-              decision: 'import',
-              category: values.category,
-              manual: {
-                description: values.description,
-                amount: parseDecimal(values.amount),
-                type: values.type,
-                date: values.date,
-              },
-            })
+            financialCommand(
+              'reviewBankNotificationAction',
+              [
+                {
+                  id: event.id,
+                  decision: 'import',
+                  category: values.category,
+                  manual: {
+                    description: values.description,
+                    amount: parseDecimal(values.amount),
+                    type: values.type,
+                    date: values.date,
+                  },
+                },
+              ],
+              (operationId, args) => reviewBankNotificationAction(...args, operationId)
+            )
           );
           if (result.error) {
             form.setError('root', { message: t('errors.unavailable') });

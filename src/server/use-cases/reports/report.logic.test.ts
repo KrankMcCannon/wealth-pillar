@@ -5,6 +5,7 @@ import {
   computeGroupAccountTypeSummary,
   netFlowDeltaPercent,
   buildReportsSectionViewModel,
+  computeCategoryStats,
 } from './report.logic';
 import type { Account, Category, Transaction } from '@/lib/types';
 
@@ -12,6 +13,26 @@ const window = {
   start: financialDateTime('2024-06-01').startOf('day').toJSDate(),
   end: financialDateTime('2024-06-30').endOf('day').toJSDate(),
 };
+
+it('sums category amounts in cents before converting for presentation', () => {
+  const base = {
+    date: '2024-06-10',
+    user_id: 'u1',
+    account_id: 'a1',
+    to_account_id: null,
+    type: 'expense' as const,
+    category: 'food',
+  };
+  const result = computeCategoryStats(
+    [
+      { ...base, amount: '0.10' },
+      { ...base, amount: '0.20' },
+    ],
+    [],
+    window
+  );
+  expect(result[0]?.total).toBe(0.3);
+});
 
 describe('sumIncomeExpenseInWindow', () => {
   it('sums income and expense in window only', () => {

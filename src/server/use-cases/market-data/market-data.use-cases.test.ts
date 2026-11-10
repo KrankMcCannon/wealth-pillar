@@ -19,7 +19,7 @@ it('shows quote dates even when a cache was fetched much later', async () => {
     },
   ]);
   expect(await getBatchMarketDataUseCase(['AAA'])).toEqual([
-    { symbol: 'AAA', data: [{ datetime: '2026-10-30', close: 12 }], lastUpdated: '2026-10-30' },
+    { symbol: 'AAA', data: [{ datetime: '2026-10-30', close: '12' }], lastUpdated: '2026-10-30' },
   ]);
   expect(twelveData.getTimeSeries).not.toHaveBeenCalled();
 });
@@ -92,7 +92,11 @@ it('mixes fresh, stale and missing quotes without refetching fresh data', async 
   expect(await getBatchMarketDataUseCase(['fresh', 'stale', 'missing', 'FRESH'])).toMatchObject([
     { symbol: 'FRESH', data: [{ datetime: '2026-10-30', close: 10 }], lastUpdated: '2026-10-30' },
     { symbol: 'STALE', data: [{ datetime: '2026-10-29', close: 11 }], lastUpdated: '2026-10-29' },
-    { symbol: 'MISSING', data: [{ datetime: '2026-10-30', close: 12 }], lastUpdated: '2026-10-30' },
+    {
+      symbol: 'MISSING',
+      data: [{ datetime: '2026-10-30', close: '12' }],
+      lastUpdated: '2026-10-30',
+    },
   ]);
   expect(
     vi

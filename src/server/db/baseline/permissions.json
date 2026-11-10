@@ -1,0 +1,1823 @@
+{
+  "schemaGrants": [
+    {
+      "role": "pg_database_owner",
+      "grantable": false,
+      "privilege": "CREATE"
+    },
+    {
+      "role": "pg_database_owner",
+      "grantable": false,
+      "privilege": "USAGE"
+    },
+    {
+      "role": "postgres",
+      "grantable": false,
+      "privilege": "USAGE"
+    },
+    {
+      "role": "service_role",
+      "grantable": false,
+      "privilege": "USAGE"
+    },
+    {
+      "role": "pool_user",
+      "grantable": false,
+      "privilege": "CREATE"
+    },
+    {
+      "role": "pool_user",
+      "grantable": false,
+      "privilege": "USAGE"
+    }
+  ],
+  "functionGrants": [
+    {
+      "name": "add_budget_period_to_user",
+      "role": "postgres",
+      "identity": "p_user_id uuid, p_start_date date, p_end_date date",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "add_budget_period_to_user",
+      "role": "service_role",
+      "identity": "p_user_id uuid, p_start_date date, p_end_date date",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "add_budget_period_to_user",
+      "role": "pool_user",
+      "identity": "p_user_id uuid, p_start_date date, p_end_date date",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "add_category_to_budget",
+      "role": "postgres",
+      "identity": "p_budget_id uuid, p_category text",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "add_category_to_budget",
+      "role": "service_role",
+      "identity": "p_budget_id uuid, p_category text",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "add_category_to_budget",
+      "role": "pool_user",
+      "identity": "p_budget_id uuid, p_category text",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "add_user_to_account",
+      "role": "postgres",
+      "identity": "p_account_id uuid, p_user_id uuid",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "add_user_to_account",
+      "role": "service_role",
+      "identity": "p_account_id uuid, p_user_id uuid",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "add_user_to_account",
+      "role": "pool_user",
+      "identity": "p_account_id uuid, p_user_id uuid",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "add_user_to_group",
+      "role": "postgres",
+      "identity": "p_group_id uuid, p_user_id uuid",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "add_user_to_group",
+      "role": "service_role",
+      "identity": "p_group_id uuid, p_user_id uuid",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "add_user_to_group",
+      "role": "pool_user",
+      "identity": "p_group_id uuid, p_user_id uuid",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "bump_account_balance_version",
+      "role": "postgres",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "bump_account_balance_version",
+      "role": "service_role",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "bump_account_balance_version",
+      "role": "pool_user",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "calculate_account_balance",
+      "role": "postgres",
+      "identity": "p_account_id uuid, p_end_date date",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "calculate_account_balance",
+      "role": "service_role",
+      "identity": "p_account_id uuid, p_end_date date",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "calculate_account_balance",
+      "role": "pool_user",
+      "identity": "p_account_id uuid, p_end_date date",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "calculate_next_due_date",
+      "role": "postgres",
+      "identity": "p_current_date date, p_frequency character varying, p_day_of_month integer, p_day_of_week integer, p_month_of_year integer",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "calculate_next_due_date",
+      "role": "service_role",
+      "identity": "p_current_date date, p_frequency character varying, p_day_of_month integer, p_day_of_week integer, p_month_of_year integer",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "calculate_next_due_date",
+      "role": "pool_user",
+      "identity": "p_current_date date, p_frequency character varying, p_day_of_month integer, p_day_of_week integer, p_month_of_year integer",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "category_reference_keys",
+      "role": "postgres",
+      "identity": "p_group_id uuid",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "category_reference_keys",
+      "role": "service_role",
+      "identity": "p_group_id uuid",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "category_reference_keys",
+      "role": "pool_user",
+      "identity": "p_group_id uuid",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "expire_old_invitations",
+      "role": "postgres",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "expire_old_invitations",
+      "role": "service_role",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "expire_old_invitations",
+      "role": "pool_user",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_active_budget_period",
+      "role": "postgres",
+      "identity": "p_user_id uuid",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_active_budget_period",
+      "role": "service_role",
+      "identity": "p_user_id uuid",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_active_budget_period",
+      "role": "pool_user",
+      "identity": "p_user_id uuid",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_all_categories",
+      "role": "postgres",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_all_categories",
+      "role": "service_role",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_all_categories",
+      "role": "pool_user",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_available_share_asset_types",
+      "role": "postgres",
+      "identity": "p_region text",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_available_share_asset_types",
+      "role": "service_role",
+      "identity": "p_region text",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_available_share_asset_types",
+      "role": "pool_user",
+      "identity": "p_region text",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_available_share_regions",
+      "role": "postgres",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_available_share_regions",
+      "role": "service_role",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_available_share_regions",
+      "role": "pool_user",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_budgets_by_category",
+      "role": "postgres",
+      "identity": "p_category text",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_budgets_by_category",
+      "role": "service_role",
+      "identity": "p_category text",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_budgets_by_category",
+      "role": "pool_user",
+      "identity": "p_category text",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_categories_by_theme",
+      "role": "postgres",
+      "identity": "p_color_pattern text",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_categories_by_theme",
+      "role": "service_role",
+      "identity": "p_color_pattern text",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_categories_by_theme",
+      "role": "pool_user",
+      "identity": "p_color_pattern text",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_category_by_key",
+      "role": "postgres",
+      "identity": "p_key text",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_category_by_key",
+      "role": "service_role",
+      "identity": "p_key text",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_category_by_key",
+      "role": "pool_user",
+      "identity": "p_key text",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_due_recurring_transactions",
+      "role": "postgres",
+      "identity": "p_date date",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_due_recurring_transactions",
+      "role": "service_role",
+      "identity": "p_date date",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_due_recurring_transactions",
+      "role": "pool_user",
+      "identity": "p_date date",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_group_category_spending",
+      "role": "postgres",
+      "identity": "p_group_id uuid, p_start_date timestamp with time zone, p_end_date timestamp with time zone",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_group_category_spending",
+      "role": "service_role",
+      "identity": "p_group_id uuid, p_start_date timestamp with time zone, p_end_date timestamp with time zone",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_group_category_spending",
+      "role": "pool_user",
+      "identity": "p_group_id uuid, p_start_date timestamp with time zone, p_end_date timestamp with time zone",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_group_monthly_spending",
+      "role": "postgres",
+      "identity": "p_group_id uuid, p_start_date timestamp with time zone, p_end_date timestamp with time zone",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_group_monthly_spending",
+      "role": "service_role",
+      "identity": "p_group_id uuid, p_start_date timestamp with time zone, p_end_date timestamp with time zone",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_group_monthly_spending",
+      "role": "pool_user",
+      "identity": "p_group_id uuid, p_start_date timestamp with time zone, p_end_date timestamp with time zone",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_group_user_category_spending",
+      "role": "postgres",
+      "identity": "p_group_id uuid, p_start_date timestamp with time zone, p_end_date timestamp with time zone",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_group_user_category_spending",
+      "role": "service_role",
+      "identity": "p_group_id uuid, p_start_date timestamp with time zone, p_end_date timestamp with time zone",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_group_user_category_spending",
+      "role": "pool_user",
+      "identity": "p_group_id uuid, p_start_date timestamp with time zone, p_end_date timestamp with time zone",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_monthly_spending_by_category",
+      "role": "postgres",
+      "identity": "p_user_id uuid, p_year integer, p_month integer",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_monthly_spending_by_category",
+      "role": "service_role",
+      "identity": "p_user_id uuid, p_year integer, p_month integer",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_monthly_spending_by_category",
+      "role": "pool_user",
+      "identity": "p_user_id uuid, p_year integer, p_month integer",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_popular_shares",
+      "role": "postgres",
+      "identity": "p_limit integer",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_popular_shares",
+      "role": "service_role",
+      "identity": "p_limit integer",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_popular_shares",
+      "role": "pool_user",
+      "identity": "p_limit integer",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_recurring_transactions_by_user",
+      "role": "postgres",
+      "identity": "p_user_id uuid",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_recurring_transactions_by_user",
+      "role": "service_role",
+      "identity": "p_user_id uuid",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_recurring_transactions_by_user",
+      "role": "pool_user",
+      "identity": "p_user_id uuid",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_transactions_by_user",
+      "role": "postgres",
+      "identity": "p_user_id uuid, p_limit integer, p_offset integer, p_start_date date, p_end_date date, p_category text, p_type text, p_account_id uuid",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_transactions_by_user",
+      "role": "service_role",
+      "identity": "p_user_id uuid, p_limit integer, p_offset integer, p_start_date date, p_end_date date, p_category text, p_type text, p_account_id uuid",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_transactions_by_user",
+      "role": "pool_user",
+      "identity": "p_user_id uuid, p_limit integer, p_offset integer, p_start_date date, p_end_date date, p_category text, p_type text, p_account_id uuid",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_user_accounts",
+      "role": "postgres",
+      "identity": "p_user_clerk_id text",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_user_accounts",
+      "role": "service_role",
+      "identity": "p_user_clerk_id text",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_user_accounts",
+      "role": "pool_user",
+      "identity": "p_user_clerk_id text",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_user_budget_total",
+      "role": "postgres",
+      "identity": "p_user_clerk_id text, p_type text",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_user_budget_total",
+      "role": "service_role",
+      "identity": "p_user_clerk_id text, p_type text",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_user_budget_total",
+      "role": "pool_user",
+      "identity": "p_user_clerk_id text, p_type text",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_user_budgets",
+      "role": "postgres",
+      "identity": "p_user_clerk_id text",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_user_budgets",
+      "role": "service_role",
+      "identity": "p_user_clerk_id text",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_user_budgets",
+      "role": "pool_user",
+      "identity": "p_user_clerk_id text",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_user_by_clerk_id",
+      "role": "postgres",
+      "identity": "p_clerk_id text",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_user_by_clerk_id",
+      "role": "service_role",
+      "identity": "p_clerk_id text",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_user_by_clerk_id",
+      "role": "pool_user",
+      "identity": "p_clerk_id text",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_user_by_email",
+      "role": "postgres",
+      "identity": "p_email text",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_user_by_email",
+      "role": "service_role",
+      "identity": "p_email text",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_user_by_email",
+      "role": "pool_user",
+      "identity": "p_email text",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_user_groups",
+      "role": "postgres",
+      "identity": "p_user_clerk_id text",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_user_groups",
+      "role": "service_role",
+      "identity": "p_user_clerk_id text",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_user_groups",
+      "role": "pool_user",
+      "identity": "p_user_clerk_id text",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_users_in_group",
+      "role": "postgres",
+      "identity": "p_user_clerk_id text",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_users_in_group",
+      "role": "service_role",
+      "identity": "p_user_clerk_id text",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "get_users_in_group",
+      "role": "pool_user",
+      "identity": "p_user_clerk_id text",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "guard_category_delete",
+      "role": "postgres",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "guard_category_delete",
+      "role": "service_role",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "guard_category_delete",
+      "role": "pool_user",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "guard_category_reference",
+      "role": "postgres",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "guard_category_reference",
+      "role": "service_role",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "guard_category_reference",
+      "role": "pool_user",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "populate_transaction_relations",
+      "role": "postgres",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "populate_transaction_relations",
+      "role": "service_role",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "populate_transaction_relations",
+      "role": "pool_user",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "remove_category_from_budget",
+      "role": "postgres",
+      "identity": "p_budget_id uuid, p_category text",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "remove_category_from_budget",
+      "role": "service_role",
+      "identity": "p_budget_id uuid, p_category text",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "remove_category_from_budget",
+      "role": "pool_user",
+      "identity": "p_budget_id uuid, p_category text",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "remove_user_from_account",
+      "role": "postgres",
+      "identity": "p_account_id uuid, p_user_id uuid",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "remove_user_from_account",
+      "role": "service_role",
+      "identity": "p_account_id uuid, p_user_id uuid",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "remove_user_from_account",
+      "role": "pool_user",
+      "identity": "p_account_id uuid, p_user_id uuid",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "remove_user_from_group",
+      "role": "postgres",
+      "identity": "p_group_id uuid, p_user_id uuid",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "remove_user_from_group",
+      "role": "service_role",
+      "identity": "p_group_id uuid, p_user_id uuid",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "remove_user_from_group",
+      "role": "pool_user",
+      "identity": "p_group_id uuid, p_user_id uuid",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "update_account_balance",
+      "role": "postgres",
+      "identity": "p_account_id uuid, p_delta numeric",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "update_account_balance",
+      "role": "service_role",
+      "identity": "p_account_id uuid, p_delta numeric",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "update_account_balance",
+      "role": "pool_user",
+      "identity": "p_account_id uuid, p_delta numeric",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "update_accounts_updated_at",
+      "role": "postgres",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "update_accounts_updated_at",
+      "role": "service_role",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "update_accounts_updated_at",
+      "role": "pool_user",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "update_available_shares_updated_at",
+      "role": "postgres",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "update_available_shares_updated_at",
+      "role": "service_role",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "update_available_shares_updated_at",
+      "role": "pool_user",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "update_budgets_updated_at",
+      "role": "postgres",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "update_budgets_updated_at",
+      "role": "service_role",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "update_budgets_updated_at",
+      "role": "pool_user",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "update_categories_updated_at",
+      "role": "postgres",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "update_categories_updated_at",
+      "role": "service_role",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "update_categories_updated_at",
+      "role": "pool_user",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "update_group_invitations_updated_at",
+      "role": "postgres",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "update_group_invitations_updated_at",
+      "role": "service_role",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "update_group_invitations_updated_at",
+      "role": "pool_user",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "update_group_plan",
+      "role": "postgres",
+      "identity": "p_group_id uuid, p_plan_type text, p_plan_name text",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "update_group_plan",
+      "role": "service_role",
+      "identity": "p_group_id uuid, p_plan_type text, p_plan_name text",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "update_group_plan",
+      "role": "pool_user",
+      "identity": "p_group_id uuid, p_plan_type text, p_plan_name text",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "update_groups_updated_at",
+      "role": "postgres",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "update_groups_updated_at",
+      "role": "service_role",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "update_groups_updated_at",
+      "role": "pool_user",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "update_recurring_transaction_execution",
+      "role": "postgres",
+      "identity": "p_recurring_transaction_id uuid, p_success boolean",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "update_recurring_transaction_execution",
+      "role": "service_role",
+      "identity": "p_recurring_transaction_id uuid, p_success boolean",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "update_recurring_transaction_execution",
+      "role": "pool_user",
+      "identity": "p_recurring_transaction_id uuid, p_success boolean",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "update_recurring_transactions_updated_at",
+      "role": "postgres",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "update_recurring_transactions_updated_at",
+      "role": "service_role",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "update_recurring_transactions_updated_at",
+      "role": "pool_user",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "update_transactions_updated_at",
+      "role": "postgres",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "update_transactions_updated_at",
+      "role": "service_role",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "update_transactions_updated_at",
+      "role": "pool_user",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "update_updated_at_column",
+      "role": "postgres",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "update_updated_at_column",
+      "role": "service_role",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "update_updated_at_column",
+      "role": "pool_user",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "update_user_clerk_id_by_email",
+      "role": "postgres",
+      "identity": "p_email text, p_clerk_id text",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "update_user_clerk_id_by_email",
+      "role": "service_role",
+      "identity": "p_email text, p_clerk_id text",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "update_user_clerk_id_by_email",
+      "role": "pool_user",
+      "identity": "p_email text, p_clerk_id text",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "update_user_preferences_updated_at",
+      "role": "postgres",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "update_user_preferences_updated_at",
+      "role": "service_role",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "update_user_preferences_updated_at",
+      "role": "pool_user",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "update_users_updated_at",
+      "role": "postgres",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "update_users_updated_at",
+      "role": "service_role",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "update_users_updated_at",
+      "role": "pool_user",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "upsert_user_by_clerk_id",
+      "role": "postgres",
+      "identity": "p_clerk_id text, p_name text, p_email text, p_avatar text",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "upsert_user_by_clerk_id",
+      "role": "service_role",
+      "identity": "p_clerk_id text, p_name text, p_email text, p_avatar text",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "upsert_user_by_clerk_id",
+      "role": "pool_user",
+      "identity": "p_clerk_id text, p_name text, p_email text, p_avatar text",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "user_has_role_permission",
+      "role": "postgres",
+      "identity": "p_user_clerk_id text, p_required_role text",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "user_has_role_permission",
+      "role": "service_role",
+      "identity": "p_user_clerk_id text, p_required_role text",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "user_has_role_permission",
+      "role": "pool_user",
+      "identity": "p_user_clerk_id text, p_required_role text",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "validate_transaction_accounts",
+      "role": "postgres",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "validate_transaction_accounts",
+      "role": "service_role",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "validate_transaction_accounts",
+      "role": "pool_user",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "validate_transaction_references",
+      "role": "postgres",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "validate_transaction_references",
+      "role": "service_role",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "validate_transaction_references",
+      "role": "pool_user",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "verify_transaction_population",
+      "role": "postgres",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "verify_transaction_population",
+      "role": "service_role",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "name": "verify_transaction_population",
+      "role": "pool_user",
+      "identity": "",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    }
+  ],
+  "defaultPrivileges": [
+    {
+      "role": "postgres",
+      "type": "S",
+      "owner": "supabase_admin",
+      "grantable": false,
+      "privilege": "SELECT"
+    },
+    {
+      "role": "postgres",
+      "type": "S",
+      "owner": "supabase_admin",
+      "grantable": false,
+      "privilege": "UPDATE"
+    },
+    {
+      "role": "postgres",
+      "type": "S",
+      "owner": "supabase_admin",
+      "grantable": false,
+      "privilege": "USAGE"
+    },
+    {
+      "role": "anon",
+      "type": "S",
+      "owner": "supabase_admin",
+      "grantable": false,
+      "privilege": "SELECT"
+    },
+    {
+      "role": "anon",
+      "type": "S",
+      "owner": "supabase_admin",
+      "grantable": false,
+      "privilege": "UPDATE"
+    },
+    {
+      "role": "anon",
+      "type": "S",
+      "owner": "supabase_admin",
+      "grantable": false,
+      "privilege": "USAGE"
+    },
+    {
+      "role": "authenticated",
+      "type": "S",
+      "owner": "supabase_admin",
+      "grantable": false,
+      "privilege": "SELECT"
+    },
+    {
+      "role": "authenticated",
+      "type": "S",
+      "owner": "supabase_admin",
+      "grantable": false,
+      "privilege": "UPDATE"
+    },
+    {
+      "role": "authenticated",
+      "type": "S",
+      "owner": "supabase_admin",
+      "grantable": false,
+      "privilege": "USAGE"
+    },
+    {
+      "role": "service_role",
+      "type": "S",
+      "owner": "supabase_admin",
+      "grantable": false,
+      "privilege": "SELECT"
+    },
+    {
+      "role": "service_role",
+      "type": "S",
+      "owner": "supabase_admin",
+      "grantable": false,
+      "privilege": "UPDATE"
+    },
+    {
+      "role": "service_role",
+      "type": "S",
+      "owner": "supabase_admin",
+      "grantable": false,
+      "privilege": "USAGE"
+    },
+    {
+      "role": "postgres",
+      "type": "f",
+      "owner": "supabase_admin",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "role": "anon",
+      "type": "f",
+      "owner": "supabase_admin",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "role": "authenticated",
+      "type": "f",
+      "owner": "supabase_admin",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "role": "service_role",
+      "type": "f",
+      "owner": "supabase_admin",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "role": "postgres",
+      "type": "r",
+      "owner": "supabase_admin",
+      "grantable": false,
+      "privilege": "DELETE"
+    },
+    {
+      "role": "postgres",
+      "type": "r",
+      "owner": "supabase_admin",
+      "grantable": false,
+      "privilege": "INSERT"
+    },
+    {
+      "role": "postgres",
+      "type": "r",
+      "owner": "supabase_admin",
+      "grantable": false,
+      "privilege": "MAINTAIN"
+    },
+    {
+      "role": "postgres",
+      "type": "r",
+      "owner": "supabase_admin",
+      "grantable": false,
+      "privilege": "REFERENCES"
+    },
+    {
+      "role": "postgres",
+      "type": "r",
+      "owner": "supabase_admin",
+      "grantable": false,
+      "privilege": "SELECT"
+    },
+    {
+      "role": "postgres",
+      "type": "r",
+      "owner": "supabase_admin",
+      "grantable": false,
+      "privilege": "TRIGGER"
+    },
+    {
+      "role": "postgres",
+      "type": "r",
+      "owner": "supabase_admin",
+      "grantable": false,
+      "privilege": "TRUNCATE"
+    },
+    {
+      "role": "postgres",
+      "type": "r",
+      "owner": "supabase_admin",
+      "grantable": false,
+      "privilege": "UPDATE"
+    },
+    {
+      "role": "anon",
+      "type": "r",
+      "owner": "supabase_admin",
+      "grantable": false,
+      "privilege": "DELETE"
+    },
+    {
+      "role": "anon",
+      "type": "r",
+      "owner": "supabase_admin",
+      "grantable": false,
+      "privilege": "INSERT"
+    },
+    {
+      "role": "anon",
+      "type": "r",
+      "owner": "supabase_admin",
+      "grantable": false,
+      "privilege": "MAINTAIN"
+    },
+    {
+      "role": "anon",
+      "type": "r",
+      "owner": "supabase_admin",
+      "grantable": false,
+      "privilege": "REFERENCES"
+    },
+    {
+      "role": "anon",
+      "type": "r",
+      "owner": "supabase_admin",
+      "grantable": false,
+      "privilege": "SELECT"
+    },
+    {
+      "role": "anon",
+      "type": "r",
+      "owner": "supabase_admin",
+      "grantable": false,
+      "privilege": "TRIGGER"
+    },
+    {
+      "role": "anon",
+      "type": "r",
+      "owner": "supabase_admin",
+      "grantable": false,
+      "privilege": "TRUNCATE"
+    },
+    {
+      "role": "anon",
+      "type": "r",
+      "owner": "supabase_admin",
+      "grantable": false,
+      "privilege": "UPDATE"
+    },
+    {
+      "role": "authenticated",
+      "type": "r",
+      "owner": "supabase_admin",
+      "grantable": false,
+      "privilege": "DELETE"
+    },
+    {
+      "role": "authenticated",
+      "type": "r",
+      "owner": "supabase_admin",
+      "grantable": false,
+      "privilege": "INSERT"
+    },
+    {
+      "role": "authenticated",
+      "type": "r",
+      "owner": "supabase_admin",
+      "grantable": false,
+      "privilege": "MAINTAIN"
+    },
+    {
+      "role": "authenticated",
+      "type": "r",
+      "owner": "supabase_admin",
+      "grantable": false,
+      "privilege": "REFERENCES"
+    },
+    {
+      "role": "authenticated",
+      "type": "r",
+      "owner": "supabase_admin",
+      "grantable": false,
+      "privilege": "SELECT"
+    },
+    {
+      "role": "authenticated",
+      "type": "r",
+      "owner": "supabase_admin",
+      "grantable": false,
+      "privilege": "TRIGGER"
+    },
+    {
+      "role": "authenticated",
+      "type": "r",
+      "owner": "supabase_admin",
+      "grantable": false,
+      "privilege": "TRUNCATE"
+    },
+    {
+      "role": "authenticated",
+      "type": "r",
+      "owner": "supabase_admin",
+      "grantable": false,
+      "privilege": "UPDATE"
+    },
+    {
+      "role": "service_role",
+      "type": "r",
+      "owner": "supabase_admin",
+      "grantable": false,
+      "privilege": "DELETE"
+    },
+    {
+      "role": "service_role",
+      "type": "r",
+      "owner": "supabase_admin",
+      "grantable": false,
+      "privilege": "INSERT"
+    },
+    {
+      "role": "service_role",
+      "type": "r",
+      "owner": "supabase_admin",
+      "grantable": false,
+      "privilege": "MAINTAIN"
+    },
+    {
+      "role": "service_role",
+      "type": "r",
+      "owner": "supabase_admin",
+      "grantable": false,
+      "privilege": "REFERENCES"
+    },
+    {
+      "role": "service_role",
+      "type": "r",
+      "owner": "supabase_admin",
+      "grantable": false,
+      "privilege": "SELECT"
+    },
+    {
+      "role": "service_role",
+      "type": "r",
+      "owner": "supabase_admin",
+      "grantable": false,
+      "privilege": "TRIGGER"
+    },
+    {
+      "role": "service_role",
+      "type": "r",
+      "owner": "supabase_admin",
+      "grantable": false,
+      "privilege": "TRUNCATE"
+    },
+    {
+      "role": "service_role",
+      "type": "r",
+      "owner": "supabase_admin",
+      "grantable": false,
+      "privilege": "UPDATE"
+    },
+    {
+      "role": "postgres",
+      "type": "S",
+      "owner": "postgres",
+      "grantable": false,
+      "privilege": "SELECT"
+    },
+    {
+      "role": "postgres",
+      "type": "S",
+      "owner": "postgres",
+      "grantable": false,
+      "privilege": "UPDATE"
+    },
+    {
+      "role": "postgres",
+      "type": "S",
+      "owner": "postgres",
+      "grantable": false,
+      "privilege": "USAGE"
+    },
+    {
+      "role": "service_role",
+      "type": "S",
+      "owner": "postgres",
+      "grantable": false,
+      "privilege": "SELECT"
+    },
+    {
+      "role": "service_role",
+      "type": "S",
+      "owner": "postgres",
+      "grantable": false,
+      "privilege": "UPDATE"
+    },
+    {
+      "role": "service_role",
+      "type": "S",
+      "owner": "postgres",
+      "grantable": false,
+      "privilege": "USAGE"
+    },
+    {
+      "role": "pool_user",
+      "type": "S",
+      "owner": "postgres",
+      "grantable": false,
+      "privilege": "SELECT"
+    },
+    {
+      "role": "pool_user",
+      "type": "S",
+      "owner": "postgres",
+      "grantable": false,
+      "privilege": "UPDATE"
+    },
+    {
+      "role": "pool_user",
+      "type": "S",
+      "owner": "postgres",
+      "grantable": false,
+      "privilege": "USAGE"
+    },
+    {
+      "role": "postgres",
+      "type": "f",
+      "owner": "postgres",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "role": "service_role",
+      "type": "f",
+      "owner": "postgres",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "role": "pool_user",
+      "type": "f",
+      "owner": "postgres",
+      "grantable": false,
+      "privilege": "EXECUTE"
+    },
+    {
+      "role": "postgres",
+      "type": "r",
+      "owner": "postgres",
+      "grantable": false,
+      "privilege": "DELETE"
+    },
+    {
+      "role": "postgres",
+      "type": "r",
+      "owner": "postgres",
+      "grantable": false,
+      "privilege": "INSERT"
+    },
+    {
+      "role": "postgres",
+      "type": "r",
+      "owner": "postgres",
+      "grantable": false,
+      "privilege": "MAINTAIN"
+    },
+    {
+      "role": "postgres",
+      "type": "r",
+      "owner": "postgres",
+      "grantable": false,
+      "privilege": "REFERENCES"
+    },
+    {
+      "role": "postgres",
+      "type": "r",
+      "owner": "postgres",
+      "grantable": false,
+      "privilege": "SELECT"
+    },
+    {
+      "role": "postgres",
+      "type": "r",
+      "owner": "postgres",
+      "grantable": false,
+      "privilege": "TRIGGER"
+    },
+    {
+      "role": "postgres",
+      "type": "r",
+      "owner": "postgres",
+      "grantable": false,
+      "privilege": "TRUNCATE"
+    },
+    {
+      "role": "postgres",
+      "type": "r",
+      "owner": "postgres",
+      "grantable": false,
+      "privilege": "UPDATE"
+    },
+    {
+      "role": "service_role",
+      "type": "r",
+      "owner": "postgres",
+      "grantable": false,
+      "privilege": "DELETE"
+    },
+    {
+      "role": "service_role",
+      "type": "r",
+      "owner": "postgres",
+      "grantable": false,
+      "privilege": "INSERT"
+    },
+    {
+      "role": "service_role",
+      "type": "r",
+      "owner": "postgres",
+      "grantable": false,
+      "privilege": "MAINTAIN"
+    },
+    {
+      "role": "service_role",
+      "type": "r",
+      "owner": "postgres",
+      "grantable": false,
+      "privilege": "REFERENCES"
+    },
+    {
+      "role": "service_role",
+      "type": "r",
+      "owner": "postgres",
+      "grantable": false,
+      "privilege": "SELECT"
+    },
+    {
+      "role": "service_role",
+      "type": "r",
+      "owner": "postgres",
+      "grantable": false,
+      "privilege": "TRIGGER"
+    },
+    {
+      "role": "service_role",
+      "type": "r",
+      "owner": "postgres",
+      "grantable": false,
+      "privilege": "TRUNCATE"
+    },
+    {
+      "role": "service_role",
+      "type": "r",
+      "owner": "postgres",
+      "grantable": false,
+      "privilege": "UPDATE"
+    },
+    {
+      "role": "pool_user",
+      "type": "r",
+      "owner": "postgres",
+      "grantable": false,
+      "privilege": "DELETE"
+    },
+    {
+      "role": "pool_user",
+      "type": "r",
+      "owner": "postgres",
+      "grantable": false,
+      "privilege": "INSERT"
+    },
+    {
+      "role": "pool_user",
+      "type": "r",
+      "owner": "postgres",
+      "grantable": false,
+      "privilege": "MAINTAIN"
+    },
+    {
+      "role": "pool_user",
+      "type": "r",
+      "owner": "postgres",
+      "grantable": false,
+      "privilege": "REFERENCES"
+    },
+    {
+      "role": "pool_user",
+      "type": "r",
+      "owner": "postgres",
+      "grantable": false,
+      "privilege": "SELECT"
+    },
+    {
+      "role": "pool_user",
+      "type": "r",
+      "owner": "postgres",
+      "grantable": false,
+      "privilege": "TRIGGER"
+    },
+    {
+      "role": "pool_user",
+      "type": "r",
+      "owner": "postgres",
+      "grantable": false,
+      "privilege": "TRUNCATE"
+    },
+    {
+      "role": "pool_user",
+      "type": "r",
+      "owner": "postgres",
+      "grantable": false,
+      "privilege": "UPDATE"
+    }
+  ]
+}

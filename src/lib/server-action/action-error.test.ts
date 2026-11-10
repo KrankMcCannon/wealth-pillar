@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { actionErrorMessage } from './action-error';
+import { actionErrorMessage, logServerActionError } from './action-error';
 import { ActionTimeoutError } from '@/lib/utils/with-deadline';
 
 describe('actionErrorMessage', () => {
@@ -25,5 +25,20 @@ describe('actionErrorMessage', () => {
     expect(actionErrorMessage(new Error('Account is required'), 'Unavailable')).toBe(
       'Account is required'
     );
+  });
+
+  it('does not emit driver messages or parameters from action logs', () => {
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const error = Object.assign(new Error('private financial value'), { code: '57014' });
+      logServerActionError('updateInvestment', error);
+      expect(log).toHaveBeenCalledWith('[ServerAction]', {
+        operation: 'updateInvestment',
+        code: '57014',
+      });
+      expect(JSON.stringify(log.mock.calls)).not.toContain('private financial value');
+    } finally {
+      log.mockRestore();
+    }
   });
 });

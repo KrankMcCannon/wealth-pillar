@@ -1,3 +1,4 @@
+import { withDatabaseOperation } from '@/server/db/telemetry';
 import { CACHE_TAGS } from '@/lib/cache/config';
 import type { Account, Budget, BudgetPeriod, Category, User, UserBudgetSummary } from '@/lib/types';
 import { scopeBudgetsPageData } from '@/server/permissions/scope-page-data';
@@ -101,6 +102,6 @@ export async function getBudgetsPageData(
   groupId: string,
   currentUser: User
 ): Promise<BudgetsPageData> {
-  const data = await getCachedBudgetsPageData(groupId);
+  const data = await withDatabaseOperation('budgets', () => getCachedBudgetsPageData(groupId));
   return scopeBudgetsPageData(data, currentUser);
 }

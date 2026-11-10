@@ -1,6 +1,6 @@
 import { TransactionsRepository } from '@/server/repositories/transactions.repository';
 import type { DbExecutor } from '@/server/repositories/db-executor';
-import { computeBalanceDeltas } from './transaction-balance-delta.core';
+import { computeExactBalanceDeltas } from './transaction-balance-delta.core';
 
 export type BalanceAdjustableRow = {
   amount: string | number | null;
@@ -12,9 +12,9 @@ export type BalanceAdjustableRow = {
 export async function applyTransactionBalanceAdjustments(
   transaction: BalanceAdjustableRow,
   multiplier: number,
-  executor?: DbExecutor
+  executor: DbExecutor
 ): Promise<void> {
-  const deltas = computeBalanceDeltas(transaction, multiplier);
+  const deltas = computeExactBalanceDeltas(transaction, multiplier);
   await applyBalanceDeltas(deltas, executor);
 }
 
@@ -24,16 +24,16 @@ export async function applyTransactionBalanceUpdate(
   after: BalanceAdjustableRow,
   executor: DbExecutor
 ): Promise<void> {
-  const deltas = computeBalanceDeltas(before, -1);
-  for (const [id, delta] of computeBalanceDeltas(after, 1)) {
-    deltas.set(id, (deltas.get(id) ?? 0) + delta);
+  const deltas = computeExactBalanceDeltas(before, -1);
+  for (const [id, delta] of computeExactBalanceDeltas(after, 1)) {
+    deltas.set(id, (deltas.get(id) ?? BigInt(0)) + delta);
   }
   await applyBalanceDeltas(deltas, executor);
 }
 
-export async function applyBalanceDeltas(deltas: Map<string, number>, executor?: DbExecutor) {
+export async function applyBalanceDeltas(deltas: Map<string, bigint>, executor: DbExecutor) {
   for (const [accountId, delta] of [...deltas].sort(([a], [b]) => a.localeCompare(b))) {
-    if (delta === 0) continue;
+    if (delta === BigInt(0)) continue;
     await TransactionsRepository.updateAccountBalance(accountId, delta, executor);
   }
 }

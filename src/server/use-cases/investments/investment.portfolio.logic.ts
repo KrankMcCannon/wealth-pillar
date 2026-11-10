@@ -1,7 +1,8 @@
+import { financialDecimal } from '@/lib/utils/financial-decimal';
 import { financialDateKey } from '@/lib/utils/financial-date';
 import {
   buildSeriesIndex,
-  getCloseForDate,
+  getExactCloseForDate,
   normalizeDateKey,
   type MarketDataCacheRow,
   type ParsedSeriesPoint,
@@ -14,15 +15,15 @@ import type {
   PortfolioSummary,
 } from './investment.types';
 
-import { conversionSymbol, valuationRate } from './currency-conversion';
+import { conversionSymbol } from './currency-conversion';
 
 type InvestmentRow = typeof investments.$inferSelect;
 
 export type SeriesIndex = Record<string, ParsedSeriesPoint[]>;
 
 export type PrecomputedPortfolioTotals = {
-  totalInvested: number;
-  totalTaxPaid: number;
+  totalInvested: string | number;
+  totalTaxPaid: string | number;
 };
 
 export function batchResultsToSeriesIndex(
@@ -44,45 +45,53 @@ export function enrichPortfolioFromInvestments(
   summary: PortfolioSummary;
   assetAllocation: AssetAllocationSlice[];
 } {
-  let totalInvested = precomputedTotals?.totalInvested ?? 0;
-  let totalTaxPaid = precomputedTotals?.totalTaxPaid ?? 0;
-  let totalCurrentValue = 0;
-  let totalInitialValue = 0;
+  let totalInvested = financialDecimal(precomputedTotals?.totalInvested ?? 0);
+  let totalTaxPaid = financialDecimal(precomputedTotals?.totalTaxPaid ?? 0);
+  let totalCurrentValue = financialDecimal(0);
+  let totalInitialValue = financialDecimal(0);
   let currentComplete = true;
   let initialComplete = true;
   const trackTotalsInLoop = !precomputedTotals;
 
   const enrichedInvestments: EnrichedInvestment[] = rows.map((inv) => {
     const symbolKey = inv.symbol.toUpperCase();
-    const currencyRate = valuationRate(inv.currency, financialDateKey(new Date()), seriesIndex);
-    const shares = Number(inv.shares_acquired);
+    const rateSymbol = conversionSymbol(inv.currency);
+    const currencyRate =
+      inv.currency === 'EUR'
+        ? '1'
+        : rateSymbol
+          ? getExactCloseForDate(seriesIndex[rateSymbol], financialDateKey(new Date()))
+          : null;
+    const shares = financialDecimal(inv.shares_acquired);
 
     const symbolData = seriesIndex[symbolKey];
-    const livePrice = getCloseForDate(symbolData, financialDateKey(new Date()));
+    const livePrice = getExactCloseForDate(symbolData, financialDateKey(new Date()));
     const currentValue =
-      livePrice == null || currencyRate == null ? null : livePrice * currencyRate * shares;
+      livePrice == null || currencyRate == null
+        ? null
+        : financialDecimal(livePrice).times(currencyRate).times(shares);
 
     const creationDateKey = financialDateKey(inv.created_at || new Date());
-    const initialPrice = getCloseForDate(symbolData, creationDateKey);
-    const historicalRate = inv.currency === 'EUR' ? 1 : Number(inv.currency_rate);
+    const initialPrice = getExactCloseForDate(symbolData, creationDateKey);
+    const historicalRate = financialDecimal(inv.currency === 'EUR' ? '1' : inv.currency_rate);
     const initialValue =
-      initialPrice == null || !Number.isFinite(historicalRate) || historicalRate <= 0
+      initialPrice == null || !historicalRate.isFinite() || historicalRate.lte(0)
         ? null
-        : initialPrice * historicalRate * shares;
+        : financialDecimal(initialPrice).times(historicalRate).times(shares);
 
-    const investmentAmount = Number(inv.amount);
-    const taxPaid = Number(inv.tax_paid) || 0;
-    const totalPaid = investmentAmount + taxPaid;
-    const totalGain = currentValue == null ? null : currentValue - totalPaid;
+    const investmentAmount = financialDecimal(inv.amount);
+    const taxPaid = financialDecimal(inv.tax_paid);
+    const totalPaid = investmentAmount.plus(taxPaid);
+    const totalGain = currentValue == null ? null : currentValue.minus(totalPaid);
 
     if (trackTotalsInLoop) {
-      totalInvested += investmentAmount;
-      totalTaxPaid += taxPaid;
+      totalInvested = totalInvested.plus(investmentAmount);
+      totalTaxPaid = totalTaxPaid.plus(taxPaid);
     }
     if (currentValue == null) currentComplete = false;
-    else totalCurrentValue += currentValue;
+    else totalCurrentValue = totalCurrentValue.plus(currentValue);
     if (initialValue == null) initialComplete = false;
-    else totalInitialValue += initialValue;
+    else totalInitialValue = totalInitialValue.plus(initialValue);
 
     return {
       ...inv,
@@ -98,37 +107,47 @@ export function enrichPortfolioFromInvestments(
             Number.isFinite(point.close) &&
             point.close > 0
         )?.date ?? null,
-      currentPrice: livePrice == null || currencyRate == null ? null : livePrice * currencyRate,
-      currentValue,
-      initialValue,
-      totalPaid,
-      totalGain,
+      currentPrice:
+        livePrice == null || currencyRate == null
+          ? null
+          : financialDecimal(livePrice).times(currencyRate).toNumber(),
+      currentValue: currentValue?.toNumber() ?? null,
+      initialValue: initialValue?.toNumber() ?? null,
+      totalPaid: totalPaid.toNumber(),
+      totalGain: totalGain?.toNumber() ?? null,
     };
   });
 
-  const totalPaid = totalInvested + totalTaxPaid;
-  const totalReturn = currentComplete ? totalCurrentValue - totalPaid : null;
+  const totalPaid = totalInvested.plus(totalTaxPaid);
+  const totalReturn = currentComplete ? totalCurrentValue.minus(totalPaid) : null;
   const totalReturnPercent =
-    totalReturn == null ? null : totalPaid > 0 ? (totalReturn / totalPaid) * 100 : 0;
+    totalReturn == null
+      ? null
+      : totalPaid.gt(0)
+        ? totalReturn.div(totalPaid).times(100).toNumber()
+        : 0;
 
-  const allocationMap = new Map<string, number>();
-  for (const inv of enrichedInvestments) {
+  const allocationMap = new Map<string, ReturnType<typeof financialDecimal>>();
+  for (const inv of rows) {
     const key = inv.symbol.toUpperCase();
-    allocationMap.set(key, (allocationMap.get(key) || 0) + inv.totalPaid);
+    allocationMap.set(
+      key,
+      (allocationMap.get(key) ?? financialDecimal(0)).plus(inv.amount).plus(inv.tax_paid)
+    );
   }
   const assetAllocation = [...allocationMap.entries()]
-    .map(([symbol, value]) => ({ symbol, value }))
+    .map(([symbol, value]) => ({ symbol, value: value.toNumber() }))
     .sort((a, b) => b.value - a.value);
 
   return {
     investments: enrichedInvestments,
     summary: {
-      totalInvested,
-      totalTaxPaid,
-      totalPaid,
-      totalCurrentValue: currentComplete ? totalCurrentValue : null,
-      totalInitialValue: initialComplete ? totalInitialValue : null,
-      totalReturn,
+      totalInvested: totalInvested.toNumber(),
+      totalTaxPaid: totalTaxPaid.toNumber(),
+      totalPaid: totalPaid.toNumber(),
+      totalCurrentValue: currentComplete ? totalCurrentValue.toNumber() : null,
+      totalInitialValue: initialComplete ? totalInitialValue.toNumber() : null,
+      totalReturn: totalReturn?.toNumber() ?? null,
       totalReturnPercent,
     },
     assetAllocation,
@@ -136,35 +155,53 @@ export function enrichPortfolioFromInvestments(
 }
 
 /** Carry the last known close forward; never invent a value before the first quote. */
-export function buildPortfolioHistory(
+export function buildPortfolioHistoryExact(
   rows: InvestmentRow[],
   seriesIndex: SeriesIndex
-): { date: string; value: number }[] {
+): { date: string; value: string }[] {
   if (rows.length === 0) return [];
   const today = financialDateKey(new Date());
   const lots = rows.map((row) => ({
     start: financialDateKey(row.created_at ?? new Date()),
     symbol: row.symbol.toUpperCase(),
-    units: Number(row.shares_acquired),
+    units: financialDecimal(row.shares_acquired),
     currency: row.currency,
     rateSymbol: conversionSymbol(row.currency),
   }));
   const earliest = lots.reduce((min, lot) => (lot.start < min ? lot.start : min), today);
   const current = new Date(`${earliest}T00:00:00Z`);
-  const states = new Map<string, { cursor: number; price: number | null }>();
+  const states = new Map<string, { cursor: number; price: string | null }>();
   for (const lot of lots) {
     states.set(lot.symbol, { cursor: 0, price: null });
     if (lot.rateSymbol) states.set(lot.rateSymbol, { cursor: 0, price: null });
   }
-  const history: { date: string; value: number }[] = [];
+  const history: { date: string; value: string }[] = [];
   const startDates = new Set(lots.map((lot) => lot.start));
-  const valuedLots = lots.map((lot) => ({
-    ...lot,
-    priceState: states.get(lot.symbol)!,
-    rateState: lot.rateSymbol ? states.get(lot.rateSymbol) : undefined,
-  }));
+  const valuedGroups = new Map<
+    string,
+    {
+      units: ReturnType<typeof financialDecimal>;
+      active: boolean;
+      currency: string;
+      priceState: { cursor: number; price: string | null };
+      rateState: { cursor: number; price: string | null } | undefined;
+    }
+  >();
+  for (const lot of lots) {
+    const key = `${lot.symbol}:${lot.currency}`;
+    if (!valuedGroups.has(key))
+      valuedGroups.set(key, {
+        units: financialDecimal(0),
+        active: false,
+        currency: lot.currency,
+        priceState: states.get(lot.symbol)!,
+        rateState: lot.rateSymbol ? states.get(lot.rateSymbol) : undefined,
+      });
+  }
+  const acquisitions = [...lots].sort((a, b) => a.start.localeCompare(b.start));
+  let acquisition = 0;
   let complete = false;
-  let value = 0;
+  let value = financialDecimal(0);
   let firstDay = true;
   while (normalizeDateKey(current) <= today) {
     const date = normalizeDateKey(current);
@@ -173,34 +210,55 @@ export function buildPortfolioHistory(
       const series = seriesIndex[symbol] ?? [];
       while (state.cursor < series.length && series[state.cursor]!.date <= date) {
         const point = series[state.cursor++]!;
-        if (Number.isFinite(point.close) && point.close > 0 && point.close !== state.price) {
-          state.price = point.close;
+        if (
+          Number.isFinite(point.close) &&
+          point.close > 0 &&
+          (point.exactClose ?? String(point.close)) !== state.price
+        ) {
+          state.price = point.exactClose ?? String(point.close);
           changed = true;
         }
       }
     }
+    while (acquisition < acquisitions.length && acquisitions[acquisition]!.start <= date) {
+      const lot = acquisitions[acquisition++]!;
+      const group = valuedGroups.get(`${lot.symbol}:${lot.currency}`)!;
+      group.units = group.units.plus(lot.units);
+      group.active = true;
+      changed = true;
+    }
     // Reuse the previous daily total only when both holdings and valid prices are unchanged.
     if (changed) {
       complete = true;
-      value = 0;
-      for (const lot of valuedLots) {
-        if (lot.start > date) continue;
+      value = financialDecimal(0);
+      for (const lot of valuedGroups.values()) {
+        if (!lot.active) continue;
         const price = lot.priceState.price;
         const rate = lot.currency === 'EUR' ? 1 : lot.rateState?.price;
         if (price == null || rate == null) {
           complete = false;
           break;
         }
-        // Preserve lot order and multiplication order, including floating-point rounding.
-        value += price * lot.units * rate;
+        // Preserve the full quantity and exchange-rate scale until presentation.
+        value = value.plus(financialDecimal(price).times(lot.units).times(rate));
       }
     }
     // Incomplete totals must never become immutable financial snapshots.
-    if (complete) history.push({ date, value });
+    if (complete) history.push({ date, value: value.toString() });
     firstDay = false;
     current.setUTCDate(current.getUTCDate() + 1);
   }
   return history;
+}
+
+export function buildPortfolioHistory(
+  rows: InvestmentRow[],
+  seriesIndex: SeriesIndex
+): { date: string; value: number }[] {
+  return buildPortfolioHistoryExact(rows, seriesIndex).map((point) => ({
+    date: point.date,
+    value: Number(point.value),
+  }));
 }
 
 /**
@@ -256,7 +314,7 @@ export async function buildPortfolioHistoryWithSnapshots(
   }
   const result: { date: string; value: number }[] = [];
   for (const date of [...dates].sort()) {
-    let value = 0;
+    let value = financialDecimal(0);
     let complete = true;
     for (const [userId, points] of byUser) {
       if (starts.get(userId)! > date) continue;
@@ -265,9 +323,9 @@ export async function buildPortfolioHistoryWithSnapshots(
         complete = false;
         break;
       }
-      value += point;
+      value = value.plus(point);
     }
-    if (complete) result.push({ date, value });
+    if (complete) result.push({ date, value: value.toNumber() });
   }
   return result;
 }

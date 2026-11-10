@@ -230,20 +230,25 @@ function EditClosingDateModal({
     BudgetPeriod
   >({
     submissionKey: 'edit-period-dates',
+    operationKinds: {
+      create: 'editPeriodDatesAction',
+      update: usesPeriodDatesAction ? 'editPeriodDatesAction' : 'editClosingDateAction',
+    },
     isEditMode: true,
     editId: closedPeriod?.id,
     onClose: handleClose,
     buildPayload,
     createAction: async () => ({ data: null, error: t('errors.operationFailed') }),
-    updateAction: (periodId, payload) =>
+    updateAction: (periodId, payload, operationId) =>
       usesPeriodDatesAction
         ? editPeriodDatesAction(
             userId,
             periodId,
             payload as { startDate?: string; endDate?: string },
-            locale
+            locale,
+            operationId
           )
-        : editClosingDateAction(userId, periodId, payload as string, locale),
+        : editClosingDateAction(userId, periodId, payload as string, locale, operationId),
     getSuccessToast,
     errorToast: { title: t('errors.operationFailed') },
     refreshAfterSuccess: () => router.refresh(),

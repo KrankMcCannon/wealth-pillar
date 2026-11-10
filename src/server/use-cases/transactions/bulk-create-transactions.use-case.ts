@@ -1,7 +1,7 @@
-import { db } from '@/server/db/drizzle';
+import { financialTransaction } from '@/server/repositories/db-executor';
 import { TransactionsRepository } from '@/server/repositories/transactions.repository';
 import type { CommitImportRowInput, BulkImportResult } from '@/lib/import/types';
-import { computeBalanceDeltas } from '@/server/use-cases/transactions/transaction-balance-delta.core';
+import { computeExactBalanceDeltas } from '@/server/use-cases/transactions/transaction-balance-delta.core';
 import { applyBalanceDeltas } from './transaction-balance';
 import { invalidateTransactionCaches } from '@/lib/utils/cache-utils';
 
@@ -10,7 +10,7 @@ const BULK_CHUNK_SIZE = 500;
 function toInsertRow(row: CommitImportRowInput) {
   return {
     description: row.description.trim(),
-    // Invariant: stored amount is always positive; sign/direction comes from `type` (see computeBalanceDeltas).
+    // Invariant: stored amount is always positive; sign/direction comes from `type` (see computeExactBalanceDeltas).
     amount: Math.abs(row.amount).toFixed(2),
     type: row.type,
     category: row.category,
@@ -42,8 +42,8 @@ export async function bulkCreateTransactionsUseCase(
 
   let insertedCount = 0;
 
-  await db.transaction(async (tx) => {
-    const deltaTotals = new Map<string, number>();
+  await financialTransaction(async (tx) => {
+    const deltaTotals = new Map<string, bigint>();
     for (let index = 0; index < orderedRows.length; index += BULK_CHUNK_SIZE) {
       const chunk = orderedRows.slice(index, index + BULK_CHUNK_SIZE).map(toInsertRow);
       const inserted = await TransactionsRepository.createMany(chunk, tx);
@@ -52,9 +52,9 @@ export async function bulkCreateTransactionsUseCase(
       for (const transaction of inserted) {
         affectedAccounts.add(transaction.account_id);
 
-        const rowDeltas = computeBalanceDeltas(transaction, 1);
+        const rowDeltas = computeExactBalanceDeltas(transaction, 1);
         for (const [accountId, delta] of rowDeltas) {
-          deltaTotals.set(accountId, (deltaTotals.get(accountId) ?? 0) + delta);
+          deltaTotals.set(accountId, (deltaTotals.get(accountId) ?? BigInt(0)) + delta);
         }
       }
     }

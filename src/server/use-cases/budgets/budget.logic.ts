@@ -1,5 +1,5 @@
+import type { LedgerEntry as Transaction } from '@/server/ledger/aggregate';
 import type {
-  Transaction,
   Budget,
   BudgetProgress,
   UserBudgetSummary,
@@ -32,12 +32,12 @@ export interface BudgetCategoryBreakdownItem {
 /**
  * Filter transactions that belong to a specific budget
  */
-export function filterTransactionsForBudget(
-  transactions: Transaction[],
+export function filterTransactionsForBudget<T extends Transaction>(
+  transactions: T[],
   budget: Budget,
   periodStart: DateInput | null,
   periodEnd: DateInput | null
-): Transaction[] {
+): T[] {
   if (!periodStart) return [];
 
   const periodTransactions = filterTransactionsByPeriod(transactions, periodStart, periodEnd);
@@ -48,12 +48,12 @@ export function filterTransactionsForBudget(
  * Transactions nel periodo che ricadono nell'unione delle categorie di più budget
  * (ogni movimento conta una sola volta — utile per grafici "tutti i budget insieme").
  */
-export function filterTransactionsForBudgetsUnion(
-  transactions: Transaction[],
+export function filterTransactionsForBudgetsUnion<T extends Transaction>(
+  transactions: T[],
   budgets: Budget[],
   periodStart: DateInput | null,
   periodEnd: DateInput | null
-): Transaction[] {
+): T[] {
   if (!periodStart || budgets.length === 0) return [];
 
   const categoryKeys = new Set<string>();

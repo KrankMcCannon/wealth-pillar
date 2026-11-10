@@ -12,6 +12,7 @@ if (
 
 export default defineConfig({
   test: {
+    env: { DB_DURABLE_OPERATIONS: 'false', DB_RELATIONAL_READS: 'false' },
     environment: 'node',
     include: ['tests/integration/**/*.test.ts'],
     fileParallelism: false,

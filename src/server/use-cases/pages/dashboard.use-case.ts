@@ -8,11 +8,7 @@ import type {
   User,
   UserBudgetSummary,
 } from '@/lib/types';
-import {
-  DASHBOARD_TRANSACTIONS_LIMIT,
-  RECENT_ACTIVITY_LIMIT,
-  dashboardTransactionStartDate,
-} from '@/server/db/query-limits';
+import { RECENT_ACTIVITY_LIMIT } from '@/server/db/query-limits';
 import { scopeDashboardPageData } from '@/server/permissions/scope-page-data';
 import {
   getAccountsByGroupDeduped,
@@ -30,7 +26,8 @@ import { getBudgetsByGroupUseCase } from '../budgets/get-budgets.use-case';
 import { getBudgetPeriodTransactionsUseCase } from '../budgets/get-budget-period-transactions.use-case';
 import { getSeriesByGroupUseCase } from '../recurring/recurring.use-cases';
 import { transactionInvolvesUser } from '@/server/ledger';
-import { getTransactionsByGroupUseCase } from '../transactions/get-transactions.use-case';
+import { RecentActivityRepository } from '@/server/repositories/recent-activity.repository';
+import { withDatabaseOperation } from '@/server/db/telemetry';
 
 export interface RecentActivityByScope {
   all: Transaction[];
@@ -78,7 +75,7 @@ export async function getDashboardPageData(
   groupId: string,
   currentUser: User
 ): Promise<DashboardPageData> {
-  const data = await getCachedDashboardPageData(groupId);
+  const data = await withDatabaseOperation('dashboard', () => getCachedDashboardPageData(groupId));
   return scopeDashboardPageData(data, currentUser);
 }
 
@@ -98,30 +95,23 @@ async function getCachedDashboardPageData(groupId: string): Promise<DashboardPag
   for (const id of userIds) cacheTag(CACHE_TAGS.USER_BUDGET_PERIODS(id), `user:${id}:recurring`);
   cacheTag(CACHE_TAGS.GROUP_USERS(groupId));
 
-  const [accounts, transactionResult, budgets, recurringSeries, categories, periodMap] =
-    await Promise.all([
-      getAccountsByGroupDeduped(groupId),
-      getTransactionsByGroupUseCase(groupId, {
-        startDate: dashboardTransactionStartDate(),
-        limit: DASHBOARD_TRANSACTIONS_LIMIT,
-        countTotal: false,
-      }),
-      getBudgetsByGroupUseCase(groupId),
-      getSeriesByGroupUseCase(groupId),
-      getAllCategoriesDeduped(groupId),
-      getActiveBudgetPeriodsForUsersUseCase(userIds),
-    ]);
+  const [accounts, budgets, recurringSeries, categories, periodMap] = await Promise.all([
+    getAccountsByGroupDeduped(groupId),
+    getBudgetsByGroupUseCase(groupId),
+    getSeriesByGroupUseCase(groupId),
+    getAllCategoriesDeduped(groupId),
+    getActiveBudgetPeriodsForUsersUseCase(userIds),
+  ]);
 
   const budgetPeriods: Record<string, BudgetPeriod | null> = {};
   userIds.forEach((userId) => {
     budgetPeriods[userId] = periodMap?.[userId] ?? null;
   });
 
-  const budgetTransactions = await getBudgetPeriodTransactionsUseCase(
-    groupId,
-    userIds,
-    budgetPeriods
-  );
+  const [budgetTransactions, recentActivityByScope] = await Promise.all([
+    getBudgetPeriodTransactionsUseCase(groupId, userIds, budgetPeriods),
+    RecentActivityRepository.byGroupScopes(groupId, userIds, accounts),
+  ]);
   const budgetsByUser = buildBudgetsByUserPure(
     groupUsers,
     budgets,
@@ -140,7 +130,7 @@ async function getCachedDashboardPageData(groupId: string): Promise<DashboardPag
 
   return {
     accounts,
-    recentActivityByScope: buildRecentActivityByScope(transactionResult.data, userIds, accounts),
+    recentActivityByScope,
     budgetPeriods,
     recurringSeries,
     categories,

@@ -2,6 +2,8 @@ import { drizzle } from 'drizzle-orm/postgres-js';
 import type { Sql } from 'postgres';
 import { createPostgresClient } from './postgres-client';
 import { schemaBundle } from './schema-bundle';
+import { installDatabaseTelemetry } from './telemetry';
+import { createManagedPostgresClient } from './managed-postgres-client';
 
 const connectionString = process.env.DATABASE_URL;
 
@@ -22,16 +24,33 @@ if (
 const globalForDb = globalThis as unknown as {
   pgClient?: Sql;
   pgConnectionString?: string;
+  pgTelemetryInstalled?: boolean;
 };
 
+if (process.env.DB_TELEMETRY_ENABLED === 'true' && !globalForDb.pgTelemetryInstalled) {
+  // Metrics are opt-in, and contain only the telemetry allowlist.
+
+  installDatabaseTelemetry((event) =>
+    process.stdout.write(
+      JSON.stringify({
+        ...event,
+        environment: process.env.CONTEXT ?? process.env.NODE_ENV,
+        release: process.env.COMMIT_REF ?? 'local',
+      }) + '\n'
+    )
+  );
+  globalForDb.pgTelemetryInstalled = true;
+}
+
 // Reuse a single pool across HMR reloads in dev and across warm server instances.
-// Supabase transaction pooler (port 6543) requires prepare: false.
 // Do not cache a client created without a URL — Turbopack can evaluate this
 // module before env is injected, then keep the dead pool on later reloads.
 const client =
   connectionString && globalForDb.pgClient && globalForDb.pgConnectionString === connectionString
     ? globalForDb.pgClient
-    : createPostgresClient(connectionString ?? '');
+    : process.env.DB_POOL_RECOVERY_ENABLED !== 'false'
+      ? createManagedPostgresClient(() => createPostgresClient(connectionString ?? ''))
+      : createPostgresClient(connectionString ?? '');
 
 if (connectionString) {
   globalForDb.pgClient = client;

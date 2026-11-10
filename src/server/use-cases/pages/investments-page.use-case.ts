@@ -1,3 +1,4 @@
+import { withDatabaseOperation } from '@/server/db/telemetry';
 import { cacheLife, cacheTag } from 'next/cache';
 import type { User } from '@/lib/types';
 import type { TimeSeriesEntry } from '@/lib/types/market-data.types';
@@ -100,7 +101,9 @@ export async function getInvestmentsPageData(
   const indexSymbol = query.index?.trim().toUpperCase() || 'IVV';
   const targetUserIds = resolveInvestmentsTargetUserIds(currentUser, groupUserIds, userScope);
 
-  const data = await getCachedInvestmentsPageData(groupId, targetUserIds, indexSymbol, userScope);
+  const data = await withDatabaseOperation('investments', () =>
+    getCachedInvestmentsPageData(groupId, targetUserIds, indexSymbol, userScope)
+  );
 
   return scopeInvestmentsPageData(data, currentUser);
 }

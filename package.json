@@ -27,7 +27,11 @@
     "harness:eval": "python3 scripts/ai-harness/check.py --full",
     "db:pull": "drizzle-kit pull",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
+    "db:migrate": "node --import tsx scripts/db/migrate.ts",
+    "db:adopt": "node --import tsx scripts/db/migrate.ts adopt",
+    "db:benchmark": "vitest run --config vitest.database-benchmark.config.ts",
+    "db:prepare-indexes": "node --import tsx scripts/db/prepare-indexes.ts",
+    "db:verify": "node --import tsx scripts/db/migrate.ts verify",
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
@@ -47,6 +51,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
+    "decimal.js": "10.6.0",
     "drizzle-orm": "^0.45.4",
     "framer-motion": "^14.8.0",
     "fuse.js": "^7.5.0",

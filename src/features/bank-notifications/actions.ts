@@ -1,5 +1,7 @@
 'use server';
 
+import { runDurableAction } from '@/lib/server-action/run-durable-action';
+
 import { z } from 'zod';
 import { getCurrentUser } from '@/lib/auth/cached-auth';
 import { serialize } from '@/lib/utils/serializer';
@@ -49,23 +51,25 @@ export async function createBankConnectionAction(input: unknown) {
 export async function revokeBankConnectionAction(id: string) {
   return run(async () => revokeBankConnection(await authenticated(), z.uuid().parse(id)));
 }
-export async function reviewBankNotificationAction(input: unknown) {
-  return run(async () => {
-    const data = z
-      .object({
-        id: z.uuid(),
-        decision: z.enum(['import', 'ignore']),
-        category: z.string().min(1).max(100).optional(),
-        manual: manualNotificationSchema.optional(),
-      })
-      .strict()
-      .parse(input);
-    return reviewBankNotification(
-      await authenticated(),
-      data.id,
-      data.decision,
-      data.category,
-      data.manual
-    );
+export async function reviewBankNotificationAction(input: unknown, operationId?: string) {
+  return runDurableAction('reviewBankNotificationAction', [input], operationId, async () => {
+    return run(async () => {
+      const data = z
+        .object({
+          id: z.uuid(),
+          decision: z.enum(['import', 'ignore']),
+          category: z.string().min(1).max(100).optional(),
+          manual: manualNotificationSchema.optional(),
+        })
+        .strict()
+        .parse(input);
+      return reviewBankNotification(
+        await authenticated(),
+        data.id,
+        data.decision,
+        data.category,
+        data.manual
+      );
+    });
   });
 }

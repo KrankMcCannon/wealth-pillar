@@ -1,5 +1,9 @@
 'use server';
 
+import { logServerActionError } from '@/lib/server-action/action-error';
+
+import { runDurableAction } from '@/lib/server-action/run-durable-action';
+
 import { getTranslations } from 'next-intl/server';
 import { invalidateInvestmentCaches } from '@/lib/utils/cache-utils';
 import { getCurrentUser } from '@/lib/auth/cached-auth';
@@ -20,7 +24,7 @@ export async function getInvestmentByIdAction(id: string): Promise<ServiceResult
     if (!data) return { data: null, error: 'NOT_FOUND' };
     return { data, error: null };
   } catch (error) {
-    console.error('Error fetching investment:', error);
+    logServerActionError('Error fetching investment:', error);
     return {
       data: null,
       error: error instanceof Error ? error.message : 'Failed to fetch investment',
@@ -28,112 +32,125 @@ export async function getInvestmentByIdAction(id: string): Promise<ServiceResult
   }
 }
 
-export async function updateInvestmentAction(input: {
-  id: string;
-  name: string;
-  symbol: string;
-  amount: number;
-  shares_acquired: number;
-  currency: string;
-  tax_paid: number;
-  created_at: Date | string;
-  currency_rate?: number;
-  net_earn?: number;
-}): Promise<ServiceResult<InvestmentRow>> {
-  try {
-    const currentUser = await getCurrentUser();
-    if (!currentUser) return { data: null, error: 'UNAUTHENTICATED' };
+export async function updateInvestmentAction(
+  input: {
+    id: string;
+    name: string;
+    symbol: string;
+    amount: number;
+    shares_acquired: number;
+    currency: string;
+    tax_paid: number;
+    created_at: Date | string;
+    currency_rate?: number;
+    net_earn?: number;
+  },
+  operationId?: string
+): Promise<ServiceResult<InvestmentRow>> {
+  return runDurableAction('updateInvestmentAction', [input], operationId, async () => {
+    try {
+      const currentUser = await getCurrentUser();
+      if (!currentUser) return { data: null, error: 'UNAUTHENTICATED' };
 
-    const updated = await useCases.updateInvestmentUseCase(input.id, currentUser.id, {
-      name: input.name,
-      symbol: input.symbol.toUpperCase(),
-      amount: input.amount,
-      shares_acquired: input.shares_acquired,
-      currency: input.currency,
-      ...(input.currency_rate !== undefined ? { currency_rate: input.currency_rate } : {}),
-      tax_paid: input.tax_paid ?? 0,
-      net_earn: input.net_earn ?? 0,
-      created_at: new Date(input.created_at).toISOString(),
-    });
+      const updated = await useCases.updateInvestmentUseCase(input.id, currentUser.id, {
+        name: input.name,
+        symbol: input.symbol.toUpperCase(),
+        amount: input.amount,
+        shares_acquired: input.shares_acquired,
+        currency: input.currency,
+        ...(input.currency_rate !== undefined ? { currency_rate: input.currency_rate } : {}),
+        tax_paid: input.tax_paid ?? 0,
+        net_earn: input.net_earn ?? 0,
+        created_at: new Date(input.created_at).toISOString(),
+      });
 
-    if (!updated) return { data: null, error: 'NOT_FOUND' };
+      if (!updated) return { data: null, error: 'NOT_FOUND' };
 
-    invalidateInvestmentCaches({ groupId: currentUser.group_id, userId: currentUser.id });
-    return { data: updated, error: null };
-  } catch (error) {
-    console.error('Error updating investment:', error);
-    return {
-      data: null,
-      error:
-        error instanceof Error && error.message === 'EXCHANGE_RATE_UNAVAILABLE'
-          ? (await getTranslations('Currency'))('saveUnavailable')
-          : error instanceof Error
-            ? error.message
-            : 'Failed to update investment',
-    };
-  }
+      invalidateInvestmentCaches({ groupId: currentUser.group_id, userId: currentUser.id });
+      return { data: updated, error: null };
+    } catch (error) {
+      logServerActionError('Error updating investment:', error);
+      return {
+        data: null,
+        error:
+          error instanceof Error && error.message === 'EXCHANGE_RATE_UNAVAILABLE'
+            ? (await getTranslations('Currency'))('saveUnavailable')
+            : error instanceof Error
+              ? error.message
+              : 'Failed to update investment',
+      };
+    }
+  });
 }
 
 export async function createInvestmentAction(
   input: Omit<InvestmentInsert, 'user_id' | 'id' | 'created_at' | 'updated_at'> & {
     created_at?: Date | string;
-  }
+  },
+  operationId?: string
 ): Promise<ServiceResult<InvestmentRow>> {
-  try {
-    // Authentication check (cached per request)
-    const currentUser = await getCurrentUser();
-    if (!currentUser) return { data: null, error: 'Non autenticato' };
+  return runDurableAction('createInvestmentAction', [input], operationId, async () => {
+    try {
+      // Authentication check (cached per request)
+      const currentUser = await getCurrentUser();
+      if (!currentUser) return { data: null, error: 'Non autenticato' };
 
-    // Basic permission check - assuming user can add for self
-    // In a real scenario, check if input.users.connect.id matches currentUser or if admin
+      // Basic permission check - assuming user can add for self
+      // In a real scenario, check if input.users.connect.id matches currentUser or if admin
 
-    // Transform input to Prisma format
-    const investmentData = {
-      name: input.name,
-      symbol: input.symbol,
-      amount: input.amount,
-      shares_acquired: input.shares_acquired,
-      currency: input.currency,
-      ...(input.currency_rate !== undefined ? { currency_rate: input.currency_rate } : {}),
-      tax_paid: input.tax_paid || 0,
-      net_earn: input.net_earn || 0,
-      created_at: input.created_at
-        ? new Date(input.created_at).toISOString()
-        : new Date().toISOString(),
-      user_id: currentUser.id, // Force connect to current user for now
-    };
+      // Transform input to Prisma format
+      const investmentData = {
+        name: input.name,
+        symbol: input.symbol,
+        amount: input.amount,
+        shares_acquired: input.shares_acquired,
+        currency: input.currency,
+        ...(input.currency_rate !== undefined ? { currency_rate: input.currency_rate } : {}),
+        tax_paid: input.tax_paid || 0,
+        net_earn: input.net_earn || 0,
+        created_at: input.created_at
+          ? new Date(input.created_at).toISOString()
+          : new Date().toISOString(),
+        user_id: currentUser.id, // Force connect to current user for now
+      };
 
-    const data = await useCases.addInvestmentUseCase(investmentData);
+      const data = await useCases.addInvestmentUseCase(investmentData);
 
-    if (!data) return { data: null, error: 'Failed to create investment' };
+      if (!data) return { data: null, error: 'Failed to create investment' };
 
-    invalidateInvestmentCaches({ groupId: currentUser.group_id, userId: currentUser.id });
+      invalidateInvestmentCaches({ groupId: currentUser.group_id, userId: currentUser.id });
 
-    return { data, error: null };
-  } catch (error) {
-    console.error('Error creating investment:', error);
-    return {
-      data: null,
-      error:
-        error instanceof Error && error.message === 'EXCHANGE_RATE_UNAVAILABLE'
-          ? (await getTranslations('Currency'))('saveUnavailable')
-          : error instanceof Error
-            ? error.message
-            : 'Failed to create investment',
-    };
-  }
+      return { data, error: null };
+    } catch (error) {
+      logServerActionError('Error creating investment:', error);
+      return {
+        data: null,
+        error:
+          error instanceof Error && error.message === 'EXCHANGE_RATE_UNAVAILABLE'
+            ? (await getTranslations('Currency'))('saveUnavailable')
+            : error instanceof Error
+              ? error.message
+              : 'Failed to create investment',
+      };
+    }
+  });
 }
 
 /** Delete only an entry owned by the current user, atomically in the repository. */
-export async function deleteInvestmentAction(id: string): Promise<ServiceResult<boolean>> {
-  try {
-    const currentUser = await getCurrentUser();
-    if (!currentUser) return { data: null, error: 'UNAUTHENTICATED' };
-    const deleted = await useCases.deleteInvestmentUseCase(id, currentUser.id);
-    if (!deleted) return { data: null, error: 'NOT_FOUND' };
-    invalidateInvestmentCaches({ groupId: currentUser.group_id, userId: currentUser.id });
-    return { data: true, error: null };
-  } catch {
-    return { data: null, error: 'DELETE_FAILED' };
-  }
+export async function deleteInvestmentAction(
+  id: string,
+  operationId?: string
+): Promise<ServiceResult<boolean>> {
+  return runDurableAction('deleteInvestmentAction', [id], operationId, async () => {
+    try {
+      const currentUser = await getCurrentUser();
+      if (!currentUser) return { data: null, error: 'UNAUTHENTICATED' };
+      const deleted = await useCases.deleteInvestmentUseCase(id, currentUser.id);
+      if (!deleted) return { data: null, error: 'NOT_FOUND' };
+      invalidateInvestmentCaches({ groupId: currentUser.group_id, userId: currentUser.id });
+      return { data: true, error: null };
+    } catch {
+      return { data: null, error: 'DELETE_FAILED' };
+    }
+  });
 }

@@ -1,0 +1,18 @@
+[
+  {
+    "name": "0000_verified_baseline",
+    "catalog": "catalog.json"
+  },
+  {
+    "name": "0001_relational_integrity",
+    "catalog": "0001_catalog.json"
+  },
+  {
+    "name": "0002_financial_operations",
+    "catalog": "0002_catalog.json"
+  },
+  {
+    "name": "0003_verified_indexes",
+    "catalog": "0003_catalog.json"
+  }
+]

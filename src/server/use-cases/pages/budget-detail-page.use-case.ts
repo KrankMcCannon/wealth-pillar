@@ -25,6 +25,7 @@ import { ledgerRowCount } from '@/server/ledger/aggregate';
 import type { BudgetDetailPageData } from './budget-detail-page.types';
 
 export type { BudgetDetailPageData } from './budget-detail-page.types';
+import { LedgerEntry } from '@/server/ledger/aggregate';
 
 function groupTransactionsByDay(
   transactions: Transaction[],
@@ -81,7 +82,7 @@ function slimDetailPayload(
   accounts: Account[],
   categories: Category[],
   budget: Budget,
-  budgetTransactions: Transaction[]
+  budgetTransactions: LedgerEntry[]
 ): { accounts: Account[]; categories: Category[] } {
   const categoryKeys = new Set(budget.categories);
   const accountIds = new Set(

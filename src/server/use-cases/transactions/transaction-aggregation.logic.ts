@@ -1,15 +1,17 @@
-import type { Transaction, CategoryBreakdownItem } from '@/lib/types';
+import { moneyToMinorUnits, minorUnitsToPresentation } from '@/lib/utils/exact-money';
+import type { LedgerEntry as Transaction } from '@/server/ledger/aggregate';
+import type { CategoryBreakdownItem } from '@/lib/types';
 import { toDateTime, now as luxonNow } from '@/lib/utils';
 import type { DateInput } from '@/lib/utils/date-utils';
 
 /**
  * Filter transactions within a date range
  */
-export function filterTransactionsByPeriod(
-  transactions: Transaction[],
+export function filterTransactionsByPeriod<T extends Transaction>(
+  transactions: T[],
   startDate: DateInput,
   endDate: DateInput
-): Transaction[] {
+): T[] {
   const periodStart = toDateTime(startDate);
   if (!periodStart) return [];
   const normalizedStart = periodStart.startOf('day');
@@ -28,10 +30,10 @@ export function filterTransactionsByPeriod(
 /**
  * Filter transactions by categories
  */
-export function filterByCategories(
-  transactions: Transaction[],
+export function filterByCategories<T extends Transaction>(
+  transactions: T[],
   categories: string[]
-): Transaction[] {
+): T[] {
   const categorySet = new Set(categories);
   return transactions.filter((t) => categorySet.has(t.category));
 }
@@ -41,16 +43,20 @@ export function filterByCategories(
  */
 export function calculateCategoryBreakdown(transactions: Transaction[]): CategoryBreakdownItem[] {
   if (transactions.length === 0) return [];
-  const categoryMap = new Map<string, { spent: number; received: number; count: number }>();
+  const categoryMap = new Map<string, { spent: bigint; received: bigint; count: number }>();
 
   for (const t of transactions) {
     if (t.type === 'transfer') continue;
-    const existing = categoryMap.get(t.category) || { spent: 0, received: 0, count: 0 };
+    const existing = categoryMap.get(t.category) || {
+      spent: BigInt(0),
+      received: BigInt(0),
+      count: 0,
+    };
     if (t.type === 'expense') {
-      existing.spent += t.amount;
+      existing.spent += moneyToMinorUnits(t.amount);
       existing.count += 1;
     } else if (t.type === 'income') {
-      existing.received += t.amount;
+      existing.received += moneyToMinorUnits(t.amount);
       existing.count += 1;
     }
     categoryMap.set(t.category, existing);
@@ -58,9 +64,9 @@ export function calculateCategoryBreakdown(transactions: Transaction[]): Categor
 
   const breakdown = Array.from(categoryMap.entries()).map(([category, data]) => ({
     category,
-    spent: data.spent,
-    received: data.received,
-    net: data.spent - data.received,
+    spent: minorUnitsToPresentation(data.spent),
+    received: minorUnitsToPresentation(data.received),
+    net: minorUnitsToPresentation(data.spent - data.received),
     percentage: 0,
     count: data.count,
   }));
@@ -89,7 +95,7 @@ export function aggregateGroupCategorySpendingForReports(
   const periodEnd = toDateTime(rangeEnd)?.endOf('day');
   if (!periodStart || !periodEnd) return [];
 
-  const map = new Map<string, { amount: number; count: number }>();
+  const map = new Map<string, { amount: bigint; count: number }>();
 
   for (const t of transactions) {
     const d = toDateTime(t.date);
@@ -97,15 +103,15 @@ export function aggregateGroupCategorySpendingForReports(
     if (t.type !== 'expense') continue;
 
     const cat = t.category;
-    const prev = map.get(cat) || { amount: 0, count: 0 };
-    prev.amount += t.amount;
+    const prev = map.get(cat) || { amount: BigInt(0), count: 0 };
+    prev.amount += moneyToMinorUnits(t.amount);
     prev.count += 1;
     map.set(cat, prev);
   }
 
   return Array.from(map.entries()).map(([category, v]) => ({
     category,
-    amount: v.amount,
+    amount: minorUnitsToPresentation(v.amount),
     count: v.count,
   }));
 }
@@ -122,7 +128,7 @@ export function aggregateMonthlyIncomeExpenseForReports(
   const periodEnd = toDateTime(rangeEnd)?.endOf('day');
   if (!periodStart || !periodEnd) return [];
 
-  const map = new Map<string, { month: string; income: number; expense: number }>();
+  const map = new Map<string, { month: string; income: bigint; expense: bigint }>();
 
   for (const t of transactions) {
     const d = toDateTime(t.date);
@@ -131,16 +137,18 @@ export function aggregateMonthlyIncomeExpenseForReports(
 
     const monthKey = d.toFormat('yyyy-MM');
     if (!map.has(monthKey)) {
-      map.set(monthKey, { month: monthKey, income: 0, expense: 0 });
+      map.set(monthKey, { month: monthKey, income: BigInt(0), expense: BigInt(0) });
     }
     const row = map.get(monthKey)!;
-    if (t.type === 'income') row.income += t.amount;
-    if (t.type === 'expense') row.expense += t.amount;
+    if (t.type === 'income') row.income += moneyToMinorUnits(t.amount);
+    if (t.type === 'expense') row.expense += moneyToMinorUnits(t.amount);
   }
 
-  return Array.from(map.values()).sort(
-    (a, b) => new Date(`${a.month}-01`).getTime() - new Date(`${b.month}-01`).getTime()
-  );
+  return Array.from(map.values(), (row) => ({
+    ...row,
+    income: minorUnitsToPresentation(row.income),
+    expense: minorUnitsToPresentation(row.expense),
+  })).sort((a, b) => new Date(`${a.month}-01`).getTime() - new Date(`${b.month}-01`).getTime());
 }
 
 /**
@@ -163,7 +171,7 @@ export function calculateHistoricalBalance(
     return tDate && tDate >= targetDt;
   });
 
-  let historicalBalance = currentBalance;
+  let historicalBalance = moneyToMinorUnits(currentBalance);
 
   for (const t of futureTransactions) {
     const isSource = accountSet.has(t.account_id);
@@ -172,21 +180,21 @@ export function calculateHistoricalBalance(
     if (!isSource && !isDest) continue;
 
     if (t.type === 'expense' && isSource) {
-      historicalBalance += t.amount;
+      historicalBalance += moneyToMinorUnits(t.amount);
     } else if (t.type === 'income' && isSource) {
-      historicalBalance -= t.amount;
+      historicalBalance -= moneyToMinorUnits(t.amount);
     } else if (t.type === 'transfer') {
       if (isSource && isDest) {
         // Internal transfer within the monitored accounts: NO NET CHANGE
       } else if (isSource) {
-        historicalBalance += t.amount;
+        historicalBalance += moneyToMinorUnits(t.amount);
       } else if (isDest) {
-        historicalBalance -= t.amount;
+        historicalBalance -= moneyToMinorUnits(t.amount);
       }
     }
   }
 
-  return historicalBalance;
+  return minorUnitsToPresentation(historicalBalance);
 }
 
 /**
@@ -198,23 +206,25 @@ export function calculatePeriodTotalSpent(
 ): number {
   const accountSet = typeof accountIds === 'string' ? new Set([accountIds]) : accountIds;
 
-  return periodTransactions.reduce((sum, t) => {
-    const isSource = accountSet.has(t.account_id);
-    if (!isSource) return sum;
+  return minorUnitsToPresentation(
+    periodTransactions.reduce((sum, t) => {
+      const isSource = accountSet.has(t.account_id);
+      if (!isSource) return sum;
 
-    if (t.type === 'expense') {
-      return sum + t.amount;
-    }
-
-    if (t.type === 'transfer') {
-      const isDestInternal = t.to_account_id && accountSet.has(t.to_account_id);
-      if (!isDestInternal) {
-        return sum + t.amount;
+      if (t.type === 'expense') {
+        return sum + moneyToMinorUnits(t.amount);
       }
-    }
 
-    return sum;
-  }, 0);
+      if (t.type === 'transfer') {
+        const isDestInternal = t.to_account_id && accountSet.has(t.to_account_id);
+        if (!isDestInternal) {
+          return sum + moneyToMinorUnits(t.amount);
+        }
+      }
+
+      return sum;
+    }, BigInt(0))
+  );
 }
 
 /**
@@ -226,20 +236,22 @@ export function calculatePeriodTotalIncome(
 ): number {
   const accountSet = typeof accountIds === 'string' ? new Set([accountIds]) : accountIds;
 
-  return periodTransactions.reduce((sum, t) => {
-    if (t.type === 'income' && accountSet.has(t.account_id)) {
-      return sum + t.amount;
-    }
-
-    if (t.type === 'transfer' && t.to_account_id && accountSet.has(t.to_account_id)) {
-      const isSourceInternal = accountSet.has(t.account_id);
-      if (!isSourceInternal) {
-        return sum + t.amount;
+  return minorUnitsToPresentation(
+    periodTransactions.reduce((sum, t) => {
+      if (t.type === 'income' && accountSet.has(t.account_id)) {
+        return sum + moneyToMinorUnits(t.amount);
       }
-    }
 
-    return sum;
-  }, 0);
+      if (t.type === 'transfer' && t.to_account_id && accountSet.has(t.to_account_id)) {
+        const isSourceInternal = accountSet.has(t.account_id);
+        if (!isSourceInternal) {
+          return sum + moneyToMinorUnits(t.amount);
+        }
+      }
+
+      return sum;
+    }, BigInt(0))
+  );
 }
 
 /**
@@ -251,17 +263,19 @@ export function calculatePeriodTotalTransfers(
 ): number {
   const accountSet = typeof accountIds === 'string' ? new Set([accountIds]) : accountIds;
 
-  return periodTransactions.reduce((sum, t) => {
-    if (t.type !== 'transfer') return sum;
+  return minorUnitsToPresentation(
+    periodTransactions.reduce((sum, t) => {
+      if (t.type !== 'transfer') return sum;
 
-    const isSource = accountSet.has(t.account_id);
-    const isDest = t.to_account_id && accountSet.has(t.to_account_id);
+      const isSource = accountSet.has(t.account_id);
+      const isDest = t.to_account_id && accountSet.has(t.to_account_id);
 
-    if (isSource || isDest) {
-      return sum + t.amount;
-    }
-    return sum;
-  }, 0);
+      if (isSource || isDest) {
+        return sum + moneyToMinorUnits(t.amount);
+      }
+      return sum;
+    }, BigInt(0))
+  );
 }
 
 /**

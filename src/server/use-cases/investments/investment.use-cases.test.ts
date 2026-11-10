@@ -9,6 +9,10 @@ import {
 import { InvestmentRepository } from '@/server/repositories/investment.repository';
 import { getBatchMarketDataUseCase } from '../market-data/market-data.use-cases';
 
+vi.mock('@/server/repositories/db-executor', () => ({
+  financialTransaction: (work: (tx: object) => unknown) => work({}),
+}));
+
 vi.mock('@/lib/currency/frankfurter', () => ({
   historicalPurchaseRate: vi.fn().mockResolvedValue(0.86),
 }));
@@ -136,7 +140,8 @@ describe('investment purchase rates', () => {
     expect(InvestmentRepository.update).toHaveBeenCalledWith(
       'lot',
       expect.objectContaining({ currency_rate: '0.86' }),
-      'owner'
+      'owner',
+      expect.any(Object)
     );
   });
   it('obtains purchase FX automatically and ignores a client-supplied fixed rate', async () => {
@@ -148,7 +153,8 @@ describe('investment purchase rates', () => {
     } as never);
     expect(historicalPurchaseRate).toHaveBeenCalledWith('USD', '2026-10-30');
     expect(InvestmentRepository.create).toHaveBeenCalledWith(
-      expect.objectContaining({ currency_rate: '0.86' })
+      expect.objectContaining({ currency_rate: '0.86' }),
+      expect.any(Object)
     );
     vi.mocked(InvestmentRepository.findByIdAndUser).mockResolvedValue({
       currency: 'EUR',
@@ -158,7 +164,8 @@ describe('investment purchase rates', () => {
     expect(InvestmentRepository.update).toHaveBeenLastCalledWith(
       'lot',
       expect.objectContaining({ currency_rate: '0.86' }),
-      'owner'
+      'owner',
+      expect.any(Object)
     );
   });
   it('does not write a guessed rate when the free provider is unavailable', async () => {

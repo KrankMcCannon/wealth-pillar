@@ -1,5 +1,7 @@
 'use server';
 
+import { logServerActionError } from '@/lib/server-action/action-error';
+
 import {
   getRegionsUseCase,
   getAssetTypesUseCase,
@@ -26,7 +28,7 @@ export async function getShareRegionsAction(): Promise<ServiceResult<string[]>> 
     const regions = await getRegionsUseCase();
     return { data: regions, error: null };
   } catch (error) {
-    console.error('[ShareActions] Error fetching regions:', error);
+    logServerActionError('[ShareActions] Error fetching regions:', error);
     return { data: null, error: 'Failed to fetch regions' };
   }
 }
@@ -39,7 +41,7 @@ export async function getShareAssetTypesAction(region: string): Promise<ServiceR
     const assetTypes = await getAssetTypesUseCase(region);
     return { data: assetTypes, error: null };
   } catch (error) {
-    console.error('[ShareActions] Error fetching asset types:', error);
+    logServerActionError('[ShareActions] Error fetching asset types:', error);
     return { data: null, error: 'Failed to fetch asset types' };
   }
 }
@@ -52,7 +54,7 @@ export async function getShareAssetTypesAllAction(): Promise<ServiceResult<strin
     const assetTypes = await getAssetTypesAllUseCase();
     return { data: assetTypes, error: null };
   } catch (error) {
-    console.error('[ShareActions] Error fetching asset types:', error);
+    logServerActionError('[ShareActions] Error fetching asset types:', error);
     return { data: null, error: 'Failed to fetch asset types' };
   }
 }
@@ -68,7 +70,7 @@ export async function getSharesAction(
     const shares = await getSharesUseCase(region, assetType);
     return { data: shares, error: null };
   } catch (error) {
-    console.error('[ShareActions] Error fetching shares:', error);
+    logServerActionError('[ShareActions] Error fetching shares:', error);
     return { data: null, error: 'Failed to fetch shares' };
   }
 }
@@ -81,7 +83,7 @@ export async function getPopularSharesAction(): Promise<ServiceResult<AvailableS
     const shares = await getPopularSharesUseCase();
     return { data: shares, error: null };
   } catch (error) {
-    console.error('[ShareActions] Error fetching popular shares:', error);
+    logServerActionError('[ShareActions] Error fetching popular shares:', error);
     return { data: null, error: 'Failed to fetch popular shares' };
   }
 }
@@ -119,7 +121,7 @@ export async function searchSharesAction(
 
     return { data: sorted, error: null };
   } catch (error) {
-    console.error('[ShareActions] Error searching shares:', error);
+    logServerActionError('[ShareActions] Error searching shares:', error);
     return { data: null, error: 'Failed to search shares' };
   }
 }
@@ -132,7 +134,7 @@ export async function ensureMarketDataAction(symbol: string): Promise<ServiceRes
     await getMarketDataUseCase(symbol.toUpperCase());
     return { data: true, error: null };
   } catch (error) {
-    console.error('[ShareActions] Error ensuring market data:', error);
+    logServerActionError('[ShareActions] Error ensuring market data:', error);
     return { data: null, error: 'Failed to cache market data' };
   }
 }
@@ -147,7 +149,7 @@ export async function getShareBySymbolAction(
     const share = await getShareBySymbolUseCase(symbol);
     return { data: share, error: null };
   } catch (error) {
-    console.error('[ShareActions] Error fetching share by symbol:', error);
+    logServerActionError('[ShareActions] Error fetching share by symbol:', error);
     return { data: null, error: 'Failed to fetch share' };
   }
 }
@@ -195,7 +197,7 @@ export async function fetchAndSaveNewShareAction(
 
     return { data: newShare, error: null };
   } catch (error) {
-    console.error('[ShareActions] Error fetching and saving share:', error);
+    logServerActionError('[ShareActions] Error fetching and saving share:', error);
     return {
       data: null,
       error: error instanceof Error ? error.message : 'Failed to fetch share',

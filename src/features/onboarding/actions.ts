@@ -329,14 +329,8 @@ export async function registerOrphanUserAction(locale?: string): Promise<Service
   }
 
   try {
-    const { supabase } = await import('@/server/db/supabase');
-    // Orphan_users Insert is in database.types.ts; Supabase client infers insert as never for this table
-    const { error } = await supabase.from('orphan_users').insert({ clerk_id: clerkId } as never);
-
-    if (error) {
-      console.error('[registerOrphanUserAction] Insert failed:', error);
-      return { data: null, error: t('registerOrphan.failed') };
-    }
+    const { OrphanUsersRepository } = await import('@/server/repositories/orphan-users.repository');
+    await OrphanUsersRepository.register(clerkId);
     return { data: undefined, error: null };
   } catch (err) {
     console.error('[registerOrphanUserAction] Error:', err);

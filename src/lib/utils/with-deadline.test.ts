@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { ActionTimeoutError, withDeadline } from './with-deadline';
+import { ActionTimeoutError, DEADLINE_EXPIRED, withDeadline } from './with-deadline';
 
 afterEach(() => vi.useRealTimers());
 
@@ -27,5 +27,16 @@ describe('withDeadline', () => {
     await expect(withDeadline(Promise.resolve('ok'))).resolves.toBe('ok');
     await expect(withDeadline(Promise.reject(new Error('failed')))).rejects.toThrow('failed');
     expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('notifies a durable operation before returning a timeout', async () => {
+    vi.useFakeTimers();
+    const expired = vi.fn();
+    const request = Object.assign(new Promise(() => {}), { [DEADLINE_EXPIRED]: expired });
+    const result = withDeadline(request, 100);
+    const assertion = expect(result).rejects.toBeInstanceOf(ActionTimeoutError);
+    await vi.advanceTimersByTimeAsync(100);
+    await assertion;
+    expect(expired).toHaveBeenCalledOnce();
   });
 });

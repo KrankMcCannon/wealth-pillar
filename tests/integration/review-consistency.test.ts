@@ -1,3 +1,4 @@
+import { financialTransaction } from '@/server/repositories/db-executor';
 import { beforeAll, beforeEach, afterAll, expect, it, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
@@ -225,24 +226,32 @@ it('rejects frequencies outside the shared product domain at the database bounda
 });
 
 it('atomically invalidates the affected investment history on backdating, editing and deletion', async () => {
-  const row = await InvestmentRepository.create({
-    user_id: adminA,
-    name: 'ETF',
-    symbol: 'AAA',
-    currency: 'EUR',
-    amount: '100',
-    shares_acquired: '10',
-    created_at: new Date('2026-10-15T12:00:00Z'),
-  });
+  const row = await financialTransaction((tx) =>
+    InvestmentRepository.create(
+      {
+        user_id: adminA,
+        name: 'ETF',
+        symbol: 'AAA',
+        currency: 'EUR',
+        amount: '100',
+        shares_acquired: '10',
+        created_at: new Date('2026-10-15T12:00:00Z'),
+      },
+      tx
+    )
+  );
   await PortfolioSnapshotRepository.upsertMany([
     { user_id: adminA, snapshot_date: '2026-10-01', value: '100' },
     { user_id: adminA, snapshot_date: '2026-10-15', value: '100' },
     { user_id: adminB, snapshot_date: '2026-10-15', value: '200' },
   ]);
-  await InvestmentRepository.update(
-    row!.id,
-    { shares_acquired: '12', created_at: new Date('2026-10-05T12:00:00Z') },
-    adminA
+  await financialTransaction((tx) =>
+    InvestmentRepository.update(
+      row!.id,
+      { shares_acquired: '12', created_at: new Date('2026-10-05T12:00:00Z') },
+      adminA,
+      tx
+    )
   );
   expect(
     (await PortfolioSnapshotRepository.findByUserIds([adminA])).map((s) => s.snapshot_date)
@@ -251,19 +260,26 @@ it('atomically invalidates the affected investment history on backdating, editin
   await PortfolioSnapshotRepository.upsertMany([
     { user_id: adminA, snapshot_date: '2026-10-10', value: '120' },
   ]);
-  expect(await InvestmentRepository.delete(row!.id, adminB)).toBeNull();
+  expect(
+    await financialTransaction((tx) => InvestmentRepository.delete(row!.id, adminB, tx))
+  ).toBeNull();
   expect(await PortfolioSnapshotRepository.findByUserIds([adminA])).toHaveLength(2);
-  await InvestmentRepository.delete(row!.id, adminA);
+  await financialTransaction((tx) => InvestmentRepository.delete(row!.id, adminA, tx));
   expect(await PortfolioSnapshotRepository.findByUserIds([adminA])).toHaveLength(1);
-  await InvestmentRepository.create({
-    user_id: adminA,
-    name: 'Earlier',
-    symbol: 'AAA',
-    currency: 'EUR',
-    amount: '1',
-    shares_acquired: '1',
-    created_at: new Date('2026-09-01T12:00:00Z'),
-  });
+  await financialTransaction((tx) =>
+    InvestmentRepository.create(
+      {
+        user_id: adminA,
+        name: 'Earlier',
+        symbol: 'AAA',
+        currency: 'EUR',
+        amount: '1',
+        shares_acquired: '1',
+        created_at: new Date('2026-09-01T12:00:00Z'),
+      },
+      tx
+    )
+  );
   expect(await PortfolioSnapshotRepository.findByUserIds([adminA])).toHaveLength(0);
 });
 
@@ -344,24 +360,34 @@ it('retains quotes outside rolling windows and persists only complete closed-day
     await MarketDataRepository.upsert('AAA', [{ datetime: '2026-10-30', close: '12' }]);
     const cached = await MarketDataRepository.findBySymbol('AAA');
     expect(cached?.data).toHaveLength(2);
-    await InvestmentRepository.create({
-      user_id: adminA,
-      name: 'A',
-      symbol: 'AAA',
-      amount: '100',
-      shares_acquired: '10',
-      currency: 'EUR',
-      created_at: new Date('2026-10-29T12:00:00Z'),
-    });
-    await InvestmentRepository.create({
-      user_id: adminA,
-      name: 'B',
-      symbol: 'BBB',
-      amount: '20',
-      shares_acquired: '2',
-      currency: 'EUR',
-      created_at: new Date('2026-10-30T12:00:00Z'),
-    });
+    await financialTransaction((tx) =>
+      InvestmentRepository.create(
+        {
+          user_id: adminA,
+          name: 'A',
+          symbol: 'AAA',
+          amount: '100',
+          shares_acquired: '10',
+          currency: 'EUR',
+          created_at: new Date('2026-10-29T12:00:00Z'),
+        },
+        tx
+      )
+    );
+    await financialTransaction((tx) =>
+      InvestmentRepository.create(
+        {
+          user_id: adminA,
+          name: 'B',
+          symbol: 'BBB',
+          amount: '20',
+          shares_acquired: '2',
+          currency: 'EUR',
+          created_at: new Date('2026-10-30T12:00:00Z'),
+        },
+        tx
+      )
+    );
     await persistPortfolioSnapshotsUseCase(adminA);
     let snapshots = await PortfolioSnapshotRepository.findByUserIds([adminA]);
     expect(snapshots.map((s) => s.snapshot_date)).toEqual(['2026-10-29']);
@@ -376,7 +402,9 @@ it('retains quotes outside rolling windows and persists only complete closed-day
     ]);
     expect(snapshots.every((s) => s.snapshot_date < financialDateKey(new Date()))).toBe(true);
     const lot = (await InvestmentRepository.findByUser(adminA))[0]!;
-    await InvestmentRepository.update(lot.id, { shares_acquired: '12' }, adminA);
+    await financialTransaction((tx) =>
+      InvestmentRepository.update(lot.id, { shares_acquired: '12' }, adminA, tx)
+    );
     await persistPortfolioSnapshotsUseCase(adminA);
     expect(Number((await PortfolioSnapshotRepository.findByUserIds([adminA]))[0]?.value)).toBe(120);
   } finally {
@@ -410,15 +438,20 @@ it('isolates category catalogs and keeps durable references stable when a label 
 
 it('runs the production snapshot CLI against the local fixture', async () => {
   await MarketDataRepository.upsert('AAA', [{ datetime: '2026-10-30', close: '10' }]);
-  await InvestmentRepository.create({
-    user_id: adminA,
-    name: 'A',
-    symbol: 'AAA',
-    amount: '100',
-    shares_acquired: '10',
-    currency: 'EUR',
-    created_at: new Date('2026-10-30T12:00:00Z'),
-  });
+  await financialTransaction((tx) =>
+    InvestmentRepository.create(
+      {
+        user_id: adminA,
+        name: 'A',
+        symbol: 'AAA',
+        amount: '100',
+        shares_acquired: '10',
+        currency: 'EUR',
+        created_at: new Date('2026-10-30T12:00:00Z'),
+      },
+      tx
+    )
+  );
   const output = execFileSync(
     process.execPath,
     ['--import', 'tsx', 'scripts/persist-portfolio-snapshots.ts'],
@@ -432,15 +465,20 @@ it.each(['projection-first', 'mutation-first'] as const)(
   'coordinates snapshot rebuild and holding edits (%s)',
   async (order) => {
     await MarketDataRepository.upsert('AAA', [{ datetime: '2026-10-30', close: '10' }]);
-    const lot = await InvestmentRepository.create({
-      user_id: adminA,
-      name: 'A',
-      symbol: 'AAA',
-      amount: '100',
-      shares_acquired: '10',
-      currency: 'EUR',
-      created_at: new Date('2026-10-30T12:00:00Z'),
-    });
+    const lot = await financialTransaction((tx) =>
+      InvestmentRepository.create(
+        {
+          user_id: adminA,
+          name: 'A',
+          symbol: 'AAA',
+          amount: '100',
+          shares_acquired: '10',
+          currency: 'EUR',
+          created_at: new Date('2026-10-30T12:00:00Z'),
+        },
+        tx
+      )
+    );
     let release!: () => void;
     let entered!: () => void;
     const hold = new Promise<void>((resolve) => {
@@ -472,11 +510,15 @@ it.each(['projection-first', 'mutation-first'] as const)(
       const first =
         order === 'projection-first'
           ? persistPortfolioSnapshotsUseCase(adminA)
-          : InvestmentRepository.update(lot!.id, { shares_acquired: '12' }, adminA);
+          : financialTransaction((tx) =>
+              InvestmentRepository.update(lot!.id, { shares_acquired: '12' }, adminA, tx)
+            );
       await reached;
       const second =
         order === 'projection-first'
-          ? InvestmentRepository.update(lot!.id, { shares_acquired: '12' }, adminA)
+          ? financialTransaction((tx) =>
+              InvestmentRepository.update(lot!.id, { shares_acquired: '12' }, adminA, tx)
+            )
           : persistPortfolioSnapshotsUseCase(adminA);
       await delay(25);
       release();
@@ -499,16 +541,21 @@ it.each(['projection-first', 'mutation-first'] as const)(
 
 it('persists mixed-currency history with dated FX and omits days before any required FX exists', async () => {
   for (const currency of ['EUR', 'USD']) {
-    await InvestmentRepository.create({
-      user_id: adminA,
-      name: currency,
-      symbol: 'AAA',
-      amount: '100',
-      shares_acquired: currency === 'USD' ? '10' : '2',
-      currency,
-      currency_rate: currency === 'USD' ? '0.75' : '1',
-      created_at: new Date('2026-10-30T12:00:00Z'),
-    });
+    await financialTransaction((tx) =>
+      InvestmentRepository.create(
+        {
+          user_id: adminA,
+          name: currency,
+          symbol: 'AAA',
+          amount: '100',
+          shares_acquired: currency === 'USD' ? '10' : '2',
+          currency,
+          currency_rate: currency === 'USD' ? '0.75' : '1',
+          created_at: new Date('2026-10-30T12:00:00Z'),
+        },
+        tx
+      )
+    );
   }
   await MarketDataRepository.upsert('AAA', [{ datetime: '2026-10-30', close: 200 }]);
   expect(await persistPortfolioSnapshotsUseCase(adminA)).toEqual({ saved: 0 });

@@ -1,10 +1,5 @@
-import type {
-  Account,
-  Budget,
-  BudgetPeriod,
-  PeriodLiquidityAmounts,
-  Transaction,
-} from '@/lib/types';
+import type { LedgerEntry as Transaction } from '@/server/ledger/aggregate';
+import type { Account, Budget, BudgetPeriod, PeriodLiquidityAmounts } from '@/lib/types';
 import { foldPeriodAmounts } from '@/server/ledger';
 import { roundMoney } from '@/lib/utils/money';
 import { parsePeriodDates } from '../shared/period.logic';

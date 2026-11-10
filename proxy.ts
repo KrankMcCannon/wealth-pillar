@@ -1,6 +1,6 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import createMiddleware from 'next-intl/middleware';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { routing } from './src/i18n/routing';
 import { localeRootToHomePath } from './src/lib/navigation/locale-home-path';
 
@@ -58,6 +58,9 @@ const isApiOrTrpcRequest = (pathname: string) =>
   pathname.startsWith('/trpc/');
 
 const clerkProxy = clerkMiddleware(async (auth, request) => {
+  const requestHeaders = new Headers(request.headers);
+  // Always replace caller-supplied correlation metadata.
+  requestHeaders.set('x-wealth-request-id', crypto.randomUUID());
   const pathname = request.nextUrl.pathname;
   const homePath = localeRootToHomePath(pathname, routing.locales);
   if (homePath) {
@@ -78,15 +81,18 @@ const clerkProxy = clerkMiddleware(async (auth, request) => {
     await auth.protect();
   }
 
-  if (isApiOrTrpcRequest(pathname)) return withClerkNetlifyVary(NextResponse.next());
+  if (isApiOrTrpcRequest(pathname))
+    return withClerkNetlifyVary(NextResponse.next({ request: { headers: requestHeaders } }));
 
   // Skip locale redirects for Server Action requests only.
   // Other RSC/page requests still need next-intl middleware for locale routing.
   if (isServerAction) {
-    return withClerkNetlifyVary(NextResponse.next());
+    return withClerkNetlifyVary(NextResponse.next({ request: { headers: requestHeaders } }));
   }
 
-  return withClerkNetlifyVary(handleI18nRouting(request));
+  return withClerkNetlifyVary(
+    handleI18nRouting(new NextRequest(request, { headers: requestHeaders }))
+  );
 });
 
 export default clerkProxy;

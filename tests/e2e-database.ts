@@ -1,5 +1,5 @@
-import { readFileSync } from 'node:fs';
-import { execFileSync } from 'node:child_process';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import { randomUUID } from 'node:crypto';
 import postgres from 'postgres';
 import { requireE2EEnvironment } from './e2e-environment';
@@ -18,61 +18,9 @@ export async function seedE2EDatabase(clerkId: string, email: string) {
     const count = counts[0]?.count;
     if (count !== 0) throw new Error('The disposable E2E database must be empty before setup');
     ownsDatabase = true;
-    const ddl = execFileSync(
-      'pnpm',
-      ['exec', 'drizzle-kit', 'export', '--config', 'tests/drizzle.e2e.config.ts'],
-      { encoding: 'utf8' }
-    );
-    // Preserve tables/checks/indexes/FKs; emulate Supabase auth helpers only in this local DB.
-    const tables = [...ddl.matchAll(/CREATE TABLE "([^"]+)" \([\s\S]*?\n\);/g)];
-    if (tables.length < 10) throw new Error('Schema export is incomplete');
-    await db.unsafe(`CREATE EXTENSION IF NOT EXISTS pg_trgm;
-      CREATE SCHEMA IF NOT EXISTS extensions;
-      CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA extensions;
-      CREATE SCHEMA IF NOT EXISTS auth;
-      CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql AS $$ SELECT NULL::uuid $$;
-      CREATE OR REPLACE FUNCTION auth.jwt() RETURNS jsonb LANGUAGE sql AS $$ SELECT '{}'::jsonb $$;`);
-    for (const [statement, name] of tables) {
-      await db.unsafe(statement);
-      if (statement.includes('"id"'))
-        await db.unsafe(`CREATE UNIQUE INDEX "e2e_${name}_id" ON "${name}" (id)`);
-    }
-    // Views and policies are not exercised with the local table-owner connection.
-    const statements = ddl.split(';').map((part) => part.trim());
-    for (const statement of statements) {
-      if (
-        (statement.startsWith('ALTER TABLE') && statement.includes('ADD CONSTRAINT')) ||
-        /^CREATE (UNIQUE )?INDEX/.test(statement)
-      )
-        await db.unsafe(statement);
-    }
-    await db.begin((tx) =>
-      tx.unsafe(
-        readFileSync('src/server/db/drizzle/20261101191621_account_balance_versions.sql', 'utf8')
-      )
-    );
-    // Replay the historical guard migration, then remove its obsolete column.
-    // The final fixture matches today's exported schema.
-    await db.unsafe(
-      "ALTER TABLE bank_connections ADD COLUMN default_category text NOT NULL DEFAULT ''"
-    );
-    for (const statement of readFileSync(
-      'src/server/db/drizzle/0008_category_reference_guards.sql',
-      'utf8'
-    )
-      .split('--> statement-breakpoint')
-      .filter((part) => part.trim())) {
-      await db.unsafe(statement);
-    }
-    await db.begin(async (tx) => {
-      for (const statement of readFileSync(
-        'src/server/db/drizzle/20261108230000_remove_bank_default_category.sql',
-        'utf8'
-      )
-        .split('--> statement-breakpoint')
-        .filter((part) => part.trim()))
-        await tx.unsafe(statement);
-    });
+    // Playwright's CommonJS transform cannot load import.meta from the native
+    // migration modules. Run the same migrator in a native Node ESM process.
+    await promisify(execFile)(process.execPath, ['tests/e2e-migrate.mjs']);
     const groupId = randomUUID();
     const userId = randomUUID();
     const accountId = randomUUID();
@@ -95,7 +43,7 @@ export async function seedE2EDatabase(clerkId: string, email: string) {
   } catch (error) {
     if (ownsDatabase)
       await db.unsafe(
-        'DROP SCHEMA public CASCADE; CREATE SCHEMA public; DROP SCHEMA IF EXISTS auth CASCADE;'
+        'DROP SCHEMA public CASCADE; CREATE SCHEMA public; DROP SCHEMA IF EXISTS auth CASCADE; DROP SCHEMA IF EXISTS extensions CASCADE; DROP SCHEMA IF EXISTS wealth_pillar_migrations CASCADE; DROP ROLE IF EXISTS anon; DROP ROLE IF EXISTS authenticated; DROP ROLE IF EXISTS service_role; DROP ROLE IF EXISTS pool_user;'
       );
     throw error;
   } finally {

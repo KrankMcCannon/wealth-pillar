@@ -1,4 +1,4 @@
-import { db } from '@/server/db/drizzle';
+import { budgetReadColumns } from './relational-projections';
 import { resolveDb, type DbExecutor } from './db-executor';
 import { budgets } from '@/server/db/schema';
 import { and, eq } from 'drizzle-orm';
@@ -23,30 +23,37 @@ function budgetConditions(id: string, scope?: BudgetScope) {
 
 export class BudgetsRepository {
   static async getById(id: string, scope?: BudgetScope): Promise<Budget | null> {
-    const result = await db.select().from(budgets).where(budgetConditions(id, scope)).limit(1);
+    const result = await resolveDb()
+      .select(budgetReadColumns())
+      .from(budgets)
+      .where(budgetConditions(id, scope))
+      .limit(1);
     return result.length > 0 ? (serialize(result[0]) as unknown as Budget) : null;
   }
 
   static async getByUser(userId: string, executor?: DbExecutor): Promise<Budget[]> {
     const result = await resolveDb(executor)
-      .select()
+      .select(budgetReadColumns())
       .from(budgets)
       .where(eq(budgets.user_id, userId));
     return serialize(result) as unknown as Budget[];
   }
 
   static async getByGroup(groupId: string): Promise<Budget[]> {
-    const result = await db.select().from(budgets).where(eq(budgets.group_id, groupId));
+    const result = await resolveDb()
+      .select(budgetReadColumns())
+      .from(budgets)
+      .where(eq(budgets.group_id, groupId));
     return serialize(result) as unknown as Budget[];
   }
 
   static async create(data: InsertBudget): Promise<Budget> {
-    const result = await db.insert(budgets).values(data).returning();
+    const result = await resolveDb().insert(budgets).values(data).returning();
     return serialize(result[0]) as unknown as Budget;
   }
 
   static async update(id: string, data: UpdateBudget, scope?: BudgetScope): Promise<Budget> {
-    const result = await db
+    const result = await resolveDb()
       .update(budgets)
       .set(data)
       .where(budgetConditions(id, scope))
@@ -56,7 +63,7 @@ export class BudgetsRepository {
   }
 
   static async delete(id: string, scope?: BudgetScope): Promise<void> {
-    const result = await db
+    const result = await resolveDb()
       .delete(budgets)
       .where(budgetConditions(id, scope))
       .returning({ id: budgets.id });
@@ -64,6 +71,6 @@ export class BudgetsRepository {
   }
 
   static async deleteByUser(userId: string): Promise<void> {
-    await db.delete(budgets).where(eq(budgets.user_id, userId));
+    await resolveDb().delete(budgets).where(eq(budgets.user_id, userId));
   }
 }

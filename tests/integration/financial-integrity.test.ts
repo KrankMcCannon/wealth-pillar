@@ -186,27 +186,33 @@ describe('account deletion against PostgreSQL', () => {
     async (direction) => {
       const outgoing = direction === 'outgoing';
       await AccountsRepository.update(b, { balance: outgoing ? '700' : '300' });
-      const transfer = await TransactionsRepository.create({
-        description: 'Transfer',
-        amount: '200',
-        type: 'transfer',
-        category: 'transfer',
-        date: '2024-05-10',
-        user_id: userId,
-        group_id: groupId,
-        account_id: outgoing ? a : b,
-        to_account_id: outgoing ? b : a,
-      });
-      const income = await TransactionsRepository.create({
-        description: 'Unrelated income',
-        amount: '500',
-        type: 'income',
-        category: 'salary',
-        date: '2024-05-01',
-        user_id: userId,
-        group_id: groupId,
-        account_id: b,
-      });
+      const transfer = await TransactionsRepository.create(
+        {
+          description: 'Transfer',
+          amount: '200',
+          type: 'transfer',
+          category: 'transfer',
+          date: '2024-05-10',
+          user_id: userId,
+          group_id: groupId,
+          account_id: outgoing ? a : b,
+          to_account_id: outgoing ? b : a,
+        },
+        db
+      );
+      const income = await TransactionsRepository.create(
+        {
+          description: 'Unrelated income',
+          amount: '500',
+          type: 'income',
+          category: 'salary',
+          date: '2024-05-01',
+          user_id: userId,
+          group_id: groupId,
+          account_id: b,
+        },
+        db
+      );
       if (!transfer || !income) throw new Error('Failed to seed transactions');
       await deleteAccountUseCase(a);
       expect(await AccountsRepository.findById(a)).toBeNull();
@@ -222,17 +228,20 @@ describe('account deletion against PostgreSQL', () => {
   );
 
   it('rolls back the ledger and surviving balance if account deletion fails', async () => {
-    const transfer = await TransactionsRepository.create({
-      description: 'Transfer',
-      amount: '200',
-      type: 'transfer',
-      category: 'transfer',
-      date: '2024-05-10',
-      user_id: userId,
-      group_id: groupId,
-      account_id: a,
-      to_account_id: b,
-    });
+    const transfer = await TransactionsRepository.create(
+      {
+        description: 'Transfer',
+        amount: '200',
+        type: 'transfer',
+        category: 'transfer',
+        date: '2024-05-10',
+        user_id: userId,
+        group_id: groupId,
+        account_id: a,
+        to_account_id: b,
+      },
+      db
+    );
     if (!transfer) throw new Error('Failed to seed transfer');
     await db.execute(
       sql`CREATE FUNCTION fail_account_delete() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'forced delete failure'; END $$`
@@ -310,17 +319,20 @@ describe('historical snapshots against PostgreSQL', () => {
 async function seedMovement(type: 'expense' | 'transfer') {
   await AccountsRepository.update(a, { balance: '90' });
   await AccountsRepository.update(b, { balance: type === 'transfer' ? '510' : '500' });
-  const row = await TransactionsRepository.create({
-    description: 'Movement',
-    amount: '10',
-    type,
-    category: 'food',
-    date: '2026-06-01',
-    account_id: a,
-    to_account_id: type === 'transfer' ? b : null,
-    group_id: groupId,
-    user_id: userId,
-  });
+  const row = await TransactionsRepository.create(
+    {
+      description: 'Movement',
+      amount: '10',
+      type,
+      category: 'food',
+      date: '2026-06-01',
+      account_id: a,
+      to_account_id: type === 'transfer' ? b : null,
+      group_id: groupId,
+      user_id: userId,
+    },
+    db
+  );
   if (!row) throw new Error('Failed to seed transaction');
   return row;
 }
@@ -382,17 +394,20 @@ describe('concurrent financial mutations against PostgreSQL', () => {
 
   it('uses the same account lock order for opposing transfers', async () => {
     const first = await seedMovement('transfer');
-    const second = await TransactionsRepository.create({
-      description: 'Reverse',
-      amount: '10',
-      type: 'transfer',
-      category: 'transfer',
-      date: '2026-06-01',
-      account_id: b,
-      to_account_id: a,
-      group_id: groupId,
-      user_id: userId,
-    });
+    const second = await TransactionsRepository.create(
+      {
+        description: 'Reverse',
+        amount: '10',
+        type: 'transfer',
+        category: 'transfer',
+        date: '2026-06-01',
+        account_id: b,
+        to_account_id: a,
+        group_id: groupId,
+        user_id: userId,
+      },
+      db
+    );
     if (!second) throw new Error('Failed to seed transfer');
     await AccountsRepository.update(a, { balance: '100' });
     await AccountsRepository.update(b, { balance: '500' });
@@ -426,9 +441,13 @@ describe('concurrent financial mutations against PostgreSQL', () => {
 
   it('enforces ownership scope on the row actually mutated', async () => {
     const row = await seedMovement('expense');
-    await TransactionsRepository.update(row.id, {
-      user_id: '00000000-0000-4000-8000-000000000099',
-    });
+    await TransactionsRepository.update(
+      row.id,
+      {
+        user_id: '00000000-0000-4000-8000-000000000099',
+      },
+      db
+    );
     await expect(
       updateTransactionUseCase(row.id, { amount: 30 }, { groupId, userId })
     ).rejects.toThrow('Transaction not found');
@@ -749,16 +768,19 @@ describe('complete period totals independently of report windows', () => {
       ['2024-05-05', '40'],
       ['2024-05-22', '10'],
     ]) {
-      await TransactionsRepository.create({
-        description: 'Food',
-        amount: amount!,
-        type: 'expense',
-        category: 'food',
-        date: date!,
-        account_id: a,
-        group_id: groupId,
-        user_id: userId,
-      });
+      await TransactionsRepository.create(
+        {
+          description: 'Food',
+          amount: amount!,
+          type: 'expense',
+          category: 'food',
+          date: date!,
+          account_id: a,
+          group_id: groupId,
+          user_id: userId,
+        },
+        db
+      );
     }
     const accounts = (await AccountsRepository.findByGroup(groupId)).map((account) => ({
       ...account,
@@ -814,16 +836,19 @@ describe('complete period totals independently of report windows', () => {
       budgets_snapshot: [foodBudget()],
     });
     for (const date of ['2024-04-25', '2024-05-05'])
-      await TransactionsRepository.create({
-        description: 'Food',
-        amount: '25',
-        type: 'expense',
-        category: 'food',
-        date,
-        account_id: a,
-        group_id: groupId,
-        user_id: userId,
-      });
+      await TransactionsRepository.create(
+        {
+          description: 'Food',
+          amount: '25',
+          type: 'expense',
+          category: 'food',
+          date,
+          account_id: a,
+          group_id: groupId,
+          user_id: userId,
+        },
+        db
+      );
     const summaries = await getReportsPeriodSummariesUseCase(
       groupId,
       [period],
@@ -939,9 +964,9 @@ describe('balance recalculation coordinated with ledger mutations', () => {
       const accountId = operation === 'transfer-in' ? b : a;
       const read = gate();
       const resume = gate();
-      const getByAccount = TransactionsRepository.getByAccount.bind(TransactionsRepository);
+      const getByAccount = TransactionsRepository.sumBalanceByAccount.bind(TransactionsRepository);
       const spy = vi
-        .spyOn(TransactionsRepository, 'getByAccount')
+        .spyOn(TransactionsRepository, 'sumBalanceByAccount')
         .mockImplementationOnce(async (...args) => {
           const rows = await getByAccount(...args);
           read.resolve();
@@ -1030,7 +1055,7 @@ describe('balance recalculation coordinated with ledger mutations', () => {
 
   it('rolls back and does not invalidate caches if ledger loading fails', async () => {
     const spy = vi
-      .spyOn(TransactionsRepository, 'getByAccount')
+      .spyOn(TransactionsRepository, 'sumBalanceByAccount')
       .mockRejectedValueOnce(new Error('unavailable'));
     try {
       await expect(recalculateAccountBalanceUseCase(a)).rejects.toThrow('unavailable');

@@ -65,17 +65,20 @@ it('uses the existing transaction fields, locks the account and submits accounti
   await click.click(screen.getByRole('radio', { name: 'typeOptions.expense' }));
   await click.click(screen.getByRole('button', { name: 'import' }));
   await waitFor(() =>
-    expect(reviewBankNotificationAction).toHaveBeenCalledExactlyOnceWith({
-      id: 'event',
-      decision: 'import',
-      category: 'food',
-      manual: {
-        description: 'Original merchant',
-        amount: 12.34,
-        type: 'expense',
-        date: '2026-10-25',
+    expect(reviewBankNotificationAction).toHaveBeenCalledExactlyOnceWith(
+      {
+        id: 'event',
+        decision: 'import',
+        category: 'food',
+        manual: {
+          description: 'Original merchant',
+          amount: 12.34,
+          type: 'expense',
+          date: '2026-10-25',
+        },
       },
-    })
+      undefined
+    )
   );
   await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
   expect(onComplete).toHaveBeenCalledTimes(1);

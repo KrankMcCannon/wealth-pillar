@@ -1,5 +1,7 @@
 'use client';
 
+import { useFinancialCommand } from '@/hooks/use-financial-command';
+
 import { withDeadline } from '@/lib/utils/with-deadline';
 
 import { parseDecimal } from '@/lib/utils/parse-decimal';
@@ -83,7 +85,10 @@ function BudgetFormModal({
   periodUserId,
   periodBudgets = [],
 }: Readonly<BudgetFormModalProps>) {
+  const financialCommand = useFinancialCommand();
+
   const t = useTranslations('Budgets.FormModal');
+  const tStatus = useTranslations('FormStatus');
   const locale = useLocale();
   const router = useRouter();
   const pathname = usePathname();
@@ -188,18 +193,29 @@ function BudgetFormModal({
     string | { originalBudget: Budget; id: string }
   >({
     submissionKey: 'budget',
+    operationKinds: {
+      create: isPeriodMode ? 'upsertClosedPeriodBudgetAction' : 'createBudgetAction',
+      update: isPeriodMode ? 'upsertClosedPeriodBudgetAction' : 'updateBudgetAction',
+    },
     isEditMode,
     editId,
     onClose,
     buildPayload,
-    createAction: (payload) =>
+    createAction: (payload, operationId) =>
       isPeriodMode && periodId && periodUserId
-        ? upsertClosedPeriodBudgetAction(periodUserId, periodId, payload, locale)
-        : createBudgetAction(payload, locale),
-    updateAction: (id, payload) =>
+        ? upsertClosedPeriodBudgetAction(
+            periodUserId,
+            periodId,
+            payload,
+            locale,
+            undefined,
+            operationId
+          )
+        : createBudgetAction(payload, locale, operationId),
+    updateAction: (id, payload, operationId) =>
       isPeriodMode && periodId && periodUserId
-        ? upsertClosedPeriodBudgetAction(periodUserId, periodId, payload, locale, id)
-        : updateBudgetAction(id, payload, locale),
+        ? upsertClosedPeriodBudgetAction(periodUserId, periodId, payload, locale, id, operationId)
+        : updateBudgetAction(id, payload, locale, operationId),
     getSuccessToast,
     refreshAfterSuccess: () => router.refresh(),
     errorToast: { title: t('toast.errorTitle') },
@@ -263,7 +279,11 @@ function BudgetFormModal({
     if (!editId) return;
     if (isPeriodMode && periodId && periodUserId) {
       const result = await withDeadline(
-        deleteClosedPeriodBudgetAction(periodUserId, periodId, editId, locale)
+        financialCommand(
+          'deleteClosedPeriodBudgetAction',
+          [periodUserId, periodId, editId, locale],
+          (operationId, args) => deleteClosedPeriodBudgetAction(...args, operationId)
+        )
       );
       if (result.error) {
         toast({
@@ -284,41 +304,42 @@ function BudgetFormModal({
     const budget = storeBudgets.find((item) => item.id === editId);
     if (!budget) return;
 
-    removeBudget(editId);
-    let restored = false;
+    let rejected = false;
     try {
       const result = await withDeadline(
-        deleteBudgetAction(editId, locale, pathname.startsWith('/budgets/'))
+        financialCommand(
+          'deleteBudgetAction',
+          [editId, locale, pathname.startsWith('/budgets/')],
+          (operationId, args) => deleteBudgetAction(...args, operationId)
+        )
       );
       if (result.error) {
-        addBudget(budget);
-        restored = true;
+        rejected = true;
         toast({
           title: t('toast.errorTitle'),
-          description: result.error,
+          description: result.errorCode === 'OUTCOME_UNKNOWN' ? tStatus('pending') : result.error,
           variant: 'destructive',
         });
         throw new Error(result.error);
       }
+      removeBudget(editId);
       toast({
         title: t('toast.deletedTitle'),
         description: t('toast.deletedDescription'),
         variant: 'success',
       });
     } catch {
-      if (!restored) {
-        addBudget(budget);
+      if (!rejected)
         toast({
           title: t('toast.errorTitle'),
-          description: t('errors.unknown'),
+          description: tStatus('pending'),
           variant: 'destructive',
         });
-      }
       throw new Error('delete failed');
     }
   }, [
-    addBudget,
     editId,
+    financialCommand,
     isPeriodMode,
     locale,
     pathname,
@@ -328,6 +349,7 @@ function BudgetFormModal({
     router,
     storeBudgets,
     t,
+    tStatus,
   ]);
 
   return (

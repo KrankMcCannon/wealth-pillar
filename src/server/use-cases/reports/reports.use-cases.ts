@@ -1,5 +1,6 @@
+import type { LedgerEntry as Transaction } from '@/server/ledger/aggregate';
 import { financialDateTime } from '@/lib/utils/financial-date';
-import type { Account, Budget, BudgetPeriod, Transaction, User } from '@/lib/types';
+import type { Account, Budget, BudgetPeriod, User } from '@/lib/types';
 import { formatDateShort, toDateString, toDateTime } from '@/lib/utils';
 import { AccountsRepository } from '@/server/repositories/accounts.repository';
 import { BudgetPeriodsRepository } from '@/server/repositories/budget-periods.repository';
@@ -128,10 +129,20 @@ export async function getReportsContextUseCase(groupId: string, groupUserIds?: s
       ? users.filter((u) => groupUserIds.includes(u.id))
       : users;
 
-  const periodArrays = await Promise.all(
-    filteredUsers.map((u) => getProcessedUserPeriodsUseCase(u))
-  );
-  const allPeriods: BudgetPeriod[] = periodArrays.flat();
+  const storedPeriods = await BudgetPeriodsRepository.findByUserIds(filteredUsers.map((u) => u.id));
+  const periodsByUser = new Map<string, BudgetPeriod[]>();
+  for (const period of storedPeriods) {
+    const list = periodsByUser.get(period.user_id) ?? [];
+    list.push(period);
+    periodsByUser.set(period.user_id, list);
+  }
+  const allPeriods = filteredUsers.flatMap((user) => {
+    const periods = periodsByUser.get(user.id) ?? [];
+    if (!periods.some((period) => period.is_active && !period.end_date)) {
+      addSyntheticActivePeriod(user, periods);
+    }
+    return periods;
+  });
 
   return {
     accounts: normalizedAccounts,

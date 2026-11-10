@@ -1,5 +1,7 @@
 'use client';
 
+import { useFinancialCommand } from '@/hooks/use-financial-command';
+
 import { withDeadline, ActionTimeoutError } from '@/lib/utils/with-deadline';
 import { useCurrency } from '@/providers/currency-provider';
 
@@ -146,6 +148,8 @@ function GroupMappingFields({
 }
 
 export default function ImportModal({ isOpen, onClose }: Readonly<ImportModalProps>) {
+  const financialCommand = useFinancialCommand();
+
   const { format: formatCurrencyLocale } = useCurrency();
 
   const t = useTranslations('Transactions.ImportModal');
@@ -331,25 +335,31 @@ export default function ImportModal({ isOpen, onClose }: Readonly<ImportModalPro
     setIsBusy(true);
     try {
       const response = await withDeadline(
-        commitImportAction({
-          group_id: groupId,
-          rows: selected.map((row) => ({
-            rowId: row.rowId,
-            account_id: row.account_id,
-            date: row.date,
-            description: row.description,
-            amount: row.amount,
-            type: row.type,
-            import_hash: row.import_hash,
-            occurrence_index: row.occurrence_index,
-            preparation_token: row.preparation_token,
-            category: row.category,
-            user_id: row.user_id,
-            ...(row.suggestedRecurringSeriesId
-              ? { recurring_series_id: row.suggestedRecurringSeriesId }
-              : {}),
-          })),
-        })
+        financialCommand(
+          'commitImportAction',
+          [
+            {
+              group_id: groupId,
+              rows: selected.map((row) => ({
+                rowId: row.rowId,
+                account_id: row.account_id,
+                date: row.date,
+                description: row.description,
+                amount: row.amount,
+                type: row.type,
+                import_hash: row.import_hash,
+                occurrence_index: row.occurrence_index,
+                preparation_token: row.preparation_token,
+                category: row.category,
+                user_id: row.user_id,
+                ...(row.suggestedRecurringSeriesId
+                  ? { recurring_series_id: row.suggestedRecurringSeriesId }
+                  : {}),
+              })),
+            },
+          ],
+          (operationId, args) => commitImportAction(...args, operationId)
+        )
       );
 
       if (response.error || !response.data) {
@@ -378,7 +388,7 @@ export default function ImportModal({ isOpen, onClose }: Readonly<ImportModalPro
     } finally {
       setIsBusy(false);
     }
-  }, [groupId, previewRows, router, t, tStatus, toast]);
+  }, [financialCommand, groupId, previewRows, router, t, tStatus, toast]);
 
   // Referential equality of unchanged rows is preserved by these updaters (see ImportPreviewRow),
   // which keeps the virtualized list from re-rendering rows the user didn't touch.
@@ -431,7 +441,7 @@ export default function ImportModal({ isOpen, onClose }: Readonly<ImportModalPro
           <ModalSection title={t('upload.title')}>
             <label
               htmlFor="import-file-input"
-              className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border/70 p-8 text-center has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring"
+              className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border/70 p-8 text-center has-focus-visible:ring-2 has-focus-visible:ring-ring"
             >
               <Upload className="size-8 text-muted-foreground" aria-hidden />
               <span className="text-sm font-medium">{t('upload.cta')}</span>

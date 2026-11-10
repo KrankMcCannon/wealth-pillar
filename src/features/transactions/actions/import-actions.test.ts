@@ -45,11 +45,8 @@ beforeEach(() => {
     group_id: 'g1',
     user_ids: ['u1'],
   } as Account);
-  vi.mocked(UsersRepository.findByIds).mockImplementation(
-    async (ids) =>
-      ids.map((id) => ({ id, group_id: 'g1' })) as Awaited<
-        ReturnType<typeof UsersRepository.findByIds>
-      >
+  vi.mocked(UsersRepository.findByIds).mockImplementation(async (ids) =>
+    ids.map((id) => ({ id, group_id: 'g1' }))
   );
   vi.mocked(prepareImportUseCase).mockImplementation(async ({ rows }) =>
     rows.map((row) => ({

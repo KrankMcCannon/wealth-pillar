@@ -1,4 +1,6 @@
 'use client';
+
+import { useFinancialCommand } from '@/hooks/use-financial-command';
 import { useCurrency } from '@/providers/currency-provider';
 
 import { use, useRef, useState } from 'react';
@@ -42,6 +44,8 @@ export function RecurringLedgerWithSeries({
 }
 
 export function RecurringLedger(props: RecurringLedgerProps) {
+  const financialCommand = useFinancialCommand();
+
   const { format: formatCurrencyLocale } = useCurrency();
 
   const t = useTranslations('TransactionsContent.Ledger');
@@ -114,7 +118,11 @@ export function RecurringLedger(props: RecurringLedgerProps) {
     locks.current.add(item.id);
     setPending((ids) => [...ids, item.id]);
     try {
-      const result = await toggleRecurringSeriesActiveAction(item.id, next);
+      const result = await financialCommand(
+        'toggleRecurringSeriesActiveAction',
+        [item.id, next],
+        (operationId, args) => toggleRecurringSeriesActiveAction(...args, operationId)
+      );
       if (result.error || !result.data) throw new Error(result.error ?? t('updateError'));
       setLocal((state) => ({
         ...state,
