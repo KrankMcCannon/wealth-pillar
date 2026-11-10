@@ -73,17 +73,17 @@ export class AccountsRepository {
     return Number(result[0]?.count ?? 0);
   }
 
-  static async create(data: typeof accounts.$inferInsert): Promise<Account> {
-    const rows = await resolveDb().insert(accounts).values(data).returning(accountColumns);
+  static async create(data: typeof accounts.$inferInsert, executor: DbExecutor): Promise<Account> {
+    const rows = await executor.insert(accounts).values(data).returning(accountColumns);
     return rows[0] as unknown as Account;
   }
 
   static async update(
     id: string,
     data: Partial<typeof accounts.$inferInsert>,
-    executor?: DbExecutor
+    executor: DbExecutor
   ): Promise<Account> {
-    const rows = await resolveDb(executor)
+    const rows = await executor
       .update(accounts)
       .set({
         ...data,

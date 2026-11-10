@@ -103,16 +103,21 @@ export const createAccountUseCase = async (data: CreateAccountInput): Promise<Ac
 
   const liquidity = data.liquidity ?? defaultLiquidityForType(data.type);
 
-  const account = await AccountsRepository.create({
-    ...(data.id !== undefined && { id: data.id }),
-    name,
-    type: data.type,
-    liquidity,
-    user_ids: data.user_ids,
-    group_id: data.group_id,
-    created_at: now,
-    updated_at: now,
-  });
+  const account = await financialTransaction((tx) =>
+    AccountsRepository.create(
+      {
+        ...(data.id !== undefined && { id: data.id }),
+        name,
+        type: data.type,
+        liquidity,
+        user_ids: data.user_ids,
+        group_id: data.group_id,
+        created_at: now,
+        updated_at: now,
+      },
+      tx
+    )
+  );
 
   if (!account) throw new Error('Failed to create account');
 
@@ -141,7 +146,9 @@ export const updateAccountUseCase = async (
     updatePayload.liquidity = defaultLiquidityForType(data.type);
   }
 
-  const account = await AccountsRepository.update(accountId, updatePayload);
+  const account = await financialTransaction((tx) =>
+    AccountsRepository.update(accountId, updatePayload, tx)
+  );
 
   if (!account) throw new Error('Failed to update account');
 

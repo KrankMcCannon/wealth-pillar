@@ -240,11 +240,14 @@ it('atomically invalidates the affected investment history on backdating, editin
       tx
     )
   );
-  await PortfolioSnapshotRepository.upsertMany([
-    { user_id: adminA, snapshot_date: '2026-10-01', value: '100' },
-    { user_id: adminA, snapshot_date: '2026-10-15', value: '100' },
-    { user_id: adminB, snapshot_date: '2026-10-15', value: '200' },
-  ]);
+  await PortfolioSnapshotRepository.upsertMany(
+    [
+      { user_id: adminA, snapshot_date: '2026-10-01', value: '100' },
+      { user_id: adminA, snapshot_date: '2026-10-15', value: '100' },
+      { user_id: adminB, snapshot_date: '2026-10-15', value: '200' },
+    ],
+    db
+  );
   await financialTransaction((tx) =>
     InvestmentRepository.update(
       row!.id,
@@ -257,9 +260,10 @@ it('atomically invalidates the affected investment history on backdating, editin
     (await PortfolioSnapshotRepository.findByUserIds([adminA])).map((s) => s.snapshot_date)
   ).toEqual(['2026-10-01']);
   expect(await PortfolioSnapshotRepository.findByUserIds([adminB])).toHaveLength(1);
-  await PortfolioSnapshotRepository.upsertMany([
-    { user_id: adminA, snapshot_date: '2026-10-10', value: '120' },
-  ]);
+  await PortfolioSnapshotRepository.upsertMany(
+    [{ user_id: adminA, snapshot_date: '2026-10-10', value: '120' }],
+    db
+  );
   expect(
     await financialTransaction((tx) => InvestmentRepository.delete(row!.id, adminB, tx))
   ).toBeNull();
