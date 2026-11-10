@@ -6,6 +6,7 @@ import {
 import type { UpdateBudgetInput } from './types';
 import type { Budget } from '@/lib/types';
 import { invalidateBudgetCaches } from '@/lib/utils/cache-utils';
+import { financialTransaction } from '@/server/repositories/db-executor';
 
 export async function updateBudgetUseCase(
   id: string,
@@ -34,11 +35,6 @@ export async function updateBudgetUseCase(
     throw new Error('User ID cannot be empty');
   }
 
-  const existing = await BudgetsRepository.getById(id, scope);
-  if (!existing) {
-    throw new Error('Budget not found');
-  }
-
   const updateData: Partial<UpdateBudget> = { updated_at: new Date() };
 
   if (data.description !== undefined) updateData.description = data.description.trim();
@@ -48,7 +44,12 @@ export async function updateBudgetUseCase(
   if (data.categories !== undefined) updateData.categories = data.categories;
   if (data.user_id !== undefined) updateData.user_id = data.user_id;
 
-  const updatedBudget = await BudgetsRepository.update(id, updateData, scope);
+  const { existing, updatedBudget } = await financialTransaction(async (tx) => {
+    const existing = await BudgetsRepository.getById(id, scope, tx);
+    if (!existing) throw new Error('Budget not found');
+    const updatedBudget = await BudgetsRepository.update(id, updateData, tx, scope);
+    return { existing, updatedBudget };
+  });
 
   invalidateBudgetCaches({
     budgetId: id,

@@ -18,6 +18,11 @@ vi.mock('@/lib/utils/cache-utils', () => ({
   invalidateBudgetCaches: vi.fn(),
 }));
 
+const executor = vi.hoisted(() => ({}));
+vi.mock('@/server/repositories/db-executor', () => ({
+  financialTransaction: (work: (tx: unknown) => Promise<unknown>) => work(executor),
+}));
+
 import { BudgetsRepository } from '@/server/repositories/budgets.repository';
 import { BudgetPeriodsRepository } from '@/server/repositories/budget-periods.repository';
 import { invalidateBudgetCaches } from '@/lib/utils/cache-utils';
@@ -52,6 +57,7 @@ describe('updateBudgetUseCase', () => {
     expect(BudgetsRepository.update).toHaveBeenCalledWith(
       'b1',
       expect.objectContaining({ description: 'Groceries', amount: '250' }),
+      executor,
       undefined
     );
     expect(BudgetPeriodsRepository.update).not.toHaveBeenCalled();

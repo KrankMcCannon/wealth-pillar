@@ -1,6 +1,7 @@
 import { BudgetsRepository, type BudgetScope } from '@/server/repositories/budgets.repository';
 import { validateId } from '@/lib/utils/validation-utils';
 import { invalidateBudgetCaches } from '@/lib/utils/cache-utils';
+import { financialTransaction } from '@/server/repositories/db-executor';
 
 export async function deleteBudgetUseCase(
   id: string,
@@ -8,12 +9,12 @@ export async function deleteBudgetUseCase(
 ): Promise<{ id: string }> {
   validateId(id, 'Budget ID');
 
-  const existing = await BudgetsRepository.getById(id, scope);
-  if (!existing) {
-    throw new Error('Budget not found');
-  }
-
-  await BudgetsRepository.delete(id, scope);
+  const existing = await financialTransaction(async (tx) => {
+    const budget = await BudgetsRepository.getById(id, scope, tx);
+    if (!budget) throw new Error('Budget not found');
+    await BudgetsRepository.delete(id, tx, scope);
+    return budget;
+  });
 
   invalidateBudgetCaches({
     budgetId: id,
@@ -26,6 +27,6 @@ export async function deleteBudgetUseCase(
 
 export async function deleteBudgetsByUserUseCase(userId: string): Promise<void> {
   validateId(userId, 'User ID');
-  await BudgetsRepository.deleteByUser(userId);
+  await financialTransaction((tx) => BudgetsRepository.deleteByUser(userId, tx));
   invalidateBudgetCaches({ userId });
 }
