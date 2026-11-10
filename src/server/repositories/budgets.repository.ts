@@ -22,8 +22,12 @@ function budgetConditions(id: string, scope?: BudgetScope) {
 }
 
 export class BudgetsRepository {
-  static async getById(id: string, scope?: BudgetScope): Promise<Budget | null> {
-    const result = await resolveDb()
+  static async getById(
+    id: string,
+    scope?: BudgetScope,
+    executor?: DbExecutor
+  ): Promise<Budget | null> {
+    const result = await resolveDb(executor)
       .select(budgetReadColumns())
       .from(budgets)
       .where(budgetConditions(id, scope))
@@ -47,13 +51,18 @@ export class BudgetsRepository {
     return serialize(result) as unknown as Budget[];
   }
 
-  static async create(data: InsertBudget): Promise<Budget> {
-    const result = await resolveDb().insert(budgets).values(data).returning();
+  static async create(data: InsertBudget, executor: DbExecutor): Promise<Budget> {
+    const result = await executor.insert(budgets).values(data).returning();
     return serialize(result[0]) as unknown as Budget;
   }
 
-  static async update(id: string, data: UpdateBudget, scope?: BudgetScope): Promise<Budget> {
-    const result = await resolveDb()
+  static async update(
+    id: string,
+    data: UpdateBudget,
+    executor: DbExecutor,
+    scope?: BudgetScope
+  ): Promise<Budget> {
+    const result = await executor
       .update(budgets)
       .set(data)
       .where(budgetConditions(id, scope))
@@ -62,15 +71,15 @@ export class BudgetsRepository {
     return serialize(result[0]) as unknown as Budget;
   }
 
-  static async delete(id: string, scope?: BudgetScope): Promise<void> {
-    const result = await resolveDb()
+  static async delete(id: string, executor: DbExecutor, scope?: BudgetScope): Promise<void> {
+    const result = await executor
       .delete(budgets)
       .where(budgetConditions(id, scope))
       .returning({ id: budgets.id });
     if (!result[0]) throw new Error('Budget not found');
   }
 
-  static async deleteByUser(userId: string): Promise<void> {
-    await resolveDb().delete(budgets).where(eq(budgets.user_id, userId));
+  static async deleteByUser(userId: string, executor: DbExecutor): Promise<void> {
+    await executor.delete(budgets).where(eq(budgets.user_id, userId));
   }
 }

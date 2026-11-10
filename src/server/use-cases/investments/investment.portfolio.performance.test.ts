@@ -62,7 +62,10 @@ it.each(
     expect(actual).toEqual(expected);
     expect(actual[0]?.date).toBe(quotes === 'rolling' ? '2024-01-01' : '2016-03-01');
     expect(actual.at(-1)?.date).toBe('2026-11-06');
-  }
+  },
+  // The reference recalculates every lot for every day; this checks equality,
+  // not a machine-dependent latency target, and runs alongside other CI suites.
+  30_000
 );
 
 // Pre-optimization daily valuation: guards decimal arithmetic, missing data and acquisition semantics.

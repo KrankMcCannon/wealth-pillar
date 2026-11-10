@@ -16,6 +16,7 @@ import {
 } from '@/features/transactions/actions/transaction-actions';
 import { AccountsRepository } from '@/server/repositories/accounts.repository';
 import { BudgetsRepository } from '@/server/repositories/budgets.repository';
+import { financialTransaction } from '@/server/repositories/db-executor';
 import { GroupsRepository } from '@/server/repositories/groups.repository';
 import { createTransactionUseCase } from '@/server/use-cases/transactions/create-transaction.use-case';
 import { recalculateAccountBalanceUseCase } from '@/server/use-cases/accounts/account.use-cases';
@@ -52,6 +53,33 @@ const actor = {
   email: 'synthetic@example.test',
   clerk_id: 'synthetic',
 } as User;
+
+it('rolls back budget mutations with their owning transaction', async () => {
+  const budget = await BudgetsRepository.create(
+    {
+      description: 'Rollback',
+      amount: '10.00',
+      categories: ['synthetic_food'],
+      user_id: actorId,
+      group_id: group,
+    },
+    db
+  );
+  await expect(
+    financialTransaction(async (tx) => {
+      await BudgetsRepository.update(budget.id, { amount: '20.00' }, tx, { groupId: group });
+      throw new Error('rollback');
+    })
+  ).rejects.toThrow('rollback');
+  expect(Number((await BudgetsRepository.getById(budget.id))?.amount)).toBe(10);
+  await expect(
+    financialTransaction(async (tx) => {
+      await BudgetsRepository.delete(budget.id, tx, { groupId: group });
+      throw new Error('rollback');
+    })
+  ).rejects.toThrow('rollback');
+  expect(await BudgetsRepository.getById(budget.id)).not.toBeNull();
+});
 const input = () => ({
   description: 'Synthetic expense',
   amount: 0.01,
@@ -174,13 +202,16 @@ it('uses normalized associations and authoritative user membership', async () =>
     [account, destination].sort()
   );
   expect((await GroupsRepository.getByUserIds([actorId])).map((row) => row.id)).toEqual([group]);
-  const budget = await BudgetsRepository.create({
-    description: 'Synthetic',
-    amount: '10.00',
-    categories: ['synthetic_food'],
-    user_id: actorId,
-    group_id: group,
-  });
+  const budget = await BudgetsRepository.create(
+    {
+      description: 'Synthetic',
+      amount: '10.00',
+      categories: ['synthetic_food'],
+      user_id: actorId,
+      group_id: group,
+    },
+    db
+  );
   expect((await BudgetsRepository.getById(budget.id))?.categories).toEqual(['synthetic_food']);
   await expect(
     client`update accounts set user_ids=ARRAY[${otherId}]::uuid[] where id=${account}`

@@ -149,16 +149,16 @@ const recurring = (frequency: (typeof RECURRING_FREQUENCIES)[number] = 'monthly'
 });
 
 it('rejects cross-group budget reads, edits and deletes even for an administrator', async () => {
-  const foreign = await BudgetsRepository.create({ ...budget(adminB, groupB), amount: '100' });
+  const foreign = await BudgetsRepository.create({ ...budget(adminB, groupB), amount: '100' }, db);
   expect((await getBudgetByIdAction(foreign.id)).data).toBeNull();
   expect((await updateBudgetAction(foreign.id, { amount: 1 })).data).toBeNull();
   expect((await deleteBudgetAction(foreign.id)).data).toBeNull();
   expect(Number((await BudgetsRepository.getById(foreign.id))?.amount)).toBe(100);
   expect(await BudgetsRepository.getById(foreign.id, { groupId: groupA })).toBeNull();
   await expect(
-    BudgetsRepository.update(foreign.id, { amount: '1' }, { groupId: groupA })
+    BudgetsRepository.update(foreign.id, { amount: '1' }, db, { groupId: groupA })
   ).rejects.toThrow();
-  await expect(BudgetsRepository.delete(foreign.id, { groupId: groupA })).rejects.toThrow();
+  await expect(BudgetsRepository.delete(foreign.id, db, { groupId: groupA })).rejects.toThrow();
 });
 
 it('derives the budget group from the session and preserves legitimate administration', async () => {

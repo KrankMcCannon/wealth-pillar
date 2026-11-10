@@ -11,6 +11,7 @@ import {
   validateMinLength,
 } from '@/lib/utils/validation-utils';
 import { invalidateBudgetCaches } from '@/lib/utils/cache-utils';
+import { financialTransaction } from '@/server/repositories/db-executor';
 
 export async function createBudgetUseCase(data: CreateBudgetInput): Promise<Budget> {
   const description = validateRequiredString(data.description, 'Description');
@@ -35,7 +36,7 @@ export async function createBudgetUseCase(data: CreateBudgetInput): Promise<Budg
     group_id: groupId,
   };
 
-  const budget = await BudgetsRepository.create(insertData);
+  const budget = await financialTransaction((tx) => BudgetsRepository.create(insertData, tx));
 
   invalidateBudgetCaches({ userId: data.user_id, groupId });
 
