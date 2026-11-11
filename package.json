@@ -30,6 +30,7 @@
     "db:migrate": "node --import tsx scripts/db/migrate.ts",
     "db:adopt": "node --import tsx scripts/db/migrate.ts adopt",
     "db:benchmark": "vitest run --config vitest.database-benchmark.config.ts",
+    "db:check-ca": "tsx scripts/check-supabase-ca.ts",
     "db:prepare-indexes": "node --import tsx scripts/db/prepare-indexes.ts",
     "db:verify": "node --import tsx scripts/db/migrate.ts verify",
     "db:studio": "drizzle-kit studio"

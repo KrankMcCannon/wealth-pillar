@@ -174,10 +174,12 @@ export async function getBankNotificationSettings(user: User) {
   return { connections, accounts: availableAccounts, categories: availableCategories };
 }
 export async function revokeBankConnection(user: User, id: string) {
-  await resolveDb()
-    .update(bankConnections)
-    .set({ revoked_at: new Date() })
-    .where(and(own(user), eq(bankConnections.id, id)));
+  await financialTransaction(async (tx) => {
+    await tx
+      .update(bankConnections)
+      .set({ revoked_at: new Date() })
+      .where(and(own(user), eq(bankConnections.id, id)));
+  });
 }
 
 async function commitEvent(

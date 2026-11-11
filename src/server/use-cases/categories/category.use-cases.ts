@@ -8,6 +8,7 @@ import { validateId, validateRequiredString } from '@/lib/utils/validation-utils
 import { invalidateCategoryCaches } from '@/lib/utils/cache-utils';
 import type { Category } from '@/lib/types';
 import { SYSTEM_GROUP_ID } from '@/lib/constants';
+import { financialTransaction } from '@/server/repositories/db-executor';
 
 export interface CreateCategoryInput {
   label: string;
@@ -112,14 +113,18 @@ export const createCategoryUseCase = async (data: CreateCategoryInput): Promise<
   }
 
   const normalizedKey = key.toLowerCase();
-  const uniqueKey = await ensureUniqueCategoryKey(normalizedKey);
-
-  const category = await CategoriesRepository.create({
-    label,
-    key: uniqueKey,
-    icon,
-    color: color.toUpperCase(),
-    group_id: data.group_id,
+  const category = await financialTransaction(async (tx) => {
+    const uniqueKey = await ensureUniqueCategoryKey(normalizedKey);
+    return CategoriesRepository.create(
+      {
+        label,
+        key: uniqueKey,
+        icon,
+        color: color.toUpperCase(),
+        group_id: data.group_id,
+      },
+      tx
+    );
   });
 
   if (!category) throw new Error('Failed to create category');
@@ -155,7 +160,9 @@ export const updateCategoryUseCase = async (
   if (data.label !== undefined) updateData.label = validateRequiredString(data.label, 'Label');
   // Keys are durable references in transactions, recurring series and historical budget snapshots.
   // Renaming a display label must not rewrite financial history or another tenant's records.
-  const category = await CategoriesRepository.update(id, updateData);
+  const category = await financialTransaction((tx) =>
+    CategoriesRepository.update(id, updateData, tx)
+  );
   invalidateCategoryCaches({ categoryId: id, groupId: existing.group_id });
   return serialize(category);
 };

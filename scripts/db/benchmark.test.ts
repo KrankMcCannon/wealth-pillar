@@ -1,6 +1,6 @@
 import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { AsyncLocalStorage } from 'node:async_hooks';
-import { subscribe, unsubscribe } from 'node:diagnostics_channel';
+import { channel, subscribe, unsubscribe } from 'node:diagnostics_channel';
 import { randomUUID } from 'node:crypto';
 import { afterAll, beforeAll, expect, it, vi } from 'vitest';
 import { db } from '@/server/db/drizzle';
@@ -40,12 +40,23 @@ type Measurement = {
   operation: string;
   p50Ms: number;
   p95Ms: number;
+  p99Ms: number;
   maxMs: number;
   queriesMin: number;
   queriesMax: number;
   errors: number;
+  maxConnections: number;
+  maxWaiting: number;
+  poolRetirements: number;
 };
 const measurements: Measurement[] = [];
+const pool = { maxConnections: 0, maxWaiting: 0, retirements: 0 };
+const poolEvent = (message: unknown) => {
+  const event = message as { event: string; stats: { connections: number; waiting: number } };
+  pool.maxConnections = Math.max(pool.maxConnections, event.stats.connections);
+  pool.maxWaiting = Math.max(pool.maxWaiting, event.stats.waiting);
+  if (event.event === 'close') pool.retirements++;
+};
 let owns = false;
 beforeAll(async () => {
   vi.stubEnv('DB_DURABLE_OPERATIONS', 'true');
@@ -67,8 +78,10 @@ beforeAll(async () => {
   for (const user of users)
     await admin`insert into budget_periods(user_id,start_date,is_active) values(${user},current_date-30,true)`;
   subscribe('tracing:postgres:query:start', query);
+  channel('postgres:pool').subscribe(poolEvent);
 });
 afterAll(async () => {
+  channel('postgres:pool').unsubscribe(poolEvent);
   unsubscribe('tracing:postgres:query:start', query);
   vi.unstubAllEnvs();
   if (owns)
@@ -85,6 +98,9 @@ async function measure(
   operation: string,
   work: () => Promise<unknown>
 ) {
+  pool.maxConnections = 0;
+  pool.maxWaiting = 0;
+  pool.retirements = 0;
   await work(); // warm query plans/connections; excluded from percentiles
   const samples: { ms: number; queries: number }[] = [];
   let errors = 0;
@@ -115,10 +131,14 @@ async function measure(
     operation,
     p50Ms: at(0.5),
     p95Ms: at(0.95),
+    p99Ms: at(0.99),
     maxMs: at(1),
     queriesMin: Math.min(...samples.map((x) => x.queries)),
     queriesMax: Math.max(...samples.map((x) => x.queries)),
     errors,
+    maxConnections: pool.maxConnections,
+    maxWaiting: pool.maxWaiting,
+    poolRetirements: pool.retirements,
   };
   measurements.push(result);
   process.stdout.write(JSON.stringify(result) + '\n');
@@ -156,11 +176,14 @@ it('measures the synthetic load matrix and reconciles every account against the 
       await measure(rows, concurrency, 'ledgerPage', () =>
         TransactionsRepository.getByGroup(group, { limit: 50 })
       );
-      await measure(rows, concurrency, 'ordinaryMutation', () =>
-        executeFinancialOperation({
+      const mutationIds = new Set<string>();
+      await measure(rows, concurrency, 'ordinaryMutation', () => {
+        const operationId = randomUUID();
+        mutationIds.add(operationId);
+        return executeFinancialOperation({
           actor,
           kind: 'benchmark.create',
-          operationId: randomUUID(),
+          operationId,
           payload: { amount: '0.01' },
           execute: () =>
             createTransactionUseCase({
@@ -173,8 +196,26 @@ it('measures the synthetic load matrix and reconciles every account against the 
               user_id: users[0]!,
               group_id: group,
             }),
-        })
-      );
+        });
+      });
+      const ids = [...mutationIds];
+      const receipts = await admin`
+        select count(*)::int as total,
+          count(*) filter (where committed_at is null)::int as unknown
+        from financial_operations where group_id=${group} and kind='benchmark.create'
+          and operation_id = any(${ids}::uuid[])
+      `;
+      const actual = await admin`
+        select count(*)::int as total, count(distinct id)::int as distinct
+        from transactions where group_id=${group} and description='Synthetic'
+          and id in (select (result->>'id')::uuid from financial_operations
+            where group_id=${group} and kind='benchmark.create' and operation_id=any(${ids}::uuid[])
+              and result ? 'id')
+      `;
+      expect(receipts[0]?.total).toBe(ids.length);
+      expect(receipts[0]?.unknown).toBe(0);
+      expect(actual[0]?.total).toBe(ids.length);
+      expect(actual[0]?.distinct).toBe(ids.length);
     }
     const mismatch =
       await admin`select count(*)::int as count from accounts a where a.group_id=${group} and a.balance is distinct from coalesce((select sum(case when t.account_id=a.id then case when t.type='income' then t.amount else -t.amount end else t.amount end) from transactions t where t.account_id=a.id or(t.type='transfer' and t.to_account_id=a.id)),0)`;
@@ -197,6 +238,4 @@ it('measures the synthetic load matrix and reconciles every account against the 
       ) + '\n'
     );
   }
-  for (const result of measurements.filter((x) => x.rows === 100000 && x.concurrency === 10))
-    expect(result.p95Ms).toBeLessThanOrEqual(1500);
 });

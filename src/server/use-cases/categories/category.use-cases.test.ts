@@ -2,6 +2,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createCategoryUseCase } from './category.use-cases';
 import { CategoriesRepository } from '@/server/repositories/categories.repository';
 
+const { executor } = vi.hoisted(() => ({ executor: {} }));
+
+vi.mock('@/server/repositories/db-executor', () => ({
+  financialTransaction: vi.fn((work: (tx: object) => Promise<unknown>) => work(executor)),
+}));
+
 vi.mock('@/server/repositories/categories.repository', () => ({
   CategoriesRepository: {
     findByKey: vi.fn(),
@@ -41,13 +47,16 @@ describe('createCategoryUseCase', () => {
     const result = await createCategoryUseCase(baseInput);
 
     expect(CategoriesRepository.findByKey).toHaveBeenCalledWith('spesa');
-    expect(CategoriesRepository.create).toHaveBeenCalledWith({
-      label: 'Spesa',
-      key: 'spesa',
-      icon: 'ShoppingBasket',
-      color: '#10B981',
-      group_id: baseInput.group_id,
-    });
+    expect(CategoriesRepository.create).toHaveBeenCalledWith(
+      {
+        label: 'Spesa',
+        key: 'spesa',
+        icon: 'ShoppingBasket',
+        color: '#10B981',
+        group_id: baseInput.group_id,
+      },
+      executor
+    );
     expect(result.key).toBe('spesa');
   });
 
@@ -72,7 +81,8 @@ describe('createCategoryUseCase', () => {
         icon: 'ShoppingBasket',
         color: '#10B981',
         group_id: baseInput.group_id,
-      })
+      }),
+      executor
     );
     expect(result.key).toBe('spesa_2');
   });
@@ -92,7 +102,8 @@ describe('createCategoryUseCase', () => {
 
     expect(CategoriesRepository.findByKey).toHaveBeenCalledWith('spesa');
     expect(CategoriesRepository.create).toHaveBeenCalledWith(
-      expect.objectContaining({ key: 'spesa' })
+      expect.objectContaining({ key: 'spesa' }),
+      executor
     );
   });
 });

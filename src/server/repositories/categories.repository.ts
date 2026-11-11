@@ -4,6 +4,7 @@ import { categories } from '@/server/db/schema';
 import { eq, or, sql } from 'drizzle-orm';
 import type { Category } from '@/lib/types';
 import { SYSTEM_GROUP_ID } from '@/lib/constants';
+import type { DbExecutor } from './db-executor';
 
 export class CategoriesRepository {
   static async findAll(): Promise<Category[]> {
@@ -39,16 +40,20 @@ export class CategoriesRepository {
     ) as unknown as Promise<Category[]>;
   }
 
-  static async create(data: typeof categories.$inferInsert): Promise<Category> {
-    const rows = await resolveDb().insert(categories).values(data).returning();
+  static async create(
+    data: typeof categories.$inferInsert,
+    executor: DbExecutor
+  ): Promise<Category> {
+    const rows = await executor.insert(categories).values(data).returning();
     return rows[0] as unknown as Category;
   }
 
   static async update(
     id: string,
-    data: Partial<typeof categories.$inferInsert>
+    data: Partial<typeof categories.$inferInsert>,
+    executor: DbExecutor
   ): Promise<Category> {
-    const rows = await resolveDb()
+    const rows = await executor
       .update(categories)
       .set({ ...data, updated_at: new Date() })
       .where(eq(categories.id, id))
