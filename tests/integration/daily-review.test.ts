@@ -4,6 +4,7 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { sql } from 'drizzle-orm';
 import { db } from '@/server/db/drizzle';
 import { CategoriesRepository } from '@/server/repositories/categories.repository';
+import { financialTransaction } from '@/server/repositories/db-executor';
 import { MarketDataRepository } from '@/server/repositories/market-data.repository';
 import { deleteCategoryAction } from '@/features/categories/actions/category-actions';
 import { getCurrentUser } from '@/lib/auth/cached-auth';
@@ -206,6 +207,27 @@ it('does not prevent the parent group from cascading removal of its own catalog'
   await db.execute(sql`INSERT INTO budgets (categories, group_id) VALUES ('["pets"]', ${group})`);
   await db.execute(sql`DELETE FROM groups WHERE id = ${group}`);
   expect(await CategoriesRepository.findById(category)).toBeNull();
+});
+
+it('rolls back category writes through the owning financial executor', async () => {
+  const id = '00000000-0000-4000-8000-000000000009';
+  await expect(
+    financialTransaction(async (tx) => {
+      await CategoriesRepository.create(
+        {
+          id,
+          key: 'rollback_category',
+          label: 'Rollback',
+          group_id: group,
+          icon: '',
+          color: '',
+        },
+        tx
+      );
+      throw new Error('force rollback');
+    })
+  ).rejects.toThrow('force rollback');
+  expect(await CategoriesRepository.findById(id)).toBeNull();
 });
 
 it('removes device default categories and their trigger without blocking unrelated category deletion', async () => {

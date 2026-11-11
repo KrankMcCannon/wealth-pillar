@@ -28,6 +28,57 @@ rows in logs or tickets.
    server-side p95. Compare against an equivalent pre-change workload. The local
    benchmark alone is not a serverless capacity certification.
 
+## Repeatable isolated Preview validation
+
+Run only against a dedicated Preview database with synthetic fixtures and a
+separate local/Preview identity. Confirm the endpoint is the intended Preview,
+the database is empty or disposable, PostgreSQL is 17, the app commit and schema
+manifest are recorded, and a recovery owner is available. Do not point this
+workload at production. Record the app commit, migration manifest, PostgreSQL
+version, region, runtime/instance configuration, pool settings, test date, and
+whether the run is warm or cold. Never include connection strings or fixture
+rows in the report.
+
+Run `pnpm db:benchmark` with `DATABASE_URL` set only in the protected process
+environment. The benchmark rejects a nonempty database and uses generated
+synthetic data at 10,000, 100,000 and 1,000,000 transaction rows. Its default
+concurrency levels are 1, 5, 10, 25 and 50; each operation has one warm-up and
+at least 20 measured samples. Record the selected sizes/concurrency, wall-clock
+duration, and any interrupted scenarios. Repeat the same matrix against the
+equivalent pre-change version and Preview configuration before describing a
+percentage improvement. A different region, dataset, concurrency or cache state
+is not an equivalent baseline.
+
+For each operation and matrix cell, retain p50/p95/p99 and maximum observed
+latency, query counts, errors, total/queued application pool connections and
+pool retirements. Reconcile all account balances with the transaction ledger,
+and verify that each generated mutation has exactly one committed receipt and
+one distinct transaction; count unresolved receipts and duplicate outcomes.
+Compare the measured **server-side p95** with the documented 1.5 second goal.
+The current local benchmark reports client-observed database operation latency,
+not hosted server-side request latency. Obtain hosted p95 from Preview runtime
+telemetry. PostgreSQL server execution time is observable only where a query
+plan or provider metric reports it; do not relabel round-trip latency as server
+execution time. The client pool reports its own total and waiting counts; it
+does not report aggregate connections opened by other Preview functions or
+services. Mark unavailable measurements as unavailable rather than estimating
+them. Record p99 and observed capacity without treating them as approved limits.
+
+Stop the run for any ledger/receipt mismatch, duplicate transaction, unresolved
+unknown outcome, cross-group access, unbounded connection growth, repeated
+timeouts, or an unexpected schema/catalog difference. Preserve aggregate logs
+and operation identifiers only; reconcile an unknown operation by its original
+identifier before considering a retry. Do not increase limits or alter database
+configuration during the run. A run that stops is inconclusive and must include
+the stopping condition and last completed matrix cell.
+
+The local benchmark currently writes `output/database/benchmark.json` and
+`explain-*.json`. Treat these as local artifacts: inspect and sanitize before
+sharing. The test measures application operations through a local PostgreSQL
+client and is useful for repeatability and accounting checks; only the isolated
+hosted run validates Preview networking, serverless scaling, aggregate
+connections and hosted server-side latency.
+
 ## Existing database, after explicit authorization
 
 Set `DATABASE_ADMIN_URL` through a protected administrative environment; do not
@@ -83,3 +134,22 @@ length, uncertain outcomes, account reconciliation and authorization errors
 intensively for the first 24 hours and across at least seven representative days.
 The plan's performance and capacity targets are accepted only from the measured
 hosted workload, not from configuration values.
+
+## Supabase root CA rotation review
+
+Run `pnpm db:check-ca` locally and in the scheduled `Supabase CA expiry` workflow.
+It reads only the bundled CA, reports its subject, SHA-256 fingerprint and
+remaining validity, and fails when it is expired. A warning begins 180 days
+before expiry. This is an expiry check, not a live check of Supabase's current
+certificate chain.
+
+At every warning, and whenever Supabase announces a database certificate or CA
+rotation, review the current root/intermediate chain from Supabase's verified
+documentation or dashboard before changing the bundle. Compare issuer, subject,
+validity and fingerprint with the published material; validate the candidate
+against an isolated Preview using hostname and certificate verification enabled.
+Retain the current CA during a documented overlap only when Supabase's rotation
+guidance requires it, then remove retired roots after the chain transition is
+verified. Never disable `rejectUnauthorized`, hostname checks, or use a CA copied
+from an unverified message or connection error. Record the source and fingerprints
+in the change review without recording secrets.
