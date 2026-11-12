@@ -37,7 +37,7 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^6.39.8",
-    "@clerk/shared": "^3.48.0",
+    "@clerk/shared": "^4.44.1",
     "@clerk/themes": "^2.4.57",
     "@hookform/resolvers": "^5.9.2",
     "@radix-ui/react-checkbox": "^1.4.1",
