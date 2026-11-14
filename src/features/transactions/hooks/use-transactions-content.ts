@@ -3,7 +3,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { useSearchParams } from 'next/navigation';
 import { useIdNameMap } from '@/hooks';
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
-import { clearAdvancedFilters } from '../components/filters/filter-helpers';
+import { clearAdvancedFilters, clearAllFilters } from '../components/filters/filter-helpers';
 import type { TransactionFiltersState } from '@/server/use-cases/transactions/transaction.logic';
 import type { Transaction, Budget, Account } from '@/lib/types';
 import { parseReturnTo, withReturnTo } from '@/lib/navigation/return-to';
@@ -132,13 +132,18 @@ export function useTransactionsContent({
   const [searchState, setSearchState] = useState({
     urlQuery: urlFilters.searchQuery,
     draft: urlFilters.searchQuery,
+    skipSync: false,
   });
   if (searchState.urlQuery !== urlFilters.searchQuery) {
-    setSearchState({ urlQuery: urlFilters.searchQuery, draft: urlFilters.searchQuery });
+    setSearchState({
+      urlQuery: urlFilters.searchQuery,
+      draft: urlFilters.searchQuery,
+      skipSync: false,
+    });
   }
   const searchDraft = searchState.draft;
   const setSearchDraft = useCallback((draft: string) => {
-    setSearchState((current) => ({ ...current, draft }));
+    setSearchState((current) => ({ ...current, draft, skipSync: false }));
   }, []);
 
   const serverList = useMemo(() => {
@@ -174,7 +179,6 @@ export function useTransactionsContent({
   );
 
   const debouncedDraft = useDebouncedValue(searchState, 300);
-  const debouncedSearch = debouncedDraft.draft;
 
   const selectedUserId = appliedQuery.user;
 
@@ -184,10 +188,24 @@ export function useTransactionsContent({
     return budgets.find((b) => b.id === budgetId) || null;
   }, [searchParams, budgets]);
 
+  const requestedQuery = useRef<{
+    filters: TransactionFiltersState;
+    userId: string | undefined;
+    budget: string | null;
+  } | null>(null);
+  const appliedBudgetId = searchParams.get('budget');
+  useEffect(() => {
+    requestedQuery.current = null;
+  }, [queryKey, appliedBudgetId]);
+
   const pushQuery = useCallback(
     (nextFilters: TransactionFiltersState, userId?: string, budgetOverride?: string | null) => {
       const query = buildTransactionsQueryString(nextFilters, userId);
       const budget = budgetOverride === undefined ? searchParams.get('budget') : budgetOverride;
+      requestedQuery.current = { filters: nextFilters, userId, budget };
+      // Every navigation includes the current search. Supersede any debounce
+      // still based on the preceding server query while its response is pending.
+      setSearchState((current) => ({ ...current, draft: nextFilters.searchQuery, skipSync: true }));
       const tab = searchParams.get('tab');
       const parts = [query];
       if (budget) parts.push(`budget=${encodeURIComponent(budget)}`);
@@ -201,23 +219,23 @@ export function useTransactionsContent({
   );
 
   useEffect(() => {
+    if (searchState.skipSync || debouncedDraft !== searchState) return;
     if (debouncedDraft.urlQuery !== urlFilters.searchQuery) return;
+    const debouncedSearch = debouncedDraft.draft;
     const trimmed = debouncedSearch.trim();
-    const urlQ = (appliedQuery.q ?? '').trim();
-    if (trimmed === urlQ) return;
-    pushQuery({ ...urlFilters, searchQuery: debouncedSearch }, selectedUserId);
-  }, [
-    debouncedSearch,
-    debouncedDraft.urlQuery,
-    appliedQuery.q,
-    urlFilters,
-    pushQuery,
-    selectedUserId,
-  ]);
+    const requested = requestedQuery.current;
+    const targetSearch = (requested?.filters.searchQuery ?? appliedQuery.q ?? '').trim();
+    if (trimmed === targetSearch) return;
+    pushQuery(
+      { ...(requested?.filters ?? urlFilters), searchQuery: debouncedSearch },
+      requested ? requested.userId : selectedUserId,
+      requested?.budget
+    );
+  }, [debouncedDraft, appliedQuery.q, urlFilters, pushQuery, selectedUserId, searchState]);
 
   const setFilters: React.Dispatch<React.SetStateAction<TransactionFiltersState>> = useCallback(
     (updater) => {
-      const base = { ...urlFilters, searchQuery: searchDraft };
+      const base = filters;
       const next = typeof updater === 'function' ? updater(base) : updater;
 
       if (next.searchQuery !== searchDraft) {
@@ -229,15 +247,16 @@ export function useTransactionsContent({
         next.dateRange !== urlFilters.dateRange ||
         next.categoryKey !== urlFilters.categoryKey ||
         next.accountId !== urlFilters.accountId ||
+        next.budgetId !== filters.budgetId ||
         (next.startDate ?? null) !== (urlFilters.startDate ?? null) ||
         (next.endDate ?? null) !== (urlFilters.endDate ?? null) ||
         JSON.stringify(next.categoryKeys ?? []) !== JSON.stringify(urlFilters.categoryKeys ?? []);
 
       if (nonSearchChanged) {
-        pushQuery(next, selectedUserId);
+        pushQuery(next, selectedUserId, next.budgetId ?? null);
       }
     },
-    [urlFilters, searchDraft, pushQuery, selectedUserId, setSearchDraft]
+    [filters, urlFilters, searchDraft, pushQuery, selectedUserId, setSearchDraft]
   );
 
   const loadMore = useCallback(async () => {
@@ -290,21 +309,12 @@ export function useTransactionsContent({
   );
 
   const handleClearBudgetFilter = useCallback(() => {
-    const nextFilters = clearAdvancedFilters(filters);
-    const tab = searchParams.get('tab');
-    const query = buildTransactionsQueryString(nextFilters, selectedUserId);
-    const qs = tab && tab !== 'Transactions' ? `${query}&tab=${encodeURIComponent(tab)}` : query;
-    startNavigation(() => {
-      router.push(transactionsHref(qs, searchParams));
-    });
-  }, [router, searchParams, selectedUserId, startNavigation, filters]);
+    pushQuery(clearAdvancedFilters(filters), selectedUserId, null);
+  }, [pushQuery, selectedUserId, filters]);
 
   const handleClearFilters = useCallback(() => {
-    setSearchDraft('');
-    const tab = searchParams.get('tab');
-    const qs = tab && tab !== 'Transactions' ? `tab=${encodeURIComponent(tab)}` : '';
-    startNavigation(() => router.push(transactionsHref(qs, searchParams)));
-  }, [router, searchParams, startNavigation, setSearchDraft]);
+    pushQuery(clearAllFilters(filters), selectedUserId, null);
+  }, [filters, selectedUserId, pushQuery]);
 
   const applyAdvancedFilters = useCallback(
     (next: TransactionFiltersState) => {

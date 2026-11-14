@@ -3,6 +3,7 @@ import { and, desc, eq, inArray } from 'drizzle-orm';
 import type { BudgetPeriod } from '@/lib/types';
 import { serialize } from '@/lib/utils/serializer';
 import { resolveDb, type DbExecutor } from '@/server/repositories/db-executor';
+import { readWithRetry } from '@/server/db/read-with-retry';
 
 export type InsertBudgetPeriod = typeof budgetPeriods.$inferInsert;
 export type UpdateBudgetPeriod = Partial<InsertBudgetPeriod>;
@@ -53,10 +54,12 @@ export class BudgetPeriodsRepository {
 
   static async findActiveByUserIds(userIds: string[]): Promise<BudgetPeriod[]> {
     if (userIds.length === 0) return [];
-    const result = await resolveDb()
-      .select()
-      .from(budgetPeriods)
-      .where(and(inArray(budgetPeriods.user_id, userIds), eq(budgetPeriods.is_active, true)));
+    const result = await readWithRetry(() =>
+      resolveDb()
+        .select()
+        .from(budgetPeriods)
+        .where(and(inArray(budgetPeriods.user_id, userIds), eq(budgetPeriods.is_active, true)))
+    );
     return serialize(result) as unknown as BudgetPeriod[];
   }
 

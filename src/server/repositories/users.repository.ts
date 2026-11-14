@@ -33,7 +33,7 @@ export class UsersRepository {
   }
 
   static async findByGroupId(groupId: string) {
-    return await resolveDb().select().from(users).where(eq(users.group_id, groupId));
+    return readWithRetry(() => resolveDb().select().from(users).where(eq(users.group_id, groupId)));
   }
 
   static async update(userId: string, data: Partial<typeof users.$inferInsert>) {

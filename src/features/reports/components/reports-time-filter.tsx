@@ -50,10 +50,10 @@ export function ReportsTimeFilter({
   };
 
   const invalidRange = Boolean(draftStart && draftEnd && draftStart > draftEnd);
+  const canApplyCustomRange = isValidReportsRange({ start: draftStart, end: draftEnd });
 
   const applyCustom = () => {
-    if (!isValidReportsRange({ start: draftStart, end: draftEnd })) return;
-    if (new Date(draftStart).getTime() > new Date(draftEnd).getTime()) return;
+    if (!canApplyCustomRange) return;
     onChange('custom');
     onCustomApply(draftStart, draftEnd);
     setCustomOpen(false);
@@ -147,7 +147,7 @@ export function ReportsTimeFilter({
           <Button
             type="button"
             className="min-h-11 w-full rounded-xl font-semibold"
-            disabled={!isValidReportsRange({ start: draftStart, end: draftEnd })}
+            disabled={!canApplyCustomRange}
             onClick={applyCustom}
           >
             {t('apply')}
