@@ -2,6 +2,8 @@ import { createServer, connect, type Socket, type AddressInfo } from 'node:net';
 import { expect, it } from 'vitest';
 import { createPostgresClient } from '@/server/db/postgres-client';
 import { createManagedPostgresClient } from '@/server/db/managed-postgres-client';
+import { drizzle } from 'drizzle-orm/postgres-js';
+import { sql } from 'drizzle-orm';
 
 it('reconciles a lost COMMIT response and replaces the stalled pool once without replaying', async () => {
   const url = new URL(process.env.DATABASE_URL!);
@@ -54,7 +56,13 @@ it('reconciles a lost COMMIT response and replaces the stalled pool once without
     return createPostgresClient(proxyUrl.href, { max: 1 });
   }, 500);
   const authoritative = createPostgresClient(url.href, { max: 1 });
+  const database = drizzle(client);
+  const activityQuery = () =>
+    database.execute(sql`
+    select value from jsonb_to_recordset(${JSON.stringify([{ value: 'synthetic' }])}::jsonb) as a(value text)
+  `);
   try {
+    expect(await activityQuery()).toEqual([{ value: 'synthetic' }]);
     await authoritative`create table transport_commit_fixture(operation_id text primary key,result jsonb not null)`;
     await expect(
       client.begin(async (tx) => {
@@ -67,6 +75,16 @@ it('reconciles a lost COMMIT response and replaces the stalled pool once without
       { operation_id: 'synthetic-operation' },
     ]);
     expect(await client.unsafe('select 1::int as ok').values()).toEqual([[1]]);
+    // Drizzle installs codecs on the initial client. They must survive pool replacement.
+    expect(await activityQuery()).toEqual([{ value: 'synthetic' }]);
+    expect(
+      await database.execute(
+        sql`select value from jsonb_array_elements_text(${JSON.stringify(['synthetic'])}::jsonb)`
+      )
+    ).toEqual([{ value: 'synthetic' }]);
+    expect(await database.execute(sql`select '2026-11-14'::date as day`)).toEqual([
+      { day: '2026-11-14' },
+    ]);
     expect(factories).toBe(2);
   } finally {
     await client.end({ timeout: 0 });
