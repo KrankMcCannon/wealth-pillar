@@ -18,7 +18,14 @@ export function createManagedPostgresClient(factory: () => Sql, deadlineMs = 20_
     if (owner !== current || ended) return;
     const previous = current;
     recordDatabaseEvent('pool.retired');
-    current = factory();
+    const replacement = factory();
+    // Drizzle configures these registries on the stable client after creation.
+    // Preserve that contract on every generation: default JSON serialization
+    // would encode Drizzle's JSON strings twice, and default date parsing would
+    // change the values returned to its column mappers.
+    Object.assign(replacement.options.parsers, previous.options.parsers);
+    Object.assign(replacement.options.serializers, previous.options.serializers);
+    current = replacement;
     const closed = previous.end({ timeout: 0 }).then(
       () => {},
       () => {}
