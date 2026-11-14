@@ -6,7 +6,8 @@ import type { Transaction } from '@/lib/types';
 import type { TransactionFiltersState } from '@/server/use-cases/transactions/transaction.logic';
 
 vi.mock('next-intl', () => ({
-  useTranslations: () => (key: string) => key,
+  useTranslations: () => (key: string, values?: { label?: string; name?: string }) =>
+    key === 'clearFilterAria' ? `Remove ${values?.label}` : key,
   useLocale: () => 'it',
 }));
 
@@ -141,6 +142,7 @@ function renderLedger(
   extras: {
     setFilters?: ReturnType<typeof mockSetFilters>;
     onClearBudgetFilter?: () => void;
+    onClearFilters?: () => void;
     onApplyAdvancedFilters?: (filters: TransactionFiltersState) => void;
     hasMore?: boolean;
   } = {}
@@ -168,6 +170,7 @@ function renderLedger(
         ? { onApplyAdvancedFilters: extras.onApplyAdvancedFilters }
         : {})}
       {...(extras.onClearBudgetFilter ? { onClearBudgetFilter: extras.onClearBudgetFilter } : {})}
+      {...(extras.onClearFilters ? { onClearFilters: extras.onClearFilters } : {})}
     />
   );
   return { setFilters };
@@ -188,7 +191,7 @@ describe('TransactionsLedger filter button', () => {
     expect(button).toHaveAttribute('aria-expanded', 'false');
   });
 
-  it('clears advanced filters from the ledger toolbar', () => {
+  it('clears every filter from the ledger toolbar', () => {
     const setFilters = mockSetFilters();
     const onClearBudgetFilter = vi.fn();
     renderLedger(
@@ -196,8 +199,54 @@ describe('TransactionsLedger filter button', () => {
       { setFilters, onClearBudgetFilter }
     );
     screen.getByRole('button', { name: 'clearAll' }).click();
-    expect(setFilters).not.toHaveBeenCalled();
-    expect(onClearBudgetFilter).toHaveBeenCalled();
+    expect(setFilters).toHaveBeenCalledExactlyOnceWith({
+      searchQuery: '',
+      type: 'all',
+      dateRange: 'all',
+      categoryKey: 'all',
+      accountId: 'all',
+    });
+    expect(onClearBudgetFilter).not.toHaveBeenCalled();
+  });
+
+  it('offers the global reset when only search and type are active', () => {
+    const onClearFilters = vi.fn();
+    renderLedger({ searchQuery: 'rent', type: 'expense' }, { onClearFilters });
+    fireEvent.click(screen.getByRole('button', { name: 'clearAll' }));
+    expect(onClearFilters).toHaveBeenCalledOnce();
+  });
+
+  it('renders a removable chip for every unresolved reference', () => {
+    const { setFilters } = renderLedger({
+      accountId: 'missing',
+      categoryKey: 'missing',
+      budgetId: 'missing',
+    });
+    expect(screen.getByRole('button', { name: 'filtersActiveAria' })).toHaveTextContent('3');
+    expect(screen.getByRole('button', { name: 'Remove unavailable.account' })).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Remove unavailable.category' })).toBeVisible();
+    fireEvent.click(screen.getByRole('button', { name: 'Remove unavailable.budget' }));
+    expect(setFilters).toHaveBeenCalledExactlyOnceWith({
+      ...filters,
+      accountId: 'missing',
+      categoryKey: 'missing',
+    });
+  });
+
+  it('removes an account chip while retaining period, type and search', () => {
+    const applied = {
+      accountId: 'a1',
+      dateRange: 'month' as const,
+      type: 'expense' as const,
+      searchQuery: 'rent',
+    };
+    const { setFilters } = renderLedger(applied);
+    fireEvent.click(screen.getByRole('button', { name: 'Remove Revolut' }));
+    expect(setFilters).toHaveBeenCalledExactlyOnceWith({
+      ...filters,
+      ...applied,
+      accountId: 'all',
+    });
   });
 });
 
@@ -246,6 +295,25 @@ it('marks an unfinished oldest day total as loaded transactions only', () => {
 });
 
 describe('staged advanced filters', () => {
+  it('labels the draft reset explicitly and preserves search and type', () => {
+    const onApplyAdvancedFilters = vi.fn();
+    renderLedger(
+      { accountId: 'a1', type: 'expense', searchQuery: 'rent' },
+      { onApplyAdvancedFilters }
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'filtersActiveAria' }));
+    fireEvent.click(screen.getByRole('button', { name: 'clearAdvanced' }));
+    fireEvent.click(screen.getByRole('button', { name: 'applyFilters' }));
+    expect(onApplyAdvancedFilters).toHaveBeenCalledExactlyOnceWith({
+      ...filters,
+      accountId: 'all',
+      type: 'expense',
+      searchQuery: 'rent',
+      startDate: null,
+      endDate: null,
+    });
+  });
+
   it('applies a draft once and discards a cancelled draft', () => {
     const onApplyAdvancedFilters = vi.fn();
     const setFilters = mockSetFilters();

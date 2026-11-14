@@ -48,6 +48,28 @@ const transport: TopExpenseRow = {
 };
 
 describe('TopExpensesRanking', () => {
+  it('keeps the expansion preference through period/member data changes and an empty context', () => {
+    const extra = { ...food, id: 'extra', key: 'health', name: 'Health', total: 10 };
+    const view = render(
+      <TopExpensesRanking items={[food, housing, transport, extra]} periodExpenses={100} />
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'showAll' }));
+    view.rerender(<TopExpensesRanking items={[]} periodExpenses={0} />);
+    expect(screen.getByText('empty')).toBeInTheDocument();
+    view.rerender(
+      <TopExpensesRanking
+        items={[food, housing, transport, { ...extra, total: 20 }]}
+        periodExpenses={110}
+      />
+    );
+    expect(screen.getByRole('button', { name: 'showLess' })).toHaveAttribute(
+      'aria-expanded',
+      'true'
+    );
+    expect(screen.getByText('Health')).toBeInTheDocument();
+    expect(screen.getAllByText('€20')).toHaveLength(2);
+  });
+
   it('expands the remaining categories with working drill-down links and can collapse again', () => {
     const extra = { ...food, id: 'extra', key: 'health', name: 'Health', total: 10 };
     render(

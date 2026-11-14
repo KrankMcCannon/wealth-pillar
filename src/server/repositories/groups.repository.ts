@@ -1,14 +1,14 @@
 import { groupReadColumns, relationalReadsEnabled } from './relational-projections';
 import { resolveDb } from './db-executor';
+import { readWithRetry } from '@/server/db/read-with-retry';
 import { groups } from '@/server/db/schema';
 import { eq, arrayOverlaps, sql } from 'drizzle-orm';
 
 export class GroupsRepository {
   static async getById(id: string) {
-    const records = await resolveDb()
-      .select(groupReadColumns())
-      .from(groups)
-      .where(eq(groups.id, id));
+    const records = await readWithRetry(() =>
+      resolveDb().select(groupReadColumns()).from(groups).where(eq(groups.id, id))
+    );
     return records[0] || null;
   }
 

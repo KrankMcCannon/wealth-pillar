@@ -9,6 +9,20 @@ type Metric = Record<string, string | number | boolean | null>;
 const context = new AsyncLocalStorage<Operation>();
 const metrics = channel('wealth-pillar:database:metric');
 
+/** Driver errors can be wrapped by Drizzle. Never copy messages, SQL or parameters. */
+function databaseErrorCode(error: unknown): string | null {
+  const seen = new Set<unknown>();
+  while (error && typeof error === 'object' && !seen.has(error)) {
+    seen.add(error);
+    const current = error as { code?: unknown; cause?: unknown };
+    if (typeof current.code === 'string' && /^[A-Z0-9_]{5,40}$/.test(current.code)) {
+      return current.code;
+    }
+    error = current.cause;
+  }
+  return null;
+}
+
 export function recordDatabaseEvent(
   event:
     'cache.read' | 'cache.miss' | 'mapping' | 'read.retry' | 'mutation.unknown' | 'pool.retired',
@@ -57,7 +71,6 @@ export function installDatabaseTelemetry(emit: (event: Metric) => void): () => v
       operation.queries++;
       operation.databaseMs += duration;
     }
-    const code = (event.error as { code?: unknown } | undefined)?.code;
     safeEmit({
       event: 'database.query',
       durationMs: duration,
@@ -66,7 +79,7 @@ export function installDatabaseTelemetry(emit: (event: Metric) => void): () => v
         event.sent === null || event.complete === null ? null : event.complete - event.sent,
       rows: event.count,
       failed: Boolean(event.error),
-      code: typeof code === 'string' && /^[A-Z0-9_]{5,40}$/.test(code) ? code : null,
+      code: databaseErrorCode(event.error),
     });
   };
   const pool = (message: unknown) => {
@@ -162,6 +175,21 @@ export async function withDatabaseOperation<T>(
       const result = await work();
       failed = false;
       return result;
+    } catch (error) {
+      // Failures must remain diagnosable even when verbose metrics are disabled.
+      try {
+        console.error(
+          JSON.stringify({
+            event: 'database.operation_failed',
+            requestId,
+            operation,
+            code: databaseErrorCode(error),
+          })
+        );
+      } catch {
+        /* Observability must preserve the original operation failure. */
+      }
+      throw error;
     } finally {
       channel('wealth-pillar:database:operation').publish({
         ...state,

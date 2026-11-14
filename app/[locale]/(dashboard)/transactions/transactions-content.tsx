@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useCallback, useMemo } from 'react';
+import { use, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { useTransactionsContent, type UseTransactionsContentProps } from '@/features/transactions';
 import type { User, RecurringTransactionSeries } from '@/lib/types';
@@ -8,6 +8,7 @@ import type { TransactionsListData } from '@/server/use-cases/pages/transactions
 import { usePageHeader } from '@/hooks/use-page-header';
 import { useRecurringEditStore } from '@/features/recurring/stores/recurring-edit-store';
 import { TransactionsWorkspace } from '@/features/transactions/components/transactions-workspace';
+import { hasActiveFilters as hasActiveLedgerFilters } from '@/features/transactions/components/filters/filter-helpers';
 
 interface TransactionsContentProps {
   currentUser: User;
@@ -80,19 +81,7 @@ export default function TransactionsContent({
     [openModal, setRecurringEditSeed]
   );
 
-  const hasActiveFilters = useMemo(
-    () =>
-      Boolean(
-        filters.searchQuery ||
-        filters.type !== 'all' ||
-        filters.dateRange !== 'all' ||
-        filters.categoryKey !== 'all' ||
-        (filters.categoryKeys && filters.categoryKeys.length > 0) ||
-        filters.budgetId ||
-        filters.accountId !== 'all'
-      ),
-    [filters]
-  );
+  const hasActiveFilters = hasActiveLedgerFilters(filters);
 
   return (
     <TransactionsWorkspace
@@ -119,9 +108,7 @@ export default function TransactionsContent({
         onEditTransaction: handleEditTransaction,
         onAddTransaction: () => openModal('transaction'),
         onImportTransactions: () => openModal('import'),
-        ...(hasActiveFilters || (selectedUserId && currentUser.role !== 'member')
-          ? { onClearFilters: handleClearFilters }
-          : {}),
+        ...(hasActiveFilters ? { onClearFilters: handleClearFilters } : {}),
         emptyTitle: t('empty.title'),
         emptyDescription: hasActiveFilters
           ? t('empty.noFilterResults')

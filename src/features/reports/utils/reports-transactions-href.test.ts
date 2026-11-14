@@ -6,12 +6,35 @@ import {
   buildReportsPeriodHref,
   buildPeriodTransactionsHref,
   buildReportsReserveTransactionsHref,
+  buildReportsSearchQuery,
   canOpenPeriodDetail,
 } from './reports-transactions-href';
 
 const now = new Date('2024-06-15T12:00:00');
 const categoryKey = 'food';
 const categoryUuid = '11111111-2222-3333-4444-555555555555';
+
+describe('buildReportsSearchQuery', () => {
+  it('preserves expanded insights with time and member navigation and omits it when closed', () => {
+    for (const preset of ['monthly', 'custom'] as const) {
+      const input = {
+        preset,
+        customRange: { start: '2026-10-10', end: '2026-10-12' },
+        scope: 'member-9',
+        periodsOpen: true,
+      };
+      const query = new URLSearchParams(buildReportsSearchQuery(input));
+      expect(query.get('periods')).toBe('open');
+      expect(query.get('member')).toBe('member-9');
+      expect(query.get('preset')).toBe(preset);
+      expect(
+        new URLSearchParams(buildReportsSearchQuery({ ...input, periodsOpen: false })).has(
+          'periods'
+        )
+      ).toBe(false);
+    }
+  });
+});
 
 function parseHref(href: string) {
   const url = new URL(href, 'http://local.test');

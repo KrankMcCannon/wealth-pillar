@@ -54,11 +54,6 @@ async function ReportsPageData({
       initialPreset={reportParams.preset ?? resolveReportsPreset()}
       initialCustomStart={reportParams.customStart}
       initialCustomEnd={reportParams.customEnd}
-      initialScope={
-        reportParams.memberUserId && groupUserIds.includes(reportParams.memberUserId)
-          ? reportParams.memberUserId
-          : 'all'
-      }
     />
   );
 }
