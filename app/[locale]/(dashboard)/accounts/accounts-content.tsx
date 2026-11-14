@@ -41,7 +41,7 @@ export default function AccountsContent({
     accountStats,
     sortedAccounts,
     filteredBalances,
-    handleEditAccount,
+    handleOpenAccount,
     handleUserFilterChange,
     openModal,
   } = useAccountsContent({
@@ -95,21 +95,33 @@ export default function AccountsContent({
               {accountStats.spendableBalance}
             </Amount>
           </p>
-          {accountStats.reserveBalance !== 0 ? (
-            <p className="text-sm text-muted-foreground">
-              {t('reserveBalanceLabel')}:{' '}
-              <Amount type="balance" size="sm" className="inline text-foreground">
+          <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+            <dt className="text-muted-foreground">{t('reserveBalanceLabel')}</dt>
+            <dd className="text-right">
+              <Amount type={accountStats.reserveBalance < 0 ? 'expense' : 'balance'} size="sm">
                 {accountStats.reserveBalance}
               </Amount>
-            </p>
-          ) : null}
+            </dd>
+            <dt className="text-muted-foreground">{t('totalBalanceLabel')}</dt>
+            <dd className="text-right">
+              <Amount type={accountStats.totalBalance < 0 ? 'expense' : 'balance'} size="sm">
+                {accountStats.totalBalance}
+              </Amount>
+            </dd>
+          </dl>
+          <details className="mt-1 text-sm text-muted-foreground">
+            <summary className="min-h-11 cursor-pointer content-center focus-visible:outline-2 focus-visible:outline-ring">
+              {t('balanceCompositionLabel')}
+            </summary>
+            <p>{t('balanceCompositionDescription')}</p>
+          </details>
         </header>
       ) : null}
 
       <AccountsList
         accounts={sortedAccounts}
         accountBalances={filteredBalances}
-        onAccountClick={handleEditAccount}
+        onAccountClick={handleOpenAccount}
         onAddAccount={onAddAccount}
       />
     </HomeDashboardMain>

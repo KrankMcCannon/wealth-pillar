@@ -13,6 +13,7 @@ export function buildReportsSearchQuery(input: {
   preset: ReportsTimePreset;
   customRange: { start: string; end: string } | null;
   scope: ReportsScope;
+  periodsOpen?: boolean;
 }): string {
   const params = new URLSearchParams();
   params.set('preset', input.preset);
@@ -23,6 +24,7 @@ export function buildReportsSearchQuery(input: {
   if (input.scope !== 'all') {
     params.set('member', input.scope);
   }
+  if (input.periodsOpen) params.set('periods', 'open');
   return params.toString();
 }
 
@@ -35,6 +37,7 @@ export function buildReportsPeriodHref(input: {
   preset: ReportsTimePreset;
   customRange: { start: string; end: string } | null;
   scope: ReportsScope;
+  periodsOpen?: boolean;
 }): string {
   const query = buildReportsSearchQuery(input);
   return query

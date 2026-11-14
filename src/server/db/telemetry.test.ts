@@ -52,3 +52,44 @@ it('does not let a broken metrics sink fail a query', () => {
     dispose();
   }
 });
+
+it('logs a correlated wrapped failure without metrics or sensitive query details', async () => {
+  const log = vi.spyOn(console, 'error').mockImplementation(() => {});
+  const failure = new Error('secret SQL and parameters', {
+    cause: Object.assign(new Error('secret connection string'), { code: '08006' }),
+  });
+  try {
+    await expect(
+      withDatabaseOperation('dashboard', async () => {
+        throw failure;
+      })
+    ).rejects.toBe(failure);
+    expect(log).toHaveBeenCalledTimes(1);
+    const event = JSON.parse(log.mock.calls[0]![0]);
+    expect(event).toEqual({
+      event: 'database.operation_failed',
+      operation: 'dashboard',
+      requestId: expect.any(String),
+      code: '08006',
+    });
+    expect(JSON.stringify(log.mock.calls)).not.toContain('secret');
+  } finally {
+    log.mockRestore();
+  }
+});
+
+it('preserves the original failure if the error log is unavailable', async () => {
+  const log = vi.spyOn(console, 'error').mockImplementation(() => {
+    throw new Error('log unavailable');
+  });
+  const failure = new Error('original failure');
+  try {
+    await expect(
+      withDatabaseOperation('dashboard', async () => {
+        throw failure;
+      })
+    ).rejects.toBe(failure);
+  } finally {
+    log.mockRestore();
+  }
+});

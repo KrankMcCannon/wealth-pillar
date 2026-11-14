@@ -23,10 +23,11 @@ import { useAccounts } from '@/stores/reference-data-store';
 import { CompactSegments, FilterDock } from './filter-dock';
 import { StickyTotal } from './sticky-total';
 import {
-  getAdvancedFiltersCount,
+  getActiveFilterDescriptors,
+  getActiveFilterLabel,
   clearAdvancedFilters,
+  clearAllFilters,
   hasActiveFilters,
-  getDateChipLabel,
 } from './filters/filter-helpers';
 import type { TransactionsLedgerProps } from './transactions-workspace-props';
 
@@ -124,7 +125,12 @@ export function TransactionsLedger(props: TransactionsLedgerProps) {
     onLoadMore: props.onLoadMore,
   });
 
-  const advancedCount = getAdvancedFiltersCount(props.filters);
+  const activeFilterDescriptors = getActiveFilterDescriptors(props.filters, {
+    accountNames: props.accountNames,
+    categories: props.categories,
+    budgetName: props.budgetName,
+  });
+  const advancedCount = activeFilterDescriptors.length;
   const showSpendable = !hasActiveFilters(props.filters);
 
   return (
@@ -244,34 +250,31 @@ export function TransactionsLedger(props: TransactionsLedgerProps) {
               ) : null}
             </button>
           </div>
-          {advancedCount > 0 ? (
+          {hasActiveFilters(props.filters) ? (
             <div className="flex flex-wrap items-center gap-2">
-              <p className="text-sm text-muted-foreground">
-                {[
-                  props.filters.dateRange !== 'all'
-                    ? getDateChipLabel(props.filters, tFilters)
-                    : '',
-                  props.filters.accountId && props.filters.accountId !== 'all'
-                    ? props.accountNames[props.filters.accountId]
-                    : '',
-                  props.filters.categoryKey !== 'all'
-                    ? getCategoryLabel(props.categories, props.filters.categoryKey)
-                    : '',
-                  props.filters.categoryKeys?.length
-                    ? tFilters('budget.categoriesCount', {
-                        count: props.filters.categoryKeys.length,
-                      })
-                    : '',
-                  props.budgetName,
-                ]
-                  .filter(Boolean)
-                  .join(' · ')}
-              </p>
+              {activeFilterDescriptors.map((descriptor) => {
+                const label = getActiveFilterLabel(descriptor, props.filters, tFilters);
+                return (
+                  <Button
+                    key={descriptor.key}
+                    type="button"
+                    variant="outline"
+                    className="h-auto min-h-11 max-w-full gap-1.5 rounded-full px-3 py-2 text-sm"
+                    aria-label={tFilters('clearFilterAria', { label })}
+                    onClick={() => props.setFilters(descriptor.nextFilters)}
+                  >
+                    <span className="min-w-0 wrap-break-word whitespace-normal text-left">
+                      {label}
+                    </span>
+                    <X className="size-3.5 shrink-0" aria-hidden />
+                  </Button>
+                );
+              })}
               <button
                 type="button"
                 onClick={() => {
-                  if (props.onClearBudgetFilter) props.onClearBudgetFilter();
-                  else props.setFilters(clearAdvancedFilters(props.filters));
+                  if (props.onClearFilters) props.onClearFilters();
+                  else props.setFilters(clearAllFilters(props.filters));
                 }}
                 className={transactionStyles.filters.clearAll}
               >
@@ -405,7 +408,7 @@ export function TransactionsLedger(props: TransactionsLedgerProps) {
                 setRangeValid(true);
               }}
             >
-              {tFilters('clearAll')}
+              {tFilters('clearAdvanced')}
             </Button>
             <Button
               type="button"

@@ -100,6 +100,7 @@ export default function PeriodDetailContent({
         ? { start: backCustomStart, end: backCustomEnd }
         : null,
     scope: backScope,
+    periodsOpen: true,
   });
   const backHref = backQuery ? `/reports?${backQuery}` : '/reports';
   const here = pathWithoutReturnTo(`/reports/periods/${pageData.periodId}`, backQuery);
