@@ -883,7 +883,13 @@
       "searchPlaceholder": "Search transactions...",
       "clearSearchAria": "Clear search",
       "clearFilterAria": "Remove {label} filter",
-      "clearAll": "Clear all",
+      "clearAll": "Clear all filters",
+      "clearAdvanced": "Reset advanced filters",
+      "unavailable": {
+        "account": "Account unavailable",
+        "category": "Category unavailable",
+        "budget": "Budget unavailable"
+      },
       "showAdvanced": "Advanced filters",
       "hideAdvanced": "Hide advanced",
       "applyFilters": "Show results"
@@ -1398,7 +1404,7 @@
       "sectionBalanceTitle": "Balances",
       "sectionBalanceSubtitle": "Combined balance of the accounts listed below",
       "sectionListTitle": "Your accounts",
-      "sectionListSubtitle": "Tap a row to edit. You can delete an account from the edit screen.",
+      "sectionListSubtitle": "Open an account to review its transactions.",
       "addAccountCta": "Add account",
       "totalBalanceLabel": "Total Balance",
       "spendableBalanceLabel": "Available to spend",
@@ -1422,7 +1428,9 @@
         "recalculateSuccessDescription": "Total now matches all transactions.",
         "recalculateErrorTitle": "Could not recalculate",
         "recalculateErrorDescription": "Failed to recalculate account"
-      }
+      },
+      "balanceCompositionLabel": "How the balance is made up",
+      "balanceCompositionDescription": "Spendable is the sum of spendable accounts. Reserves are the sum of accounts classified as reserve. The total includes both, including negative balances."
     },
     "List": {
       "header": "All Accounts",
@@ -1528,6 +1536,13 @@
         "deleteFailed": "Failed to delete account",
         "recalculateFailed": "Failed to recalculate account"
       }
+    },
+    "Detail": {
+      "currentBalance": "Current balance",
+      "editAccount": "Edit account",
+      "recentTransactions": "Recent transactions",
+      "viewAll": "View all transactions",
+      "emptyTransactions": "No transactions for this account in the selected perspective."
     }
   },
   "Budgets": {

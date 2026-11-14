@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import {
   useTransactionsContent,
@@ -17,6 +17,7 @@ const push = vi.fn();
 const router = { push };
 let cachedSearch = '';
 let cachedParams = new URLSearchParams();
+const debounceMode = vi.hoisted(() => ({ delayed: false }));
 
 vi.mock('next/navigation', () => ({
   useSearchParams: () => {
@@ -36,9 +37,15 @@ vi.mock('@/hooks', () => ({
   useIdNameMap: () => ({}),
 }));
 
-vi.mock('@/hooks/use-debounced-value', () => ({
-  useDebouncedValue: (value: string) => value,
-}));
+vi.mock('@/hooks/use-debounced-value', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/hooks/use-debounced-value')>();
+  return {
+    useDebouncedValue: <T>(value: T, delay: number) => {
+      const debounced = actual.useDebouncedValue(value, delay);
+      return debounceMode.delayed ? debounced : value;
+    },
+  };
+});
 
 vi.mock('@/lib/navigation/url-state', () => ({
   useModalState: () => ({ openModal: vi.fn() }),
@@ -84,12 +91,14 @@ const baseProps = {
 
 describe('useTransactionsContent optimistic merge', () => {
   beforeEach(() => {
+    debounceMode.delayed = false;
     search = '';
     push.mockReset();
     useOptimisticTransactionStore.getState().reset();
     vi.mocked(loadMoreTransactionsAction).mockReset();
     vi.mocked(toast).mockReset();
   });
+  afterEach(() => vi.useRealTimers());
 
   it('keeps optimistic rows when server transactions refresh', () => {
     const { result, rerender } = renderHook((props) => useTransactionsContent(props), {
@@ -351,5 +360,125 @@ describe('useTransactionsContent optimistic merge', () => {
     await act(async () => result.current.loadMore());
     expect(loadMoreTransactionsAction).not.toHaveBeenCalled();
     expect(result.current.isNavigatingFilters).toBe(true);
+  });
+
+  it('clears all ledger filters while preserving person, tab and return context', () => {
+    search = 'user=u2&budget=b1&type=expense&q=rent&dateRange=month&tab=Recurrent&from=%2Freports';
+    const props: UseTransactionsContentProps = {
+      ...baseProps,
+      transactions: [],
+      appliedQuery: { type: 'expense', dateRange: 'month', user: 'u2', q: 'rent' },
+    };
+    const { result } = renderHook(() => useTransactionsContent(props));
+    act(() => result.current.handleClearFilters());
+    expect(push).toHaveBeenCalledTimes(1);
+    const href = new URL(push.mock.calls[0]![0], 'https://local.test');
+    expect(Object.fromEntries(href.searchParams)).toEqual({
+      user: 'u2',
+      tab: 'Recurrent',
+      from: '/reports',
+    });
+    expect(result.current.filters.searchQuery).toBe('');
+  });
+
+  it('removes only budget metadata without restoring it or losing other filters', () => {
+    search = 'user=u2&budget=b1&type=expense&dateRange=month&account=a1&categories=food,rent';
+    const props: UseTransactionsContentProps = {
+      ...baseProps,
+      transactions: [],
+      appliedQuery: {
+        type: 'expense',
+        dateRange: 'month',
+        user: 'u2',
+        account: 'a1',
+        categories: 'food,rent',
+      },
+    };
+    const { result } = renderHook(() => useTransactionsContent(props));
+    act(() => {
+      const { budgetId: _budgetId, ...remaining } = result.current.filters;
+      result.current.setFilters(remaining);
+    });
+    expect(push).toHaveBeenCalledTimes(1);
+    const href = new URL(push.mock.calls[0]![0], 'https://local.test');
+    expect(Object.fromEntries(href.searchParams)).toEqual({
+      user: 'u2',
+      type: 'expense',
+      dateRange: 'month',
+      account: 'a1',
+      categories: 'food,rent',
+    });
+  });
+
+  it('does not let a pending search restore a removed chip while the server response is delayed', () => {
+    vi.useFakeTimers();
+    debounceMode.delayed = true;
+    const props: UseTransactionsContentProps = {
+      ...baseProps,
+      transactions: [],
+      appliedQuery: { ...baseProps.appliedQuery, account: 'a1', user: 'u2' },
+    };
+    const { result } = renderHook(() => useTransactionsContent(props));
+    act(() => result.current.setFilters((current) => ({ ...current, searchQuery: 'rent' })));
+    act(() => vi.advanceTimersByTime(100));
+    expect(push).not.toHaveBeenCalled();
+    act(() => result.current.setFilters((current) => ({ ...current, accountId: 'all' })));
+    expect(push).toHaveBeenCalledExactlyOnceWith('/transactions?user=u2&q=rent');
+    act(() => vi.advanceTimersByTime(300));
+    expect(push).toHaveBeenCalledTimes(1);
+
+    // More typing before RSC resolves must retain the already requested context.
+    act(() => result.current.setFilters((current) => ({ ...current, searchQuery: 'rental' })));
+    act(() => vi.advanceTimersByTime(300));
+    expect(push).toHaveBeenCalledTimes(2);
+    expect(push).toHaveBeenLastCalledWith('/transactions?user=u2&q=rental');
+
+    act(() => result.current.setFilters((current) => ({ ...current, searchQuery: '' })));
+    act(() => vi.advanceTimersByTime(300));
+    expect(push).toHaveBeenCalledTimes(3);
+    expect(push).toHaveBeenLastCalledWith('/transactions?user=u2');
+  });
+
+  it.each([
+    {
+      name: 'member change',
+      navigate: (state: ReturnType<typeof useTransactionsContent>) =>
+        state.handleUserFilterChange('u3'),
+      expected: { user: 'u3', account: 'a1', budget: 'b1' },
+    },
+    {
+      name: 'advanced filters',
+      navigate: (state: ReturnType<typeof useTransactionsContent>) =>
+        state.applyAdvancedFilters({ ...state.filters, dateRange: 'month' }),
+      expected: { user: 'u2', account: 'a1', budget: 'b1', dateRange: 'month' },
+    },
+    {
+      name: 'budget exit',
+      navigate: (state: ReturnType<typeof useTransactionsContent>) =>
+        state.handleClearBudgetFilter(),
+      expected: { user: 'u2' },
+    },
+  ])('coordinates $name with a pending search and further typing', ({ navigate, expected }) => {
+    vi.useFakeTimers();
+    debounceMode.delayed = true;
+    search = 'user=u2&account=a1&budget=b1';
+    const props: UseTransactionsContentProps = {
+      ...baseProps,
+      transactions: [],
+      appliedQuery: { ...baseProps.appliedQuery, account: 'a1', user: 'u2' },
+    };
+    const { result } = renderHook(() => useTransactionsContent(props));
+    act(() => result.current.setFilters((current) => ({ ...current, searchQuery: 'rent' })));
+    act(() => navigate(result.current));
+    act(() => vi.advanceTimersByTime(300));
+    expect(push).toHaveBeenCalledTimes(1);
+    let href = new URL(push.mock.calls[0]![0], 'https://local.test');
+    expect(Object.fromEntries(href.searchParams)).toEqual({ ...expected, q: 'rent' });
+
+    act(() => result.current.setFilters((current) => ({ ...current, searchQuery: 'rental' })));
+    act(() => vi.advanceTimersByTime(300));
+    expect(push).toHaveBeenCalledTimes(2);
+    href = new URL(push.mock.calls[1]![0], 'https://local.test');
+    expect(Object.fromEntries(href.searchParams)).toEqual({ ...expected, q: 'rental' });
   });
 });

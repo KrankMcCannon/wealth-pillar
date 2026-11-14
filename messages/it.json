@@ -883,7 +883,13 @@
       "searchPlaceholder": "Cerca transazioni...",
       "clearSearchAria": "Cancella ricerca",
       "clearFilterAria": "Rimuovi filtro {label}",
-      "clearAll": "Azzera filtri",
+      "clearAll": "Cancella tutti i filtri",
+      "clearAdvanced": "Reimposta filtri avanzati",
+      "unavailable": {
+        "account": "Conto non disponibile",
+        "category": "Categoria non disponibile",
+        "budget": "Budget non disponibile"
+      },
       "showAdvanced": "Filtri avanzati",
       "hideAdvanced": "Nascondi avanzati",
       "applyFilters": "Mostra risultati"
@@ -1398,7 +1404,7 @@
       "sectionBalanceTitle": "Saldi",
       "sectionBalanceSubtitle": "Saldo complessivo dei conti in elenco",
       "sectionListTitle": "I tuoi conti",
-      "sectionListSubtitle": "Tocca una riga per modificare. Puoi eliminare un conto dalla schermata di modifica.",
+      "sectionListSubtitle": "Tocca un conto per consultarne i movimenti.",
       "addAccountCta": "Aggiungi conto",
       "totalBalanceLabel": "Saldo Totale",
       "spendableBalanceLabel": "Disponibilità",
@@ -1422,7 +1428,9 @@
         "recalculateSuccessDescription": "Il totale ora coincide con le transazioni.",
         "recalculateErrorTitle": "Ricalcolo non riuscito",
         "recalculateErrorDescription": "Impossibile ricalcolare il conto"
-      }
+      },
+      "balanceCompositionLabel": "Come si compone il saldo",
+      "balanceCompositionDescription": "La disponibilità somma i conti spendibili. Le riserve sommano i conti classificati come riserva. Il totale comprende entrambe, anche quando un saldo è negativo."
     },
     "List": {
       "header": "Tutti i conti",
@@ -1528,6 +1536,13 @@
         "deleteFailed": "Impossibile eliminare il conto",
         "recalculateFailed": "Impossibile ricalcolare il conto"
       }
+    },
+    "Detail": {
+      "currentBalance": "Saldo corrente",
+      "editAccount": "Modifica conto",
+      "recentTransactions": "Ultimi movimenti",
+      "viewAll": "Vedi tutti i movimenti",
+      "emptyTransactions": "Nessun movimento per questo conto nella prospettiva selezionata."
     }
   },
   "Budgets": {
