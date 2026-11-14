@@ -59,41 +59,42 @@ export class TransactionsRepository {
     executor?: DbExecutor
   ): Promise<FinancialLedgerRow[]> {
     if (!groupId?.trim()) throw new Error('Group ID is required');
-    const rows = await resolveDb(executor)
-      .select({
-        date: transactions.date,
-        user_id: transactions.user_id,
-        account_id: transactions.account_id,
-        to_account_id: transactions.to_account_id,
-        type: transactions.type,
-        category: transactions.category,
-        amount: sql<string>`sum(${transactions.amount})`,
-        transaction_count: count(),
-      })
-      .from(transactions)
-      .where(
-        and(
-          eq(transactions.group_id, groupId),
-          options.startDate
-            ? sql`${transactions.date} >= ${financialDateKey(options.startDate)}`
-            : undefined,
-          options.endDate
-            ? sql`${transactions.date} <= ${financialDateKey(options.endDate)}`
-            : undefined,
-          options.categoryKeys?.length
-            ? inArray(transactions.category, options.categoryKeys)
-            : undefined
+    const read = () =>
+      resolveDb(executor)
+        .select({
+          date: transactions.date,
+          user_id: transactions.user_id,
+          account_id: transactions.account_id,
+          to_account_id: transactions.to_account_id,
+          type: transactions.type,
+          category: transactions.category,
+          amount: sql<string>`sum(${transactions.amount})`,
+          transaction_count: count(),
+        })
+        .from(transactions)
+        .where(
+          and(
+            eq(transactions.group_id, groupId),
+            options.startDate
+              ? sql`${transactions.date} >= ${financialDateKey(options.startDate)}`
+              : undefined,
+            options.endDate
+              ? sql`${transactions.date} <= ${financialDateKey(options.endDate)}`
+              : undefined,
+            options.categoryKeys?.length
+              ? inArray(transactions.category, options.categoryKeys)
+              : undefined
+          )
         )
-      )
-      .groupBy(
-        transactions.date,
-        transactions.user_id,
-        transactions.account_id,
-        transactions.to_account_id,
-        transactions.type,
-        transactions.category
-      );
-    return rows;
+        .groupBy(
+          transactions.date,
+          transactions.user_id,
+          transactions.account_id,
+          transactions.to_account_id,
+          transactions.type,
+          transactions.category
+        );
+    return executor ? await read() : await readWithRetry(read);
   }
 
   static async getAccountBalanceState(accountIds: string[], executor: DbExecutor) {

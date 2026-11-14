@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo } from 'react';
 import { useFilteredAccounts, usePermissions, useUserFilter } from '@/hooks';
 import { useModalState } from '@/lib/navigation/url-state';
+import { useRouter } from '@/i18n/routing';
 import type { Account, User } from '@/lib/types';
 import { computeAccountStats, type AccountStats } from '@/server/use-cases/accounts/account.logic';
 
@@ -12,6 +13,7 @@ export interface UseAccountsContentProps {
 }
 
 export function useAccountsContent({ currentUser, accounts }: UseAccountsContentProps) {
+  const router = useRouter();
   const { setSelectedGroupFilter, selectedUserId } = useUserFilter();
   const { isMember } = usePermissions({
     currentUser,
@@ -55,11 +57,14 @@ export function useAccountsContent({ currentUser, accounts }: UseAccountsContent
     [filteredAccounts, filteredBalances]
   );
 
-  const handleEditAccount = useCallback(
+  const handleOpenAccount = useCallback(
     (account: Account) => {
-      openModal('account', account.id);
+      const query = new URLSearchParams();
+      if (effectiveSelectedUserId) query.set('user', effectiveSelectedUserId);
+      const suffix = query.toString();
+      router.push(`/accounts/${encodeURIComponent(account.id)}${suffix ? `?${suffix}` : ''}`);
     },
-    [openModal]
+    [router, effectiveSelectedUserId]
   );
 
   const handleUserFilterChange = useCallback(
@@ -76,7 +81,7 @@ export function useAccountsContent({ currentUser, accounts }: UseAccountsContent
     accountStats,
     sortedAccounts,
     filteredBalances,
-    handleEditAccount,
+    handleOpenAccount,
     handleUserFilterChange,
     openModal,
     isModalOpen: Boolean(modal),

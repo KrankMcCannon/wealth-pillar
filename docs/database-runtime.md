@@ -18,6 +18,12 @@ use pipeline depth eight; transaction poolers on port 6543 use depth one, a 5 s
 queue timeout and no session timeout settings. Direct connections use 5 s, 2 s,
 10 s, 5 s and 15 s for connection, queue, statement, lock and transaction timeouts.
 Queries remain unnamed so they can run through a transaction pooler.
+Dashboard reads use the shared standalone-read recovery at repository boundaries,
+including group context, members, budgets, active periods, recurring series,
+complete ledger aggregates and recent activity. A dropped connection gets at most
+one fresh attempt with jitter. Permission, schema, statement cancellation and pool
+queue failures propagate; active transactions and explicit financial executors
+are not replayed. A failed read never becomes an empty financial result.
 The transport watchdog is enabled by default (`DB_POOL_RECOVERY_ENABLED=false`
 temporarily disables it): after a
 20 s deadline it retires the affected pool generation once and does not replay a
@@ -26,6 +32,9 @@ write. A lost response requires an authenticated operation-outcome lookup.
 `DB_TELEMETRY_ENABLED=true` enables the native Postgres.js diagnostic channels.
 Events contain allowlisted timings, counts, error codes and operation correlation;
 SQL, parameters, result contents, credentials and host names are excluded.
+Failed operations always emit `database.operation_failed` with a request ID,
+static operation name and allowlisted driver error code, including wrapped
+errors. This minimal failure log does not require verbose telemetry.
 Round-trip time includes the network and is not PostgreSQL execution time. Mapping
 and result-size measurements are emitted only for instrumented paths, and cache
 misses include coalesced misses; these metrics do not yet cover every operation.

@@ -36,7 +36,6 @@ interface ReportsContentProps {
   initialPreset: ReportsTimePreset;
   initialCustomStart?: string | undefined;
   initialCustomEnd?: string | undefined;
-  initialScope?: ReportsScope | undefined;
 }
 
 export default function ReportsContent({
@@ -46,7 +45,6 @@ export default function ReportsContent({
   initialPreset,
   initialCustomStart,
   initialCustomEnd,
-  initialScope,
 }: ReportsContentProps) {
   const data = use(reportsBundlePromise);
   const router = useRouter();
@@ -77,27 +75,42 @@ export default function ReportsContent({
     setTimeSelection({ applied: appliedTime, value: appliedTime });
   }
   const requestedTime = timeSelection.value;
-  const [scopeState, setScopeState] = useState({
-    applied: initialScope,
-    value: initialScope ?? data.defaultScope,
-  });
-  if (scopeState.applied !== initialScope)
-    setScopeState({ applied: initialScope, value: initialScope ?? data.defaultScope });
-  const selectedScope = scopeState.value;
-  const setSelectedScope = useCallback(
-    (value: ReportsScope) => setScopeState({ applied: initialScope, value }),
-    [initialScope]
-  );
   const searchParams = useSearchParams();
-  const [insightsOpen, setInsightsOpen] = useState(searchParams.get('periods') === 'open');
+  const resolveScope = useCallback(
+    (member: string | null): ReportsScope => {
+      if (currentUser.role === 'member') return currentUser.id;
+      return member && groupUsers.some((user) => user.id === member) ? member : 'all';
+    },
+    [currentUser.id, currentUser.role, groupUsers]
+  );
+  const selectedScope = resolveScope(searchParams.get('member'));
+  const insightsOpen = searchParams.get('periods') === 'open';
 
   const syncScopeToUrl = useCallback(
     (scope: ReportsScope) => {
-      const query = buildReportsSearchQuery({ preset, customRange, scope });
-      const url = query ? `${pathname}?${query}` : pathname;
-      window.history.replaceState(null, '', url);
+      const query = buildReportsSearchQuery({
+        preset,
+        customRange,
+        scope,
+        periodsOpen: insightsOpen,
+      });
+      window.history.replaceState(null, '', `?${query}`);
     },
-    [pathname, preset, customRange]
+    [preset, customRange, insightsOpen]
+  );
+
+  const handleInsightsToggle = useCallback(
+    (open: boolean) => {
+      if (open === insightsOpen) return;
+      const query = buildReportsSearchQuery({
+        preset,
+        customRange,
+        scope: selectedScope,
+        periodsOpen: open,
+      });
+      window.history.pushState(null, '', `?${query}`);
+    },
+    [preset, customRange, selectedScope, insightsOpen]
   );
 
   const pushTimeParams = useCallback(
@@ -113,6 +126,7 @@ export default function ReportsContent({
         preset: nextPreset,
         customRange: nextCustom,
         scope: selectedScope,
+        periodsOpen: insightsOpen,
       });
       setTimeSelection({
         applied: appliedTime,
@@ -122,7 +136,7 @@ export default function ReportsContent({
         router.push(query ? `${pathname}?${query}` : pathname, { scroll: false });
       });
     },
-    [pathname, preset, customRange, selectedScope, router, appliedTime]
+    [pathname, preset, customRange, selectedScope, insightsOpen, router, appliedTime]
   );
 
   const handlePresetChange = useCallback(
@@ -136,11 +150,9 @@ export default function ReportsContent({
 
   const handleScopeChange = useCallback(
     (scope: string) => {
-      const next: ReportsScope = scope === 'all' ? 'all' : scope;
-      setSelectedScope(next);
-      syncScopeToUrl(next);
+      syncScopeToUrl(resolveScope(scope));
     },
-    [syncScopeToUrl, setSelectedScope]
+    [syncScopeToUrl, resolveScope]
   );
 
   const comparisonLabel = tHero(data.comparisonLabelKey);
@@ -153,7 +165,12 @@ export default function ReportsContent({
   const userSelectorValue = selectedScope === 'all' ? 'all' : selectedScope;
   const here = pathWithoutReturnTo(
     '/reports',
-    buildReportsSearchQuery({ preset, customRange, scope: selectedScope })
+    buildReportsSearchQuery({
+      preset,
+      customRange,
+      scope: selectedScope,
+      periodsOpen: insightsOpen,
+    })
   );
 
   usePageHeader({
@@ -252,7 +269,7 @@ export default function ReportsContent({
             label={t('insightsTitle')}
             className="scroll-mt-36 border-t border-border/40"
             open={insightsOpen}
-            onToggle={(event) => setInsightsOpen(event.currentTarget.open)}
+            onToggle={(event) => handleInsightsToggle(event.currentTarget.open)}
           >
             {insightsOpen ? (
               <div className="mt-4 flex flex-col gap-5">
@@ -273,6 +290,7 @@ export default function ReportsContent({
                       preset,
                       customRange,
                       scope: selectedScope,
+                      periodsOpen: insightsOpen,
                     })
                   }
                 />
