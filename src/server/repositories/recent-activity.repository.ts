@@ -5,6 +5,7 @@ import { financialDateKey } from '@/lib/utils/financial-date';
 import { RECENT_ACTIVITY_LIMIT, dashboardTransactionStartDate } from '@/server/db/query-limits';
 import { transactionVisibilityPredicate } from '@/server/ledger/visibility-predicate';
 import type { Account, Transaction } from '@/lib/types';
+import { readWithRetry } from '@/server/db/read-with-retry';
 
 export class RecentActivityRepository {
   static async byGroupScopes(groupId: string, userIds: string[], accounts: Account[]) {
@@ -13,7 +14,8 @@ export class RecentActivityRepository {
       user_ids: account.user_ids,
       spendable: resolveAccountLiquidity(account) === 'spendable',
     }));
-    const rows = await resolveDb().execute<{ scope: string; items: Transaction[] }>(sql`
+    const rows = await readWithRetry(() =>
+      resolveDb().execute<{ scope: string; items: Transaction[] }>(sql`
       with account_scope as (
         select * from jsonb_to_recordset(${JSON.stringify(accountScope)}::jsonb) as a(id uuid,user_ids uuid[],spendable boolean)
       ), scopes as (
@@ -30,7 +32,8 @@ export class RecentActivityRepository {
           and (scopes.user_id is null or ${transactionVisibilityPredicate(sql`scopes.user_id`)})
         order by t.date desc,t.created_at desc nulls last,t.id desc limit ${RECENT_ACTIVITY_LIMIT}
       ) recent on true group by scopes.user_id
-    `);
+    `)
+    );
     const byUserId: Record<string, Transaction[]> = Object.fromEntries(
       userIds.map((id) => [id, []])
     );

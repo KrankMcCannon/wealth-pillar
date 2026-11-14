@@ -30,6 +30,11 @@ import { transactionInvolvesUser } from '@/server/ledger';
 import { RecentActivityRepository } from '@/server/repositories/recent-activity.repository';
 import { TransactionsRepository } from '@/server/repositories/transactions.repository';
 import { resolveAccountLiquidity } from '@/lib/utils/account-classification';
+import { getDashboardPageData } from '@/server/use-cases/pages/dashboard.use-case';
+import {
+  getAccountDetailPageData,
+  getAccountsPageData,
+} from '@/server/use-cases/pages/accounts-page.use-case';
 
 const session = vi.hoisted(() => ({ actor: null as User | null }));
 const cache = vi.hoisted(() => ({ invalidate: vi.fn() }));
@@ -394,6 +399,33 @@ it('returns bounded activity and keyset pages across null and microsecond timest
   } while (pages < 10);
   expect(ids.size).toBe(130);
   expect(pages).toBe(3);
+});
+
+it('keeps dashboard, accounts and account activity consistent after create, edit and delete', async () => {
+  const assertBalances = async (expected: number) => {
+    const [dashboard, accounts] = await Promise.all([
+      getDashboardPageData(group, actor),
+      getAccountsPageData(group, [actorId], actor),
+    ]);
+    expect(dashboard.balanceViewModel.spendableBalanceAll).toBe(expected);
+    expect(dashboard.balanceViewModel.spendableByUserId[actorId]).toBe(expected);
+    expect(accounts.statsAll.spendableBalance).toBe(expected);
+    expect(accounts.statsByUserId[actorId]?.spendableBalance).toBe(expected);
+    expect(dashboard.accountBalances).toEqual(accounts.accountBalances);
+  };
+  const created = await createTransactionAction({ ...input(), amount: 1.25 }, randomUUID());
+  expect(created.error).toBeNull();
+  await assertBalances(-1.25);
+  const detail = await getAccountDetailPageData(group, account, actor, actorId);
+  expect(detail.transactions).toHaveLength(1);
+  expect(detail.transactions[0]).toMatchObject({ id: created.data!.id, amount: 1.25 });
+
+  expect(
+    (await updateTransactionAction(created.data!.id, { amount: 2.5 }, randomUUID())).error
+  ).toBeNull();
+  await assertBalances(-2.5);
+  expect((await deleteTransactionAction(created.data!.id, randomUUID())).error).toBeNull();
+  await assertBalances(0);
 });
 
 it('removes a group without leaving financial references or stale membership', async () => {

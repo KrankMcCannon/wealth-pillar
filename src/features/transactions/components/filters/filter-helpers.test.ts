@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
   clearAdvancedFilters,
+  clearAllFilters,
   defaultFiltersState,
+  getActiveFilterDescriptors,
   getAdvancedFiltersCount,
   isPresetDateRange,
   isQuickPeriodSelected,
@@ -61,5 +63,73 @@ describe('clearAdvancedFilters', () => {
       startDate: null,
       endDate: null,
     });
+  });
+});
+
+it('clears every ledger criterion with the global reset', () => {
+  expect(
+    clearAllFilters({
+      ...defaultFiltersState,
+      searchQuery: 'rent',
+      type: 'expense',
+      dateRange: 'custom',
+      startDate: '2026-01-01',
+      endDate: '2026-01-31',
+      accountId: 'a1',
+      categoryKey: 'food',
+      categoryKeys: ['food', 'rent'],
+      budgetId: 'b1',
+    })
+  ).toEqual(defaultFiltersState);
+});
+
+describe('active advanced filter descriptors', () => {
+  const filters = {
+    ...defaultFiltersState,
+    searchQuery: 'rent',
+    type: 'expense' as const,
+    dateRange: 'custom' as const,
+    startDate: '2026-01-01',
+    endDate: '2026-01-31',
+    accountId: 'unknown-account',
+    categoryKey: 'unknown-category',
+    categoryKeys: ['food', 'unknown-category'],
+    budgetId: 'unknown-budget',
+  };
+
+  it('represents every counted filter even when reference data is unavailable', () => {
+    const descriptors = getActiveFilterDescriptors(filters);
+    expect(descriptors.map((descriptor) => descriptor.key)).toEqual([
+      'date',
+      'account',
+      'category',
+      'categories',
+      'budget',
+    ]);
+    expect(descriptors).toHaveLength(getAdvancedFiltersCount(filters));
+    expect(descriptors.find((descriptor) => descriptor.key === 'account')?.names).toEqual([
+      undefined,
+    ]);
+    expect(descriptors.find((descriptor) => descriptor.key === 'budget')?.names).toEqual([
+      undefined,
+    ]);
+  });
+
+  it('removes only the selected criterion, including individual budget metadata', () => {
+    const descriptors = getActiveFilterDescriptors(filters);
+    expect(descriptors.find((descriptor) => descriptor.key === 'account')?.nextFilters).toEqual({
+      ...filters,
+      accountId: 'all',
+    });
+    expect(descriptors.find((descriptor) => descriptor.key === 'date')?.nextFilters).toEqual({
+      ...filters,
+      dateRange: 'all',
+      startDate: null,
+      endDate: null,
+    });
+    const { budgetId: _budgetId, ...withoutBudget } = filters;
+    expect(descriptors.find((descriptor) => descriptor.key === 'budget')?.nextFilters).toEqual(
+      withoutBudget
+    );
   });
 });

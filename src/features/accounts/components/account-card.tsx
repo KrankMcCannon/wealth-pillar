@@ -15,7 +15,7 @@ import { RowCard } from '@/components/ui/layout/row-card';
 interface AccountCardProps {
   account: Account;
   accountBalance: number;
-  /** Tap / invio sulla riga: apre modifica (come le transazioni). */
+  /** Tap / invio sulla riga: apre il conto. */
   onClick?: (() => void) | undefined;
   className?: string | undefined;
   /**
@@ -34,7 +34,7 @@ function accountSubtitle(
 }
 
 /**
- * AccountCard — tap sulla riga → modifica (eliminazione dalla modale di modifica).
+ * AccountCard — consultazione del conto; modifica disponibile nel dettaglio.
  */
 export const AccountCard = memo(function AccountCard({
   account,
@@ -82,10 +82,7 @@ export const AccountCard = memo(function AccountCard({
             : undefined
         }
         compact
-        className={cn(
-          'min-w-[180px] shrink-0 px-3 !w-max !min-w-[8.75rem] py-0 sm:!min-w-[9rem]',
-          className
-        )}
+        className={cn('min-w-45 shrink-0 px-3 w-max! py-0 sm:min-w-36!', className)}
         testId={`account-card-${account.id}`}
       />
     );

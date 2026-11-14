@@ -2,6 +2,7 @@ import { recurringReadColumns, relationalReadsEnabled } from './relational-proje
 import { resolveDb, type DbExecutor } from './db-executor';
 import { recurringTransactions, accounts, transactions } from '@/server/db/schema';
 import { eq, arrayOverlaps, arrayContains, and, sql, exists } from 'drizzle-orm';
+import { readWithRetry } from '@/server/db/read-with-retry';
 
 export interface RecurringScope {
   groupId: string;
@@ -88,22 +89,24 @@ export class RecurringRepository {
 
   static async findByUserIds(userIds: string[], groupId?: string) {
     const recorded = occurrenceDates();
-    return await resolveDb()
-      .with(recorded)
-      .select({ ...recurringReadColumns(), recorded_dates: recordedDates })
-      .from(recurringTransactions)
-      .leftJoin(recorded, eq(recorded.series, recurringTransactions.id))
-      .where(
-        and(
-          relationalReadsEnabled()
-            ? sql`exists(select 1 from recurring_users x where x.recurring_id=recurring_transactions.id and x.user_id=any(${sql.param(userIds, accounts.user_ids)}::uuid[]))`
-            : arrayOverlaps(recurringTransactions.user_ids, userIds),
-          groupId
-            ? sql`${recurringTransactions.account_id} in
+    return readWithRetry(() =>
+      resolveDb()
+        .with(recorded)
+        .select({ ...recurringReadColumns(), recorded_dates: recordedDates })
+        .from(recurringTransactions)
+        .leftJoin(recorded, eq(recorded.series, recurringTransactions.id))
+        .where(
+          and(
+            relationalReadsEnabled()
+              ? sql`exists(select 1 from recurring_users x where x.recurring_id=recurring_transactions.id and x.user_id=any(${sql.param(userIds, accounts.user_ids)}::uuid[]))`
+              : arrayOverlaps(recurringTransactions.user_ids, userIds),
+            groupId
+              ? sql`${recurringTransactions.account_id} in
         (select ${accounts.id} from ${accounts} where ${accounts.group_id} = ${groupId})`
-            : undefined
+              : undefined
+          )
         )
-      );
+    );
   }
 
   static async create(data: typeof recurringTransactions.$inferInsert, executor: DbExecutor) {
