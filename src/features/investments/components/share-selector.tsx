@@ -18,14 +18,18 @@ interface ShareSelectorProps {
 interface SearchResultLabels {
   noResults: string;
   searchLoading: string;
+  searchFailed: string;
+  retry: string;
 }
 
 // Helper to render search results
 function renderSearchResults(
   isLoading: boolean,
   isEnsuring: boolean,
+  searchFailed: boolean,
   results: AvailableShare[],
   hasSearched: boolean,
+  onRetry: () => void,
   labels: SearchResultLabels,
   styles: typeof investmentsStyles.selector
 ) {
@@ -38,6 +42,17 @@ function renderSearchResults(
         aria-label={labels.searchLoading}
       >
         <Loader2 className="h-5 w-5 animate-spin mx-auto text-primary" aria-hidden />
+      </div>
+    );
+  }
+
+  if (searchFailed) {
+    return (
+      <div className={styles.empty} role="status">
+        <p>{labels.searchFailed}</p>
+        <button type="button" onClick={onRetry} className="mt-2 underline underline-offset-4">
+          {labels.retry}
+        </button>
       </div>
     );
   }
@@ -88,6 +103,7 @@ export function ShareSelector({ value, onChange, className }: Readonly<ShareSele
     setSearchValue,
     results,
     isLoading,
+    searchFailed,
     isEnsuring,
     hasSearched,
     selectedShare,
@@ -97,6 +113,7 @@ export function ShareSelector({ value, onChange, className }: Readonly<ShareSele
     debouncedSearch,
     handleSelect,
     clearSearch,
+    retrySearch,
   } = useShareSearch({
     initialValue: value,
     onSelect: (symbol) => {
@@ -233,11 +250,15 @@ export function ShareSelector({ value, onChange, className }: Readonly<ShareSele
             {renderSearchResults(
               isLoading,
               isEnsuring,
+              searchFailed,
               results,
               hasSearched,
+              retrySearch,
               {
                 noResults: t('noResults'),
                 searchLoading: t('searchLoading'),
+                searchFailed: t('searchFailed'),
+                retry: t('retry'),
               },
               styles
             )}

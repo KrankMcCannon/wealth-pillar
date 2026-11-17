@@ -651,7 +651,9 @@
       "minCharsHint": "Enter at least 3 characters",
       "noResults": "No ticker found",
       "searchInputLabel": "Search tickers",
-      "searchLoading": "Searching tickers"
+      "searchLoading": "Searching tickers",
+      "searchFailed": "Search failed",
+      "retry": "Retry"
     },
     "AddModal": {
       "validation": {
@@ -837,7 +839,8 @@
         "period": "Period",
         "type": "Type",
         "category": "Category",
-        "account": "Account"
+        "account": "Account",
+        "reserve": "Reserve"
       },
       "FilterChips": {
         "toolbarAria": "Transaction filters",

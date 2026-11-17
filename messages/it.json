@@ -651,7 +651,9 @@
       "minCharsHint": "Inserisci almeno 3 caratteri",
       "noResults": "Nessun titolo trovato",
       "searchInputLabel": "Cerca titoli",
-      "searchLoading": "Ricerca titoli in corso"
+      "searchLoading": "Ricerca titoli in corso",
+      "searchFailed": "Ricerca non riuscita",
+      "retry": "Riprova"
     },
     "AddModal": {
       "validation": {
@@ -837,7 +839,8 @@
         "period": "Periodo",
         "type": "Tipo",
         "category": "Categoria",
-        "account": "Conto"
+        "account": "Conto",
+        "reserve": "Riserva"
       },
       "FilterChips": {
         "toolbarAria": "Filtri transazioni",

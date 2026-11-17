@@ -11,6 +11,7 @@ import { scopeTransactionsListData } from '@/server/permissions/scope-page-data'
 import type { TransactionFilterOptions } from '@/server/repositories/transactions.repository';
 import { decodeTransactionCursor, encodeTransactionCursor } from '@/lib/utils/transaction-cursor';
 import { resolveTransactionDateRangeBounds } from '@/lib/utils/transaction-date-range';
+import { accountsToMap, classifyMovement } from '@/server/ledger';
 
 /** Fixed window size for transactions list (keyset infinite scroll). */
 export const TRANSACTIONS_LIST_PAGE_SIZE = 50;
@@ -28,6 +29,8 @@ export interface TransactionsListQuery {
   categories?: string;
   /** Budget filter mode: load budgets metadata for banner. */
   budget?: string;
+  /** Only spendable-to-reserve and reserve-to-spendable transfers. */
+  reserve?: boolean;
   /** Opaque keyset cursor for load-more (server actions / internal). */
   cursor?: string;
 }
@@ -64,6 +67,7 @@ export type AppliedTransactionsQuery = {
   account?: string;
   category?: string;
   categories?: string;
+  reserve?: boolean;
 };
 
 const LIST_QUERY_TYPES = ['all', 'income', 'expense', 'transfer'] as const;
@@ -131,6 +135,69 @@ export function buildAppliedQuery(
     ...(query.account ? { account: query.account } : {}),
     ...(query.category ? { category: query.category } : {}),
     ...(query.categories ? { categories: query.categories } : {}),
+    ...(query.reserve ? { reserve: true } : {}),
+  };
+}
+
+export function matchesReserveTransaction(
+  transaction: Transaction,
+  accountMap: ReturnType<typeof accountsToMap>,
+  userId?: string
+) {
+  const movement = classifyMovement(transaction, accountMap);
+  return (
+    movement.kind === 'savings_transfer' &&
+    (userId === undefined || movement.savingsUserId === userId)
+  );
+}
+
+/**
+ * The reserve rule depends on both accounts and report attribution, so it must
+ * run before the ledger's visible keyset window. Scan bounded repository pages
+ * until a full output page (plus one row) has been classified.
+ */
+async function fetchReserveTransactionsWindow(
+  groupId: string,
+  filters: ResolvedTransactionFilters,
+  accounts: Account[],
+  cursor?: string
+): Promise<{ transactions: Transaction[]; hasMore: boolean; nextCursor?: string }> {
+  const accountMap = accountsToMap(accounts);
+  const { userId, ...baseFilters } = filters;
+  const matched: Transaction[] = [];
+  let nextSourceCursor = cursor;
+
+  while (matched.length <= TRANSACTIONS_LIST_PAGE_SIZE) {
+    const source = await getTransactionsByGroupUseCase(
+      groupId,
+      buildTransactionRepositoryOptions(baseFilters, {
+        limit: 100,
+        ...(nextSourceCursor ? { cursor: nextSourceCursor } : {}),
+      })
+    );
+
+    for (const transaction of source.data) {
+      if (matchesReserveTransaction(transaction, accountMap, userId)) matched.push(transaction);
+      if (matched.length > TRANSACTIONS_LIST_PAGE_SIZE) break;
+    }
+
+    if (matched.length > TRANSACTIONS_LIST_PAGE_SIZE || !source.hasMore) break;
+    const lastSource = source.data.at(-1);
+    if (!lastSource) break;
+    nextSourceCursor = encodeTransactionCursor({
+      date: lastSource.date,
+      created_at: lastSource.created_at,
+      id: lastSource.id,
+    });
+  }
+
+  const transactions = matched.slice(0, TRANSACTIONS_LIST_PAGE_SIZE);
+  const nextCursor =
+    matched.length > TRANSACTIONS_LIST_PAGE_SIZE ? encodeNextCursor(transactions) : undefined;
+  return {
+    transactions,
+    hasMore: matched.length > TRANSACTIONS_LIST_PAGE_SIZE,
+    ...(nextCursor ? { nextCursor } : {}),
   };
 }
 
@@ -203,23 +270,34 @@ async function getCachedTransactionsListData(
 
   const currentUser = { id: userId, role: userRole } as User;
   const filters = resolveTransactionsFilters(query, currentUser);
-  const repoOptions = buildTransactionRepositoryOptions(filters);
-
   const fetchBudgets = Boolean(query.budget?.trim());
-
-  const [transactionResult, categories, accounts, budgets] = await Promise.all([
-    getTransactionsByGroupUseCase(groupId, repoOptions),
+  const [categories, accounts, budgets] = await Promise.all([
     getAllCategoriesDeduped(groupId),
     getAccountsByGroupDeduped(groupId),
     fetchBudgets ? getBudgetsByGroupUseCase(groupId) : Promise.resolve([] as Budget[]),
   ]);
 
-  const rows = transactionResult.data;
-  const nextCursor = transactionResult.hasMore ? encodeNextCursor(rows) : undefined;
+  let rows: Transaction[];
+  let hasMore: boolean;
+  let nextCursor: string | undefined;
+  if (query.reserve) {
+    const transactionResult = await fetchReserveTransactionsWindow(groupId, filters, accounts);
+    rows = transactionResult.transactions;
+    hasMore = transactionResult.hasMore;
+    nextCursor = transactionResult.nextCursor;
+  } else {
+    const transactionResult = await getTransactionsByGroupUseCase(
+      groupId,
+      buildTransactionRepositoryOptions(filters)
+    );
+    rows = transactionResult.data;
+    hasMore = transactionResult.hasMore;
+    nextCursor = hasMore ? encodeNextCursor(rows) : undefined;
+  }
 
   return {
     transactions: rows,
-    hasMore: transactionResult.hasMore,
+    hasMore,
     ...(nextCursor ? { nextCursor } : {}),
     appliedQuery: buildAppliedQuery(query, currentUser),
     categories,
@@ -239,6 +317,10 @@ export async function fetchTransactionsWindow(
   nextCursor?: string;
 }> {
   const filters = resolveTransactionsFilters(query, currentUser);
+  if (query.reserve) {
+    const accounts = await getAccountsByGroupDeduped(groupId);
+    return fetchReserveTransactionsWindow(groupId, filters, accounts, query.cursor);
+  }
   const repoOptions = buildTransactionRepositoryOptions(filters, {
     ...(query.cursor ? { cursor: query.cursor } : {}),
   });
