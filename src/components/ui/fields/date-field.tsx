@@ -8,7 +8,7 @@
 
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { format, isValid, isSameDay, startOfDay } from 'date-fns';
+import { format, isValid, isSameDay, parseISO, startOfDay } from 'date-fns';
 import { enUS, it } from 'date-fns/locale';
 import { ChevronRight } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
@@ -87,7 +87,10 @@ export function DateField({
 
   const displayText = useMemo(() => {
     if (!value) return '';
-    const d = new Date(value);
+    // A financial form value is a calendar day, not a UTC instant. Keep this
+    // in step with CalendarPanel so selecting, reopening, and submitting a
+    // YYYY-MM-DD value always refers to the same local day.
+    const d = parseISO(value);
     if (!isValid(d)) return '';
     return isSameDay(startOfDay(d), startOfDay(new Date()))
       ? t('today')

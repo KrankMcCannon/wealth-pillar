@@ -33,6 +33,7 @@ export function useShareSearch({ initialValue, onSelect }: UseShareSearchProps =
     key: string;
     results: AvailableShare[];
   } | null>(null);
+  const [searchError, setSearchError] = React.useState<string | null>(null);
   const [isEnsuring, setIsEnsuring] = React.useState(false);
   const [selection, setSelection] = React.useState<{
     value: string;
@@ -45,6 +46,7 @@ export function useShareSearch({ initialValue, onSelect }: UseShareSearchProps =
   const trimmedSearch = debouncedSearch.trim();
   const hasSearched = trimmedSearch.length >= 3;
   const searchKey = JSON.stringify([trimmedSearch, selectedAssetType]);
+  const retryGeneration = React.useRef(0);
   const isLoading = hasSearched && searchResponse?.key !== searchKey;
   const results = React.useMemo(
     () => (hasSearched && searchResponse?.key === searchKey ? searchResponse.results : []),
@@ -75,10 +77,18 @@ export function useShareSearch({ initialValue, onSelect }: UseShareSearchProps =
     const assetTypeFilter = selectedAssetType === 'all' ? undefined : selectedAssetType;
     searchSharesAction(trimmedSearch, assetTypeFilter).then(
       (result) => {
-        if (active) setSearchResponse({ key: searchKey, results: result.data || [] });
+        if (!active) return;
+        if (result.error) {
+          setSearchResponse({ key: searchKey, results: [] });
+          setSearchError(searchKey);
+          return;
+        }
+        setSearchResponse({ key: searchKey, results: result.data ?? [] });
       },
       () => {
-        if (active) setSearchResponse({ key: searchKey, results: [] });
+        if (!active) return;
+        setSearchResponse({ key: searchKey, results: [] });
+        setSearchError(searchKey);
       }
     );
 
@@ -86,6 +96,10 @@ export function useShareSearch({ initialValue, onSelect }: UseShareSearchProps =
       active = false;
     };
   }, [hasSearched, trimmedSearch, selectedAssetType, searchKey]);
+
+  React.useEffect(() => {
+    retryGeneration.current += 1;
+  }, [searchKey]);
 
   // Initial Value Sync
   React.useEffect(() => {
@@ -129,13 +143,37 @@ export function useShareSearch({ initialValue, onSelect }: UseShareSearchProps =
   const clearSearch = React.useCallback(() => {
     setSearchValue('');
     setSearchResponse(null);
+    setSearchError(null);
   }, []);
+
+  const retrySearch = React.useCallback(() => {
+    if (!hasSearched) return;
+    const generation = retryGeneration.current + 1;
+    retryGeneration.current = generation;
+    const assetTypeFilter = selectedAssetType === 'all' ? undefined : selectedAssetType;
+    setSearchError(null);
+    searchSharesAction(trimmedSearch, assetTypeFilter).then(
+      (result) => {
+        if (retryGeneration.current !== generation) return;
+        if (result.error) {
+          setSearchError(searchKey);
+          return;
+        }
+        setSearchResponse({ key: searchKey, results: result.data ?? [] });
+        setSearchError(null);
+      },
+      () => {
+        if (retryGeneration.current === generation) setSearchError(searchKey);
+      }
+    );
+  }, [hasSearched, searchKey, selectedAssetType, trimmedSearch]);
 
   return {
     searchValue,
     setSearchValue,
     results,
     isLoading,
+    searchFailed: searchError === searchKey,
     isEnsuring,
     hasSearched,
     selectedShare,
@@ -145,5 +183,6 @@ export function useShareSearch({ initialValue, onSelect }: UseShareSearchProps =
     debouncedSearch,
     handleSelect,
     clearSearch,
+    retrySearch,
   };
 }

@@ -78,7 +78,7 @@ it('debounces searches, derives loading, filters assets and clears short queries
   expect(result.current.isLoading).toBe(false);
 });
 
-it('ignores responses for an obsolete search and recovers from a rejected request', async () => {
+it('ignores responses for an obsolete search and exposes rejected requests separately from empty results', async () => {
   const old = Promise.withResolvers<Awaited<ReturnType<typeof searchSharesAction>>>();
   vi.mocked(searchSharesAction)
     .mockReturnValueOnce(old.promise)
@@ -108,6 +108,28 @@ it('ignores responses for an obsolete search and recovers from a rejected reques
     await vi.advanceTimersByTimeAsync(200);
   });
   expect(result.current.isLoading).toBe(false);
+  expect(result.current.results).toEqual([]);
+  expect(result.current.searchFailed).toBe(true);
+});
+
+it('retries the same query and asset type without accepting an obsolete retry response', async () => {
+  const retry = Promise.withResolvers<Awaited<ReturnType<typeof searchSharesAction>>>();
+  vi.mocked(searchSharesAction)
+    .mockResolvedValueOnce({ data: null, error: 'offline' })
+    .mockReturnValueOnce(retry.promise)
+    .mockResolvedValueOnce({ data: [], error: null });
+  const { result } = renderHook(() => useShareSearch());
+  act(() => result.current.setSearchValue('apple'));
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(200);
+  });
+  expect(result.current.searchFailed).toBe(true);
+  act(() => result.current.retrySearch());
+  expect(searchSharesAction).toHaveBeenLastCalledWith('apple', undefined);
+  act(() => result.current.setSelectedAssetType('etf'));
+  await act(async () => {
+    retry.resolve({ data: [share('AAPL')], error: null });
+  });
   expect(result.current.results).toEqual([]);
 });
 
