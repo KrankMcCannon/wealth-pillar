@@ -30,7 +30,7 @@ const wealthPillarAuthTheme = experimental_createTheme({
   },
 });
 
-export const clerkAppearance: ClerkAppearance = {
+export const clerkAppearance = {
   theme: [shadcn, wealthPillarAuthTheme] as ClerkAppearance['theme'],
   layout: {
     socialButtonsPlacement: 'top',
@@ -47,4 +47,4 @@ export const clerkAppearance: ClerkAppearance = {
     colorInputBackground: 'var(--color-input)',
     colorDanger: 'var(--color-destructive)',
   },
-};
+} as ClerkAppearance;
