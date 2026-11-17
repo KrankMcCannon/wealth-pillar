@@ -6,7 +6,9 @@ import pluginPrettier from 'eslint-plugin-prettier';
 
 const withoutTypescriptEslintPlugin = (configs) =>
   configs.map(({ plugins, ...config }) => {
-    if (!plugins?.['@typescript-eslint']) return config;
+    if (!plugins?.['@typescript-eslint']) {
+      return plugins ? { ...config, plugins } : config;
+    }
 
     const { ['@typescript-eslint']: _typescriptEslint, ...remainingPlugins } = plugins;
     return Object.keys(remainingPlugins).length > 0
