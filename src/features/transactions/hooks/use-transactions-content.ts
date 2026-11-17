@@ -248,6 +248,7 @@ export function useTransactionsContent({
         next.categoryKey !== urlFilters.categoryKey ||
         next.accountId !== urlFilters.accountId ||
         next.budgetId !== filters.budgetId ||
+        Boolean(next.reserve) !== Boolean(urlFilters.reserve) ||
         (next.startDate ?? null) !== (urlFilters.startDate ?? null) ||
         (next.endDate ?? null) !== (urlFilters.endDate ?? null) ||
         JSON.stringify(next.categoryKeys ?? []) !== JSON.stringify(urlFilters.categoryKeys ?? []);

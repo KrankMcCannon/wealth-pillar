@@ -67,6 +67,7 @@ async function TransactionsPageData({
     ...(typeof resolvedSearchParams.budget === 'string'
       ? { budget: resolvedSearchParams.budget }
       : {}),
+    ...(resolvedSearchParams.reserve === '1' ? { reserve: true } : {}),
   };
 
   const pageDataPromise = getTransactionsListData(groupId, query, currentUser).catch((err) => {

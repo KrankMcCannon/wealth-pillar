@@ -75,6 +75,11 @@ describe('DateField', () => {
     expect(screen.queryByTestId('calendar-panel')).not.toBeInTheDocument();
   });
 
+  it('keeps a date-only value as the selected calendar day', () => {
+    render(<DateField value="2026-11-11" onChange={() => {}} label="When" presentation="drawer" />);
+    expect(screen.getByRole('button', { name: /When/ })).toHaveTextContent(/11/);
+  });
+
   it('renders the overlay as a floating fixed dialog in body so it is not clipped by parent modal', () => {
     render(
       <div data-slot="drawer-content">

@@ -1,3 +1,6 @@
+Warning: truncated output (original token count: 21834)
+Total output lines: 2289
+
 {
   "Auth": {
     "productIntro": {
@@ -651,7 +654,9 @@
       "minCharsHint": "Enter at least 3 characters",
       "noResults": "No ticker found",
       "searchInputLabel": "Search tickers",
-      "searchLoading": "Searching tickers"
+      "searchLoading": "Searching tickers",
+      "searchFailed": "Search failed",
+      "retry": "Retry"
     },
     "AddModal": {
       "validation": {
@@ -837,7 +842,8 @@
         "period": "Period",
         "type": "Type",
         "category": "Category",
-        "account": "Account"
+        "account": "Account",
+        "reserve": "Reserve"
       },
       "FilterChips": {
         "toolbarAria": "Transaction filters",
@@ -1099,230 +1105,7 @@
       "title": "Recurring Transactions",
       "viewAll": "View All",
       "empty": {
-        "title": "No recurring series",
-        "forUser": "There are no recurring series for this user",
-        "defaultDescription": "Configured recurring series will appear here",
-        "addButton": "Add Series"
-      },
-      "subtitle": {
-        "seriesCount": "{count} {count, plural, one {series} other {series}} active",
-        "pausedCount": "{count} paused"
-      },
-      "stats": {
-        "incomePerMonth": "Income/month",
-        "expensesPerMonth": "Expenses/month"
-      },
-      "summary": {
-        "totalMonthlyLabel": "Total monthly",
-        "netOutflowLabel": "Net outflow",
-        "netInflowLabel": "Net inflow",
-        "balancedLabel": "Balanced"
-      },
-      "groups": {
-        "upcoming": "Upcoming",
-        "later": "Later",
-        "upcomingEmpty": "No upcoming recurring entries.",
-        "monthly": "Monthly",
-        "yearly": "Yearly",
-        "overdue": "Overdue",
-        "paused": "Paused",
-        "paid": "Already paid this month",
-        "paidEmpty": "No paid recurring entries in this period."
-      },
-      "footer": {
-        "showingOf": "Showing {shown} of {total} series"
-      },
-      "executeErrorToastTitle": "Could not run this action",
-      "executeErrorBannerTitle": "We couldn't complete that operation",
-      "executeErrorDismiss": "Dismiss",
-      "executeErrorUnknown": "Something went wrong. Please try again."
-    },
-    "PauseModal": {
-      "actions": {
-        "pause": "Pause",
-        "resume": "Resume",
-        "pausedLower": "paused",
-        "resumedLower": "resumed"
-      },
-      "title": "{action} recurring series",
-      "description": {
-        "pause": "The series will be removed from active commitments",
-        "resume": "The series will return to active commitments"
-      },
-      "body": {
-        "pauseMain": "The series will be {action}. Its due dates will be excluded from active commitments until you resume it.",
-        "pauseSecondary": "Already created transactions will remain unchanged.",
-        "resumeMain": "The series will be {action}. Forecast dates will return to active commitments according to its schedule."
-      },
-      "buttons": {
-        "cancel": "Cancel"
-      }
-    },
-    "SeriesCard": {
-      "frequency": {
-        "weekly": "Weekly",
-        "biweekly": "Biweekly",
-        "monthly": "Monthly",
-        "yearly": "Yearly",
-        "once": "Once"
-      },
-      "due": {
-        "today": "Today",
-        "tomorrow": "Tomorrow",
-        "daysAgo": "{count} days ago",
-        "inDays": "In {count} days",
-        "unavailable": "No upcoming due date"
-      },
-      "status": {
-        "stopped": "Paused"
-      },
-      "nextLabel": "Next",
-      "actions": {
-        "pause": "Pause",
-        "resume": "Resume",
-        "delete": "Delete",
-        "pauseAria": "Pause recurring series",
-        "resumeAria": "Resume recurring series",
-        "deleteAria": "Delete recurring series",
-        "editAria": "Edit recurring series: {description}, {amount}",
-        "edit": "Edit",
-        "menuAria": "Actions for {description}"
-      }
-    },
-    "FormModal": {
-      "validation": {
-        "descriptionRequired": "Description is required",
-        "amountRequired": "Amount is required",
-        "amountGreaterThanZero": "Amount must be greater than zero",
-        "categoryRequired": "Category is required",
-        "userIdsRequired": "At least one user is required",
-        "accountRequired": "Account is required",
-        "startDateRequired": "Start date is required",
-        "dueDayRequired": "Billing day is required",
-        "dueDayRange": "Day must be between 1 and 31",
-        "endDateAfterStart": "End date must be after start date",
-        "transfersUnavailable": "Choose Income or Expense. Recurring transfers are not available.",
-        "weekdayRange": "Choose a valid weekday."
-      },
-      "title": {
-        "create": "New recurring series",
-        "edit": "Edit recurring series"
-      },
-      "errors": {
-        "notFound": "Recurring series not found",
-        "unknown": "The operation could not be completed. Your form entries are preserved. Please try again."
-      },
-      "typeOptions": {
-        "expense": "Expense",
-        "income": "Income",
-        "transfer": "Transfer"
-      },
-      "frequencyOptions": {
-        "once": "One-time",
-        "weekly": "Weekly",
-        "biweekly": "Biweekly",
-        "monthly": "Monthly",
-        "yearly": "Yearly"
-      },
-      "fields": {
-        "type": {
-          "label": "Type"
-        },
-        "frequency": {
-          "label": "Frequency"
-        },
-        "users": {
-          "label": "Users"
-        },
-        "account": {
-          "label": "Account",
-          "placeholder": "Select account"
-        },
-        "category": {
-          "label": "Category",
-          "placeholder": "Select category"
-        },
-        "amount": {
-          "label": "Amount",
-          "placeholder": "0.00"
-        },
-        "dueDay": {
-          "label": "Billing day",
-          "placeholder": "1-31"
-        },
-        "startDate": {
-          "label": "Start date"
-        },
-        "endDate": {
-          "label": "End date"
-        },
-        "description": {
-          "label": "Description",
-          "placeholder": "e.g. Netflix subscription"
-        },
-        "weekday": {
-          "label": "Weekday"
-        }
-      },
-      "buttons": {
-        "saveChanges": "Save Changes",
-        "createSeries": "Create Series",
-        "cancel": "Cancel"
-      },
-      "toast": {
-        "errorTitle": "Error",
-        "updatedTitle": "Series updated",
-        "updatedDescription": "Changes saved successfully.",
-        "createdTitle": "Series created",
-        "createdDescription": "Recurring series added successfully."
-      },
-      "sections": {
-        "basics": "Type and frequency",
-        "participants": "Who it applies to",
-        "amounts": "Amount and account",
-        "schedule": "Dates"
-      },
-      "transfersUnavailable": "For transfers, use a transaction with a source and destination account. Recurring series support income and expenses.",
-      "weekdays": {
-        "1": "Monday",
-        "2": "Tuesday",
-        "3": "Wednesday",
-        "4": "Thursday",
-        "5": "Friday",
-        "6": "Saturday",
-        "7": "Sunday"
-      },
-      "scheduleHelp": {
-        "weekly": "The first selected weekday on or after the start date anchors the 7 or 14 day interval.",
-        "once": "The due date is the start date. One-off items are excluded from recurring monthly totals.",
-        "monthly": "Shorter months use the last available day."
-      }
-    }
-  },
-  "Header": {
-    "premiumBadgeTitle": "Premium",
-    "plans": {
-      "premium": "Premium Plan",
-      "standard": "Standard Plan"
-    },
-    "appName": "Wealth Pillar",
-    "aria": {
-      "back": "Go back",
-      "notifications": "Notifications",
-      "settings": "Settings",
-      "moreMenu": "More actions: notifications, settings, and theme",
-      "pageToolsMenu": "Page tools: portfolio and scenario simulation"
-    },
-    "theme": {
-      "switchToLight": "Switch to light theme",
-      "switchToDark": "Switch to dark theme"
-    },
-    "notifications": {
-      "disabledHint": "In-app notifications are coming soon"
-    },
-    "ActionMenu": {
-      "openMenuAria": "Open action menu",
-      "fabIntroAccounts": "Tip: while you’re on Accounts, New Account is at the top of this menu for quick access. Expand the row below for category, investment, and recurring options.",
+        "…1834 tokens truncated…p: while you’re on Accounts, New Account is at the top of this menu for quick access. Expand the row below for category, investment, and recurring options.",
       "newTransaction": "New Transaction",
       "newBudget": "New Budget",
       "newCategory": "New Category",

@@ -3,11 +3,14 @@ import type { User } from '@/lib/types';
 import {
   buildAppliedQuery,
   buildTransactionRepositoryOptions,
+  matchesReserveTransaction,
   parseTransactionsListType,
   resolveDateRange,
   resolveTransactionsFilters,
   TRANSACTIONS_LIST_PAGE_SIZE,
 } from './transactions-page.use-case';
+import { accountsToMap } from '@/server/ledger';
+import type { Account, Transaction } from '@/lib/types';
 
 const admin: User = {
   id: 'admin-1',
@@ -20,6 +23,22 @@ const member: User = {
   role: 'member',
   group_id: 'g1',
 } as User;
+
+const reserveAccounts = [
+  { id: 'spendable', type: 'checking', liquidity: 'spendable', user_ids: ['member-1'] },
+  { id: 'reserve', type: 'savings', liquidity: 'reserve', user_ids: ['member-1'] },
+] as Account[];
+
+const reserveTransfer = {
+  id: 'reserve-transfer',
+  user_id: 'member-1',
+  type: 'transfer',
+  amount: 10,
+  account_id: 'spendable',
+  to_account_id: 'reserve',
+  date: '2026-11-11',
+  category: '',
+} as Transaction;
 
 describe('resolveTransactionsFilters', () => {
   it('scopes members to their own user id', () => {
@@ -64,6 +83,28 @@ describe('buildAppliedQuery', () => {
     const applied = buildAppliedQuery({ type: 'expense' }, member);
     expect(applied.user).toBe('member-1');
     expect(applied.type).toBe('expense');
+  });
+
+  it('retains the reserve marker while forcing a member attribution', () => {
+    expect(buildAppliedQuery({ reserve: true, user: 'other' }, member)).toMatchObject({
+      reserve: true,
+      user: 'member-1',
+    });
+  });
+});
+
+describe('matchesReserveTransaction', () => {
+  it('uses the report savings attribution and excludes other transfer kinds', () => {
+    const accountMap = accountsToMap(reserveAccounts);
+    expect(matchesReserveTransaction(reserveTransfer, accountMap, 'member-1')).toBe(true);
+    expect(matchesReserveTransaction(reserveTransfer, accountMap, 'other')).toBe(false);
+    expect(
+      matchesReserveTransaction(
+        { ...reserveTransfer, to_account_id: 'spendable' },
+        accountMap,
+        'member-1'
+      )
+    ).toBe(false);
   });
 });
 
