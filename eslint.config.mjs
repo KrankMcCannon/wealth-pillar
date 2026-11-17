@@ -10,7 +10,7 @@ const withoutTypescriptEslintPlugin = (configs) =>
       return plugins ? { ...config, plugins } : config;
     }
 
-    const { ['@typescript-eslint']: _typescriptEslint, ...remainingPlugins } = plugins;
+    const { '@typescript-eslint': _typescriptEslint, ...remainingPlugins } = plugins;
     return Object.keys(remainingPlugins).length > 0
       ? { ...config, plugins: remainingPlugins }
       : config;
