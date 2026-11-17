@@ -13,7 +13,7 @@ export const PERIOD_PRESETS = ['all', 'today', 'week', 'month', 'year'] as const
 export type PeriodPreset = (typeof PERIOD_PRESETS)[number];
 
 export interface ActiveFilterDescriptor {
-  key: 'date' | 'account' | 'category' | 'categories' | 'budget';
+  key: 'date' | 'account' | 'category' | 'categories' | 'budget' | 'reserve';
   names: (string | undefined)[];
   nextFilters: TransactionFiltersState;
 }
@@ -65,6 +65,10 @@ export function getActiveFilterDescriptors(
     const { budgetId: _budgetId, ...nextFilters } = filters;
     descriptors.push({ key: 'budget', names: [references.budgetName], nextFilters });
   }
+  if (filters.reserve) {
+    const { reserve: _reserve, ...nextFilters } = filters;
+    descriptors.push({ key: 'reserve', names: [], nextFilters });
+  }
   return descriptors;
 }
 
@@ -74,6 +78,7 @@ export function getActiveFilterLabel(
   t: ReturnType<typeof useTranslations>
 ): string {
   if (descriptor.key === 'date') return getDateChipLabel(filters, t);
+  if (descriptor.key === 'reserve') return t('chips.reserve');
   if (descriptor.key === 'categories') {
     return descriptor.names.map((name) => name ?? t('unavailable.category')).join(', ');
   }
@@ -94,7 +99,7 @@ export function getActiveFiltersCount(filters: TransactionFiltersState): number 
 }
 
 export function clearAdvancedFilters(filters: TransactionFiltersState): TransactionFiltersState {
-  const { budgetId: _budgetId, categoryKeys: _categoryKeys, ...rest } = filters;
+  const { budgetId: _budgetId, categoryKeys: _categoryKeys, reserve: _reserve, ...rest } = filters;
   return {
     ...rest,
     dateRange: 'all',

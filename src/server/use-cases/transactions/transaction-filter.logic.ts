@@ -12,6 +12,7 @@ export interface TransactionFiltersState {
   accountId?: string;
   budgetId?: string;
   categoryKeys?: string[];
+  reserve?: boolean;
   startDate?: string | null;
   endDate?: string | null;
 }

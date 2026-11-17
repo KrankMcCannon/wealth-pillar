@@ -115,6 +115,7 @@ export function buildReportsReserveTransactionsHref(input: {
   };
   const params = new URLSearchParams();
   params.set('type', 'transfer');
+  params.set('reserve', '1');
   params.set('dateRange', 'custom');
   params.set('startDate', window.start);
   params.set('endDate', window.end);
