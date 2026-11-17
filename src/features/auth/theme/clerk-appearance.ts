@@ -1,6 +1,10 @@
 // eslint-disable-next-line camelcase
 import { experimental_createTheme, shadcn } from '@clerk/themes';
-import type { Theme } from '@clerk/shared/types';
+import type { SignIn, SignUp } from '@clerk/nextjs';
+import type { ComponentProps } from 'react';
+
+type ClerkAppearance = NonNullable<ComponentProps<typeof SignIn>['appearance']> &
+  NonNullable<ComponentProps<typeof SignUp>['appearance']>;
 
 /**
  * Overrides on top of shadcn theme.
@@ -27,7 +31,7 @@ const wealthPillarAuthTheme = experimental_createTheme({
 });
 
 export const clerkAppearance = {
-  theme: [shadcn, wealthPillarAuthTheme],
+  theme: [shadcn, wealthPillarAuthTheme] as ClerkAppearance['theme'],
   layout: {
     socialButtonsPlacement: 'top',
     socialButtonsVariant: 'blockButton',
@@ -43,4 +47,4 @@ export const clerkAppearance = {
     colorInputBackground: 'var(--color-input)',
     colorDanger: 'var(--color-destructive)',
   },
-} as Theme;
+} as ClerkAppearance;
