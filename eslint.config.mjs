@@ -4,16 +4,27 @@ import nextTypescript from 'eslint-config-next/typescript';
 import prettier from 'eslint-config-prettier';
 import pluginPrettier from 'eslint-plugin-prettier';
 
+const withoutTypescriptEslintPlugin = (configs) =>
+  configs.map(({ plugins, ...config }) => {
+    if (!plugins?.['@typescript-eslint']) return config;
+
+    const { ['@typescript-eslint']: _typescriptEslint, ...remainingPlugins } = plugins;
+    return Object.keys(remainingPlugins).length > 0
+      ? { ...config, plugins: remainingPlugins }
+      : config;
+  });
+
 const eslintConfig = [
-  // Neostandard baseline (ESLint 9 flat config, TypeScript, no style rules = Prettier)
-  ...neostandard({
-    ts: true,
-    noStyle: true,
-  }),
+  // Keep every Neostandard rule while the Next TypeScript preset owns the plugin registration.
+  ...withoutTypescriptEslintPlugin(
+    neostandard({
+      ts: true,
+      noStyle: true,
+    })
+  ),
 
   // Next.js presets (React, React Hooks, TypeScript)
   ...withoutTypescriptEslintPlugin(nextCoreWebVitals),
-  ...nextTypescript,
   ...nextTypescript,
 
   // Ignored paths
