@@ -12,7 +12,9 @@ const eslintConfig = [
   }),
 
   // Next.js presets (React, React Hooks, TypeScript)
-  ...nextCoreWebVitals,
+  ...withoutTypescriptEslintPlugin(nextCoreWebVitals),
+  ...nextTypescript,
+  ...nextTypescript,
 
   // Ignored paths
   {
