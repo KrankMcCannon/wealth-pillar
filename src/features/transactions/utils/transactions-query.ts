@@ -1,7 +1,7 @@
 import type { TransactionFiltersState } from '@/server/use-cases/transactions/transaction.logic';
 import { filterTransactions } from '@/server/use-cases/transactions/transaction.logic';
 import type { Transaction, Account } from '@/lib/types';
-import { transactionInvolvesUser } from '@/server/ledger';
+import { accountsToMap, classifyMovement, transactionInvolvesUser } from '@/server/ledger';
 import type {
   AppliedTransactionsQuery,
   TransactionsListQuery,
@@ -33,6 +33,7 @@ export function appliedQueryToFiltersState(
     ...(keysFromCsv.length > 0 ? { categoryKeys: keysFromCsv } : {}),
     ...(applied.startDate ? { startDate: applied.startDate } : {}),
     ...(applied.endDate ? { endDate: applied.endDate } : {}),
+    ...(applied.reserve ? { reserve: true } : {}),
   };
 }
 
@@ -42,7 +43,20 @@ export function matchesAppliedQuery(
   searchQuery: string,
   accounts: Account[] = []
 ): boolean {
-  if (applied.user && !transactionInvolvesUser(transaction, applied.user, accounts)) {
+  if (applied.reserve) {
+    const movement = classifyMovement(transaction, accountsToMap(accounts));
+    if (
+      movement.kind !== 'savings_transfer' ||
+      (applied.user !== undefined && movement.savingsUserId !== applied.user)
+    ) {
+      return false;
+    }
+  }
+  if (
+    !applied.reserve &&
+    applied.user &&
+    !transactionInvolvesUser(transaction, applied.user, accounts)
+  ) {
     return false;
   }
 
@@ -66,6 +80,7 @@ export function appliedQueryToListQuery(
   if (applied.account) params.account = applied.account;
   if (applied.category) params.category = applied.category;
   if (applied.categories) params.categories = applied.categories;
+  if (applied.reserve) params.reserve = true;
   return params;
 }
 
@@ -83,5 +98,6 @@ export function buildTransactionsQueryString(filters: TransactionFiltersState, u
   } else if (filters.categoryKey && filters.categoryKey !== 'all') {
     params.set('category', filters.categoryKey);
   }
+  if (filters.reserve) params.set('reserve', '1');
   return params.toString();
 }

@@ -6,7 +6,7 @@ import {
   matchesAppliedQuery,
 } from './transactions-query';
 import type { AppliedTransactionsQuery } from '@/server/use-cases/pages/transactions-page.use-case';
-import type { Transaction } from '@/lib/types';
+import type { Account, Transaction } from '@/lib/types';
 
 describe('appliedQueryToListQuery', () => {
   it('maps applied filters and debounced search to list query', () => {
@@ -62,6 +62,15 @@ describe('appliedQueryToFiltersState', () => {
       'transfer'
     );
   });
+
+  it('retains the reserve marker for the removable ledger chip', () => {
+    expect(
+      appliedQueryToFiltersState({ type: 'transfer', dateRange: 'month', reserve: true }, '')
+    ).toMatchObject({
+      reserve: true,
+      type: 'transfer',
+    });
+  });
 });
 
 describe('matchesAppliedQuery', () => {
@@ -103,5 +112,23 @@ describe('matchesAppliedQuery', () => {
         ''
       )
     ).toBe(true);
+  });
+
+  it('keeps optimistic reserve rows in sync with report attribution', () => {
+    const accounts = [
+      { id: 'acc-1', type: 'checking', liquidity: 'spendable', user_ids: ['u1'] },
+      { id: 'reserve', type: 'savings', liquidity: 'reserve', user_ids: ['u1'] },
+    ] as Account[];
+    const reserveTransfer = { ...transaction, type: 'transfer' as const, to_account_id: 'reserve' };
+    const applied: AppliedTransactionsQuery = {
+      user: 'u1',
+      type: 'transfer',
+      dateRange: 'all',
+      reserve: true,
+    };
+    expect(matchesAppliedQuery(reserveTransfer, applied, '', accounts)).toBe(true);
+    expect(
+      matchesAppliedQuery({ ...reserveTransfer, to_account_id: 'acc-1' }, applied, '', accounts)
+    ).toBe(false);
   });
 });
