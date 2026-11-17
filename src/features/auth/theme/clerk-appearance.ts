@@ -3,8 +3,7 @@ import { experimental_createTheme, shadcn } from '@clerk/themes';
 import type { SignIn, SignUp } from '@clerk/nextjs';
 import type { ComponentProps } from 'react';
 
-type ClerkAppearance =
-  NonNullable<ComponentProps<typeof SignIn>['appearance']> &
+type ClerkAppearance = NonNullable<ComponentProps<typeof SignIn>['appearance']> &
   NonNullable<ComponentProps<typeof SignUp>['appearance']>;
 
 /**
