@@ -94,7 +94,9 @@
       "inUseHint": "Used by transactions, budgets, recurring items or imports: you can edit it, but cannot delete it",
       "emptyCustom": "No custom categories yet",
       "emptySystem": "No default categories",
+      "emptyCatalog": "The category catalog is empty.",
       "loadError": "Could not load categories.",
+      "refreshError": "Could not refresh categories. The displayed catalog is still available.",
       "retry": "Try again",
       "loading": "Loading categories…",
       "searchPlaceholder": "Search categories…",
@@ -1954,6 +1956,10 @@
           "label": "Color",
           "placeholder": "#10B981"
         }
+      },
+      "preview": {
+        "label": "Preview",
+        "placeholder": "New category"
       },
       "buttons": {
         "save": "Save changes",

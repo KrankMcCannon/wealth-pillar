@@ -10,6 +10,8 @@ vi.mock('next-intl', () => ({
 
 vi.mock('@/lib/icons', () => ({
   CategoryIcon: () => null,
+  Icon: () => null,
+  iconSizes: { xs: 12, sm: 16, md: 20, lg: 24, xl: 32 },
   getSemanticColor: () => '#000',
 }));
 
@@ -49,6 +51,16 @@ const categories: Category[] = [
     key: 'food',
     icon: 'utensils',
     color: '#f00',
+    group_id: 'g1',
+    created_at: '2026-01-01T00:00:00.000Z',
+    updated_at: '2026-01-01T00:00:00.000Z',
+  },
+  {
+    id: 'id-coffee',
+    label: 'Caffè',
+    key: 'coffee',
+    icon: 'coffee',
+    color: '#630',
     group_id: 'g1',
     created_at: '2026-01-01T00:00:00.000Z',
     updated_at: '2026-01-01T00:00:00.000Z',
@@ -151,5 +163,15 @@ describe('CategorySelect', () => {
 
     expect(onValueChange).toHaveBeenCalledWith('food');
     expect(combobox).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('keeps the assigned category first and searches labels without accents', async () => {
+    const { default: userEvent } = await import('@testing-library/user-event');
+    const user = userEvent.setup();
+    render(<CategorySelect value="food" onValueChange={() => {}} categories={categories} />);
+    await user.click(screen.getByRole('combobox'));
+    expect(screen.getAllByRole('option')[0]).toHaveTextContent('Food');
+    await user.type(screen.getByRole('searchbox'), 'caffe');
+    expect(screen.getByRole('option', { name: /Caffè/ })).toBeInTheDocument();
   });
 });

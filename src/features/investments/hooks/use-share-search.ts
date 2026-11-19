@@ -28,26 +28,28 @@ interface UseShareSearchProps {
 }
 
 export function useShareSearch({ initialValue, onSelect }: UseShareSearchProps = {}) {
-  const [searchValue, setSearchValue] = React.useState('');
+  const [searchValue, setSearchValueState] = React.useState('');
   const [searchResponse, setSearchResponse] = React.useState<{
     key: string;
     results: AvailableShare[];
   } | null>(null);
   const [searchError, setSearchError] = React.useState<string | null>(null);
+  const [isSearching, setIsSearching] = React.useState(false);
   const [isEnsuring, setIsEnsuring] = React.useState(false);
   const [selection, setSelection] = React.useState<{
     value: string;
     share: AvailableShare | null;
   } | null>(null);
   const [assetTypes, setAssetTypes] = React.useState<string[]>([]);
-  const [selectedAssetType, setSelectedAssetType] = React.useState<string>('all');
+  const [selectedAssetType, setSelectedAssetTypeState] = React.useState<string>('all');
 
   const debouncedSearch = useDebouncedValue(searchValue, 200);
   const trimmedSearch = debouncedSearch.trim();
   const hasSearched = trimmedSearch.length >= 3;
   const searchKey = JSON.stringify([trimmedSearch, selectedAssetType]);
-  const retryGeneration = React.useRef(0);
-  const isLoading = hasSearched && searchResponse?.key !== searchKey;
+  const requestGeneration = React.useRef(0);
+  const activeSearchKey = React.useRef<string | null>(null);
+  const isLoading = hasSearched && isSearching;
   const results = React.useMemo(
     () => (hasSearched && searchResponse?.key === searchKey ? searchResponse.results : []),
     [hasSearched, searchResponse, searchKey]
@@ -55,6 +57,25 @@ export function useShareSearch({ initialValue, onSelect }: UseShareSearchProps =
   const normalizedValue =
     initialValue === undefined ? (selection?.value ?? '') : initialValue.trim();
   const selectedShare = selection?.value === normalizedValue ? selection.share : null;
+
+  const setSearchValue = React.useCallback((value: string) => {
+    requestGeneration.current += 1;
+    activeSearchKey.current = null;
+    setSearchValueState(value);
+    setSearchError(null);
+    setIsSearching(value.trim().length >= 3);
+  }, []);
+
+  const setSelectedAssetType = React.useCallback(
+    (assetType: string) => {
+      requestGeneration.current += 1;
+      activeSearchKey.current = null;
+      setSelectedAssetTypeState(assetType);
+      setSearchError(null);
+      setIsSearching(searchValue.trim().length >= 3);
+    },
+    [searchValue]
+  );
 
   // Fetch Asset Types
   React.useEffect(() => {
@@ -68,38 +89,46 @@ export function useShareSearch({ initialValue, onSelect }: UseShareSearchProps =
     };
   }, []);
 
-  // Search Logic
-  React.useEffect(() => {
-    let active = true;
+  const runSearch = React.useCallback(async (key: string, query: string, assetType: string) => {
+    const generation = ++requestGeneration.current;
+    activeSearchKey.current = key;
+    const assetTypeFilter = assetType === 'all' ? undefined : assetType;
 
-    if (!hasSearched) return;
-
-    const assetTypeFilter = selectedAssetType === 'all' ? undefined : selectedAssetType;
-    searchSharesAction(trimmedSearch, assetTypeFilter).then(
-      (result) => {
-        if (!active) return;
-        if (result.error) {
-          setSearchResponse({ key: searchKey, results: [] });
-          setSearchError(searchKey);
-          return;
-        }
-        setSearchResponse({ key: searchKey, results: result.data ?? [] });
-      },
-      () => {
-        if (!active) return;
-        setSearchResponse({ key: searchKey, results: [] });
-        setSearchError(searchKey);
+    try {
+      const result = await searchSharesAction(query, assetTypeFilter);
+      if (generation !== requestGeneration.current) return;
+      if (result.error) {
+        setSearchResponse({ key, results: [] });
+        setSearchError(key);
+        return;
       }
-    );
+      setSearchResponse({ key, results: result.data ?? [] });
+    } catch {
+      if (generation !== requestGeneration.current) return;
+      setSearchResponse({ key, results: [] });
+      setSearchError(key);
+    } finally {
+      if (generation === requestGeneration.current) {
+        activeSearchKey.current = null;
+        setIsSearching(false);
+      }
+    }
+  }, []);
 
-    return () => {
-      active = false;
-    };
-  }, [hasSearched, trimmedSearch, selectedAssetType, searchKey]);
-
+  // The effect and retry both use this one request path. Changing the key first
+  // invalidates any old response, including one that resolves after the selector closes.
   React.useEffect(() => {
-    retryGeneration.current += 1;
-  }, [searchKey]);
+    if (!hasSearched) {
+      requestGeneration.current += 1;
+      activeSearchKey.current = null;
+      return;
+    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- only the asynchronous action settles state.
+    runSearch(searchKey, trimmedSearch, selectedAssetType).catch(() => undefined);
+    return () => {
+      requestGeneration.current += 1;
+    };
+  }, [hasSearched, runSearch, searchKey, selectedAssetType, trimmedSearch]);
 
   // Initial Value Sync
   React.useEffect(() => {
@@ -143,30 +172,14 @@ export function useShareSearch({ initialValue, onSelect }: UseShareSearchProps =
   const clearSearch = React.useCallback(() => {
     setSearchValue('');
     setSearchResponse(null);
-    setSearchError(null);
-  }, []);
+  }, [setSearchValue]);
 
   const retrySearch = React.useCallback(() => {
-    if (!hasSearched) return;
-    const generation = retryGeneration.current + 1;
-    retryGeneration.current = generation;
-    const assetTypeFilter = selectedAssetType === 'all' ? undefined : selectedAssetType;
+    if (!hasSearched || isSearching || activeSearchKey.current === searchKey) return;
+    setIsSearching(true);
     setSearchError(null);
-    searchSharesAction(trimmedSearch, assetTypeFilter).then(
-      (result) => {
-        if (retryGeneration.current !== generation) return;
-        if (result.error) {
-          setSearchError(searchKey);
-          return;
-        }
-        setSearchResponse({ key: searchKey, results: result.data ?? [] });
-        setSearchError(null);
-      },
-      () => {
-        if (retryGeneration.current === generation) setSearchError(searchKey);
-      }
-    );
-  }, [hasSearched, searchKey, selectedAssetType, trimmedSearch]);
+    runSearch(searchKey, trimmedSearch, selectedAssetType).catch(() => undefined);
+  }, [hasSearched, isSearching, runSearch, searchKey, selectedAssetType, trimmedSearch]);
 
   return {
     searchValue,

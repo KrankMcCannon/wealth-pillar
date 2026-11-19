@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useId, useMemo, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Plus, Tag } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { stitchSettings as s } from '@/styles/home-design-foundation';
@@ -35,36 +35,33 @@ export function ManageCategoriesModal({ isOpen, onClose }: Readonly<ManageCatego
   const [filter, setFilter] = useState<'all' | 'group' | 'system'>('all');
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
+  const requestId = useRef(0);
   const refresh = useCallback(async () => {
+    const id = ++requestId.current;
     setLoading(true);
     setFailed(false);
     try {
       const result = await getAllCategoriesAction();
+      if (id !== requestId.current) return;
       if (result.data) useReferenceDataStore.getState().refreshCategories(result.data);
       else setFailed(true);
     } catch {
-      setFailed(true);
+      if (id === requestId.current) setFailed(true);
     } finally {
-      setLoading(false);
+      if (id === requestId.current) setLoading(false);
     }
   }, []);
   useEffect(() => {
-    if (!isOpen) return;
-    let active = true;
-    getAllCategoriesAction()
-      .then((result) => {
-        if (!active) return;
-        if (result.data) useReferenceDataStore.getState().refreshCategories(result.data);
-        else setFailed(true);
-      })
-      .catch(() => {
-        if (active) setFailed(true);
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
+    if (!isOpen) {
+      requestId.current += 1;
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      refresh().catch(() => undefined);
+    }, 0);
     return () => {
-      active = false;
+      window.clearTimeout(timer);
+      requestId.current += 1;
     };
   }, [isOpen, refresh]);
 
@@ -129,7 +126,7 @@ export function ManageCategoriesModal({ isOpen, onClose }: Readonly<ManageCatego
           {filterOptions.map((option) => (
             <label
               key={option.value}
-              className="relative flex min-h-11 min-w-0 flex-1 cursor-pointer items-center justify-center gap-1 rounded-lg px-1 text-sm font-medium has-[:checked]:bg-background has-[:checked]:shadow-sm has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring"
+              className="relative flex min-h-11 min-w-0 flex-1 cursor-pointer items-center justify-center gap-1 rounded-lg px-1 text-sm font-medium has-checked:bg-background has-checked:shadow-sm has-focus-visible:ring-2 has-focus-visible:ring-ring"
             >
               <input
                 type="radio"
@@ -153,15 +150,27 @@ export function ManageCategoriesModal({ isOpen, onClose }: Readonly<ManageCatego
         ) : null}
         {failed ? (
           <div role="alert">
-            <p>{t('loadError')}</p>
-            <button type="button" onClick={() => refresh()} className="min-h-11 underline">
+            <p>{categories.length ? t('refreshError') : t('loadError')}</p>
+            <button
+              type="button"
+              onClick={() => refresh().catch(() => undefined)}
+              className="min-h-11 underline"
+            >
               {t('retry')}
             </button>
           </div>
         ) : null}
-        {!loading && !failed && !hasResults ? (
+        {!loading && !hasResults ? (
           <p role="status" className={s.emptyHint}>
-            {t(normalizedQuery ? 'noResults' : filter === 'system' ? 'emptySystem' : 'emptyCustom')}
+            {t(
+              normalizedQuery
+                ? 'noResults'
+                : filter === 'group'
+                  ? 'emptyCustom'
+                  : filter === 'system'
+                    ? 'emptySystem'
+                    : 'emptyCatalog'
+            )}
           </p>
         ) : null}
         {visibleCustom.length > 0 ? (

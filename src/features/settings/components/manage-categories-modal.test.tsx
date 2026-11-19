@@ -84,6 +84,33 @@ describe('category management with real shared state', () => {
     act(() => useReferenceDataStore.getState().addCategory(category('Appena creata', 'g1')));
     await waitFor(() => expect(screen.getByText('Appena creata')).toBeInTheDocument());
   });
+
+  it('keeps the visible catalog on a failed refresh and discards an obsolete response', async () => {
+    const first = Promise.withResolvers<Awaited<ReturnType<typeof getAllCategoriesAction>>>();
+    const second = Promise.withResolvers<Awaited<ReturnType<typeof getAllCategoriesAction>>>();
+    vi.mocked(getAllCategoriesAction)
+      .mockReturnValueOnce(first.promise)
+      .mockReturnValueOnce(second.promise);
+    const { rerender } = render(<ManageCategoriesModal isOpen onClose={vi.fn()} />);
+    await waitFor(() => expect(getAllCategoriesAction).toHaveBeenCalledTimes(1));
+    rerender(<ManageCategoriesModal isOpen={false} onClose={vi.fn()} />);
+    rerender(<ManageCategoriesModal isOpen onClose={vi.fn()} />);
+    await waitFor(() => expect(getAllCategoriesAction).toHaveBeenCalledTimes(2));
+    await act(async () => {
+      second.resolve({ data: [category('Nuova', 'g1')], error: null });
+    });
+    expect(await screen.findByText('Nuova')).toBeInTheDocument();
+    await act(async () => {
+      first.resolve({ data: [category('Obsoleta', 'g1')], error: null });
+    });
+    expect(screen.queryByText('Obsoleta')).not.toBeInTheDocument();
+
+    vi.mocked(getAllCategoriesAction).mockResolvedValueOnce({ data: null, error: 'offline' });
+    rerender(<ManageCategoriesModal isOpen={false} onClose={vi.fn()} />);
+    rerender(<ManageCategoriesModal isOpen onClose={vi.fn()} />);
+    expect(await screen.findByRole('alert')).toHaveTextContent('refreshError');
+    expect(screen.getByText('Nuova')).toBeInTheDocument();
+  });
 });
 
 it('makes both category scopes directly reachable and searches the loaded catalog', async () => {

@@ -1,8 +1,8 @@
 import neostandard from 'neostandard';
 import nextCoreWebVitals from 'eslint-config-next/core-web-vitals';
-import nextTypescript from 'eslint-config-next/typescript';
 import prettier from 'eslint-config-prettier';
 import pluginPrettier from 'eslint-plugin-prettier';
+import tseslint from 'typescript-eslint';
 
 const eslintConfig = [
   // Neostandard baseline (ESLint 9 flat config, TypeScript, no style rules = Prettier)
@@ -11,9 +11,8 @@ const eslintConfig = [
     noStyle: true,
   }),
 
-  // Next.js presets (React, React Hooks, TypeScript)
+  // Next.js core-web-vitals already includes its TypeScript flat config.
   ...nextCoreWebVitals,
-  ...nextTypescript,
 
   // Ignored paths
   {
@@ -31,6 +30,9 @@ const eslintConfig = [
   // TypeScript type-aware linting (only for .ts/.tsx with project)
   {
     files: ['**/*.ts', '**/*.tsx'],
+    plugins: {
+      '@typescript-eslint': tseslint.plugin,
+    },
     languageOptions: {
       parserOptions: {
         project: true,
@@ -44,6 +46,9 @@ const eslintConfig = [
 
   // TypeScript and quality rules
   {
+    plugins: {
+      '@typescript-eslint': tseslint.plugin,
+    },
     rules: {
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-unused-vars': [

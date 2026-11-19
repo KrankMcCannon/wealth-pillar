@@ -8,6 +8,7 @@ allowBuilds:
   unrs-resolver: true
 
 overrides:
+  typescript-eslint: 8.73.0
   esbuild@<=0.24.2: '>=0.25.0'
   minimatch@<9: 'file:tools/minimatch-compat'
   minimatch@>=9 <11.0.1: '^11.0.1'

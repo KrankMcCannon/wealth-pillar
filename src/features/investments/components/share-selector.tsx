@@ -50,7 +50,12 @@ function renderSearchResults(
     return (
       <div className={styles.empty} role="status">
         <p>{labels.searchFailed}</p>
-        <button type="button" onClick={onRetry} className="mt-2 underline underline-offset-4">
+        <button
+          type="button"
+          onClick={onRetry}
+          disabled={isLoading}
+          className="mt-2 min-h-11 underline underline-offset-4 disabled:opacity-50"
+        >
           {labels.retry}
         </button>
       </div>

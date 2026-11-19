@@ -94,7 +94,9 @@
       "inUseHint": "Usata da transazioni, budget, ricorrenze o importazioni: puoi modificarla, non eliminarla",
       "emptyCustom": "Nessuna categoria personalizzata",
       "emptySystem": "Nessuna categoria predefinita",
+      "emptyCatalog": "Il catalogo categorie è vuoto.",
       "loadError": "Impossibile caricare le categorie.",
+      "refreshError": "Aggiornamento delle categorie non riuscito. Il catalogo mostrato è ancora disponibile.",
       "retry": "Riprova",
       "loading": "Caricamento categorie…",
       "searchPlaceholder": "Cerca categorie…",
@@ -1954,6 +1956,10 @@
           "label": "Colore",
           "placeholder": "#10B981"
         }
+      },
+      "preview": {
+        "label": "Anteprima",
+        "placeholder": "Nuova categoria"
       },
       "buttons": {
         "save": "Salva modifiche",
