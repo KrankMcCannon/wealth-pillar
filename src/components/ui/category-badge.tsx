@@ -6,6 +6,7 @@ import { Icon, iconSizes, getSemanticColor } from '@/lib/icons';
 
 export interface CategoryBadgeProps extends React.HTMLAttributes<HTMLDivElement> {
   categoryKey: string;
+  icon?: string | undefined;
   color?: string; // Icon color (HEX or CSS variable)
   backgroundColor?: string; // Optional override for background color
   size?: keyof typeof iconSizes;
@@ -13,18 +14,13 @@ export interface CategoryBadgeProps extends React.HTMLAttributes<HTMLDivElement>
 
 const DEFAULT_COLOR = 'var(--color-primary)';
 
-function isHexColor(value: string): boolean {
-  const trimmed = value.trim();
-  return /^#[0-9a-fA-F]{3}$/.test(trimmed) || /^#[0-9a-fA-F]{6}$/.test(trimmed);
-}
-
 /**
  * CategoryBadge - Category icon with semantic background.
  *
  * Lightweight icon wrapper used across reports, budgets, series, and transactions.
  */
 export const CategoryBadge = React.forwardRef<HTMLDivElement, CategoryBadgeProps>(
-  ({ categoryKey, color, backgroundColor, size = 'sm', className, style, ...props }, ref) => {
+  ({ categoryKey, icon, color, backgroundColor, size = 'sm', className, style, ...props }, ref) => {
     const safeCategoryKey =
       typeof categoryKey === 'string' && categoryKey.trim() ? categoryKey : 'altro';
     const resolvedColor =
@@ -37,9 +33,7 @@ export const CategoryBadge = React.forwardRef<HTMLDivElement, CategoryBadgeProps
         ? backgroundColor
         : resolvedColor;
 
-    const computedBackground = isHexColor(resolvedBackground)
-      ? `${resolvedBackground}20`
-      : `color-mix(in srgb, ${resolvedBackground}, transparent 88%)`;
+    const computedBackground = `color-mix(in srgb, ${resolvedBackground.trim()}, transparent 88%)`;
 
     return (
       <div
@@ -61,7 +55,8 @@ export const CategoryBadge = React.forwardRef<HTMLDivElement, CategoryBadgeProps
         {...props}
       >
         <Icon
-          icon={safeCategoryKey}
+          icon={icon || safeCategoryKey}
+          fallbackIcon={safeCategoryKey}
           size={iconSizes[size]}
           className="shrink-0"
           color={resolvedColor}

@@ -1,4 +1,5 @@
 import React from 'react';
+import { getIconByName } from '@/features/categories/constants/icon-metadata';
 import {
   // Financial & Banking icons
   ArrowUpRight,
@@ -181,13 +182,26 @@ export const getSemanticColor = (categoryKey: string): string =>
 
 interface IconProps {
   icon: string;
+  fallbackIcon?: string | undefined;
   className?: string | undefined;
   size?: number | undefined;
   color?: string | undefined;
 }
 
-export const Icon: React.FC<IconProps> = ({ icon, className = '', size = 20, color }) => {
-  const IconComponent = iconMapping[icon] || FileText;
+export const Icon: React.FC<IconProps> = ({
+  icon,
+  fallbackIcon,
+  className = '',
+  size = 20,
+  color,
+}) => {
+  const IconComponent =
+    getIconByName(icon)?.component ??
+    (Object.hasOwn(iconMapping, icon) ? iconMapping[icon] : undefined) ??
+    (fallbackIcon && Object.hasOwn(iconMapping, fallbackIcon)
+      ? iconMapping[fallbackIcon]
+      : FileText) ??
+    FileText;
   return (
     <IconComponent
       className={className}

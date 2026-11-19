@@ -3,6 +3,7 @@
 import { useController, type Control, type FieldPath, type FieldValues } from 'react-hook-form';
 import type { Category } from '@/lib/types';
 import { CategorySelect } from '@/components/form/category-select';
+import type { CategoryPickerStep } from '@/components/form/category-picker';
 import { ModalFieldError } from './modal-field-error';
 
 export interface ModalCategoryFieldProps<T extends FieldValues> {
@@ -12,6 +13,7 @@ export interface ModalCategoryFieldProps<T extends FieldValues> {
   label?: string;
   placeholder?: string;
   disabled?: boolean;
+  pickerStep?: CategoryPickerStep | undefined;
 }
 
 export function ModalCategoryField<T extends FieldValues>({
@@ -21,6 +23,7 @@ export function ModalCategoryField<T extends FieldValues>({
   label,
   placeholder,
   disabled,
+  pickerStep,
 }: Readonly<ModalCategoryFieldProps<T>>) {
   const {
     field,
@@ -35,6 +38,7 @@ export function ModalCategoryField<T extends FieldValues>({
         value={field.value ?? ''}
         onValueChange={handleValueChange}
         categories={categories}
+        pickerStep={pickerStep}
         {...(placeholder !== undefined ? { placeholder } : {})}
         {...(disabled !== undefined ? { disabled } : {})}
         {...(label !== undefined ? { captionLabel: label } : {})}

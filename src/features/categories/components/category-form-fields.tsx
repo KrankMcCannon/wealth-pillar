@@ -1,15 +1,13 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { Controller, useWatch, type UseFormReturn } from 'react-hook-form';
+import { Check, ChevronDown } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { cn } from '@/lib';
 import { getColorPalette, isValidColor } from '@/server/use-cases/categories/category.logic';
-import { categoryStyles, getCategoryColorStyle } from '../theme/category-styles';
-import { ModalIconField, ModalTextField, ModalFieldError } from '@/components/form/modal-fields';
-import { formModalStyles as s } from '@/components/form/form-modal-styles';
+import { ModalIconField } from '@/components/form/modal-fields/modal-icon-field';
+import { ModalFieldError } from '@/components/form/modal-fields/modal-field-error';
 import { Input } from '@/components/ui/input';
-import { CategoryBadge } from '@/components/ui/category-badge';
 
 export type CategoryFormData = {
   label: string;
@@ -25,15 +23,17 @@ interface CategoryFormFieldsProps {
 
 export function CategoryFormFields({ form, isEditMode }: CategoryFormFieldsProps) {
   const t = useTranslations('Categories.FormModal');
-  const { control, setValue, formState } = form;
+  const { control, register, setValue, formState } = form;
   const { errors, isSubmitting } = formState;
-
+  const id = useId();
+  const [showCustomColor, setShowCustomColor] = useState(false);
   const watchedLabel = useWatch({ control, name: 'label' });
-  const watchedIcon = useWatch({ control, name: 'icon' });
   const selectedColor = useWatch({ control, name: 'color' });
   const colorPalette = getColorPalette();
-
-  const normalizedSelectedColor = selectedColor?.trim().toUpperCase() ?? '';
+  const normalizedColor = selectedColor?.trim().toUpperCase() ?? '';
+  const validColor = isValidColor(normalizedColor) ? normalizedColor : undefined;
+  const customColor = validColor && !colorPalette.some(({ value }) => value === validColor);
+  const customColorOpen = showCustomColor || Boolean(errors.color);
 
   useEffect(() => {
     if (!isEditMode && watchedLabel) {
@@ -49,140 +49,119 @@ export function CategoryFormFields({ form, isEditMode }: CategoryFormFieldsProps
   }, [watchedLabel, isEditMode, setValue]);
 
   return (
-    <>
-      <div className={s.fieldStack}>
-        <ModalTextField
-          control={control}
-          name="label"
-          label={t('fields.label.label')}
+    <div className="flex min-w-0 flex-col gap-5">
+      <div className="flex flex-col gap-2">
+        <label className="text-base font-medium" htmlFor={`${id}-name`}>
+          {t('fields.label.label')}
+        </label>
+        <Input
+          {...register('label')}
+          id={`${id}-name`}
           placeholder={t('fields.label.placeholder')}
           disabled={isSubmitting}
+          aria-required
+          aria-invalid={Boolean(errors.label)}
+          aria-describedby={errors.label ? `${id}-name-error` : undefined}
+          className="focus-visible:border-ring"
         />
+        {errors.label?.message ? (
+          <ModalFieldError id={`${id}-name-error`} message={errors.label.message} />
+        ) : null}
+      </div>
 
-        <div
-          className="mx-4 flex min-h-11 items-center gap-3 rounded-xl border border-border bg-muted/40 px-3 py-2"
-          aria-live="polite"
-        >
-          <CategoryBadge
-            categoryKey={watchedIcon || 'Tag'}
-            {...(isValidColor(normalizedSelectedColor) ? { color: normalizedSelectedColor } : {})}
-            size="sm"
-            aria-hidden
-          />
-          <div className="min-w-0">
-            <p className="text-xs text-muted-foreground">{t('preview.label')}</p>
-            <p className="truncate font-medium">
-              {watchedLabel?.trim() || t('preview.placeholder')}
-            </p>
-          </div>
-        </div>
+      <ModalIconField
+        control={control}
+        name="icon"
+        label={t('fields.icon.label')}
+        color={validColor}
+        disabled={isSubmitting}
+      />
 
-        <ModalIconField
-          control={control}
-          name="icon"
-          label={t('fields.icon.label')}
-          disabled={isSubmitting}
-        />
-
-        <div className="flex min-w-0 flex-col gap-3 px-4 py-3">
-          <label htmlFor="category-color" className={s.field.textLabel}>
-            {t('fields.color.label')}
-          </label>
-          <div className={categoryStyles.formModal.colorSection}>
-            <div
-              className={categoryStyles.formModal.palette}
-              role="radiogroup"
-              aria-label={t('fields.color.label')}
-            >
-              {colorPalette.map((color) => {
-                const isSelected = normalizedSelectedColor === color.value.toUpperCase();
-
+      <Controller
+        control={control}
+        name="color"
+        render={({ field }) => (
+          <fieldset className="min-w-0 space-y-2" disabled={isSubmitting}>
+            <legend className="mb-1 text-base font-medium">{t('fields.color.label')}</legend>
+            <div className="mx-auto grid w-full max-w-96 grid-cols-[repeat(auto-fit,minmax(2.75rem,1fr))] gap-y-1">
+              {colorPalette.map(({ value }) => {
+                const isSelected = value === normalizedColor;
                 return (
-                  <button
-                    key={color.value}
-                    type="button"
-                    onClick={() =>
-                      setValue('color', color.value, { shouldDirty: true, shouldTouch: true })
-                    }
-                    disabled={isSubmitting}
-                    aria-pressed={undefined}
-                    role="radio"
-                    tabIndex={isSelected ? 0 : -1}
-                    onKeyDown={(event) => {
-                      const step =
-                        event.key === 'ArrowRight' || event.key === 'ArrowDown'
-                          ? 1
-                          : event.key === 'ArrowLeft' || event.key === 'ArrowUp'
-                            ? -1
-                            : 0;
-                      if (!step) return;
-                      event.preventDefault();
-                      const index = colorPalette.findIndex(
-                        (option) => option.value === color.value
-                      );
-                      const next =
-                        colorPalette[(index + step + colorPalette.length) % colorPalette.length]!;
-                      setValue('color', next.value, { shouldDirty: true, shouldTouch: true });
-                      const buttons =
-                        event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>(
-                          '[role="radio"]'
-                        );
-                      buttons?.[
-                        (index + step + colorPalette.length) % colorPalette.length
-                      ]?.focus();
-                    }}
-                    aria-checked={isSelected}
-                    aria-label={color.name}
-                    className={cn(
-                      categoryStyles.formModal.colorButton,
-                      isSelected
-                        ? categoryStyles.formModal.colorActive
-                        : categoryStyles.formModal.colorIdle,
-                      isSubmitting && categoryStyles.formModal.colorDisabled
-                    )}
-                    style={getCategoryColorStyle(color.value)}
-                    title={color.name}
+                  <label
+                    key={value}
+                    className="relative flex min-h-11 min-w-11 cursor-pointer items-center justify-center"
                   >
-                    {isSelected ? (
-                      <div className={categoryStyles.formModal.checkWrap}>
-                        <svg
-                          className={categoryStyles.formModal.checkIcon}
-                          fill="none"
-                          strokeWidth="3"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                          aria-hidden
-                        >
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                        </svg>
-                      </div>
-                    ) : null}
-                  </button>
+                    <input
+                      type="radio"
+                      name={`${id}-palette`}
+                      value={value}
+                      checked={isSelected}
+                      onBlur={field.onBlur}
+                      onChange={() => field.onChange(value)}
+                      aria-label={t(`fields.color.names.${value.slice(1)}`)}
+                      className="peer sr-only"
+                    />
+                    <span
+                      className="flex size-7 items-center justify-center rounded-full border border-foreground/15 peer-checked:ring-2 peer-checked:ring-foreground peer-checked:ring-offset-2 peer-checked:ring-offset-background peer-focus-visible:outline-2 peer-focus-visible:outline-offset-4 peer-focus-visible:outline-ring"
+                      style={{ backgroundColor: value }}
+                      aria-hidden
+                    >
+                      {isSelected ? (
+                        <span className="grid size-4 place-items-center rounded-full bg-background text-foreground">
+                          <Check className="size-3" strokeWidth={3} />
+                        </span>
+                      ) : null}
+                    </span>
+                  </label>
                 );
               })}
             </div>
-            <Controller
-              control={control}
-              name="color"
-              render={({ field }) => (
+
+            <button
+              type="button"
+              aria-expanded={customColorOpen}
+              aria-controls={customColorOpen ? `${id}-custom` : undefined}
+              onClick={() => setShowCustomColor(!customColorOpen)}
+              className="flex min-h-11 w-full items-center gap-2 rounded-lg px-2 text-left text-sm font-medium text-muted-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"
+            >
+              <span className="flex-1">{t('fields.color.custom')}</span>
+              {customColor ? (
+                <span
+                  className="size-4 rounded-full border border-foreground/15"
+                  style={{ backgroundColor: validColor }}
+                  aria-hidden
+                />
+              ) : null}
+              <ChevronDown
+                className={customColorOpen ? 'size-4 rotate-180' : 'size-4'}
+                aria-hidden
+              />
+            </button>
+
+            {customColorOpen ? (
+              <div id={`${id}-custom`} className="flex flex-col gap-2">
+                <label className="text-sm font-medium" htmlFor={`${id}-hex`}>
+                  {t('fields.color.hex')}
+                </label>
                 <Input
                   {...field}
-                  id="category-color"
-                  aria-invalid={!!errors.color}
-                  aria-describedby={errors.color ? 'category-color-error' : undefined}
+                  id={`${id}-hex`}
                   value={field.value ?? ''}
                   placeholder={t('fields.color.placeholder')}
-                  disabled={isSubmitting}
-                  className="w-full font-mono"
+                  autoComplete="off"
+                  spellCheck={false}
+                  aria-invalid={Boolean(errors.color)}
+                  aria-describedby={errors.color ? `${id}-color-error` : undefined}
+                  className="font-mono focus-visible:border-ring"
                 />
-              )}
-            />
-          </div>
-          {errors.color?.message ? (
-            <ModalFieldError id="category-color-error" message={errors.color.message} />
-          ) : null}
-        </div>
-      </div>
-    </>
+                {errors.color?.message ? (
+                  <ModalFieldError id={`${id}-color-error`} message={errors.color.message} />
+                ) : null}
+              </div>
+            ) : null}
+          </fieldset>
+        )}
+      />
+    </div>
   );
 }

@@ -52,8 +52,25 @@ test('creates a transaction and keeps it after a reload', async ({ page }) => {
   const dialog = page.getByRole('dialog');
   await dialog.getByLabel('Descrizione', { exact: true }).fill(description);
   await dialog.locator('input[placeholder="0,00"]').fill('10');
-  await dialog.getByRole('combobox', { name: 'Categoria', exact: true }).click();
-  await page.getByRole('option', { name: 'E2E Food', exact: true }).click();
+  const category = dialog.getByRole('combobox', { name: 'Categoria', exact: true });
+  await category.click();
+  await expect(dialog).toHaveCount(1);
+  await expect(dialog).toHaveAccessibleName('Scegli categoria');
+  const search = dialog.getByRole('searchbox', { name: 'Cerca per nome' });
+  await search.fill('zzz');
+  await expect(dialog.getByRole('status')).toContainText('Nessuna categoria trovata');
+  await search.press('Escape');
+  await expect(category).toBeFocused();
+  await expect(dialog.getByLabel('Descrizione', { exact: true })).toHaveValue(description);
+  await expect(dialog.locator('input[placeholder="0,00"]')).toHaveValue('10.00');
+  await category.click();
+  await expect(search).toHaveValue('');
+  await search.fill('food');
+  await search.press('ArrowDown');
+  const result = dialog.getByRole('option', { name: 'E2E Food', exact: true });
+  await expect(result).toBeFocused();
+  await result.press('Enter');
+  await expect(category).toContainText('E2E Food');
   await dialog.getByRole('button', { name: 'Crea transazione', exact: true }).click();
   await expect(dialog).toBeHidden();
   await expect(

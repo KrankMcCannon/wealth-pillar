@@ -15,6 +15,7 @@ import {
 } from '@/components/form';
 import { toSelectOptions, sortSelectOptions } from '@/components/form/form-select';
 import { accountSelectLabel } from '../utils/transfer-destinations';
+import type { CategoryPickerStep } from '@/components/form/category-picker';
 
 export type TransactionFormData = {
   description: string;
@@ -38,6 +39,7 @@ interface TransactionFormFieldsProps {
   isSubmitting: boolean;
   allowTransfers?: boolean;
   accountDisabled?: boolean;
+  categoryPickerStep?: CategoryPickerStep | undefined;
 }
 
 export function TransactionFormFields({
@@ -50,6 +52,7 @@ export function TransactionFormFields({
   isSubmitting,
   allowTransfers = true,
   accountDisabled = false,
+  categoryPickerStep,
 }: TransactionFormFieldsProps) {
   const t = useTranslations('Transactions.FormModal');
   const { control } = form;
@@ -126,6 +129,7 @@ export function TransactionFormFields({
           control={control}
           name="category"
           categories={categories}
+          pickerStep={categoryPickerStep}
           label={t('fields.category.label')}
           placeholder={t('fields.category.placeholder')}
           disabled={isSubmitting}

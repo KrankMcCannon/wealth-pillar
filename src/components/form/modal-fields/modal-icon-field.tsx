@@ -9,6 +9,7 @@ export interface ModalIconFieldProps<T extends FieldValues> {
   name: FieldPath<T>;
   label?: string;
   disabled?: boolean;
+  color?: string | undefined;
 }
 
 export function ModalIconField<T extends FieldValues>({
@@ -16,6 +17,7 @@ export function ModalIconField<T extends FieldValues>({
   name,
   label,
   disabled,
+  color,
 }: Readonly<ModalIconFieldProps<T>>) {
   const {
     field,
@@ -23,13 +25,12 @@ export function ModalIconField<T extends FieldValues>({
   } = useController({ control, name });
 
   return (
-    <ModalFormField
-      {...(label !== undefined ? { label } : {})}
-      {...(error?.message !== undefined ? { error: error.message } : {})}
-    >
+    <ModalFormField {...(error?.message !== undefined ? { error: error.message } : {})}>
       <IconPicker
         value={field.value ?? ''}
         disabled={disabled}
+        label={label}
+        color={color}
         onChange={disabled ? () => undefined : field.onChange}
       />
     </ModalFormField>

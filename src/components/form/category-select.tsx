@@ -1,7 +1,7 @@
 'use client';
 
 import type { Category } from '@/lib/types';
-import { CategoryPicker } from './category-picker';
+import { CategoryPicker, type CategoryPickerStep } from './category-picker';
 
 export interface CategorySelectProps {
   value: string;
@@ -13,12 +13,23 @@ export interface CategorySelectProps {
   showRecentCategories?: boolean;
   recentCategoriesLimit?: number;
   captionLabel?: string;
+  pickerStep?: CategoryPickerStep | undefined;
 }
 export function findCategoryByValue(categories: Category[], value: string | undefined) {
   return value
     ? categories.find((category) => category.key === value || category.id === value)
     : undefined;
 }
+
+export function toCategoryPickerOptions(categories: Category[]) {
+  return categories.map((category) => ({
+    value: category.key,
+    label: category.label,
+    color: category.color,
+    categoryIcon: category.icon,
+  }));
+}
+
 export function CategorySelect({
   value,
   onValueChange,
@@ -27,15 +38,11 @@ export function CategorySelect({
   disabled,
   className,
   captionLabel,
+  pickerStep,
 }: CategorySelectProps) {
   return (
     <CategoryPicker
-      options={categories.map((category) => ({
-        value: category.key,
-        label: category.label,
-        color: category.color,
-        categoryIcon: category.icon,
-      }))}
+      options={toCategoryPickerOptions(categories)}
       value={[findCategoryByValue(categories, value)?.key ?? value]}
       onChange={(keys) => {
         if (keys[0]) onValueChange(keys[0]);
@@ -44,6 +51,7 @@ export function CategorySelect({
       placeholder={placeholder}
       disabled={disabled}
       className={className}
+      step={pickerStep}
     />
   );
 }
