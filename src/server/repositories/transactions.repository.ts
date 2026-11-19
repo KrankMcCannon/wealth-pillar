@@ -34,6 +34,8 @@ export interface TransactionFilterOptions {
   cursorAfter?: TransactionCursorAfter;
   /** When false, skips COUNT(*) and uses limit+1 overflow for hasMore (keyset / infinite scroll). Default false. */
   countTotal?: boolean;
+  /** Reserve drill-through: classify both accounts in SQL before keyset pagination. */
+  reserveViewerId?: string;
 }
 
 export type TransactionLedgerRow = Omit<typeof transactions.$inferSelect, 'created_at'> & {
@@ -184,6 +186,38 @@ export class TransactionsRepository {
     }
     if (options?.type) {
       filterConditions.push(eq(transactions.type, options.type));
+    }
+    if (options?.reserveViewerId !== undefined) {
+      // Keep this predicate on transactions.type so PostgreSQL can use the partial
+      // transfer keyset index. Both account rows are constrained to the movement's
+      // group; the attribution exactly mirrors classifyMovement: destination's sole
+      // owner, then source's sole owner, then the transaction user.
+      filterConditions.push(
+        sql`${transactions.type} = 'transfer' and exists (
+          select 1
+          from accounts reserve_source
+          inner join accounts reserve_destination
+            on reserve_destination.id = ${transactions.to_account_id}
+           and reserve_destination.group_id = ${transactions.group_id}
+          where reserve_source.id = ${transactions.account_id}
+            and reserve_source.group_id = ${transactions.group_id}
+            and (
+              (coalesce(reserve_source.liquidity, case when reserve_source.type in ('savings', 'investments') then 'reserve' else 'spendable' end) = 'spendable'
+               and coalesce(reserve_destination.liquidity, case when reserve_destination.type in ('savings', 'investments') then 'reserve' else 'spendable' end) = 'reserve')
+              or
+              (coalesce(reserve_source.liquidity, case when reserve_source.type in ('savings', 'investments') then 'reserve' else 'spendable' end) = 'reserve'
+               and coalesce(reserve_destination.liquidity, case when reserve_destination.type in ('savings', 'investments') then 'reserve' else 'spendable' end) = 'spendable')
+            )
+            and (
+              ${options.reserveViewerId}::uuid is null
+              or coalesce(
+                case when cardinality(reserve_destination.user_ids) = 1 then reserve_destination.user_ids[1] end,
+                case when cardinality(reserve_source.user_ids) = 1 then reserve_source.user_ids[1] end,
+                ${transactions.user_id}
+              ) = ${options.reserveViewerId}::uuid
+            )
+        )`
+      );
     }
     if (options?.accountId) {
       filterConditions.push(

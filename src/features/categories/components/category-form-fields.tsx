@@ -4,11 +4,12 @@ import { useEffect } from 'react';
 import { Controller, useWatch, type UseFormReturn } from 'react-hook-form';
 import { useTranslations } from 'next-intl';
 import { cn } from '@/lib';
-import { getColorPalette } from '@/server/use-cases/categories/category.logic';
+import { getColorPalette, isValidColor } from '@/server/use-cases/categories/category.logic';
 import { categoryStyles, getCategoryColorStyle } from '../theme/category-styles';
 import { ModalIconField, ModalTextField, ModalFieldError } from '@/components/form/modal-fields';
 import { formModalStyles as s } from '@/components/form/form-modal-styles';
 import { Input } from '@/components/ui/input';
+import { CategoryBadge } from '@/components/ui/category-badge';
 
 export type CategoryFormData = {
   label: string;
@@ -28,6 +29,7 @@ export function CategoryFormFields({ form, isEditMode }: CategoryFormFieldsProps
   const { errors, isSubmitting } = formState;
 
   const watchedLabel = useWatch({ control, name: 'label' });
+  const watchedIcon = useWatch({ control, name: 'icon' });
   const selectedColor = useWatch({ control, name: 'color' });
   const colorPalette = getColorPalette();
 
@@ -56,6 +58,24 @@ export function CategoryFormFields({ form, isEditMode }: CategoryFormFieldsProps
           placeholder={t('fields.label.placeholder')}
           disabled={isSubmitting}
         />
+
+        <div
+          className="mx-4 flex min-h-11 items-center gap-3 rounded-xl border border-border bg-muted/40 px-3 py-2"
+          aria-live="polite"
+        >
+          <CategoryBadge
+            categoryKey={watchedIcon || 'Tag'}
+            {...(isValidColor(normalizedSelectedColor) ? { color: normalizedSelectedColor } : {})}
+            size="sm"
+            aria-hidden
+          />
+          <div className="min-w-0">
+            <p className="text-xs text-muted-foreground">{t('preview.label')}</p>
+            <p className="truncate font-medium">
+              {watchedLabel?.trim() || t('preview.placeholder')}
+            </p>
+          </div>
+        </div>
 
         <ModalIconField
           control={control}

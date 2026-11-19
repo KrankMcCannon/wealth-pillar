@@ -34,6 +34,7 @@ export function CategorySelect({
         value: category.key,
         label: category.label,
         color: category.color,
+        categoryIcon: category.icon,
       }))}
       value={[findCategoryByValue(categories, value)?.key ?? value]}
       onChange={(keys) => {

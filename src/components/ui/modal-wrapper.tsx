@@ -113,8 +113,9 @@ export function ModalWrapper({
         </DrawerHeader>
 
         {isLoading ? (
-          <div className={modalS.shell.loadingWrap}>
+          <div className={modalS.shell.loadingWrap} role="status" aria-live="polite">
             <Spinner className="size-10 text-modal-fg-muted" />
+            <span className="sr-only">{tCommon('PageLoader.message')}</span>
           </div>
         ) : (
           <div className={modalS.shell.body}>{children}</div>

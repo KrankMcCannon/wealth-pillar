@@ -1,16 +1,18 @@
 'use client';
 
-import { useId, useMemo, useState } from 'react';
+import { useId, useMemo, useRef, useState } from 'react';
 import { Check, ChevronRight, Search } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { ModalWrapper, ModalFooter } from '@/components/ui/modal-wrapper';
 import { cn } from '@/lib/utils';
 import { formModalStyles as s } from './form-modal-styles';
+import { CategoryBadge } from '@/components/ui/category-badge';
 
 export type CategoryPickerOption = {
   value: string;
   label: string;
   color?: string | null;
+  categoryIcon?: string | null;
   description?: string;
 };
 
@@ -40,27 +42,35 @@ export function CategoryPicker({
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
   const id = useId();
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const selected = options.filter((option) => value.includes(option.value));
   const summary = selected.map((option) => option.label).join(', ');
-  const filtered = useMemo(
-    () =>
-      options
-        .filter((option) =>
-          `${option.label} ${option.description ?? ''}`
-            .toLocaleLowerCase(locale)
-            .includes(search.trim().toLocaleLowerCase(locale))
-        )
-        .sort((a, b) => a.label.localeCompare(b.label, locale)),
-    [options, search, locale]
-  );
+  const filtered = useMemo(() => {
+    const normalize = (value: string) =>
+      value
+        .normalize('NFD')
+        .replaceAll(/[\u0300-\u036f]/g, '')
+        .toLocaleLowerCase(locale);
+    const normalizedSearch = normalize(search.trim());
+    const matches = options
+      .filter((option) =>
+        normalize(`${option.label} ${option.description ?? ''}`).includes(normalizedSearch)
+      )
+      .sort((a, b) => a.label.localeCompare(b.label, locale));
+    if (normalizedSearch || !selected.length) return matches;
+    const selectedValues = new Set(selected.map((option) => option.value));
+    return [...selected, ...matches.filter((option) => !selectedValues.has(option.value))];
+  }, [options, search, locale, selected]);
   function close() {
     setOpen(false);
     setSearch('');
+    requestAnimationFrame(() => triggerRef.current?.focus());
   }
   return (
     <>
       <button
         type="button"
+        ref={triggerRef}
         role="combobox"
         aria-haspopup="dialog"
         aria-expanded={open}
@@ -141,12 +151,21 @@ export function CategoryPicker({
                   if (!multiple) close();
                 }}
               >
-                <span
-                  className="size-3 shrink-0 rounded-full border border-foreground/20"
-                  style={{ backgroundColor: option.color ?? undefined }}
-                  aria-hidden
-                />
-                <span className="min-w-0 flex-1 break-words">
+                {option.categoryIcon ? (
+                  <CategoryBadge
+                    categoryKey={option.categoryIcon}
+                    {...(option.color ? { color: option.color } : {})}
+                    size="xs"
+                    aria-hidden
+                  />
+                ) : (
+                  <span
+                    className="size-3 shrink-0 rounded-full border border-foreground/20"
+                    style={{ backgroundColor: option.color ?? undefined }}
+                    aria-hidden
+                  />
+                )}
+                <span className="min-w-0 flex-1 wrap-break-word">
                   <span className="block text-base font-medium">{option.label}</span>
                   {option.description ? (
                     <span className="block text-sm text-muted-foreground">

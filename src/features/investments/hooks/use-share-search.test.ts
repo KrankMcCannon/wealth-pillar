@@ -133,6 +133,29 @@ it('retries the same query and asset type without accepting an obsolete retry re
   expect(result.current.results).toEqual([]);
 });
 
+it('starts one retry at a time and immediately exposes its loading state', async () => {
+  const retry = Promise.withResolvers<Awaited<ReturnType<typeof searchSharesAction>>>();
+  vi.mocked(searchSharesAction)
+    .mockResolvedValueOnce({ data: null, error: 'offline' })
+    .mockReturnValueOnce(retry.promise);
+  const { result } = renderHook(() => useShareSearch());
+  act(() => result.current.setSearchValue('apple'));
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(200);
+  });
+  expect(result.current.searchFailed).toBe(true);
+  act(() => {
+    result.current.retrySearch();
+    result.current.retrySearch();
+  });
+  expect(result.current.isLoading).toBe(true);
+  expect(searchSharesAction).toHaveBeenCalledTimes(2);
+  await act(async () => {
+    retry.resolve({ data: [], error: null });
+  });
+  expect(result.current.isLoading).toBe(false);
+});
+
 it('clears a controlled selection and ignores an obsolete symbol lookup', async () => {
   const old = Promise.withResolvers<Awaited<ReturnType<typeof getShareBySymbolAction>>>();
   vi.mocked(getShareBySymbolAction)
