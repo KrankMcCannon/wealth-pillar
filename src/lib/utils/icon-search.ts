@@ -1,7 +1,10 @@
 import Fuse from 'fuse.js';
 import type { IFuseOptions } from 'fuse.js';
-import type { IconMetadata, IconCategory } from '@/features/categories';
-import { ICON_METADATA } from '@/features/categories';
+import {
+  ICON_METADATA,
+  type IconMetadata,
+  type IconCategory,
+} from '@/features/categories/constants';
 
 /**
  * Fuzzy Search Utility for Icons

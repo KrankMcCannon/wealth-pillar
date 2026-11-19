@@ -1954,12 +1954,28 @@
         },
         "color": {
           "label": "Colore",
-          "placeholder": "#10B981"
+          "custom": "Colore personalizzato",
+          "hex": "Codice esadecimale",
+          "placeholder": "#10B981",
+          "names": {
+            "EF4444": "Rosso",
+            "F97316": "Arancione",
+            "F59E0B": "Ambra",
+            "EAB308": "Giallo",
+            "22C55E": "Verde",
+            "10B981": "Smeraldo",
+            "14B8A6": "Turchese",
+            "06B6D4": "Ciano",
+            "3B82F6": "Blu",
+            "6366F1": "Indaco",
+            "8B5CF6": "Viola",
+            "A855F7": "Porpora",
+            "EC4899": "Rosa",
+            "D946EF": "Fucsia",
+            "6B7280": "Grigio",
+            "475569": "Ardesia"
+          }
         }
-      },
-      "preview": {
-        "label": "Anteprima",
-        "placeholder": "Nuova categoria"
       },
       "buttons": {
         "save": "Salva modifiche",
@@ -2132,8 +2148,13 @@
       "empty": "Nessun risultato trovato"
     },
     "CategorySelect": {
+      "title": "Scegli categoria",
+      "backToTransaction": "Torna alla transazione",
       "placeholder": "Seleziona categoria",
-      "searchPlaceholder": "Cerca categoria...",
+      "searchPlaceholder": "Cerca per nome",
+      "clearSearch": "Cancella ricerca",
+      "tryAnotherSearch": "Prova con un altro nome.",
+      "noCategories": "Non ci sono categorie disponibili.",
       "recent": "Recenti",
       "allCategories": "Tutte le categorie",
       "empty": "Nessuna categoria trovata"
@@ -2180,6 +2201,8 @@
       }
     },
     "IconPicker": {
+      "change": "Cambia",
+      "choose": "Scegli",
       "searchPlaceholder": "Cerca icona...",
       "searchAria": "Cerca icona per nome o parola chiave",
       "clearSearchAria": "Cancella ricerca",

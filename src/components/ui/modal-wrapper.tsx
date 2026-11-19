@@ -37,6 +37,9 @@ export interface ModalWrapperProps {
   /** Compact centered card for sequential confirmations. */
   presentation?: 'sheet' | 'alert';
   leadingAction?: React.ReactNode;
+  contentId?: string | undefined;
+  onEscapeKeyDown?: ((event: KeyboardEvent) => void) | undefined;
+  fitVisualViewport?: boolean;
 }
 
 export function ModalWrapper({
@@ -57,10 +60,37 @@ export function ModalWrapper({
   drawerCloseClassName,
   presentation = 'sheet',
   leadingAction,
+  contentId,
+  onEscapeKeyDown,
+  fitVisualViewport = false,
 }: Readonly<ModalWrapperProps>) {
   const tCommon = useTranslations('Common');
   const DrawerRoot = nested ? DrawerNested : Drawer;
   const isAlert = presentation === 'alert';
+  const contentRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const viewport = window.visualViewport;
+    const content = contentRef.current;
+    if (!fitVisualViewport || !isOpen || !viewport || !content) return;
+
+    function update() {
+      if (!viewport || !content) return;
+      const inset = Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop);
+      content.style.setProperty('--sheet-viewport-height', `${viewport.height}px`);
+      content.style.setProperty('--sheet-keyboard-inset', `${inset}px`);
+    }
+
+    update();
+    viewport.addEventListener('resize', update);
+    viewport.addEventListener('scroll', update);
+    return () => {
+      viewport.removeEventListener('resize', update);
+      viewport.removeEventListener('scroll', update);
+      content.style.removeProperty('--sheet-viewport-height');
+      content.style.removeProperty('--sheet-keyboard-inset');
+    };
+  }, [fitVisualViewport, isOpen]);
 
   const handleOpenChange = React.useCallback(
     (open: boolean) => {
@@ -81,8 +111,13 @@ export function ModalWrapper({
       shouldScaleBackground={false}
     >
       <DrawerContent
+        ref={contentRef}
+        {...(contentId ? { id: contentId } : {})}
+        onEscapeKeyDown={onEscapeKeyDown}
         className={cn(
           isAlert ? modalS.drawerShell.alertContent : modalS.shell.formContent,
+          fitVisualViewport &&
+            'max-md:bottom-(--sheet-keyboard-inset,0px) max-md:max-h-[min(90dvh,var(--sheet-viewport-height,90dvh))]',
           className
         )}
       >

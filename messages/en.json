@@ -1954,12 +1954,28 @@
         },
         "color": {
           "label": "Color",
-          "placeholder": "#10B981"
+          "custom": "Custom color",
+          "hex": "Hex code",
+          "placeholder": "#10B981",
+          "names": {
+            "EF4444": "Red",
+            "F97316": "Orange",
+            "F59E0B": "Amber",
+            "EAB308": "Yellow",
+            "22C55E": "Green",
+            "10B981": "Emerald",
+            "14B8A6": "Turquoise",
+            "06B6D4": "Cyan",
+            "3B82F6": "Blue",
+            "6366F1": "Indigo",
+            "8B5CF6": "Violet",
+            "A855F7": "Purple",
+            "EC4899": "Pink",
+            "D946EF": "Fuchsia",
+            "6B7280": "Gray",
+            "475569": "Slate"
+          }
         }
-      },
-      "preview": {
-        "label": "Preview",
-        "placeholder": "New category"
       },
       "buttons": {
         "save": "Save changes",
@@ -2132,8 +2148,13 @@
       "empty": "No results found"
     },
     "CategorySelect": {
+      "title": "Choose a category",
+      "backToTransaction": "Back to transaction",
       "placeholder": "Select category",
-      "searchPlaceholder": "Search category...",
+      "searchPlaceholder": "Search by name",
+      "clearSearch": "Clear search",
+      "tryAnotherSearch": "Try a different name.",
+      "noCategories": "No categories available.",
       "recent": "Recent",
       "allCategories": "All categories",
       "empty": "No category found"
@@ -2180,6 +2201,8 @@
       }
     },
     "IconPicker": {
+      "change": "Change",
+      "choose": "Choose",
       "searchPlaceholder": "Search icon...",
       "searchAria": "Search icon by name or keyword",
       "clearSearchAria": "Clear search",

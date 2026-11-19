@@ -9,7 +9,6 @@ import { useLocale, useTranslations } from 'next-intl';
 import type { Category } from '@/lib';
 import { getTempId } from '@/lib/utils/temp-id';
 import { getDefaultColor, isValidColor } from '@/server/use-cases/categories/category.logic';
-import { categoryStyles } from '../theme/category-styles';
 import {
   createCategoryAction,
   updateCategoryAction,
@@ -62,7 +61,7 @@ function CategoryFormModal({ isOpen, onClose, editId }: Readonly<CategoryFormMod
   const categorySchema = useMemo(
     () =>
       z.object({
-        label: z.string().min(1, t('validation.labelRequired')).trim(),
+        label: z.string().trim().min(1, t('validation.labelRequired')),
         key: z.string().min(1, t('validation.keyRequired')).trim(),
         icon: z.string().min(1, t('validation.iconRequired')).trim(),
         color: z
@@ -80,7 +79,7 @@ function CategoryFormModal({ isOpen, onClose, editId }: Readonly<CategoryFormMod
     (): CategoryFormData => ({
       label: '',
       key: '',
-      icon: '',
+      icon: 'Tag',
       color: getDefaultColor(),
     }),
     []
@@ -274,7 +273,8 @@ function CategoryFormModal({ isOpen, onClose, editId }: Readonly<CategoryFormMod
       schema={categorySchema}
       defaultValues={createDefaults}
       resetValues={resetValues ?? createDefaults}
-      formClassName={categoryStyles.formModal.form}
+      bodyClassName="px-4 py-4 sm:px-6 sm:py-5"
+      wrapperProps={{ className: 'max-w-md' }}
       {...(canDelete
         ? {
             deletion: {

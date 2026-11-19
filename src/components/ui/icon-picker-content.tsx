@@ -8,8 +8,12 @@ import { Button } from './button';
 import { ModalSearchInput } from '@/components/form/modal-fields/modal-search-input';
 import { Tabs, TabsList, TabsTrigger } from './tabs';
 import { searchIcons } from '@/lib/utils/icon-search';
-import type { IconCategory } from '@/features/categories';
-import { CATEGORIES, ICON_METADATA, getIconByName } from '@/features/categories';
+import {
+  CATEGORIES,
+  ICON_METADATA,
+  getIconByName,
+  type IconCategory,
+} from '@/features/categories/constants';
 import { iconPickerStyles as styles } from './icon-picker-styles';
 
 const DEBOUNCE_DELAY = 300;

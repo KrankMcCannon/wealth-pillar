@@ -11,7 +11,7 @@ import {
 import { useTranslations } from 'next-intl';
 import { withDeadline, ActionTimeoutError } from '@/lib/utils/with-deadline';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Trash2 } from 'lucide-react';
+import { ArrowLeft, Trash2 } from 'lucide-react';
 import type { ZodType } from 'zod';
 import { cn } from '@/lib/utils';
 import {
@@ -70,6 +70,14 @@ export interface EntityFormModalProps<T extends FieldValues> {
   autoRootError?: boolean;
   loadFailed?: boolean;
   onRetryLoad?: () => void;
+  step?:
+    | {
+        title: string;
+        backLabel: string;
+        onBack: () => void;
+        render: (form: UseFormReturn<T>) => ReactNode;
+      }
+    | undefined;
 }
 
 export function EntityFormModal<T extends FieldValues>({
@@ -94,6 +102,7 @@ export function EntityFormModal<T extends FieldValues>({
   autoRootError = true,
   loadFailed = false,
   onRetryLoad,
+  step,
 }: EntityFormModalProps<T>) {
   const tStatus = useTranslations('FormStatus');
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -160,14 +169,35 @@ export function EntityFormModal<T extends FieldValues>({
       <ModalWrapper
         isOpen={formOpen}
         onOpenChange={onClose}
-        title={title}
+        title={step?.title ?? title}
         {...(description !== undefined ? { description } : {})}
-        disableOutsideClose={disableOutsideClose || isDeleting || form.formState.isSubmitting}
-        repositionInputs={repositionInputs}
+        disableOutsideClose={
+          disableOutsideClose || isDeleting || form.formState.isSubmitting || Boolean(step)
+        }
+        repositionInputs={!step && repositionInputs}
+        fitVisualViewport={Boolean(step)}
         isLoading={isLoading}
         {...wrapperProps}
+        showCloseButton={step ? false : (wrapperProps?.showCloseButton ?? true)}
+        onEscapeKeyDown={
+          step
+            ? (event) => {
+                event.preventDefault();
+                step.onBack();
+              }
+            : wrapperProps?.onEscapeKeyDown
+        }
         leadingAction={
-          deletion?.enabled ? (
+          step ? (
+            <button
+              type="button"
+              onClick={step.onBack}
+              className={formModalStyles.shell.closeButton}
+              aria-label={step.backLabel}
+            >
+              <ArrowLeft className="size-5" aria-hidden />
+            </button>
+          ) : deletion?.enabled ? (
             <button
               type="button"
               data-testid={deletion.testId}
@@ -181,7 +211,11 @@ export function EntityFormModal<T extends FieldValues>({
           ) : undefined
         }
       >
-        <form onSubmit={handleSubmit} className={cn('flex min-h-0 flex-1 flex-col', formClassName)}>
+        <form
+          hidden={Boolean(step)}
+          onSubmit={handleSubmit}
+          className={cn('flex min-h-0 flex-1 flex-col', formClassName)}
+        >
           <ModalBody className={bodyClassName}>
             <FieldGroup className={formModalStyles.fieldsColumn}>
               {loadFailed ? (
@@ -204,6 +238,7 @@ export function EntityFormModal<T extends FieldValues>({
             </ModalFooter>
           ) : null}
         </form>
+        {step?.render(form)}
       </ModalWrapper>
 
       {deletion ? (

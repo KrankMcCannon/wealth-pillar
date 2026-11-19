@@ -939,8 +939,11 @@ export function getIconsByCategory(category: IconCategory): IconMetadata[] {
 /**
  * Get icon metadata by name
  */
+const normalizeIconName = (name: string) => name.trim().toLowerCase().replaceAll('-', '');
+const iconsByName = new Map(ICON_METADATA.map((icon) => [normalizeIconName(icon.name), icon]));
+
 export function getIconByName(name: string): IconMetadata | undefined {
-  return ICON_METADATA.find((icon) => icon.name === name);
+  return iconsByName.get(normalizeIconName(name));
 }
 
 /**

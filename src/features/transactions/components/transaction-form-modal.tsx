@@ -11,7 +11,7 @@ import { resolveTransactionCreateContext } from '../utils/create-transaction-con
 import { createTransactionFormSchema } from '../utils/transaction-form-schema';
 import { todayDateString } from '@/lib/utils/date-utils';
 
-import { useEffect, useMemo, useCallback, useRef } from 'react';
+import { useEffect, useId, useMemo, useCallback, useRef, useState } from 'react';
 import { useWatch, type UseFormReturn } from 'react-hook-form';
 import { useTranslations } from 'next-intl';
 import {
@@ -43,6 +43,8 @@ import { mapTransactionToFormData } from '../utils/transaction-form-data';
 import { buildTransactionPayload } from '../utils/build-transaction-payload';
 import { getTransferDestinationAccounts } from '../utils/transfer-destinations';
 import { TransactionFormFields, type TransactionFormData } from './transaction-form-fields';
+import { CategoryPickerList, type CategoryPickerStep } from '@/components/form/category-picker';
+import { findCategoryByValue, toCategoryPickerOptions } from '@/components/form/category-select';
 
 interface TransactionFormModalProps {
   isOpen: boolean;
@@ -59,6 +61,7 @@ function TransactionFormModalBody({
   shouldDisableUserField,
   userFieldHelperText,
   isSubmitting,
+  categoryPickerStep,
 }: Readonly<{
   form: UseFormReturn<TransactionFormData>;
   isEditMode: boolean;
@@ -68,6 +71,7 @@ function TransactionFormModalBody({
   shouldDisableUserField: boolean;
   userFieldHelperText?: string | undefined;
   isSubmitting: boolean;
+  categoryPickerStep: CategoryPickerStep;
 }>) {
   const { control, setValue, clearErrors } = form;
   const watchedUserId = useWatch({ control, name: 'user_id' });
@@ -147,6 +151,39 @@ function TransactionFormModalBody({
       shouldDisableUserField={shouldDisableUserField}
       userFieldHelperText={userFieldHelperText}
       isSubmitting={isSubmitting}
+      categoryPickerStep={categoryPickerStep}
+    />
+  );
+}
+
+function TransactionCategoryStep({
+  form,
+  categories,
+  listId,
+  onBack,
+}: Readonly<{
+  form: UseFormReturn<TransactionFormData>;
+  categories: Category[];
+  listId: string;
+  onBack: () => void;
+}>) {
+  const t = useTranslations('Forms.CategorySelect');
+  const value = useWatch({ control: form.control, name: 'category' });
+  return (
+    <CategoryPickerList
+      id={listId}
+      label={t('title')}
+      options={toCategoryPickerOptions(categories)}
+      value={[findCategoryByValue(categories, value)?.key ?? value]}
+      onSelect={(key) => {
+        form.setValue('category', key, {
+          shouldDirty: true,
+          shouldTouch: true,
+          shouldValidate: true,
+        });
+        onBack();
+      }}
+      focusOnMount
     />
   );
 }
@@ -156,12 +193,16 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
 
   const router = useRouter();
   const t = useTranslations('Transactions.FormModal');
+  const tCategory = useTranslations('Forms.CategorySelect');
   const tPage = useTranslations('TransactionsContent');
   const tStatus = useTranslations('FormStatus');
   const { currentUser, groupUsers, groupId, shouldDisableUserField, userFieldHelperText } =
     useEntityFormPermissions();
   const accounts = useAccounts();
   const categories = useCategories();
+  const [categoryPickerOpen, setCategoryPickerOpen] = useState(false);
+  const categoryListId = useId();
+  const categoryTriggerRef = useRef<HTMLButtonElement>(null);
   const beginBalanceMutation = useReferenceDataStore((state) => state.beginBalanceMutation);
   const finishBalanceMutation = useReferenceDataStore((state) => state.finishBalanceMutation);
   const { toast } = useToast();
@@ -187,9 +228,15 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
   );
 
   const handleClose = useCallback(() => {
+    setCategoryPickerOpen(false);
     clearSeed();
     onClose();
   }, [clearSeed, onClose]);
+
+  function closeCategoryPicker() {
+    setCategoryPickerOpen(false);
+    requestAnimationFrame(() => categoryTriggerRef.current?.focus());
+  }
 
   const isEditMode = Boolean(editId);
   const title = isEditMode ? t('title.edit') : t('title.create');
@@ -423,7 +470,27 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
       onClose={handleClose}
       title={title}
       formClassName="flex min-h-0 flex-1 flex-col [&_[data-slot=field-group]]:gap-1"
-      wrapperProps={{ className: 'max-h-[96dvh]' }}
+      wrapperProps={{
+        className: categoryPickerOpen ? 'h-[min(36rem,90dvh)]' : 'max-h-[96dvh]',
+        ...(categoryPickerOpen ? { drawerHeaderClassName: 'py-1 sm:py-2' } : {}),
+      }}
+      step={
+        categoryPickerOpen
+          ? {
+              title: tCategory('title'),
+              backLabel: tCategory('backToTransaction'),
+              onBack: closeCategoryPicker,
+              render: (form) => (
+                <TransactionCategoryStep
+                  form={form}
+                  categories={categories}
+                  listId={categoryListId}
+                  onBack={closeCategoryPicker}
+                />
+              ),
+            }
+          : undefined
+      }
       schema={transactionSchema}
       defaultValues={createDefaults}
       resetValues={resetValues ?? createValues}
@@ -468,6 +535,14 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
             shouldDisableUserField={shouldDisableUserField}
             userFieldHelperText={userFieldHelperText}
             isSubmitting={form.formState.isSubmitting}
+            categoryPickerStep={{
+              listId: categoryListId,
+              open: categoryPickerOpen,
+              onOpen: (trigger) => {
+                categoryTriggerRef.current = trigger;
+                setCategoryPickerOpen(true);
+              },
+            }}
           />
         );
       }}

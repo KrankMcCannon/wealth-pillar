@@ -52,9 +52,7 @@ export const iconPickerStyles = {
   },
 
   triggerButton:
-    'h-10 w-full justify-start rounded-lg border border-modal-border/35 bg-modal-elevated/90 text-left font-normal text-modal-fg hover:bg-modal-elevated-hover',
-  triggerIcon: 'mr-2 h-4 w-4 text-modal-ring',
-  triggerText: 'text-modal-fg-muted',
+    'flex h-auto min-h-14 w-full gap-2.5 rounded-xl border-border bg-muted/30 px-2.5 py-2 text-base text-foreground shadow-none hover:bg-muted',
 
   popoverContent: 'flex w-[calc(100vw-40px)] max-w-[450px] flex-col bg-modal-surface p-0',
 
