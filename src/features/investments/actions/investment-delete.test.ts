@@ -1,10 +1,12 @@
 import { beforeEach, expect, it, vi } from 'vitest';
 import { getCurrentUser } from '@/lib/auth/cached-auth';
-import { deleteInvestmentUseCase } from '@/server/use-cases';
+import { deleteInvestmentUseCase } from '@/server/use-cases/investments/investment.use-cases';
 import { invalidateInvestmentCaches } from '@/lib/utils/cache-utils';
 import { deleteInvestmentAction } from './investment-actions';
 vi.mock('@/lib/auth/cached-auth', () => ({ getCurrentUser: vi.fn() }));
-vi.mock('@/server/use-cases', () => ({ deleteInvestmentUseCase: vi.fn() }));
+vi.mock('@/server/use-cases/investments/investment.use-cases', () => ({
+  deleteInvestmentUseCase: vi.fn(),
+}));
 vi.mock('@/lib/utils/cache-utils', () => ({ invalidateInvestmentCaches: vi.fn() }));
 beforeEach(() => vi.resetAllMocks());
 it('rejects unauthenticated deletion', async () => {
