@@ -6,7 +6,7 @@
 
 import { getTranslations } from 'next-intl/server';
 import { resolvePageContext } from '@/lib/auth/page-auth';
-import { getAccountsPageData } from '@/server/use-cases';
+import { getAccountsPageData } from '@/server/use-cases/pages/accounts-page.use-case';
 import AccountsContent from './accounts-content';
 
 async function AccountsPageData({ params }: Readonly<{ params: Promise<{ locale: string }> }>) {

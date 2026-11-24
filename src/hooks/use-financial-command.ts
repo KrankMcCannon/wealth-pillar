@@ -1,14 +1,26 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useCurrentUser } from '@/providers/user-provider';
-import { runPendingFinancialOperation } from '@/lib/utils/pending-financial-operations';
+import {
+  runPendingFinancialOperation,
+  verifyPendingFinancialOperation,
+} from '@/lib/utils/pending-financial-operations';
 import type { ServiceResult } from '@/lib/types/service-result';
+
+type FinancialCommand = {
+  <const Args extends readonly unknown[], T>(
+    kind: string,
+    payload: Args,
+    execute: (operationId: string | undefined, args: Args) => Promise<ServiceResult<T>>
+  ): Promise<ServiceResult<T>>;
+  verify<T>(kind: string, payload: readonly unknown[]): Promise<ServiceResult<T> | null>;
+};
 
 export function useFinancialCommand() {
   const actor = useCurrentUser();
   const scope = actor?.group_id ? `${actor.group_id}:${actor.id}` : null;
-  return useCallback(
+  const execute = useCallback(
     <const Args extends readonly unknown[], T>(
       kind: string,
       payload: Args,
@@ -21,4 +33,11 @@ export function useFinancialCommand() {
         : execute(undefined, payload),
     [scope]
   );
+  return useMemo(() => {
+    const command: FinancialCommand = Object.assign(execute, {
+      verify: <T>(kind: string, payload: readonly unknown[]) =>
+        scope ? verifyPendingFinancialOperation<T>(scope, kind, payload) : Promise.resolve(null),
+    });
+    return command;
+  }, [execute, scope]);
 }

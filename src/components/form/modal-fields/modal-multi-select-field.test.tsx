@@ -9,6 +9,7 @@ vi.mock('next-intl', () => ({
   useLocale: () => 'en',
   useTranslations: () => (key: string, values?: Record<string, unknown>) => {
     if (key === 'currentUser') return '(You)';
+    if (key === 'confirm') return 'Confirm';
     if (key === 'placeholder') return 'Select users';
     if (key === 'selectedCount' && values && 'count' in values) return `${values.count} selected`;
     return key;
@@ -129,6 +130,14 @@ describe('ModalMultiSelectField chips', () => {
     );
     expect(screen.getByRole('searchbox')).toBeInTheDocument();
     await user.click(screen.getByText('Rent'));
-    expect(screen.getByText('Food, Rent')).toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: /Categories/i })).toHaveTextContent('Food');
+    await user.click(screen.getByRole('button', { name: 'close' }));
+    expect(screen.getByRole('combobox', { name: /Categories/i })).toHaveTextContent('Food');
+
+    await user.click(screen.getByRole('combobox', { name: /Categories/i }));
+    expect(screen.getByRole('option', { name: /Rent/ })).toHaveAttribute('aria-selected', 'false');
+    await user.click(screen.getByText('Rent'));
+    await user.click(screen.getByRole('button', { name: 'Confirm' }));
+    expect(screen.getByRole('combobox', { name: /Categories/i })).toHaveTextContent('Food, Rent');
   });
 });

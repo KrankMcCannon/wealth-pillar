@@ -251,6 +251,7 @@ export function CategoryPicker({
   const t = useTranslations('Forms.CategorySelect');
   const common = useTranslations('Common');
   const [open, setOpen] = useState(false);
+  const [draftValue, setDraftValue] = useState(value);
   const id = useId();
   const triggerRef = useRef<HTMLButtonElement>(null);
   const selected = options.filter((option) => value.includes(option.value));
@@ -260,6 +261,11 @@ export function CategoryPicker({
   function close() {
     setOpen(false);
     requestAnimationFrame(() => triggerRef.current?.focus());
+  }
+
+  function openPicker() {
+    setDraftValue(value);
+    setOpen(true);
   }
 
   return (
@@ -277,7 +283,7 @@ export function CategoryPicker({
         className={cn(s.selectorTrigger, className)}
         onClick={(event) => {
           if (step) step.onOpen(event.currentTarget);
-          else setOpen(true);
+          else openPicker();
         }}
       >
         {label ? <span className={s.selectorLabel}>{label}</span> : null}
@@ -318,24 +324,34 @@ export function CategoryPicker({
             <CategoryPickerList
               id={`${id}-list`}
               options={options}
-              value={value}
+              value={multiple ? draftValue : value}
               label={label ?? t('title')}
               multiple={multiple}
               onSelect={(key) => {
-                onChange(
-                  multiple
-                    ? value.includes(key)
-                      ? value.filter((item) => item !== key)
-                      : [...value, key]
-                    : [key]
-                );
-                if (!multiple) close();
+                const selected = multiple ? draftValue : value;
+                const next = multiple
+                  ? selected.includes(key)
+                    ? selected.filter((item) => item !== key)
+                    : [...selected, key]
+                  : [key];
+                if (multiple) setDraftValue(next);
+                else {
+                  onChange(next);
+                  close();
+                }
               }}
             />
           </div>
           {multiple ? (
             <ModalFooter>
-              <button type="button" className={s.footer.dualSubmit} onClick={close}>
+              <button
+                type="button"
+                className={s.footer.dualSubmit}
+                onClick={() => {
+                  onChange(draftValue);
+                  close();
+                }}
+              >
                 {common('confirm')}
               </button>
             </ModalFooter>

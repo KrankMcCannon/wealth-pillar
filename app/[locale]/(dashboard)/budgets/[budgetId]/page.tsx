@@ -4,7 +4,7 @@
 
 import { getTranslations } from 'next-intl/server';
 import { resolvePageContext } from '@/lib/auth/page-auth';
-import { getBudgetDetailPageData } from '@/server/use-cases';
+import { getBudgetDetailPageData } from '@/server/use-cases/pages/budget-detail-page.use-case';
 import BudgetDetailContent from './budget-detail-content';
 
 async function BudgetDetailPageData({

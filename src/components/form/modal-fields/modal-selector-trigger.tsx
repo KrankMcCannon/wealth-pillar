@@ -1,6 +1,6 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { forwardRef, type ReactNode } from 'react';
 import { ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formModalStyles as s } from '@/components/form/form-modal-styles';
@@ -16,16 +16,13 @@ export interface ModalSelectorTriggerProps {
   expanded?: boolean;
 }
 
-export function ModalSelectorTrigger({
-  label,
-  value,
-  valueMuted = false,
-  disabled,
-  onClick,
-  className,
-  children,
-  expanded,
-}: Readonly<ModalSelectorTriggerProps>) {
+export const ModalSelectorTrigger = forwardRef<
+  HTMLButtonElement,
+  Readonly<ModalSelectorTriggerProps>
+>(function ModalSelectorTrigger(
+  { label, value, valueMuted = false, disabled, onClick, className, children, expanded },
+  ref
+) {
   const inner = (
     <>
       <p className={s.selectorLabel}>{label}</p>
@@ -37,6 +34,7 @@ export function ModalSelectorTrigger({
 
   return (
     <button
+      ref={ref}
       type="button"
       disabled={disabled}
       onClick={onClick}
@@ -47,4 +45,4 @@ export function ModalSelectorTrigger({
       {inner}
     </button>
   );
-}
+});

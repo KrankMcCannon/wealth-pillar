@@ -5,7 +5,7 @@
  */
 
 import { resolvePageContext } from '@/lib/auth/page-auth';
-import { getTransactionsListData } from '@/server/use-cases';
+import { getTransactionsListData } from '@/server/use-cases/pages/transactions-page.use-case';
 import { isAdmin } from '@/lib/utils/permissions';
 import {
   getSeriesByGroupUseCase,

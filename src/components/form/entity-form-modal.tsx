@@ -36,9 +36,13 @@ export interface EntityFormModalDeletionProps {
   message: string;
   confirmText?: string;
   cancelText?: string;
-  onDelete: () => Promise<void>;
+  onDelete: () => Promise<EntityFormDeletionOutcome | void>;
+  onVerify: () => Promise<EntityFormDeletionOutcome>;
   testId?: string;
 }
+
+export type EntityFormDeletionOutcome =
+  { status: 'confirmed' } | { status: 'rejected' } | { status: 'uncertain' };
 
 export interface EntityFormModalFooterActions {
   openDeleteDialog?: () => void;
@@ -107,6 +111,8 @@ export function EntityFormModal<T extends FieldValues>({
   const tStatus = useTranslations('FormStatus');
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteOutcomeUncertain, setDeleteOutcomeUncertain] = useState(false);
+  const [canRetryDelete, setCanRetryDelete] = useState(false);
 
   const form = useForm<T>({
     resolver: zodResolver(schema as never) as Resolver<T>,
@@ -133,18 +139,35 @@ export function EntityFormModal<T extends FieldValues>({
     if (!deletion) return;
     setIsDeleting(true);
     try {
-      await withDeadline(deletion.onDelete());
+      const verifying = deleteOutcomeUncertain && !canRetryDelete;
+      const outcome = await withDeadline(verifying ? deletion.onVerify() : deletion.onDelete());
+      if (outcome?.status === 'uncertain') {
+        setDeleteOutcomeUncertain(true);
+        setCanRetryDelete(verifying);
+        return;
+      }
+      if (outcome?.status === 'rejected') {
+        setDeleteOpen(false);
+        setDeleteOutcomeUncertain(false);
+        setCanRetryDelete(false);
+        form.setError('root', { message: tStatus('error') });
+        return;
+      }
+      setDeleteOutcomeUncertain(false);
+      setCanRetryDelete(false);
       setDeleteOpen(false);
       onClose();
     } catch (error) {
-      setDeleteOpen(false);
       form.setError('root', {
-        message: tStatus(error instanceof ActionTimeoutError ? 'timeout' : 'error'),
+        message: tStatus(error instanceof ActionTimeoutError ? 'pending' : 'error'),
       });
+      setDeleteOpen(true);
+      setDeleteOutcomeUncertain(true);
+      setCanRetryDelete(false);
     } finally {
       setIsDeleting(false);
     }
-  }, [deletion, onClose, form, tStatus]);
+  }, [deletion, onClose, form, tStatus, deleteOutcomeUncertain, canRetryDelete]);
 
   const handleSubmit = form.handleSubmit(async (values) => {
     if (isLoading || loadFailed) return;
@@ -172,7 +195,11 @@ export function EntityFormModal<T extends FieldValues>({
         title={step?.title ?? title}
         {...(description !== undefined ? { description } : {})}
         disableOutsideClose={
-          disableOutsideClose || isDeleting || form.formState.isSubmitting || Boolean(step)
+          disableOutsideClose ||
+          isDeleting ||
+          deleteOutcomeUncertain ||
+          form.formState.isSubmitting ||
+          Boolean(step)
         }
         repositionInputs={!step && repositionInputs}
         fitVisualViewport={Boolean(step)}
@@ -201,7 +228,7 @@ export function EntityFormModal<T extends FieldValues>({
             <button
               type="button"
               data-testid={deletion.testId}
-              disabled={form.formState.isSubmitting || isDeleting}
+              disabled={form.formState.isSubmitting || isDeleting || deleteOutcomeUncertain}
               onClick={openDeleteDialog}
               className={formModalStyles.shell.leadingButton}
               aria-label={deletion.title}
@@ -229,12 +256,28 @@ export function EntityFormModal<T extends FieldValues>({
               {autoRootError && form.formState.errors.root?.message ? (
                 <ModalRootError message={form.formState.errors.root.message} />
               ) : null}
-              {!loadFailed && children(form)}
+              {deleteOutcomeUncertain ? (
+                <fieldset disabled className="min-w-0 border-0 p-0">
+                  {children(form)}
+                </fieldset>
+              ) : !loadFailed ? (
+                children(form)
+              ) : null}
+              {deleteOutcomeUncertain ? (
+                <button
+                  type="button"
+                  className="min-h-11 self-start underline"
+                  disabled={isDeleting}
+                  onClick={handleDeleteConfirm}
+                >
+                  {tStatus('verifyOutcome')}
+                </button>
+              ) : null}
             </FieldGroup>
           </ModalBody>
           {footer ? (
             <ModalFooter className={footerClassName}>
-              {footer(form, form.formState.isSubmitting, footerActions)}
+              {footer(form, form.formState.isSubmitting || deleteOutcomeUncertain, footerActions)}
             </ModalFooter>
           ) : null}
         </form>
@@ -247,9 +290,14 @@ export function EntityFormModal<T extends FieldValues>({
           onConfirm={handleDeleteConfirm}
           onCancel={() => setDeleteOpen(false)}
           title={deletion.title}
-          message={deletion.message}
-          {...(deletion.confirmText !== undefined ? { confirmText: deletion.confirmText } : {})}
+          message={deleteOutcomeUncertain ? tStatus('pending') : deletion.message}
+          {...(deleteOutcomeUncertain
+            ? { confirmText: tStatus(canRetryDelete ? 'retry' : 'verifyOutcome') }
+            : deletion.confirmText !== undefined
+              ? { confirmText: deletion.confirmText }
+              : {})}
           {...(deletion.cancelText !== undefined ? { cancelText: deletion.cancelText } : {})}
+          hideCancel={deleteOutcomeUncertain}
           variant="destructive"
           isLoading={isDeleting}
         />

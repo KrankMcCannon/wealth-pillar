@@ -16,6 +16,7 @@ import {
 import { isValidColor, isSystemCategory } from '@/server/use-cases/categories/category.logic';
 import type { Category } from '@/lib/types';
 import type { ServiceResult } from '@/lib/types/service-result';
+import { runDurableAction } from '@/lib/server-action/run-durable-action';
 
 async function getCategoryActionTranslator(locale?: string) {
   if (locale) {
@@ -196,45 +197,39 @@ export async function updateCategoryAction(
  */
 export async function deleteCategoryAction(
   id: string,
-  locale?: string
+  locale?: string,
+  operationId?: string
 ): Promise<ServiceResult<{ id: string }>> {
-  let t: Awaited<ReturnType<typeof getTranslations>> | null = null;
-  try {
-    t = await getCategoryActionTranslator(locale);
-    // Authentication check (cached per request)
-    const currentUser = await getCurrentUser();
-    if (!currentUser) {
-      return { data: null, error: t('errors.unauthenticated') };
+  return runDurableAction('deleteCategoryAction', [id, locale], operationId, async () => {
+    let t: Awaited<ReturnType<typeof getTranslations>> | null = null;
+    try {
+      t = await getCategoryActionTranslator(locale);
+      const currentUser = await getCurrentUser();
+      if (!currentUser) return { data: null, error: t('errors.unauthenticated') };
+
+      const existingCategory = await getCategoryByIdUseCase(id);
+      if (!existingCategory) return { data: null, error: t('errors.notFound') };
+
+      if (isSystemCategory(existingCategory))
+        return { data: null, error: t('errors.systemImmutable') };
+
+      if (currentUser.group_id !== existingCategory.group_id)
+        return { data: null, error: t('errors.permissionDenied') };
+
+      const result = await deleteCategoryUseCase(id);
+      return result
+        ? { data: result, error: null }
+        : { data: null, error: t('errors.deleteFailed') };
+    } catch (error) {
+      if (error instanceof Error && error.message === 'CATEGORY_IN_USE')
+        return { data: null, error: t?.('errors.hasDependencies') ?? 'Category is in use' };
+      return {
+        data: null,
+        error:
+          error instanceof Error
+            ? error.message
+            : (t?.('errors.deleteFailed') ?? 'Failed to delete category'),
+      };
     }
-
-    const existingCategory = await getCategoryByIdUseCase(id);
-    if (!existingCategory) return { data: null, error: t('errors.notFound') };
-
-    if (isSystemCategory(existingCategory)) {
-      return { data: null, error: t('errors.systemImmutable') };
-    }
-
-    // Permission check
-    if (currentUser.group_id !== existingCategory.group_id) {
-      return { data: null, error: t('errors.permissionDenied') };
-    }
-
-    const result = await deleteCategoryUseCase(id);
-
-    if (result) {
-      return { data: result, error: null };
-    }
-
-    return { data: null, error: t('errors.deleteFailed') };
-  } catch (error) {
-    if (error instanceof Error && error.message === 'CATEGORY_IN_USE')
-      return { data: null, error: t?.('errors.hasDependencies') ?? 'Category is in use' };
-    return {
-      data: null,
-      error:
-        error instanceof Error
-          ? error.message
-          : (t?.('errors.deleteFailed') ?? 'Failed to delete category'),
-    };
-  }
+  });
 }

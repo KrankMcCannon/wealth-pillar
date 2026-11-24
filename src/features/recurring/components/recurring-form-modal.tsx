@@ -293,14 +293,16 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
 
   const handleDeleteSeries = useCallback(async () => {
     if (!editId) return;
-    const result = await withDeadline(
-      financialCommand('deleteRecurringSeriesAction', [editId], (operationId, args) =>
-        deleteRecurringSeriesAction(...args, operationId)
-      )
+    const result = await financialCommand(
+      'deleteRecurringSeriesAction',
+      [editId],
+      (operationId, args) => deleteRecurringSeriesAction(...args, operationId)
     );
     if (result.error) {
       toast({ title: t('toast.errorTitle'), description: result.error, variant: 'destructive' });
-      throw new Error(result.error);
+      return result.errorCode === 'OUTCOME_UNKNOWN'
+        ? { status: 'uncertain' as const }
+        : { status: 'rejected' as const };
     }
     toast({
       title: tSeriesCard('actions.delete'),
@@ -308,6 +310,22 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
       variant: 'success',
     });
     router.refresh();
+  }, [editId, financialCommand, router, t, tSeriesCard]);
+
+  const verifyDeleteSeries = useCallback(async () => {
+    if (!editId) return { status: 'uncertain' as const };
+    const result = await financialCommand.verify<
+      Awaited<ReturnType<typeof deleteRecurringSeriesAction>>['data']
+    >('deleteRecurringSeriesAction', [editId]);
+    if (!result) return { status: 'uncertain' as const };
+    if (result.error) return { status: 'rejected' as const };
+    toast({
+      title: tSeriesCard('actions.delete'),
+      description: t('toast.updatedDescription'),
+      variant: 'success',
+    });
+    router.refresh();
+    return { status: 'confirmed' as const };
   }, [editId, financialCommand, router, t, tSeriesCard]);
 
   const deleteDialogDescription =
@@ -336,6 +354,7 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
               confirmText: tDialogs('deleteRecurring.confirm'),
               cancelText: tDialogs('cancel'),
               onDelete: handleDeleteSeries,
+              onVerify: verifyDeleteSeries,
               testId: 'recurring-form-delete',
             },
           }

@@ -278,12 +278,10 @@ function BudgetFormModal({
   const handleDelete = useCallback(async () => {
     if (!editId) return;
     if (isPeriodMode && periodId && periodUserId) {
-      const result = await withDeadline(
-        financialCommand(
-          'deleteClosedPeriodBudgetAction',
-          [periodUserId, periodId, editId, locale],
-          (operationId, args) => deleteClosedPeriodBudgetAction(...args, operationId)
-        )
+      const result = await financialCommand(
+        'deleteClosedPeriodBudgetAction',
+        [periodUserId, periodId, editId, locale],
+        (operationId, args) => deleteClosedPeriodBudgetAction(...args, operationId)
       );
       if (result.error) {
         toast({
@@ -291,7 +289,9 @@ function BudgetFormModal({
           description: result.error,
           variant: 'destructive',
         });
-        throw new Error(result.error);
+        return result.errorCode === 'OUTCOME_UNKNOWN'
+          ? { status: 'uncertain' as const }
+          : { status: 'rejected' as const };
       }
       toast({
         title: t('toast.deletedTitle'),
@@ -306,12 +306,10 @@ function BudgetFormModal({
 
     let rejected = false;
     try {
-      const result = await withDeadline(
-        financialCommand(
-          'deleteBudgetAction',
-          [editId, locale, pathname.startsWith('/budgets/')],
-          (operationId, args) => deleteBudgetAction(...args, operationId)
-        )
+      const result = await financialCommand(
+        'deleteBudgetAction',
+        [editId, locale, pathname.startsWith('/budgets/')],
+        (operationId, args) => deleteBudgetAction(...args, operationId)
       );
       if (result.error) {
         rejected = true;
@@ -320,7 +318,9 @@ function BudgetFormModal({
           description: result.errorCode === 'OUTCOME_UNKNOWN' ? tStatus('pending') : result.error,
           variant: 'destructive',
         });
-        throw new Error(result.error);
+        return result.errorCode === 'OUTCOME_UNKNOWN'
+          ? { status: 'uncertain' as const }
+          : { status: 'rejected' as const };
       }
       removeBudget(editId);
       toast({
@@ -335,7 +335,7 @@ function BudgetFormModal({
           description: tStatus('pending'),
           variant: 'destructive',
         });
-      throw new Error('delete failed');
+      return { status: 'uncertain' as const };
     }
   }, [
     editId,
@@ -350,6 +350,48 @@ function BudgetFormModal({
     storeBudgets,
     t,
     tStatus,
+  ]);
+
+  const verifyDelete = useCallback(async () => {
+    if (!editId) return { status: 'uncertain' as const };
+    if (isPeriodMode && periodId && periodUserId) {
+      const result = await financialCommand.verify<
+        Awaited<ReturnType<typeof deleteClosedPeriodBudgetAction>>['data']
+      >('deleteClosedPeriodBudgetAction', [periodUserId, periodId, editId, locale]);
+      if (!result) return { status: 'uncertain' as const };
+      if (result.error) return { status: 'rejected' as const };
+      toast({
+        title: t('toast.deletedTitle'),
+        description: t('toast.deletedDescription'),
+        variant: 'success',
+      });
+      router.refresh();
+      return { status: 'confirmed' as const };
+    }
+
+    const result = await financialCommand.verify<
+      Awaited<ReturnType<typeof deleteBudgetAction>>['data']
+    >('deleteBudgetAction', [editId, locale, pathname.startsWith('/budgets/')]);
+    if (!result) return { status: 'uncertain' as const };
+    if (result.error) return { status: 'rejected' as const };
+    removeBudget(editId);
+    toast({
+      title: t('toast.deletedTitle'),
+      description: t('toast.deletedDescription'),
+      variant: 'success',
+    });
+    return { status: 'confirmed' as const };
+  }, [
+    editId,
+    isPeriodMode,
+    periodId,
+    periodUserId,
+    financialCommand,
+    locale,
+    pathname,
+    removeBudget,
+    router,
+    t,
   ]);
 
   return (
@@ -371,6 +413,7 @@ function BudgetFormModal({
               confirmText: t('buttons.deleteBudget'),
               cancelText: t('buttons.cancel'),
               onDelete: handleDelete,
+              onVerify: verifyDelete,
               testId: 'budget-form-delete',
             },
           }

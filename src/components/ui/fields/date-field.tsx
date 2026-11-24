@@ -6,8 +6,8 @@
 
 'use client';
 
-import { useEffect, useId, useMemo, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
+import { useId, useMemo, useRef, useState } from 'react';
+import { Dialog } from 'radix-ui';
 import { format, isValid, isSameDay, parseISO, startOfDay } from 'date-fns';
 import { enUS, it } from 'date-fns/locale';
 import { ChevronRight } from 'lucide-react';
@@ -82,8 +82,7 @@ export function DateField({
   const resolvedLabel = label ?? t('label');
   const [isOpen, setIsOpen] = useState(false);
   const errorId = `${useId()}-error`;
-  const wrapRef = useRef<HTMLDivElement>(null);
-  const dialogRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   const displayText = useMemo(() => {
     if (!value) return '';
@@ -99,95 +98,78 @@ export function DateField({
 
   const closeCalendar = () => setIsOpen(false);
 
-  const toggleCalendar = (e?: React.MouseEvent | React.PointerEvent) => {
-    if (e && 'button' in e && e.button !== 0) return;
-    if (isOpen && presentation === 'inline') {
-      closeCalendar();
-      return;
-    }
-    if (document.activeElement instanceof HTMLElement && document.activeElement !== document.body) {
-      document.activeElement.blur();
-    }
-    setIsOpen(true);
-  };
-
-  useEffect(() => {
-    if (!isOpen || presentation !== 'inline') return;
-    const triggerButton = wrapRef.current?.querySelector('button');
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        event.preventDefault();
-        closeCalendar();
-      }
-    };
-    window.addEventListener('keydown', onKey);
-    dialogRef.current?.focus();
-    return () => {
-      window.removeEventListener('keydown', onKey);
-      triggerButton?.focus();
-    };
-  }, [isOpen, presentation]);
-
-  const trigger =
+  const triggerButton =
     layout === 'stack' ? (
-      <div className="space-y-1.5">
-        <p className="text-sm font-medium text-foreground">{resolvedLabel}</p>
-        <button
-          type="button"
-          onClick={toggleCalendar}
-          aria-haspopup="dialog"
-          aria-expanded={isOpen}
-          aria-label={`${resolvedLabel}: ${displayText || t('placeholder')}`}
-          aria-describedby={error ? errorId : undefined}
-          className={cn(
-            'flex min-h-11 w-full items-center justify-between gap-2 rounded-xl border border-border/35 bg-muted/80 px-3 text-left text-sm font-medium transition-colors',
-            'hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35'
-          )}
-        >
-          <span className={displayText ? 'text-foreground' : 'text-muted-foreground'}>
-            {displayText || t('placeholder')}
-          </span>
-          <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
-        </button>
-      </div>
+      <button
+        type="button"
+        ref={triggerRef}
+        {...(presentation === 'drawer' ? { onClick: () => setIsOpen(true) } : {})}
+        aria-haspopup="dialog"
+        aria-expanded={isOpen}
+        aria-label={`${resolvedLabel}: ${displayText || t('placeholder')}`}
+        aria-describedby={error ? errorId : undefined}
+        className={cn(
+          'flex min-h-11 w-full items-center justify-between gap-2 rounded-xl border border-border/35 bg-muted/80 px-3 text-left text-sm font-medium transition-colors',
+          'hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35'
+        )}
+      >
+        <span className={displayText ? 'text-foreground' : 'text-muted-foreground'}>
+          {displayText || t('placeholder')}
+        </span>
+        <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+      </button>
     ) : (
       <ModalSelectorTrigger
+        ref={triggerRef}
         label={resolvedLabel}
         value={displayText || t('placeholder')}
         valueMuted={!displayText}
         expanded={isOpen}
-        onClick={toggleCalendar}
+        {...(presentation === 'drawer' ? { onClick: () => setIsOpen(true) } : {})}
       />
     );
+  const trigger = (
+    <>
+      {layout === 'stack' ? (
+        <p className="text-sm font-medium text-foreground">{resolvedLabel}</p>
+      ) : null}
+      {presentation === 'inline' ? (
+        <Dialog.Trigger asChild>{triggerButton}</Dialog.Trigger>
+      ) : (
+        triggerButton
+      )}
+    </>
+  );
 
-  const overlayCalendar =
-    presentation === 'inline' && isOpen && typeof document !== 'undefined'
-      ? createPortal(
-          <>
-            <button
-              type="button"
+  return (
+    <Dialog.Root open={presentation === 'inline' && isOpen} onOpenChange={setIsOpen}>
+      <div className="space-y-1">
+        {trigger}
+        {presentation === 'inline' ? (
+          <Dialog.Portal>
+            <Dialog.Overlay
+              data-testid="calendar-overlay"
               data-vaul-no-drag=""
-              className="fixed inset-0 z-200 cursor-default bg-foreground/20 backdrop-blur-xs pointer-events-auto"
-              aria-label={t('closeCalendar')}
+              className="fixed inset-0 z-200 bg-foreground/20 backdrop-blur-xs"
               onPointerDown={(event) => {
-                if (event.button !== 0) return;
-                event.stopPropagation();
+                if (event.button === 0) closeCalendar();
               }}
-              onClick={closeCalendar}
             />
-            <div
-              ref={dialogRef}
-              role="dialog"
-              aria-modal="true"
+            <Dialog.Content
+              data-testid="date-field-calendar"
               aria-label={resolvedLabel}
-              tabIndex={-1}
+              aria-modal="true"
               data-vaul-no-drag=""
-              className="fixed left-1/2 top-1/2 z-201 h-auto max-h-[min(90dvh,460px)] w-[min(calc(100vw-2rem),340px)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-foreground/10 bg-background shadow-2xl outline-none pointer-events-auto"
+              className="fixed left-1/2 top-1/2 z-201 h-auto max-h-[min(90dvh,460px)] w-[min(calc(100vw-2rem),340px)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-foreground/10 bg-background shadow-2xl outline-none"
+              onCloseAutoFocus={(event) => {
+                event.preventDefault();
+                triggerRef.current?.focus();
+              }}
               onPointerDown={(event) => {
-                if (event.button !== 0) return;
-                event.stopPropagation();
+                if (event.button === 0) event.stopPropagation();
               }}
             >
+              <Dialog.Title className="sr-only">{resolvedLabel}</Dialog.Title>
               <CalendarPanel
                 compact
                 defaultMonth={defaultMonth}
@@ -195,26 +177,20 @@ export function DateField({
                 onChange={onChange}
                 onClose={closeCalendar}
               />
-            </div>
-          </>,
-          document.body
-        )
-      : null;
-
-  return (
-    <div ref={wrapRef} className="space-y-1">
-      {trigger}
-      {overlayCalendar}
-      {presentation === 'drawer' ? (
-        <MobileCalendarDrawer
-          value={value}
-          defaultMonth={defaultMonth}
-          onChange={onChange}
-          isOpen={isOpen}
-          onClose={closeCalendar}
-        />
-      ) : null}
-      {error ? <ModalFieldError id={errorId} message={error} /> : null}
-    </div>
+            </Dialog.Content>
+          </Dialog.Portal>
+        ) : null}
+        {presentation === 'drawer' ? (
+          <MobileCalendarDrawer
+            value={value}
+            defaultMonth={defaultMonth}
+            onChange={onChange}
+            isOpen={isOpen}
+            onClose={closeCalendar}
+          />
+        ) : null}
+        {error ? <ModalFieldError id={errorId} message={error} /> : null}
+      </div>
+    </Dialog.Root>
   );
 }

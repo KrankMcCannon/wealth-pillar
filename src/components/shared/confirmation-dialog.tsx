@@ -18,6 +18,7 @@ interface ConfirmationDialogProps {
   cancelText?: string;
   variant?: 'default' | 'destructive';
   isLoading?: boolean;
+  hideCancel?: boolean;
 }
 
 export function ConfirmationDialog({
@@ -32,6 +33,7 @@ export function ConfirmationDialog({
   cancelText,
   variant = 'default',
   isLoading = false,
+  hideCancel = false,
 }: Readonly<ConfirmationDialogProps>) {
   const t = useTranslations('Common');
   const resolvedConfirm = confirmText ?? t('confirm');
@@ -48,7 +50,7 @@ export function ConfirmationDialog({
       title={title}
       {...(description !== undefined ? { description } : {})}
       showCloseButton={false}
-      disableOutsideClose={isLoading}
+      disableOutsideClose={isLoading || hideCancel}
       presentation="alert"
     >
       <ModalBody>
@@ -63,6 +65,7 @@ export function ConfirmationDialog({
           onCancel={onCancel}
           onSubmit={handleConfirm}
           isSubmitting={isLoading}
+          hideCancel={hideCancel}
           submitVariant={variant === 'destructive' ? 'destructive' : 'default'}
         />
       </ModalFooter>

@@ -54,6 +54,24 @@ async function operationKey(scope: string, kind: string, payload: unknown) {
   return `${scope}:${kind}:${Array.from(new Uint8Array(bytes), (byte) => byte.toString(16).padStart(2, '0')).join('')}`;
 }
 
+/** Reads an existing operation receipt without retrying or creating a write. */
+export async function verifyPendingFinancialOperation<T>(
+  scope: string,
+  kind: string,
+  payload: unknown
+): Promise<ServiceResult<T> | null> {
+  const key = await operationKey(scope, kind, payload);
+  const pending = await registry<Pending | undefined>((store, done) => {
+    const request = store.get(key);
+    request.onsuccess = () => done(request.result as Pending | undefined);
+  });
+  if (!pending) return null;
+
+  const recovered = await getFinancialOperationAction(kind, pending.id);
+  if (recovered.error || recovered.data?.status !== 'committed') return null;
+  return recovered.data.result as ServiceResult<T>;
+}
+
 export function runPendingFinancialOperation<T>(
   scope: string,
   kind: string,

@@ -1,8 +1,6 @@
 'use client';
 
 import { useRouter } from '@/i18n/routing';
-import { withDeadline } from '@/lib/utils/with-deadline';
-
 import { useCallback, useMemo } from 'react';
 import { z } from 'zod';
 import { useLocale, useTranslations } from 'next-intl';
@@ -22,6 +20,7 @@ import {
   useEntityFormSubmit,
 } from '@/components/form';
 import { toast } from '@/hooks/use-toast';
+import { useFinancialCommand } from '@/hooks/use-financial-command';
 import { useRequiredGroupId } from '@/hooks';
 import {
   useCategories,
@@ -39,8 +38,10 @@ interface CategoryFormModalProps {
 function CategoryFormModal({ isOpen, onClose, editId }: Readonly<CategoryFormModalProps>) {
   const router = useRouter();
   const t = useTranslations('Categories.FormModal');
+  const tStatus = useTranslations('FormStatus');
   const locale = useLocale();
   const groupId = useRequiredGroupId();
+  const financialCommand = useFinancialCommand();
 
   const storeCategories = useCategories();
   const usedCategoryKeys = useUsedCategoryKeys();
@@ -233,37 +234,51 @@ function CategoryFormModal({ isOpen, onClose, editId }: Readonly<CategoryFormMod
     const category = storeCategories.find((c) => c.id === editId);
     if (!category) return;
 
-    removeCategory(editId);
-    let restored = false;
     try {
-      const result = await withDeadline(deleteCategoryAction(editId, locale));
+      const result = await financialCommand(
+        'deleteCategoryAction',
+        [editId, locale],
+        (operationId, args) => deleteCategoryAction(...args, operationId)
+      );
       if (result.error) {
-        addCategory(category);
-        restored = true;
         toast({
           title: t('toast.errorTitle'),
-          description: result.error,
+          description: result.errorCode === 'OUTCOME_UNKNOWN' ? tStatus('pending') : result.error,
           variant: 'destructive',
         });
-        throw new Error(result.error);
+        return result.errorCode === 'OUTCOME_UNKNOWN'
+          ? { status: 'uncertain' as const }
+          : { status: 'rejected' as const };
       }
+      removeCategory(editId);
       toast({
         title: t('toast.deletedTitle'),
         description: t('toast.deletedDescription'),
         variant: 'success',
       });
     } catch {
-      if (!restored) {
-        addCategory(category);
-        toast({
-          title: t('toast.errorTitle'),
-          description: t('errors.unknown'),
-          variant: 'destructive',
-        });
-      }
-      throw new Error('delete failed');
+      toast({
+        title: t('toast.errorTitle'),
+        description: tStatus('pending'),
+        variant: 'destructive',
+      });
+      return { status: 'uncertain' as const };
     }
-  }, [addCategory, editId, locale, removeCategory, storeCategories, t]);
+  }, [editId, financialCommand, locale, removeCategory, storeCategories, t, tStatus]);
+
+  const verifyDelete = useCallback(async () => {
+    if (!editId) return { status: 'uncertain' as const };
+    const result = await financialCommand.verify('deleteCategoryAction', [editId, locale]);
+    if (!result) return { status: 'uncertain' as const };
+    if (result.error) return { status: 'rejected' as const };
+    removeCategory(editId);
+    toast({
+      title: t('toast.deletedTitle'),
+      description: t('toast.deletedDescription'),
+      variant: 'success',
+    });
+    return { status: 'confirmed' as const };
+  }, [editId, financialCommand, locale, removeCategory, t]);
 
   return (
     <EntityFormModal<CategoryFormData>
@@ -284,6 +299,7 @@ function CategoryFormModal({ isOpen, onClose, editId }: Readonly<CategoryFormMod
               confirmText: t('buttons.delete'),
               cancelText: t('buttons.cancel'),
               onDelete: handleDelete,
+              onVerify: verifyDelete,
               testId: 'category-form-delete',
             },
           }

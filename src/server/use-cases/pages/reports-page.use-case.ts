@@ -3,13 +3,15 @@ import { cacheLife, cacheTag } from 'next/cache';
 import { financialDateTime, financialDateKey } from '@/lib/utils/financial-date';
 import { CACHE_TAGS } from '@/lib/cache/config';
 import {
-  getReportsContextUseCase,
+  getReportsPageContextUseCase,
   getReportsTransactionsUseCase,
   resolveYtdBudgetStart,
   type ReportPeriodSummary,
 } from '../reports/reports.use-cases';
 import {
   buildReportsSectionViewModel,
+  computeUserFlows,
+  prepareReportsCalculations,
   type DateWindow,
   type ReportsSectionViewModel,
 } from '../reports/report.logic';
@@ -63,7 +65,7 @@ async function getCachedReportsPageData(
       ? { start: params.customStart, end: params.customEnd }
       : null;
 
-  const { accounts, periods, categories, users } = await getReportsContextUseCase(
+  const { accounts, periods, categories, users } = await getReportsPageContextUseCase(
     groupId,
     groupUserIds
   );
@@ -98,6 +100,11 @@ async function getCachedReportsPageData(
     }
   );
 
+  const prepared = prepareReportsCalculations(transactions, accounts, [
+    currentWindow,
+    ...(comparisonWindow ? [comparisonWindow] : []),
+  ]);
+
   const sections: ReportsPageData['sections'] = {
     all: buildReportsSectionViewModel(
       transactions,
@@ -105,10 +112,14 @@ async function getCachedReportsPageData(
       categories,
       userIds,
       currentWindow,
-      comparisonWindow
+      comparisonWindow,
+      undefined,
+      undefined,
+      prepared
     ),
   };
 
+  const userFlows = computeUserFlows(transactions, accounts, userIds, currentWindow, prepared);
   for (const uid of userIds) {
     sections[uid] = buildReportsSectionViewModel(
       transactions,
@@ -117,7 +128,9 @@ async function getCachedReportsPageData(
       userIds,
       currentWindow,
       comparisonWindow,
-      uid
+      uid,
+      userFlows,
+      prepared
     );
   }
 

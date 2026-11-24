@@ -23,7 +23,8 @@ import { editPeriodDatesUseCase } from '@/server/use-cases/budget-periods/edit-c
 import { getBudgetsByUserUseCase } from '@/server/use-cases/budgets/get-budgets.use-case';
 import { UsersRepository } from '@/server/repositories/users.repository';
 import {
-  getReportsContextUseCase,
+  getReportsPageContextUseCase,
+  getReportsPeriodContextUseCase,
   getReportsPeriodSummariesUseCase,
   getReportsTransactionsUseCase,
 } from '@/server/use-cases/reports/reports.use-cases';
@@ -60,7 +61,8 @@ vi.mock('@/server/use-cases/budgets/get-budgets.use-case', () => ({
 }));
 vi.mock('@/server/use-cases/reports/reports.use-cases', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/server/use-cases/reports/reports.use-cases')>()),
-  getReportsContextUseCase: vi.fn(),
+  getReportsPageContextUseCase: vi.fn(),
+  getReportsPeriodContextUseCase: vi.fn(),
 }));
 vi.mock('@/lib/utils/cache-utils', () => ({
   invalidateAccountCaches: vi.fn(),
@@ -820,11 +822,15 @@ describe('complete period totals independently of report windows', () => {
       balance: Number(account.balance),
     }));
     const viewer = { id: userId, role: 'admin', group_id: groupId } as User;
-    vi.mocked(getReportsContextUseCase).mockResolvedValue({
+    vi.mocked(getReportsPageContextUseCase).mockResolvedValue({
       accounts,
       periods: [period],
       categories: [],
-      users: [viewer] as Awaited<ReturnType<typeof getReportsContextUseCase>>['users'],
+      users: [viewer] as Awaited<ReturnType<typeof getReportsPageContextUseCase>>['users'],
+    });
+    vi.mocked(getReportsPeriodContextUseCase).mockResolvedValue({
+      accounts,
+      periods: [period],
       budgets: [foodBudget({ amount: 999 })],
     });
     const first = await getReportsPageDataUseCase(groupId, [userId], viewer, {
@@ -840,7 +846,7 @@ describe('complete period totals independently of report windows', () => {
     expect(first.sections.all.expenses).toBe(10);
     expect(first.periods).toEqual([]);
     expect(second.periods).toEqual([]);
-    const context = await getReportsContextUseCase(groupId, [userId]);
+    const context = await getReportsPeriodContextUseCase(groupId, [userId]);
     const firstDetails = await getReportsPeriodSummariesUseCase(
       groupId,
       context.periods,

@@ -1,5 +1,5 @@
 import { moneyToMinorUnits, minorUnitsToPresentation } from '@/lib/utils/exact-money';
-import type { LedgerEntry as Transaction } from '@/server/ledger/aggregate';
+import { ledgerRowCount, type LedgerEntry as Transaction } from '@/server/ledger/aggregate';
 import { financialDateKey } from '@/lib/utils/financial-date';
 import type { Account, Category } from '@/lib/types';
 import { resolveAccountLiquidity } from '@/lib/utils/account-classification';
@@ -8,8 +8,8 @@ import {
   accountsToMap,
   classifyMovement,
   computeNetSavings,
-  computeTransactionImpact,
   foldCashFlow,
+  type Movement,
 } from '@/server/ledger';
 import type {
   AccountTypeSummary,
@@ -21,6 +21,76 @@ import type {
 export interface DateWindow {
   start: Date;
   end: Date;
+}
+
+export interface PreparedReportsCalculations {
+  accountMap: Map<string, Account>;
+  dates: Map<Transaction, string>;
+  movements: Map<Transaction, Movement>;
+  windows: Map<string, Transaction[]>;
+}
+
+function windowKey(window: DateWindow): string {
+  return `${financialDateKey(window.start)}:${financialDateKey(window.end)}`;
+}
+
+export function prepareReportsCalculations(
+  transactions: Transaction[],
+  accounts: Account[],
+  windows: DateWindow[]
+): PreparedReportsCalculations {
+  const accountMap = accountsToMap(accounts);
+  const dates = new Map(
+    transactions.map((transaction) => [transaction, financialDateKey(transaction.date)])
+  );
+  const movements = new Map(
+    transactions.map((transaction) => [transaction, classifyMovement(transaction, accountMap)])
+  );
+  const prepared: PreparedReportsCalculations = {
+    accountMap,
+    dates,
+    movements,
+    windows: new Map(),
+  };
+  for (const window of windows) {
+    const start = financialDateKey(window.start);
+    const end = financialDateKey(window.end);
+    prepared.windows.set(
+      windowKey(window),
+      transactions.filter((transaction) => {
+        const date = dates.get(transaction)!;
+        return date >= start && date <= end;
+      })
+    );
+  }
+  return prepared;
+}
+
+function transactionsInWindow(
+  transactions: Transaction[],
+  window: DateWindow,
+  prepared?: PreparedReportsCalculations
+): Transaction[] {
+  const key = windowKey(window);
+  const cached = prepared?.windows.get(key);
+  if (cached) return cached;
+  const start = financialDateKey(window.start);
+  const end = financialDateKey(window.end);
+  return transactions.filter((transaction) => {
+    const date = prepared?.dates.get(transaction) ?? financialDateKey(transaction.date);
+    return date >= start && date <= end;
+  });
+}
+
+function movementFor(
+  transaction: Transaction,
+  accounts: Account[],
+  prepared?: PreparedReportsCalculations
+): Movement {
+  return (
+    prepared?.movements.get(transaction) ??
+    classifyMovement(transaction, prepared?.accountMap ?? accountsToMap(accounts))
+  );
 }
 
 export function formatCategoryFallback(catId: string): string {
@@ -38,15 +108,31 @@ export function sumIncomeExpenseInWindow(
   transactions: Transaction[],
   window: DateWindow,
   userId?: string,
-  accounts: Account[] = []
+  accounts: Account[] = [],
+  prepared?: PreparedReportsCalculations
 ): { income: number; expenses: number } {
-  const t0 = financialDateKey(window.start);
-  const t1 = financialDateKey(window.end);
-  const inWindow = transactions.filter((row) => {
-    const d = financialDateKey(row.date);
-    return d >= t0 && d <= t1;
-  });
-  return foldCashFlow(inWindow, accounts, userId);
+  if (!prepared) {
+    return foldCashFlow(transactionsInWindow(transactions, window), accounts, userId);
+  }
+  let incomeCents = BigInt(0);
+  let expensesCents = BigInt(0);
+  for (const transaction of transactionsInWindow(transactions, window, prepared)) {
+    const movement = movementFor(transaction, accounts, prepared);
+    if (userId === undefined) {
+      if (movement.cashFlowCents > BigInt(0)) incomeCents += movement.cashFlowCents;
+      else if (movement.cashFlowCents < BigInt(0)) expensesCents -= movement.cashFlowCents;
+      continue;
+    }
+    for (const leg of movement.cashLegs) {
+      if (leg.userId !== userId) continue;
+      if (leg.signedCents > BigInt(0)) expensesCents += leg.signedCents;
+      else if (leg.signedCents < BigInt(0)) incomeCents -= leg.signedCents;
+    }
+  }
+  return {
+    income: minorUnitsToPresentation(incomeCents),
+    expenses: minorUnitsToPresentation(expensesCents),
+  };
 }
 
 export interface ReportsTopExpenseRow {
@@ -62,11 +148,9 @@ export function computeCategoryStats(
   categories: Category[],
   window: DateWindow,
   userId?: string,
-  accounts: Account[] = []
+  accounts: Account[] = [],
+  prepared?: PreparedReportsCalculations
 ) {
-  const t0 = financialDateKey(window.start);
-  const t1 = financialDateKey(window.end);
-  const accountMap = accountsToMap(accounts);
   const categoryMap = new Map(categories.map((c) => [c.id, c]));
   const categoryByKey = new Map(categories.map((c) => [c.key.toLowerCase(), c]));
   const statsMap = new Map<
@@ -94,10 +178,8 @@ export function computeCategoryStats(
     statsMap.get(catKey)!.total += amount;
   };
 
-  for (const tx of transactions) {
-    const d = financialDateKey(tx.date);
-    if (d < t0 || d > t1) continue;
-    const movement = classifyMovement(tx, accountMap);
+  for (const tx of transactionsInWindow(transactions, window, prepared)) {
+    const movement = movementFor(tx, accounts, prepared);
     if (userId === undefined) {
       if (tx.type !== 'expense') continue;
       addExpense(tx, moneyToMinorUnits(tx.amount));
@@ -119,15 +201,11 @@ export function computeUserFlows(
   transactions: Transaction[],
   accounts: Account[],
   userIds: string[],
-  window: DateWindow
+  window: DateWindow,
+  prepared?: PreparedReportsCalculations
 ): UserFlowSummary[] {
-  const accountMap = new Map(accounts.map((a) => [a.id, a]));
-  const t0 = financialDateKey(window.start);
-  const t1 = financialDateKey(window.end);
-  const filtered = transactions.filter((row) => {
-    const d = financialDateKey(row.date);
-    return d >= t0 && d <= t1;
-  });
+  const accountMap = prepared?.accountMap ?? accountsToMap(accounts);
+  const filtered = transactionsInWindow(transactions, window, prepared);
 
   const userFlows = new Map<
     string,
@@ -151,7 +229,7 @@ export function computeUserFlows(
   }
 
   for (const tx of filtered) {
-    const impact = computeTransactionImpact(tx, accountMap);
+    const movement = movementFor(tx, accounts, prepared);
     const source = accountMap.get(tx.account_id);
     const dest = tx.to_account_id ? accountMap.get(tx.to_account_id) : undefined;
 
@@ -163,13 +241,14 @@ export function computeUserFlows(
       return m.get(key)!;
     };
 
-    for (const leg of impact.cashLegs) {
+    for (const leg of movement.cashLegs) {
       const typeMap = userFlows.get(leg.userId);
       if (!typeMap) continue;
-      const account = leg.signed > 0 ? source : (dest ?? source);
+      const signed = minorUnitsToPresentation(leg.signedCents);
+      const account = signed > 0 ? source : (dest ?? source);
       const type = normalizeAccountType(account?.type);
-      if (leg.signed > 0) ensureBucket(typeMap, type).spent += leg.signed;
-      else ensureBucket(typeMap, type).earned += -leg.signed;
+      if (signed > 0) ensureBucket(typeMap, type).spent += signed;
+      else ensureBucket(typeMap, type).earned += -signed;
     }
   }
 
@@ -203,11 +282,10 @@ export function computeGroupAccountTypeSummary(
   transactions: Transaction[],
   accounts: Account[],
   userIds: string[],
-  window: DateWindow
+  window: DateWindow,
+  prepared?: PreparedReportsCalculations
 ): AccountTypeSummary[] {
-  const accountMap = accountsToMap(accounts);
-  const t0 = financialDateKey(window.start);
-  const t1 = financialDateKey(window.end);
+  const accountMap = prepared?.accountMap ?? accountsToMap(accounts);
   const merged = new Map<string, { balance: number; earned: number; spent: number }>();
 
   const uniqueAccounts = accounts.filter((account) =>
@@ -223,19 +301,18 @@ export function computeGroupAccountTypeSummary(
     });
   }
 
-  for (const tx of transactions) {
-    const d = financialDateKey(tx.date);
-    if (d < t0 || d > t1) continue;
-    const impact = computeTransactionImpact(tx, accountMap);
-    if (impact.cashFlow === 0) continue;
+  for (const tx of transactionsInWindow(transactions, window, prepared)) {
+    const movement = movementFor(tx, accounts, prepared);
+    if (movement.cashFlowCents === BigInt(0)) continue;
     const account = accountMap.get(tx.account_id);
     if (!account || !account.user_ids.some((uid) => userIds.includes(uid))) continue;
     const type = normalizeAccountType(account.type);
     const existing = merged.get(type) ?? { balance: 0, earned: 0, spent: 0 };
-    if (impact.cashFlow > 0) {
-      merged.set(type, { ...existing, earned: existing.earned + impact.cashFlow });
+    const cashFlow = minorUnitsToPresentation(movement.cashFlowCents);
+    if (cashFlow > 0) {
+      merged.set(type, { ...existing, earned: existing.earned + cashFlow });
     } else {
-      merged.set(type, { ...existing, spent: existing.spent + -impact.cashFlow });
+      merged.set(type, { ...existing, spent: existing.spent + -cashFlow });
     }
   }
 
@@ -274,6 +351,33 @@ export function netFlowDeltaPercent(currentNet: number, previousNet: number): nu
   return ((currentNet - previousNet) / Math.abs(previousNet)) * 100;
 }
 
+function computePreparedNetSavings(
+  transactions: Transaction[],
+  accounts: Account[],
+  window: DateWindow,
+  userId: string | undefined,
+  prepared?: PreparedReportsCalculations
+): NetSavingsResult {
+  if (!prepared) return computeNetSavings(transactions, accounts, window, userId);
+  let depositsCents = BigInt(0);
+  let withdrawalsCents = BigInt(0);
+  let count = 0;
+  for (const transaction of transactionsInWindow(transactions, window, prepared)) {
+    const movement = movementFor(transaction, accounts, prepared);
+    if (movement.savingsDeltaCents === BigInt(0)) continue;
+    if (userId !== undefined && movement.savingsUserId !== userId) continue;
+    if (movement.savingsDeltaCents > BigInt(0)) depositsCents += movement.savingsDeltaCents;
+    else withdrawalsCents -= movement.savingsDeltaCents;
+    count += ledgerRowCount([transaction]);
+  }
+  return {
+    deposits: minorUnitsToPresentation(depositsCents),
+    withdrawals: minorUnitsToPresentation(withdrawalsCents),
+    net: minorUnitsToPresentation(depositsCents - withdrawalsCents),
+    count,
+  };
+}
+
 export interface ReportsSectionViewModel {
   netFlow: number;
   income: number;
@@ -294,19 +398,34 @@ export function buildReportsSectionViewModel(
   userIds: string[],
   window: DateWindow,
   comparisonWindow: DateWindow | null,
-  userId?: string
+  userId?: string,
+  userFlows?: UserFlowSummary[],
+  prepared?: PreparedReportsCalculations
 ): ReportsSectionViewModel {
-  const totals = sumIncomeExpenseInWindow(transactions, window, userId, accounts);
+  const totals = sumIncomeExpenseInWindow(transactions, window, userId, accounts, prepared);
   const netFlow = totals.income - totals.expenses;
 
   let comparisonPercent: number | null = null;
   if (comparisonWindow) {
-    const prevTotals = sumIncomeExpenseInWindow(transactions, comparisonWindow, userId, accounts);
+    const prevTotals = sumIncomeExpenseInWindow(
+      transactions,
+      comparisonWindow,
+      userId,
+      accounts,
+      prepared
+    );
     const prevNet = prevTotals.income - prevTotals.expenses;
     comparisonPercent = netFlowDeltaPercent(netFlow, prevNet);
   }
 
-  const expenseStats = computeCategoryStats(transactions, categories, window, userId, accounts);
+  const expenseStats = computeCategoryStats(
+    transactions,
+    categories,
+    window,
+    userId,
+    accounts,
+    prepared
+  );
   const topExpenses = expenseStats.map((s) => ({
     id: s.id,
     key: s.key,
@@ -318,10 +437,11 @@ export function buildReportsSectionViewModel(
   const accountBreakdown =
     userId !== undefined
       ? flowsToAccountTypeSummary(
-          computeUserFlows(transactions, accounts, userIds, window).find((f) => f.userId === userId)
-            ?.accounts ?? []
+          (userFlows ?? computeUserFlows(transactions, accounts, userIds, window)).find(
+            (flow) => flow.userId === userId
+          )?.accounts ?? []
         )
-      : computeGroupAccountTypeSummary(transactions, accounts, userIds, window);
+      : computeGroupAccountTypeSummary(transactions, accounts, userIds, window, prepared);
 
   const totalWealth = accountBreakdown.reduce((s, a) => s + a.totalBalance, 0);
 
@@ -338,7 +458,7 @@ export function buildReportsSectionViewModel(
     }
   }
 
-  const netSavings = computeNetSavings(transactions, accounts, window, userId);
+  const netSavings = computePreparedNetSavings(transactions, accounts, window, userId, prepared);
 
   return {
     netFlow,

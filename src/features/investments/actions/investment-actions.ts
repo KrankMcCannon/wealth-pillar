@@ -7,7 +7,12 @@ import { runDurableAction } from '@/lib/server-action/run-durable-action';
 import { getTranslations } from 'next-intl/server';
 import { invalidateInvestmentCaches } from '@/lib/utils/cache-utils';
 import { getCurrentUser } from '@/lib/auth/cached-auth';
-import * as useCases from '@/server/use-cases';
+import {
+  addInvestmentUseCase,
+  deleteInvestmentUseCase,
+  getInvestmentByIdForUserUseCase,
+  updateInvestmentUseCase,
+} from '@/server/use-cases/investments/investment.use-cases';
 import { investments } from '@/server/db/schema';
 import type { Database } from '@/lib/types/database.types';
 import type { ServiceResult } from '@/lib/types/service-result';
@@ -20,7 +25,7 @@ export async function getInvestmentByIdAction(id: string): Promise<ServiceResult
     const currentUser = await getCurrentUser();
     if (!currentUser) return { data: null, error: 'UNAUTHENTICATED' };
 
-    const data = await useCases.getInvestmentByIdForUserUseCase(id, currentUser.id);
+    const data = await getInvestmentByIdForUserUseCase(id, currentUser.id);
     if (!data) return { data: null, error: 'NOT_FOUND' };
     return { data, error: null };
   } catch (error) {
@@ -52,7 +57,7 @@ export async function updateInvestmentAction(
       const currentUser = await getCurrentUser();
       if (!currentUser) return { data: null, error: 'UNAUTHENTICATED' };
 
-      const updated = await useCases.updateInvestmentUseCase(input.id, currentUser.id, {
+      const updated = await updateInvestmentUseCase(input.id, currentUser.id, {
         name: input.name,
         symbol: input.symbol.toUpperCase(),
         amount: input.amount,
@@ -114,7 +119,7 @@ export async function createInvestmentAction(
         user_id: currentUser.id, // Force connect to current user for now
       };
 
-      const data = await useCases.addInvestmentUseCase(investmentData);
+      const data = await addInvestmentUseCase(investmentData);
 
       if (!data) return { data: null, error: 'Failed to create investment' };
 
@@ -145,7 +150,7 @@ export async function deleteInvestmentAction(
     try {
       const currentUser = await getCurrentUser();
       if (!currentUser) return { data: null, error: 'UNAUTHENTICATED' };
-      const deleted = await useCases.deleteInvestmentUseCase(id, currentUser.id);
+      const deleted = await deleteInvestmentUseCase(id, currentUser.id);
       if (!deleted) return { data: null, error: 'NOT_FOUND' };
       invalidateInvestmentCaches({ groupId: currentUser.group_id, userId: currentUser.id });
       return { data: true, error: null };

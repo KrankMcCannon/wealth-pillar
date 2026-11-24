@@ -35,6 +35,8 @@ import {
 } from '@/features/transactions/actions/transaction-actions';
 import { getReportPeriodDetailPageData } from '@/server/use-cases/pages/report-period-detail-page.use-case';
 import { getReportsPageDataUseCase } from '@/server/use-cases/pages/reports-page.use-case';
+import { createGroupInvitationUseCase } from '@/server/use-cases/groups/group-invitations.use-cases';
+import { GroupInvitationsRepository } from '@/server/repositories/group-invitations.repository';
 import { MarketDataRepository } from '@/server/repositories/market-data.repository';
 import { persistPortfolioSnapshotsUseCase } from '@/server/use-cases/investments/persist-portfolio-snapshots.use-case';
 import { getTransactionsListData } from '@/server/use-cases/pages/transactions-page.use-case';
@@ -64,6 +66,9 @@ const viewer = { id: adminA, group_id: groupA, role: 'admin' } as User;
 beforeAll(async () => {
   await db.execute(
     sql`CREATE TABLE users (id uuid PRIMARY KEY, clerk_id text, name text, email text, avatar text, theme_color text, budget_start_date integer, group_id uuid, role text, created_at timestamptz DEFAULT now(), updated_at timestamptz DEFAULT now(), default_account_id uuid)`
+  );
+  await db.execute(
+    sql`CREATE TABLE group_invitations (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), group_id uuid NOT NULL, invited_by_user_id uuid NOT NULL, email varchar(255) NOT NULL, status varchar(20) NOT NULL DEFAULT 'pending', invitation_token varchar(255) NOT NULL UNIQUE, expires_at timestamptz NOT NULL, accepted_at timestamptz, created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now())`
   );
   await db.execute(
     sql`CREATE TABLE accounts (id uuid PRIMARY KEY, name text, type text, user_ids uuid[], group_id uuid, balance numeric DEFAULT 0, liquidity text, created_at timestamptz DEFAULT now(), updated_at timestamptz DEFAULT now())`
@@ -108,7 +113,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await db.execute(
-    sql`DROP TABLE IF EXISTS budget_periods, categories, market_data_cache, transactions, recurring_transactions, budgets, accounts, portfolio_value_snapshots, investments, users CASCADE`
+    sql`DROP TABLE IF EXISTS budget_periods, categories, market_data_cache, transactions, recurring_transactions, budgets, accounts, portfolio_value_snapshots, investments, group_invitations, users CASCADE`
   );
   await db.execute(sql`DROP FUNCTION IF EXISTS public.bump_account_balance_version()`);
   await db.$client.end();
@@ -118,7 +123,7 @@ beforeEach(async () => {
   vi.clearAllMocks();
   vi.mocked(getCurrentUser).mockResolvedValue(viewer);
   await db.execute(
-    sql`TRUNCATE users, accounts, budgets, recurring_transactions, investments, portfolio_value_snapshots, transactions, budget_periods, categories, market_data_cache`
+    sql`TRUNCATE users, group_invitations, accounts, budgets, recurring_transactions, investments, portfolio_value_snapshots, transactions, budget_periods, categories, market_data_cache`
   );
   await db.execute(
     sql`INSERT INTO users (id, group_id, role) VALUES (${adminA}, ${groupA}, 'admin'), (${memberA}, ${groupA}, 'member'), (${adminB}, ${groupB}, 'admin')`
@@ -159,6 +164,34 @@ it('rejects cross-group budget reads, edits and deletes even for an administrato
     BudgetsRepository.update(foreign.id, { amount: '1' }, db, { groupId: groupA })
   ).rejects.toThrow();
   await expect(BudgetsRepository.delete(foreign.id, db, { groupId: groupA })).rejects.toThrow();
+});
+
+it('serializes concurrent invitations by group and email and permits replacement after expiry', async () => {
+  const input = {
+    groupId: groupA,
+    invitedByUserId: adminA,
+    email: ' Invitee@Example.com ',
+  };
+  const concurrent = await Promise.allSettled([
+    createGroupInvitationUseCase(input),
+    createGroupInvitationUseCase({ ...input, email: 'invitee@example.com' }),
+  ]);
+  expect(concurrent.filter((result) => result.status === 'fulfilled')).toHaveLength(1);
+  const first = concurrent.find((result) => result.status === 'fulfilled')!;
+  if (first.status !== 'fulfilled') throw new Error('Expected one invitation to be created');
+  expect(first.value.email).toBe('invitee@example.com');
+  expect(
+    (await GroupInvitationsRepository.getByGroupId(groupA)).filter(
+      (row) => row.email === input.email.trim().toLowerCase()
+    )
+  ).toHaveLength(1);
+
+  await GroupInvitationsRepository.update(first.value.id, {
+    expires_at: new Date(Date.now() - 1_000),
+  });
+  const replacement = await createGroupInvitationUseCase(input);
+  expect(replacement.id).not.toBe(first.value.id);
+  expect(replacement.expires_at.getTime()).toBeGreaterThan(Date.now());
 });
 
 it('derives the budget group from the session and preserves legitimate administration', async () => {

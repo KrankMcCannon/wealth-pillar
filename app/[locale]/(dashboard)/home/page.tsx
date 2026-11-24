@@ -6,7 +6,7 @@
 
 import { getTranslations } from 'next-intl/server';
 import { resolvePageContext } from '@/lib/auth/page-auth';
-import { getDashboardPageData } from '@/server/use-cases';
+import { getDashboardPageData } from '@/server/use-cases/pages/dashboard.use-case';
 import HomeContent from './home-content';
 
 async function HomePageData({ params }: Readonly<{ params: Promise<{ locale: string }> }>) {

@@ -4,6 +4,8 @@ import { randomBytes } from 'node:crypto';
 import { revalidateTag } from 'next/cache';
 import { CACHE_TAGS } from '@/lib/cache/config';
 import { isValidEmail, validateId, validateRequiredString } from '@/lib/utils/validation-utils';
+import { financialTransaction } from '@/server/repositories/db-executor';
+import { sql } from 'drizzle-orm';
 
 export interface CreateInvitationInput {
   groupId: string;
@@ -29,41 +31,32 @@ export async function createGroupInvitationUseCase(input: CreateInvitationInput)
 
   const emailLower = emailTrimmed.toLowerCase();
 
-  // Check for existing pending invitation
-  const existingInvitation = await GroupInvitationsRepository.getByEmailAndGroup(
-    emailLower,
-    groupId
-  );
-  if (existingInvitation && existingInvitation.status === 'pending') {
-    throw new Error('An invitation has already been sent to this email');
-  }
+  const invitation = await financialTransaction(async (tx) => {
+    await tx.execute(
+      sql`select pg_advisory_xact_lock(hashtextextended(${`group-invitation:${groupId}:${emailLower}`}::text,0::bigint))`
+    );
+    const existingInvitation = await GroupInvitationsRepository.getActivePendingByEmailAndGroup(
+      emailLower,
+      groupId
+    );
+    if (existingInvitation) throw new Error('INVITATION_ALREADY_PENDING');
 
-  // Check if user is already in the group
-  const existingUser = await UsersRepository.findByEmail(emailLower);
-  if (existingUser?.group_id === groupId) {
-    throw new Error('This user is already a member of the group');
-  }
+    const existingUser = await UsersRepository.findByEmail(emailLower);
+    if (existingUser?.group_id === groupId) throw new Error('USER_ALREADY_MEMBER');
 
-  // Generate secure invitation token
-  const invitationToken = randomBytes(16).toString('hex');
-
-  // Calculate expiration date (7 days from now)
-  const expiresAt = new Date();
-  expiresAt.setDate(expiresAt.getDate() + 7);
-
-  // Create invitation
-  const invitation = await GroupInvitationsRepository.create({
-    group_id: groupId,
-    invited_by_user_id: invitedByUserId,
-    email: emailLower,
-    invitation_token: invitationToken,
-    expires_at: expiresAt,
-    status: 'pending',
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7);
+    const created = await GroupInvitationsRepository.create({
+      group_id: groupId,
+      invited_by_user_id: invitedByUserId,
+      email: emailLower,
+      invitation_token: randomBytes(16).toString('hex'),
+      expires_at: expiresAt,
+      status: 'pending',
+    });
+    if (!created) throw new Error('Failed to create invitation');
+    return created;
   });
-
-  if (!invitation) {
-    throw new Error('Failed to create invitation');
-  }
 
   // Invalidate cache
   revalidateTag(CACHE_TAGS.GROUP_INVITATIONS_BY_GROUP(groupId), 'max');

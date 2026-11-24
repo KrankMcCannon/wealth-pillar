@@ -1,6 +1,6 @@
 import { resolveDb } from './db-executor';
 import { groupInvitations } from '@/server/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, gt, desc } from 'drizzle-orm';
 
 export class GroupInvitationsRepository {
   static async getById(id: string) {
@@ -24,6 +24,23 @@ export class GroupInvitationsRepository {
       .select()
       .from(groupInvitations)
       .where(and(eq(groupInvitations.email, email), eq(groupInvitations.group_id, groupId)));
+    return records[0] || null;
+  }
+
+  static async getActivePendingByEmailAndGroup(email: string, groupId: string, now = new Date()) {
+    const records = await resolveDb()
+      .select()
+      .from(groupInvitations)
+      .where(
+        and(
+          eq(groupInvitations.email, email),
+          eq(groupInvitations.group_id, groupId),
+          eq(groupInvitations.status, 'pending'),
+          gt(groupInvitations.expires_at, now)
+        )
+      )
+      .orderBy(desc(groupInvitations.created_at))
+      .limit(1);
     return records[0] || null;
   }
 

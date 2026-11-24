@@ -33,22 +33,20 @@ export function ManageCategoriesModal({ isOpen, onClose }: Readonly<ManageCatego
   const scopeName = useId();
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<'all' | 'group' | 'system'>('all');
-  const [loading, setLoading] = useState(true);
-  const [failed, setFailed] = useState(false);
+  const [loadState, setLoadState] = useState<'loading' | 'ready' | 'error'>('loading');
   const requestId = useRef(0);
   const refresh = useCallback(async () => {
     const id = ++requestId.current;
-    setLoading(true);
-    setFailed(false);
+    setLoadState('loading');
     try {
       const result = await getAllCategoriesAction();
       if (id !== requestId.current) return;
-      if (result.data) useReferenceDataStore.getState().refreshCategories(result.data);
-      else setFailed(true);
+      if (result.data) {
+        useReferenceDataStore.getState().refreshCategories(result.data);
+        setLoadState('ready');
+      } else setLoadState('error');
     } catch {
-      if (id === requestId.current) setFailed(true);
-    } finally {
-      if (id === requestId.current) setLoading(false);
+      if (id === requestId.current) setLoadState('error');
     }
   }, []);
   useEffect(() => {
@@ -143,12 +141,12 @@ export function ManageCategoriesModal({ isOpen, onClose }: Readonly<ManageCatego
         </fieldset>
       </div>
       <ModalBody className="flex flex-col gap-5 pb-4">
-        {loading ? (
+        {loadState === 'loading' ? (
           <p role="status" className="text-sm text-muted-foreground">
             {t('loading')}
           </p>
         ) : null}
-        {failed ? (
+        {loadState === 'error' ? (
           <div role="alert">
             <p>{categories.length ? t('refreshError') : t('loadError')}</p>
             <button
@@ -160,7 +158,7 @@ export function ManageCategoriesModal({ isOpen, onClose }: Readonly<ManageCatego
             </button>
           </div>
         ) : null}
-        {!loading && !hasResults ? (
+        {loadState === 'ready' && !hasResults ? (
           <p role="status" className={s.emptyHint}>
             {t(
               normalizedQuery
