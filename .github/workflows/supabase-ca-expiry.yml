@@ -20,5 +20,6 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
+      - run: pnpm run verify:sheetjs
       - run: pnpm install --frozen-lockfile
       - run: pnpm db:check-ca

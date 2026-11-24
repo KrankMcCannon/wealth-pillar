@@ -11,7 +11,7 @@ import {
   type ReportsDateRange,
 } from '@/features/reports/utils/reporting-window';
 import {
-  getReportsContextUseCase,
+  getReportsPeriodContextUseCase,
   getReportsPeriodSummariesUseCase,
   type ReportPeriodSummary,
 } from '@/server/use-cases/reports/reports.use-cases';
@@ -27,7 +27,7 @@ async function getCachedPeriods(groupId: string, userIds: string[], window: Repo
   );
   for (const id of userIds) cacheTag(CACHE_TAGS.USER_BUDGET_PERIODS(id));
   cacheTag(CACHE_TAGS.GROUP_USERS(groupId));
-  const { periods, accounts, budgets } = await getReportsContextUseCase(groupId, userIds);
+  const { periods, accounts, budgets } = await getReportsPeriodContextUseCase(groupId, userIds);
   return getReportsPeriodSummariesUseCase(groupId, periods, accounts, budgets, {
     start: financialDateTime(window.start).startOf('day').toJSDate(),
     end: financialDateTime(window.end).endOf('day').toJSDate(),

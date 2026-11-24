@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { DateField, overlayRectForTrigger } from './date-field';
 
 vi.mock('next-intl', () => ({
@@ -62,7 +62,7 @@ describe('DateField', () => {
     expect(trigger).toHaveAttribute('aria-expanded', 'false');
     expect(trigger).toHaveTextContent(/15/);
     fireEvent.click(trigger);
-    expect(screen.getByRole('button', { name: /From/ })).toHaveAttribute('aria-expanded', 'true');
+    expect(trigger).toHaveAttribute('aria-expanded', 'true');
     expect(screen.getByRole('dialog', { name: 'From' })).toBeInTheDocument();
     expect(screen.getByTestId('calendar-panel')).toBeInTheDocument();
     expect(screen.queryByTestId('calendar-drawer')).not.toBeInTheDocument();
@@ -70,7 +70,8 @@ describe('DateField', () => {
 
   it('opens a nested drawer when presentation is drawer', () => {
     render(<DateField value="2026-06-15" onChange={() => {}} label="When" presentation="drawer" />);
-    fireEvent.click(screen.getByRole('button', { name: /When/ }));
+    const trigger = screen.getByRole('button', { name: /When/ });
+    fireEvent.click(trigger);
     expect(screen.getByTestId('calendar-drawer')).toBeInTheDocument();
     expect(screen.queryByTestId('calendar-panel')).not.toBeInTheDocument();
   });
@@ -80,7 +81,7 @@ describe('DateField', () => {
     expect(screen.getByRole('button', { name: /When/ })).toHaveTextContent(/11/);
   });
 
-  it('renders the overlay as a floating fixed dialog in body so it is not clipped by parent modal', () => {
+  it('contains focus and closes from its non-focusable overlay', async () => {
     render(
       <div data-slot="drawer-content">
         <DateField
@@ -92,13 +93,15 @@ describe('DateField', () => {
         />
       </div>
     );
-    fireEvent.click(screen.getByRole('button', { name: /When/ }));
+    const trigger = screen.getByRole('button', { name: /When/ });
+    fireEvent.click(trigger);
     const dialog = screen.getByRole('dialog', { name: 'When' });
-    expect(dialog).toHaveClass('pointer-events-auto');
     expect(dialog).toHaveClass('fixed');
-    expect(screen.getByRole('button', { name: 'closeCalendar' })).toHaveClass(
-      'pointer-events-auto'
-    );
+    expect(dialog).toHaveAttribute('aria-modal', 'true');
+    expect(screen.getByTestId('calendar-overlay').tagName).toBe('DIV');
+    fireEvent.pointerDown(screen.getByTestId('calendar-overlay'), { button: 0 });
+    expect(screen.queryByRole('dialog', { name: 'When' })).not.toBeInTheDocument();
+    await waitFor(() => expect(trigger).toHaveFocus());
     expect(screen.queryByTestId('calendar-drawer')).not.toBeInTheDocument();
   });
 });

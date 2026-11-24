@@ -1,5 +1,5 @@
-import { afterEach, expect, it, vi } from 'vitest';
-import { getReportsContextUseCase } from './reports.use-cases';
+import { afterEach, beforeEach, expect, it, vi } from 'vitest';
+import { getReportsPageContextUseCase, getReportsPeriodContextUseCase } from './reports.use-cases';
 import { UsersRepository } from '@/server/repositories/users.repository';
 import { AccountsRepository } from '@/server/repositories/accounts.repository';
 import { CategoriesRepository } from '@/server/repositories/categories.repository';
@@ -12,6 +12,7 @@ vi.mock('@/server/use-cases/budgets/get-budgets.use-case', () => ({
 }));
 
 afterEach(() => vi.restoreAllMocks());
+beforeEach(() => vi.clearAllMocks());
 
 it('loads all authorized report periods once regardless of the group size', async () => {
   const users = Array.from({ length: 25 }, (_, i) => ({
@@ -32,7 +33,7 @@ it('loads all authorized report periods once regardless of the group size', asyn
       start_date: '2026-01-01',
     } as never,
   ]);
-  const context = await getReportsContextUseCase('g');
+  const context = await getReportsPeriodContextUseCase('g');
   expect(batch).toHaveBeenCalledExactlyOnceWith(users.map((user) => user.id));
   expect(single).not.toHaveBeenCalled();
   expect(context.periods).toHaveLength(25);
@@ -47,7 +48,8 @@ it('does not accept foreign user ids from the requested filter', async () => {
   vi.spyOn(AccountsRepository, 'findByGroup').mockResolvedValue([]);
   vi.spyOn(CategoriesRepository, 'findAvailable').mockResolvedValue([]);
   const batch = vi.spyOn(BudgetPeriodsRepository, 'findByUserIds').mockResolvedValue([]);
-  const result = await getReportsContextUseCase('g', ['foreign']);
+  const result = await getReportsPageContextUseCase('g', ['foreign']);
   expect(batch).toHaveBeenCalledExactlyOnceWith([]);
   expect(result.periods).toEqual([]);
+  expect(getBudgetsByGroupUseCase).not.toHaveBeenCalled();
 });

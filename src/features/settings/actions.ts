@@ -6,6 +6,8 @@ import { updateTag } from 'next/cache';
 import { CACHE_TAGS } from '@/lib/cache/config';
 import { updateUserPreferencesUseCase } from '@/server/use-cases/users/update-user-preferences.use-case';
 import { createGroupInvitationUseCase } from '@/server/use-cases/groups/group-invitations.use-cases';
+import { GroupInvitationsRepository } from '@/server/repositories/group-invitations.repository';
+import { isValidEmail } from '@/lib/utils/validation-utils';
 import { updateGroupUseCase } from '@/server/use-cases/groups/groups.use-cases';
 import type { UserPreferences, GroupInvitation } from '@/lib/types';
 import type { UserPreferencesUpdate } from '@/lib/types';
@@ -172,10 +174,39 @@ export async function sendGroupInvitationAction(
       error: null,
     };
   } catch (error) {
+    if (error instanceof Error && error.message === 'INVITATION_ALREADY_PENDING')
+      return { data: null, error: error.message, errorCode: 'INVITATION_ALREADY_PENDING' };
     return {
       data: null,
       error: error instanceof Error ? error.message : 'Failed to send invitation',
     };
+  }
+}
+
+/** Read-only reconciliation for an administrator's timed-out invitation request. */
+export async function getGroupInvitationStatusAction(
+  groupId: string,
+  email: string
+): Promise<ServiceResult<{ status: 'pending' | 'none'; expiresAt?: string }>> {
+  const currentUser = await getCurrentUser();
+  if (!currentUser) return { data: null, error: 'Not authenticated' };
+  if (
+    (currentUser.role !== 'admin' && currentUser.role !== 'superadmin') ||
+    currentUser.group_id !== groupId
+  )
+    return { data: null, error: 'Permission denied' };
+  const normalizedEmail = email.trim().toLowerCase();
+  if (!isValidEmail(normalizedEmail)) return { data: null, error: 'Invalid email format' };
+  try {
+    const invitation = await GroupInvitationsRepository.getActivePendingByEmailAndGroup(
+      normalizedEmail,
+      groupId
+    );
+    return invitation
+      ? { data: { status: 'pending', expiresAt: invitation.expires_at.toISOString() }, error: null }
+      : { data: { status: 'none' }, error: null };
+  } catch (error) {
+    return { data: null, error: error instanceof Error ? error.message : 'Verification failed' };
   }
 }
 

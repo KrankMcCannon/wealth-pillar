@@ -167,21 +167,36 @@ export default function AddInvestmentModal({
         confirmText: t('delete.confirm'),
         cancelText: t('cancelButton'),
         onDelete: async () => {
-          if (!editId) return;
-          const result = await withDeadline(
-            financialCommand('deleteInvestmentAction', [editId], (operationId, args) =>
-              deleteInvestmentAction(...args, operationId)
-            )
-          );
-          if (result.error) {
-            toast({
-              title: t('toast.errorTitle'),
-              description: t('delete.error'),
-              variant: 'destructive',
-            });
-            throw new Error(result.error);
+          if (!editId) return { status: 'rejected' as const };
+          try {
+            const result = await financialCommand(
+              'deleteInvestmentAction',
+              [editId],
+              (operationId, args) => deleteInvestmentAction(...args, operationId)
+            );
+            if (result.error) {
+              toast({
+                title: t('toast.errorTitle'),
+                description: t('delete.error'),
+                variant: 'destructive',
+              });
+              return result.errorCode === 'OUTCOME_UNKNOWN'
+                ? { status: 'uncertain' as const }
+                : { status: 'rejected' as const };
+            }
+            router.refresh();
+            return { status: 'confirmed' as const };
+          } catch {
+            return { status: 'uncertain' as const };
           }
+        },
+        onVerify: async () => {
+          if (!editId) return { status: 'uncertain' as const };
+          const result = await financialCommand.verify<boolean>('deleteInvestmentAction', [editId]);
+          if (!result) return { status: 'uncertain' as const };
+          if (result.error || !result.data) return { status: 'rejected' as const };
           router.refresh();
+          return { status: 'confirmed' as const };
         },
       }}
       footer={(_, isSubmitting) => (

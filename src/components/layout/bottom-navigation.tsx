@@ -54,17 +54,25 @@ function BottomNavItemChrome({
   isCurrent: boolean;
 }>) {
   const { pending } = useLinkStatus();
-  const active = isCurrent || pending;
-
   return (
     <>
       <span
-        className={cn(shell.bottomNavIconWell, active && shell.bottomNavIconWellActive)}
+        className={cn(
+          'relative',
+          shell.bottomNavIconWell,
+          isCurrent && shell.bottomNavIconWellActive
+        )}
         aria-busy={pending || undefined}
       >
         <Icon className={shell.bottomNavIcon} aria-hidden />
+        {pending ? (
+          <span
+            className="absolute right-0 top-0 size-2 rounded-full bg-primary ring-2 ring-background"
+            aria-hidden
+          />
+        ) : null}
       </span>
-      <span className={cn(shell.bottomNavLabel, active && shell.bottomNavLabelActive)}>
+      <span className={cn(shell.bottomNavLabel, isCurrent && shell.bottomNavLabelActive)}>
         {label}
       </span>
     </>

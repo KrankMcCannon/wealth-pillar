@@ -3,7 +3,6 @@
 import { useFinancialCommand } from '@/hooks/use-financial-command';
 
 import { useRouter } from '@/i18n/routing';
-import { withDeadline } from '@/lib/utils/with-deadline';
 
 import { useCallback, useMemo } from 'react';
 import { z } from 'zod';
@@ -264,10 +263,10 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
 
     let rejected = false;
     try {
-      const result = await withDeadline(
-        financialCommand('deleteAccountAction', [account.id, locale], (operationId, args) =>
-          deleteAccountAction(...args, operationId)
-        )
+      const result = await financialCommand(
+        'deleteAccountAction',
+        [account.id, locale],
+        (operationId, args) => deleteAccountAction(...args, operationId)
       );
       if (result.error) {
         rejected = true;
@@ -276,7 +275,9 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
           description: result.errorCode === 'OUTCOME_UNKNOWN' ? tStatus('pending') : result.error,
           variant: 'destructive',
         });
-        throw new Error(result.error);
+        return result.errorCode === 'OUTCOME_UNKNOWN'
+          ? { status: 'uncertain' as const }
+          : { status: 'rejected' as const };
       }
       removeAccount(account.id);
       toast({
@@ -291,9 +292,23 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
           description: tStatus('pending'),
           variant: 'destructive',
         });
-      throw new Error('delete failed');
+      return { status: 'uncertain' as const };
     }
   }, [editId, financialCommand, locale, removeAccount, storeAccounts, t, tStatus]);
+
+  const verifyDelete = useCallback(async () => {
+    if (!editId) return { status: 'uncertain' as const };
+    const result = await financialCommand.verify<boolean>('deleteAccountAction', [editId, locale]);
+    if (!result) return { status: 'uncertain' as const };
+    if (result.error || !result.data) return { status: 'rejected' as const };
+    removeAccount(editId);
+    toast({
+      title: t('toast.deletedTitle'),
+      description: t('toast.deletedDescription'),
+      variant: 'success',
+    });
+    return { status: 'confirmed' as const };
+  }, [editId, financialCommand, locale, removeAccount, t]);
 
   return (
     <EntityFormModal<AccountFormData>
@@ -312,6 +327,7 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
               confirmText: tContent('dialogs.delete.confirm'),
               cancelText: tContent('dialogs.delete.cancel'),
               onDelete: handleDelete,
+              onVerify: verifyDelete,
               testId: 'account-form-delete',
             },
           }

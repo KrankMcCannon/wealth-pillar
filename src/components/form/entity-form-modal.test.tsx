@@ -42,6 +42,7 @@ function TestHarness({
               confirmText: 'Delete',
               cancelText: 'Cancel',
               onDelete: vi.fn(async () => {}),
+              onVerify: async () => ({ status: 'uncertain' as const }),
               testId: 'entity-form-delete',
             },
           }
@@ -197,6 +198,48 @@ it('releases React Hook Form submitting state after a timeout without erasing th
   } finally {
     vi.useRealTimers();
   }
+});
+
+it('locks an entity after an uncertain deletion and closes only after verification confirms it', async () => {
+  const user = userEvent.setup();
+  const onClose = vi.fn();
+  const onDelete = vi
+    .fn()
+    .mockResolvedValueOnce({ status: 'uncertain' })
+    .mockResolvedValueOnce({ status: 'confirmed' });
+  const onVerify = vi.fn().mockResolvedValueOnce({ status: 'uncertain' });
+  render(
+    <EntityFormModal
+      isOpen
+      onClose={onClose}
+      title="Delete safely"
+      schema={schema}
+      defaultValues={{ name: 'Draft' }}
+      onSubmit={async () => {}}
+      deletion={{ enabled: true, title: 'Delete', message: 'Sure?', onDelete, onVerify }}
+      footer={(_, __, { openDeleteDialog }) => (
+        <button type="button" onClick={openDeleteDialog}>
+          Delete entity
+        </button>
+      )}
+    >
+      {(form) => <input aria-label="Entity name" {...form.register('name')} />}
+    </EntityFormModal>
+  );
+
+  await user.click(screen.getByRole('button', { name: 'Delete entity' }));
+  await user.click(screen.getByRole('button', { name: 'confirm' }));
+  expect(onDelete).toHaveBeenCalledOnce();
+  expect(await screen.findByRole('button', { name: 'verifyOutcome' })).toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: 'cancel' })).not.toBeInTheDocument();
+  expect(onClose).not.toHaveBeenCalled();
+
+  await user.click(screen.getByRole('button', { name: 'verifyOutcome' }));
+  expect(onVerify).toHaveBeenCalledOnce();
+  expect(await screen.findByRole('button', { name: 'retry' })).toBeInTheDocument();
+  await user.click(screen.getByRole('button', { name: 'retry' }));
+  expect(onDelete).toHaveBeenCalledTimes(2);
+  expect(onClose).toHaveBeenCalledOnce();
 });
 
 it('shows recovery instead of editable defaults when loading the original entity fails', () => {

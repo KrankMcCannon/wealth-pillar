@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { loadReportPeriodsAction } from './report-periods-actions';
 import { getCurrentUser, getGroupUsers } from '@/lib/auth/cached-auth';
 import {
-  getReportsContextUseCase,
+  getReportsPeriodContextUseCase,
   getReportsPeriodSummariesUseCase,
 } from '@/server/use-cases/reports/reports.use-cases';
 import type { User } from '@/lib/types';
@@ -10,7 +10,7 @@ import type { User } from '@/lib/types';
 vi.mock('next/cache', () => ({ cacheLife: vi.fn(), cacheTag: vi.fn() }));
 vi.mock('@/lib/auth/cached-auth', () => ({ getCurrentUser: vi.fn(), getGroupUsers: vi.fn() }));
 vi.mock('@/server/use-cases/reports/reports.use-cases', () => ({
-  getReportsContextUseCase: vi.fn(),
+  getReportsPeriodContextUseCase: vi.fn(),
   getReportsPeriodSummariesUseCase: vi.fn(),
 }));
 
@@ -21,12 +21,10 @@ describe('loadReportPeriodsAction', () => {
   beforeEach(() => {
     vi.resetAllMocks();
     vi.mocked(getCurrentUser).mockResolvedValue(member);
-    vi.mocked(getReportsContextUseCase).mockResolvedValue({
+    vi.mocked(getReportsPeriodContextUseCase).mockResolvedValue({
       periods: [],
       accounts: [],
       budgets: [],
-      categories: [],
-      users: [],
     });
     vi.mocked(getReportsPeriodSummariesUseCase).mockResolvedValue([
       { userId: 'u1' },
@@ -36,7 +34,7 @@ describe('loadReportPeriodsAction', () => {
   it('denies anonymous callers before reading financial data', async () => {
     vi.mocked(getCurrentUser).mockResolvedValue(null);
     expect((await loadReportPeriodsAction(window)).data).toBeNull();
-    expect(getReportsContextUseCase).not.toHaveBeenCalled();
+    expect(getReportsPeriodContextUseCase).not.toHaveBeenCalled();
   });
   it('rejects malformed and reversed ranges before reading financial data', async () => {
     for (const range of [
@@ -44,12 +42,12 @@ describe('loadReportPeriodsAction', () => {
       { start: window.end, end: window.start },
     ])
       expect((await loadReportPeriodsAction(range)).data).toBeNull();
-    expect(getReportsContextUseCase).not.toHaveBeenCalled();
+    expect(getReportsPeriodContextUseCase).not.toHaveBeenCalled();
   });
   it('derives the group from auth and returns only the member’s periods', async () => {
     const result = await loadReportPeriodsAction(window);
     expect(getGroupUsers).not.toHaveBeenCalled();
-    expect(getReportsContextUseCase).toHaveBeenCalledWith('g1', ['u1']);
+    expect(getReportsPeriodContextUseCase).toHaveBeenCalledWith('g1', ['u1']);
     expect(result.data).toEqual([{ userId: 'u1' }]);
   });
   it('allows admins to see their group, excluding unrelated users', async () => {
@@ -60,7 +58,7 @@ describe('loadReportPeriodsAction', () => {
       { ...member, id: 'u3', group_id: 'other' },
     ]);
     const result = await loadReportPeriodsAction(window);
-    expect(getReportsContextUseCase).toHaveBeenCalledWith('g1', ['u1', 'u2']);
+    expect(getReportsPeriodContextUseCase).toHaveBeenCalledWith('g1', ['u1', 'u2']);
     expect(result.data).toHaveLength(2);
   });
 });

@@ -35,6 +35,7 @@ export interface ModalFooterDualProps extends ModalFooterActionsBase {
   submitDisabled?: boolean;
   submitIcon?: ReactNode;
   secondaryAction?: ReactNode;
+  hideCancel?: boolean;
 }
 
 export type ModalFooterActionsProps = ModalFooterStackedPrimaryProps | ModalFooterDualProps;
@@ -100,6 +101,7 @@ function DualFooter({
   submitDisabled = false,
   submitIcon,
   secondaryAction,
+  hideCancel = false,
   className,
 }: Readonly<ModalFooterDualProps>) {
   const busy = disabled || isSubmitting;
@@ -109,14 +111,16 @@ function DualFooter({
     <div className={cn(s.footer.actionsStack, 'relative z-10', className)}>
       {secondaryAction}
       <div className={s.footer.dualRow}>
-        <button
-          type="button"
-          onClick={onCancel}
-          disabled={isSubmitting}
-          className={s.footer.dualCancel}
-        >
-          {cancelLabel}
-        </button>
+        {!hideCancel ? (
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={isSubmitting}
+            className={s.footer.dualCancel}
+          >
+            {cancelLabel}
+          </button>
+        ) : null}
         <button
           type={submitType}
           onClick={submitType === 'button' ? onSubmit : undefined}
@@ -124,6 +128,7 @@ function DualFooter({
           aria-busy={isSubmitting}
           className={cn(
             s.footer.dualSubmit,
+            hideCancel && 'col-span-2',
             submitVariant === 'destructive' && s.footer.dualSubmitDanger
           )}
         >

@@ -16,6 +16,11 @@ list with normal per-file isolation and fails on an unexpected empty selection.
 The integration suite currently occupies one file, so any related change runs all
 of its cases; unrelated changes skip its database service entirely.
 
+The checks job verifies the vendored SheetJS tarball before installation and queries
+OSV for the resolved `xlsx` version. OSV records findings for the npm-registry copy;
+the audit keeps service failures distinct from advisories and applies the official
+SheetJS fix releases to the separately sourced vendor tarball.
+
 - Changes to dependencies, shared configuration, workflow/planner, test setup,
   locales/assets/CSS/SQL or deleted/renamed files run the full suite.
 - Missing/invalid baselines and manual runs run the full suite.
@@ -71,5 +76,5 @@ For future work, push a branch, open a PR, wait for `Quality`, and merge. Direct
 pushes to `master` are intentionally blocked after protection is enabled.
 
 Dependabot checks npm dependencies and GitHub Actions weekly. SheetJS remains at
-0.20.3 from its official CDN; its tarball is pinned with SHA-512 integrity in the
-lockfile, verified by a clean frozen install.
+0.20.3 in `vendor/xlsx-0.20.3.tgz`. CI verifies the official tarball's SHA-512
+before every frozen install; pnpm records the local tarball integrity in the lockfile.

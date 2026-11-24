@@ -33,6 +33,7 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: pnpm
+      - run: pnpm run verify:sheetjs
       - run: pnpm install --frozen-lockfile
       - run: node --test scripts/ci/*.test.mjs
       - run: python3 scripts/ai-harness/doctor.py
@@ -54,7 +55,9 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: pnpm
+      - run: pnpm run verify:sheetjs
       - run: pnpm install --frozen-lockfile
+      - run: pnpm run audit:sheetjs
       - id: keys
         run: node scripts/ci/cache-keys.mjs
       - uses: actions/cache@v6
@@ -93,6 +96,7 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: pnpm
+      - run: pnpm run verify:sheetjs
       - run: pnpm install --frozen-lockfile
       - run: node scripts/ci/run-tests.mjs
         env:
@@ -125,6 +129,7 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: pnpm
+      - run: pnpm run verify:sheetjs
       - run: pnpm install --frozen-lockfile
       - run: node scripts/ci/run-tests.mjs
         env:
@@ -142,6 +147,7 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: pnpm
+      - run: pnpm run verify:sheetjs
       - run: pnpm install --frozen-lockfile
       - id: keys
         run: node scripts/ci/cache-keys.mjs
@@ -190,6 +196,7 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: pnpm
+      - run: pnpm run verify:sheetjs
       - run: pnpm install --frozen-lockfile
       - name: Require isolated database and Clerk development credentials
         run: pnpm exec tsx -e "import { requireE2EEnvironment } from './tests/e2e-environment'; requireE2EEnvironment();"

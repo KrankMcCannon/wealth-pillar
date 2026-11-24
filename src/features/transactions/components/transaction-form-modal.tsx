@@ -420,18 +420,16 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
 
     let result;
     try {
-      result = await withDeadline(
-        financialCommand('deleteTransactionAction', [editId], (operationId, args) =>
-          deleteTransactionAction(...args, operationId)
-        )
+      result = await financialCommand('deleteTransactionAction', [editId], (operationId, args) =>
+        deleteTransactionAction(...args, operationId)
       );
-    } catch (error) {
+    } catch {
       toast({
         title: tPage('errors.title'),
         description: tStatus('pending'),
         variant: 'destructive',
       });
-      throw error;
+      return { status: 'uncertain' as const };
     }
     if (result.error) {
       toast({
@@ -442,7 +440,9 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
             : `${tPage('errors.deleteTransactionFailed')} ${tPage('errors.retryHint')}`,
         variant: 'destructive',
       });
-      throw new Error(result.error);
+      return result.errorCode === 'OUTCOME_UNKNOWN'
+        ? { status: 'uncertain' as const }
+        : { status: 'rejected' as const };
     }
     const balanceId = getTempId('balance-delete');
     applyDeleteOptimisticStore(editId, original);
@@ -460,6 +460,37 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
     tPage,
     t,
     tStatus,
+    financialCommand,
+  ]);
+
+  const verifyDelete = useCallback(async () => {
+    if (!editId) return { status: 'uncertain' as const };
+    const overlay = useOptimisticTransactionStore.getState();
+    const original =
+      seedTransaction?.id === editId
+        ? seedTransaction
+        : (overlay.updated[editId]?.transaction ?? overlay.updated[editId]?.original);
+    if (!original) return { status: 'uncertain' as const };
+
+    const result = await financialCommand.verify<
+      Awaited<ReturnType<typeof deleteTransactionAction>>['data']
+    >('deleteTransactionAction', [editId]);
+    if (!result) return { status: 'uncertain' as const };
+    if (result.error) return { status: 'rejected' as const };
+
+    const balanceId = getTempId('balance-delete');
+    applyDeleteOptimisticStore(editId, original);
+    beginBalanceMutation(balanceId, Object.fromEntries(getTransactionBalanceDeltas(original, -1)));
+    finishBalanceMutation(balanceId, result.data ?? undefined);
+    commitDeleteOptimisticStore(editId);
+    return { status: 'confirmed' as const };
+  }, [
+    editId,
+    seedTransaction,
+    applyDeleteOptimisticStore,
+    beginBalanceMutation,
+    finishBalanceMutation,
+    commitDeleteOptimisticStore,
     financialCommand,
   ]);
 
@@ -506,6 +537,7 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
               confirmText: tPage('dialogs.deleteTransaction.confirm'),
               cancelText: tPage('dialogs.cancel'),
               onDelete: handleDelete,
+              onVerify: verifyDelete,
               testId: 'transaction-form-delete',
             },
           }

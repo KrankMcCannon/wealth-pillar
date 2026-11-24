@@ -6,9 +6,9 @@ import ts from 'typescript';
 // network outcome lookup is replaced; no alternate storage implementation is used.
 const source = readFileSync('src/lib/utils/pending-financial-operations.ts', 'utf8')
   .replace(/^import .*;$/gm, '')
-  .replace('export function runPendingFinancialOperation', 'function runPendingFinancialOperation');
+  .replace(/^export /gm, '');
 const script = ts.transpileModule(
-  `const DEADLINE_EXPIRED = Symbol('deadline-expired');\nconst getFinancialOperationAction = async () => ({data:{status:'unknown'},error:null});\n${source}\nObject.assign(window,{runPendingFinancialOperation});`,
+  `(() => {\nconst DEADLINE_EXPIRED = Symbol('deadline-expired');\nconst getFinancialOperationAction = async () => ({data:{status:'unknown'},error:null});\n${source}\nObject.assign(window,{runPendingFinancialOperation});\n})();`,
   { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.None } }
 ).outputText;
 

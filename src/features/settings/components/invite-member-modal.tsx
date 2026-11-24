@@ -1,8 +1,8 @@
 'use client';
 
-import { withDeadline } from '@/lib/utils/with-deadline';
+import { ActionTimeoutError, withDeadline } from '@/lib/utils/with-deadline';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { z } from 'zod';
 import { useTranslations } from 'next-intl';
 import { Mail } from 'lucide-react';
@@ -10,7 +10,10 @@ import { EntityFormModal } from '@/components/form';
 import { ModalTextField } from '@/components/form/modal-fields';
 import { ModalFooterActions } from '@/components/ui/modal-footer-actions';
 import { toast } from '@/hooks/use-toast';
-import { sendGroupInvitationAction } from '@/features/settings';
+import {
+  getGroupInvitationStatusAction,
+  sendGroupInvitationAction,
+} from '@/features/settings/actions';
 import { stitchSettings as s } from '@/styles/home-design-foundation';
 
 const createInviteMemberSchema = (t: ReturnType<typeof useTranslations>) =>
@@ -41,6 +44,8 @@ export function InviteMemberModal({
 }: InviteMemberModalProps) {
   const t = useTranslations('SettingsModals.InviteMember');
   const inviteMemberSchema = useMemo(() => createInviteMemberSchema(t), [t]);
+  const [verificationEmail, setVerificationEmail] = useState<string | null>(null);
+  const [isVerifying, setIsVerifying] = useState(false);
 
   const defaultValues = useMemo(
     (): InviteMemberFormData => ({
@@ -64,24 +69,32 @@ export function InviteMemberModal({
           variant="dual"
           cancelLabel={t('cancelButton')}
           submitLabel={t('sendButton')}
-          onCancel={onClose}
+          onCancel={verificationEmail ? () => undefined : onClose}
           submitType="submit"
-          isSubmitting={form.formState.isSubmitting}
+          isSubmitting={form.formState.isSubmitting || Boolean(verificationEmail)}
           submitIcon={<Mail className="h-4 w-4 shrink-0" aria-hidden />}
         />
       )}
       onSubmit={async (data) => {
-        const { error } = await withDeadline(
-          sendGroupInvitationAction(groupId, currentUserId, data.email)
-        );
+        const email = data.email.trim().toLowerCase();
+        let result;
+        try {
+          result = await withDeadline(sendGroupInvitationAction(groupId, currentUserId, email));
+        } catch (error) {
+          if (error instanceof ActionTimeoutError) {
+            setVerificationEmail(email);
+            return;
+          }
+          throw error;
+        }
 
-        if (error) {
+        if (result.error && result.errorCode !== 'INVITATION_ALREADY_PENDING') {
           toast({
             title: t('toast.sendErrorTitle'),
-            description: error,
+            description: result.error,
             variant: 'destructive',
           });
-          throw new Error(error);
+          throw new Error(result.error);
         }
 
         toast({
@@ -104,8 +117,56 @@ export function InviteMemberModal({
             type="email"
             placeholder={t('emailPlaceholder')}
             autoComplete="email"
-            disabled={form.formState.isSubmitting}
+            disabled={form.formState.isSubmitting || Boolean(verificationEmail)}
           />
+          {verificationEmail ? (
+            <div role="alert" className="space-y-3 p-3">
+              <p className="text-sm">
+                {t('verifyOutcomeDescription', { email: verificationEmail })}
+              </p>
+              <button
+                type="button"
+                className="min-h-11 underline"
+                disabled={isVerifying}
+                onClick={async () => {
+                  setIsVerifying(true);
+                  try {
+                    const status = await withDeadline(
+                      getGroupInvitationStatusAction(groupId, verificationEmail)
+                    );
+                    if (status.error || !status.data)
+                      throw new Error(status.error ?? 'Verification failed');
+                    if (status.data.status === 'none') {
+                      setVerificationEmail(null);
+                      toast({
+                        title: t('toast.sendErrorTitle'),
+                        description: t('verificationNotFound'),
+                        variant: 'destructive',
+                      });
+                      return;
+                    }
+                    toast({
+                      title: t('toast.successTitle'),
+                      description: t('toast.successDescription', { email: verificationEmail }),
+                      variant: 'success',
+                    });
+                    onSuccess?.();
+                    onClose();
+                  } catch {
+                    toast({
+                      title: t('toast.sendErrorTitle'),
+                      description: t('verificationFailed'),
+                      variant: 'destructive',
+                    });
+                  } finally {
+                    setIsVerifying(false);
+                  }
+                }}
+              >
+                {isVerifying ? t('verifying') : t('verifyOutcomeButton')}
+              </button>
+            </div>
+          ) : null}
         </div>
       )}
     </EntityFormModal>

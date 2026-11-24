@@ -109,20 +109,9 @@ export async function getProcessedUserPeriodsUseCase(user: User): Promise<Budget
  * Users, accounts, categories, budgets, and periods — no transactions.
  * Resolve reporting windows from this context before fetching txs.
  */
-export async function getReportsContextUseCase(groupId: string, groupUserIds?: string[]) {
+async function getReportsUsersAndPeriodsUseCase(groupId: string, groupUserIds?: string[]) {
   if (!groupId) throw new Error('Reports: groupId is required');
-
-  const [users, allAccounts, allCategories, budgets] = await Promise.all([
-    UsersRepository.findByGroupId(groupId),
-    AccountsRepository.findByGroup(groupId),
-    CategoriesRepository.findAvailable(groupId),
-    getBudgetsByGroupUseCase(groupId),
-  ]);
-
-  const normalizedAccounts: Account[] = (allAccounts || []).map((a: Account) => ({
-    ...a,
-    balance: Number(a.balance),
-  }));
+  const users = await UsersRepository.findByGroupId(groupId);
 
   const filteredUsers =
     groupUserIds && groupUserIds.length > 0
@@ -145,12 +134,37 @@ export async function getReportsContextUseCase(groupId: string, groupUserIds?: s
   });
 
   return {
-    accounts: normalizedAccounts,
     periods: allPeriods,
-    categories: allCategories || [],
     users: filteredUsers,
-    budgets,
   };
+}
+
+async function getNormalizedReportsAccountsUseCase(groupId: string): Promise<Account[]> {
+  const allAccounts = await AccountsRepository.findByGroup(groupId);
+  return (allAccounts || []).map((account: Account) => ({
+    ...account,
+    balance: Number(account.balance),
+  }));
+}
+
+/** Inputs consumed by the Reports overview. */
+export async function getReportsPageContextUseCase(groupId: string, groupUserIds?: string[]) {
+  const [{ periods, users }, accounts, categories] = await Promise.all([
+    getReportsUsersAndPeriodsUseCase(groupId, groupUserIds),
+    getNormalizedReportsAccountsUseCase(groupId),
+    CategoriesRepository.findAvailable(groupId),
+  ]);
+  return { accounts, periods, categories: categories || [], users };
+}
+
+/** Inputs consumed by the on-demand budget-period summaries. */
+export async function getReportsPeriodContextUseCase(groupId: string, groupUserIds?: string[]) {
+  const [{ periods }, accounts, budgets] = await Promise.all([
+    getReportsUsersAndPeriodsUseCase(groupId, groupUserIds),
+    getNormalizedReportsAccountsUseCase(groupId),
+    getBudgetsByGroupUseCase(groupId),
+  ]);
+  return { periods, accounts, budgets };
 }
 
 export async function getReportsTransactionsUseCase(

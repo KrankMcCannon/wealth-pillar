@@ -161,7 +161,12 @@
       "noteText": "The new member will receive an email with an invitation link valid for 7 days. They can accept the invitation by creating an account or signing in with an existing account.",
       "cancelButton": "Cancel",
       "sendingButton": "Sending...",
-      "sendButton": "Send Invitation"
+      "sendButton": "Send Invitation",
+      "verifyOutcomeDescription": "The response for {email} is missing. Check whether the invitation was created before sending again.",
+      "verifyOutcomeButton": "Check invitation status",
+      "verificationNotFound": "No active invitation is visible yet. You can retry; concurrent requests are serialized to prevent duplicates.",
+      "verificationFailed": "Could not verify the invitation. Your email is preserved; try again.",
+      "verifying": "Checking..."
     },
     "EditProfile": {
       "validation": {
@@ -2313,6 +2318,7 @@
     "error": "The operation failed. Your entries have been kept. Please try again shortly.",
     "referenceUnavailable": "Accounts and categories could not be refreshed. Reload the data before adding new items.",
     "retry": "Reload data",
+    "verifyOutcome": "Verify outcome",
     "loadError": "Loading failed. Try again or close the form."
   }
 }

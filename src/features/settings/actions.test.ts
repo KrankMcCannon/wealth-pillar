@@ -4,6 +4,7 @@ import {
   updateUserProfileAction,
   updateUserPreferencesAction,
   sendGroupInvitationAction,
+  getGroupInvitationStatusAction,
 } from './actions';
 
 vi.mock('@/lib/auth/cached-auth', () => ({
@@ -25,12 +26,16 @@ vi.mock('@/server/use-cases/users/update-user-preferences.use-case', () => ({
 vi.mock('@/server/use-cases/groups/group-invitations.use-cases', () => ({
   createGroupInvitationUseCase: vi.fn(),
 }));
+vi.mock('@/server/repositories/group-invitations.repository', () => ({
+  GroupInvitationsRepository: { getActivePendingByEmailAndGroup: vi.fn() },
+}));
 
 import { getCurrentUser } from '@/lib/auth/cached-auth';
 import { updateGroupUseCase } from '@/server/use-cases/groups/groups.use-cases';
 import { updateUserProfileUseCase } from '@/server/use-cases/users/user.use-cases';
 import { updateUserPreferencesUseCase } from '@/server/use-cases/users/update-user-preferences.use-case';
 import { createGroupInvitationUseCase } from '@/server/use-cases/groups/group-invitations.use-cases';
+import { GroupInvitationsRepository } from '@/server/repositories/group-invitations.repository';
 
 describe('updateGroupAction', () => {
   beforeEach(() => {
@@ -101,6 +106,41 @@ describe('sendGroupInvitationAction', () => {
 
     expect(result.error).toBe('Permission denied');
     expect(createGroupInvitationUseCase).not.toHaveBeenCalled();
+  });
+});
+
+describe('getGroupInvitationStatusAction', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it('requires an administrator in the requested group', async () => {
+    vi.mocked(getCurrentUser).mockResolvedValue({
+      id: 'u1',
+      group_id: 'g1',
+      role: 'member',
+    } as never);
+    expect((await getGroupInvitationStatusAction('g1', 'invitee@example.com')).error).toBe(
+      'Permission denied'
+    );
+    expect(GroupInvitationsRepository.getActivePendingByEmailAndGroup).not.toHaveBeenCalled();
+  });
+
+  it('normalizes email and returns only pending state and expiry', async () => {
+    vi.mocked(getCurrentUser).mockResolvedValue({
+      id: 'u1',
+      group_id: 'g1',
+      role: 'admin',
+    } as never);
+    vi.mocked(GroupInvitationsRepository.getActivePendingByEmailAndGroup).mockResolvedValue({
+      expires_at: new Date('2026-12-01T00:00:00.000Z'),
+      invitation_token: 'secret-token',
+    } as never);
+    const result = await getGroupInvitationStatusAction('g1', ' INVITEE@EXAMPLE.COM ');
+    expect(GroupInvitationsRepository.getActivePendingByEmailAndGroup).toHaveBeenCalledWith(
+      'invitee@example.com',
+      'g1'
+    );
+    expect(result.data).toEqual({ status: 'pending', expiresAt: '2026-12-01T00:00:00.000Z' });
+    expect(JSON.stringify(result)).not.toContain('secret-token');
   });
 });
 
