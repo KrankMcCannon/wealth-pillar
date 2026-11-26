@@ -81,6 +81,8 @@ test('retains the same pending operation across two tabs and reload', async ({ p
     });
     return { firstId, secondId };
   });
-  expect(late.secondId).toBe(late.firstId);
+  // A definitive late response cleans up its completed attempt. The next
+  // identical user submission must acquire a fresh operation identity.
+  expect(late.secondId).not.toBe(late.firstId);
   await second.close();
 });

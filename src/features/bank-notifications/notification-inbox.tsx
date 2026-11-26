@@ -205,7 +205,9 @@ function NotificationRow({
               {t.has(`reasons.${event.reason}`) ? t(`reasons.${event.reason}`) : t('unrecognized')}
             </p>
           ) : null}
-          {event.payload?.title ? (
+          {verifiedParsed &&
+          event.payload?.title &&
+          event.payload.title !== verifiedParsed.description ? (
             <p className="whitespace-pre-wrap wrap-break-word text-sm">{event.payload.title}</p>
           ) : null}
           {event.payload?.body ? (

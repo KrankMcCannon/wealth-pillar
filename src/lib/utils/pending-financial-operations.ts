@@ -2,6 +2,7 @@
 
 import { getFinancialOperationAction } from '@/features/transactions/actions/operation-actions';
 import type { ServiceResult } from '@/lib/types/service-result';
+import { DEADLINE_EXPIRED } from './with-deadline';
 
 type Pending = { key: string; id: string; createdAt: number };
 export type PendingOperationVerification<T> =
@@ -104,7 +105,13 @@ export function runPendingFinancialOperation<T>(
   execute: (operationId: string) => Promise<ServiceResult<T>>,
   onAcquire?: (operationId: string, reused: boolean) => void
 ): Promise<ServiceResult<T> & { reusedOperation?: boolean }> {
-  return runOperation(scope, kind, payload, execute, onAcquire);
+  const result = runOperation(scope, kind, payload, execute, onAcquire);
+  Object.assign(result, {
+    [DEADLINE_EXPIRED]: () => {
+      // A UI timeout releases the caller but does not make the outcome final.
+    },
+  });
+  return result;
 }
 
 async function runOperation<T>(
