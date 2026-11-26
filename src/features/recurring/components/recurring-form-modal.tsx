@@ -317,8 +317,8 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
     const result = await financialCommand.verify<
       Awaited<ReturnType<typeof deleteRecurringSeriesAction>>['data']
     >('deleteRecurringSeriesAction', [editId]);
-    if (!result) return { status: 'uncertain' as const };
-    if (result.error) return { status: 'rejected' as const };
+    if (result.status !== 'committed') return { status: 'uncertain' as const };
+    if (result.result.error) return { status: 'rejected' as const };
     toast({
       title: tSeriesCard('actions.delete'),
       description: t('toast.updatedDescription'),

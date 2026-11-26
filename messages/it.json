@@ -151,6 +151,8 @@
         "sendErrorTitle": "Errore nell'invio",
         "successTitle": "Invito inviato",
         "successDescription": "Un invito è stato inviato a {email}",
+        "pendingTitle": "Invito in attesa",
+        "pendingDescription": "Esiste già un invito in attesa per {email}",
         "errorTitle": "Errore",
         "errorDescription": "Si è verificato un errore durante l'invio dell'invito"
       },
@@ -2269,6 +2271,7 @@
     "empty": "Nessuna notifica ricevuta.",
     "unrecognized": "Formato non riconosciuto. Completa i dati per importare il movimento oppure ignora la notifica.",
     "import": "Conferma importazione",
+    "editImport": "Modifica e importa",
     "ignore": "Ignora",
     "statuses": {
       "pending": "Da verificare",
@@ -2294,6 +2297,7 @@
       "clipboard": "Copia il token manualmente: gli appunti non sono disponibili.",
       "device_limit": "Puoi avere fino a 10 dispositivi attivi. Revocane uno prima di aggiungerne altri.",
       "invalid_category": "Scegli una categoria disponibile nel gruppo.",
+      "invalid_amount": "L’importo originale non è verificabile. Correggilo prima di importare.",
       "connection_unavailable": "Il conto o l’utente non appartiene più al gruppo. Crea un nuovo collegamento.",
       "duplicate_transaction": "Questo movimento risulta già importato. Aggiorna la lista.",
       "unauthorized": "Accedi di nuovo per continuare.",
@@ -2314,6 +2318,8 @@
   },
   "FormStatus": {
     "pending": "La richiesta è ancora in attesa di conferma. I dati sono conservati e un nuovo invio resta bloccato finché non arriva l’esito.",
+    "recoveringTitle": "Verifica operazione",
+    "recovering": "Sto controllando il tentativo precedente prima di inviare di nuovo.",
     "timeout": "La risposta non è arrivata in tempo. I dati compilati sono conservati. Verifica se il salvataggio è riuscito prima di riprovare, per evitare duplicati.",
     "error": "Operazione non riuscita. I dati compilati sono conservati. Riprova tra poco.",
     "referenceUnavailable": "Non è stato possibile aggiornare conti e categorie. Ricarica i dati prima di inserire nuovi elementi.",

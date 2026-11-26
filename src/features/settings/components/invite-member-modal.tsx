@@ -97,10 +97,13 @@ export function InviteMemberModal({
           throw new Error(result.error);
         }
 
+        const alreadyPending = result.errorCode === 'INVITATION_ALREADY_PENDING';
         toast({
-          title: t('toast.successTitle'),
-          description: t('toast.successDescription', { email: data.email }),
-          variant: 'success',
+          title: alreadyPending ? t('toast.pendingTitle') : t('toast.successTitle'),
+          description: alreadyPending
+            ? t('toast.pendingDescription', { email })
+            : t('toast.successDescription', { email }),
+          variant: alreadyPending ? 'destructive' : 'success',
         });
 
         onSuccess?.();
@@ -146,8 +149,8 @@ export function InviteMemberModal({
                       return;
                     }
                     toast({
-                      title: t('toast.successTitle'),
-                      description: t('toast.successDescription', { email: verificationEmail }),
+                      title: t('toast.pendingTitle'),
+                      description: t('toast.pendingDescription', { email: verificationEmail }),
                       variant: 'success',
                     });
                     onSuccess?.();

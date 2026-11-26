@@ -5,6 +5,7 @@ import { useCurrentUser } from '@/providers/user-provider';
 import {
   runPendingFinancialOperation,
   verifyPendingFinancialOperation,
+  type PendingOperationVerification,
 } from '@/lib/utils/pending-financial-operations';
 import type { ServiceResult } from '@/lib/types/service-result';
 
@@ -14,7 +15,7 @@ type FinancialCommand = {
     payload: Args,
     execute: (operationId: string | undefined, args: Args) => Promise<ServiceResult<T>>
   ): Promise<ServiceResult<T>>;
-  verify<T>(kind: string, payload: readonly unknown[]): Promise<ServiceResult<T> | null>;
+  verify<T>(kind: string, payload: readonly unknown[]): Promise<PendingOperationVerification<T>>;
 };
 
 export function useFinancialCommand() {
@@ -36,7 +37,9 @@ export function useFinancialCommand() {
   return useMemo(() => {
     const command: FinancialCommand = Object.assign(execute, {
       verify: <T>(kind: string, payload: readonly unknown[]) =>
-        scope ? verifyPendingFinancialOperation<T>(scope, kind, payload) : Promise.resolve(null),
+        scope
+          ? verifyPendingFinancialOperation<T>(scope, kind, payload)
+          : Promise.resolve({ status: 'not_registered' as const }),
     });
     return command;
   }, [execute, scope]);

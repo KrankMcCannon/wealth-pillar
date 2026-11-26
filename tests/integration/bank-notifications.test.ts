@@ -159,14 +159,14 @@ it('keeps unrecognized notifications without affecting the ledger', async () => 
   const rows = await db.execute(sql`SELECT balance FROM accounts`);
   expect(Number(rows[0]!.balance)).toBe(100);
 });
-it('rolls back event, ledger and device usage when a balance update fails', async () => {
+it('rolls back the ledger but keeps device quota consumed when a balance update fails', async () => {
   const device = await connection();
   await db.execute(sql`UPDATE accounts SET balance=-9999999999.99`);
   await expect(ingestBankNotification(device.token, payload)).rejects.toThrow();
   const rows = await db.execute(
     sql`SELECT (SELECT count(*)::int FROM bank_notification_events) AS events,(SELECT count(*)::int FROM transactions) AS movements,(SELECT rate_count FROM bank_connections) AS used`
   );
-  expect(rows[0]).toEqual({ events: 0, movements: 0, used: 0 });
+  expect(rows[0]).toEqual({ events: 0, movements: 0, used: 1 });
 });
 it('enforces a persistent per-device rate limit', async () => {
   const device = await connection(false);

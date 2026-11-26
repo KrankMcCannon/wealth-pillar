@@ -75,7 +75,7 @@ export function CompleteNotificationModal({
     <EntityFormModal<TransactionFormData>
       isOpen
       onClose={onClose}
-      title={t('complete')}
+      title={event.parsed ? t('editImport') : t('complete')}
       wrapperProps={{ nested: true }}
       schema={schema}
       defaultValues={defaults}

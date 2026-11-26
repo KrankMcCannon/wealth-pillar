@@ -475,13 +475,13 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
     const result = await financialCommand.verify<
       Awaited<ReturnType<typeof deleteTransactionAction>>['data']
     >('deleteTransactionAction', [editId]);
-    if (!result) return { status: 'uncertain' as const };
-    if (result.error) return { status: 'rejected' as const };
+    if (result.status !== 'committed') return { status: 'uncertain' as const };
+    if (result.result.error) return { status: 'rejected' as const };
 
     const balanceId = getTempId('balance-delete');
     applyDeleteOptimisticStore(editId, original);
     beginBalanceMutation(balanceId, Object.fromEntries(getTransactionBalanceDeltas(original, -1)));
-    finishBalanceMutation(balanceId, result.data ?? undefined);
+    finishBalanceMutation(balanceId, result.result.data ?? undefined);
     commitDeleteOptimisticStore(editId);
     return { status: 'confirmed' as const };
   }, [

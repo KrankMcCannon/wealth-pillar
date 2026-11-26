@@ -269,8 +269,8 @@ function CategoryFormModal({ isOpen, onClose, editId }: Readonly<CategoryFormMod
   const verifyDelete = useCallback(async () => {
     if (!editId) return { status: 'uncertain' as const };
     const result = await financialCommand.verify('deleteCategoryAction', [editId, locale]);
-    if (!result) return { status: 'uncertain' as const };
-    if (result.error) return { status: 'rejected' as const };
+    if (result.status !== 'committed') return { status: 'uncertain' as const };
+    if (result.result.error) return { status: 'rejected' as const };
     removeCategory(editId);
     toast({
       title: t('toast.deletedTitle'),

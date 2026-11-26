@@ -113,10 +113,12 @@ export function useEntityFormSubmit<T extends FieldValues, Payload, Result, Hand
         const payload = buildPayload(values);
         localPending.current = true;
         if (scope) pendingSubmissions.add(scope);
-        handle =
-          isEditMode && editId
-            ? applyUpdateOptimistic?.(editId, payload)
-            : applyCreateOptimistic?.(payload);
+        if (!durableScope) {
+          handle =
+            isEditMode && editId
+              ? applyUpdateOptimistic?.(editId, payload)
+              : applyCreateOptimistic?.(payload);
+        }
         if (closeBeforeSubmit) onClose();
 
         // Observe the actual action until it settles, even after the UI deadline.
@@ -137,7 +139,19 @@ export function useEntityFormSubmit<T extends FieldValues, Payload, Result, Hand
                     isEditMode ? operationKinds.update : operationKinds.create,
                     { editId, payload },
                     send,
-                    () => timedOut
+                    (_operationId, reused) => {
+                      if (reused) {
+                        toast({
+                          title: tStatus('recoveringTitle'),
+                          description: tStatus('recovering'),
+                        });
+                        return;
+                      }
+                      handle =
+                        isEditMode && editId
+                          ? applyUpdateOptimistic?.(editId, payload)
+                          : applyCreateOptimistic?.(payload);
+                    }
                   )
                 : await send();
             if (result.error) {
@@ -171,7 +185,8 @@ export function useEntityFormSubmit<T extends FieldValues, Payload, Result, Hand
             }
             if (!closeBeforeSubmit && canUpdateForm()) onClose();
             toast({ ...getSuccessToast(isEditMode), variant: 'success' });
-            if (!timedOut) refreshAfterSuccess?.();
+            if (!timedOut || ('reusedOperation' in result && result.reusedOperation))
+              refreshAfterSuccess?.();
           } catch (error) {
             if (durableScope) {
               timedOut = true;

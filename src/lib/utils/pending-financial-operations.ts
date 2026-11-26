@@ -5,6 +5,11 @@ import type { ServiceResult } from '@/lib/types/service-result';
 import { DEADLINE_EXPIRED } from './with-deadline';
 
 type Pending = { key: string; id: string; createdAt: number };
+export type PendingOperationVerification<T> =
+  | { status: 'not_registered' }
+  | { status: 'unconfirmed' }
+  | { status: 'verification_failed' }
+  | { status: 'committed'; result: ServiceResult<T> };
 const database = () =>
   new Promise<IDBDatabase>((resolve, reject) => {
     const request = indexedDB.open('wealth-pillar-operations', 1);
@@ -59,17 +64,38 @@ export async function verifyPendingFinancialOperation<T>(
   scope: string,
   kind: string,
   payload: unknown
-): Promise<ServiceResult<T> | null> {
-  const key = await operationKey(scope, kind, payload);
-  const pending = await registry<Pending | undefined>((store, done) => {
-    const request = store.get(key);
-    request.onsuccess = () => done(request.result as Pending | undefined);
-  });
-  if (!pending) return null;
+): Promise<PendingOperationVerification<T>> {
+  try {
+    const key = await operationKey(scope, kind, payload);
+    const pending = await registry<Pending | undefined>((store, done) => {
+      const request = store.get(key);
+      request.onsuccess = () => done(request.result as Pending | undefined);
+    });
+    if (!pending) return { status: 'not_registered' };
 
-  const recovered = await getFinancialOperationAction(kind, pending.id);
-  if (recovered.error || recovered.data?.status !== 'committed') return null;
-  return recovered.data.result as ServiceResult<T>;
+    let recovered: Awaited<ReturnType<typeof getFinancialOperationAction>>;
+    try {
+      recovered = await getFinancialOperationAction(kind, pending.id);
+    } catch {
+      return { status: 'verification_failed' };
+    }
+    if (recovered.error) return { status: 'verification_failed' };
+    if (recovered.data?.status !== 'committed') return { status: 'unconfirmed' };
+    try {
+      await registry<void>((store, done) => {
+        const request = store.get(key);
+        request.onsuccess = () => {
+          if ((request.result as Pending | undefined)?.id === pending.id) store.delete(key);
+          done();
+        };
+      });
+    } catch {
+      // The server receipt remains authoritative if local cleanup is unavailable.
+    }
+    return { status: 'committed', result: recovered.data.result as ServiceResult<T> };
+  } catch {
+    return { status: 'verification_failed' };
+  }
 }
 
 export function runPendingFinancialOperation<T>(
@@ -77,13 +103,12 @@ export function runPendingFinancialOperation<T>(
   kind: string,
   payload: unknown,
   execute: (operationId: string) => Promise<ServiceResult<T>>,
-  abandoned: () => boolean = () => false
-): Promise<ServiceResult<T>> {
-  let timedOut = false;
-  const result = runOperation(scope, kind, payload, execute, () => timedOut || abandoned());
+  onAcquire?: (operationId: string, reused: boolean) => void
+): Promise<ServiceResult<T> & { reusedOperation?: boolean }> {
+  const result = runOperation(scope, kind, payload, execute, onAcquire);
   Object.assign(result, {
     [DEADLINE_EXPIRED]: () => {
-      timedOut = true;
+      // A UI timeout releases the caller but does not make the outcome final.
     },
   });
   return result;
@@ -94,8 +119,8 @@ async function runOperation<T>(
   kind: string,
   payload: unknown,
   execute: (operationId: string) => Promise<ServiceResult<T>>,
-  abandoned: () => boolean
-): Promise<ServiceResult<T>> {
+  onAcquire?: (operationId: string, reused: boolean) => void
+): Promise<ServiceResult<T> & { reusedOperation?: boolean }> {
   const key = await operationKey(scope, kind, payload);
   const pending = await registry<{ record: Pending; reused: boolean }>((store, done) => {
     const request = store.get(key);
@@ -106,23 +131,31 @@ async function runOperation<T>(
       done({ record, reused: Boolean(existing) });
     };
   });
+  onAcquire?.(pending.record.id, pending.reused);
   let result: ServiceResult<T>;
   if (pending.reused) {
     const recovered = await getFinancialOperationAction(kind, pending.record.id);
     if (recovered.error)
-      return { data: null, error: recovered.error, errorCode: 'OUTCOME_UNKNOWN' };
+      return {
+        data: null,
+        error: recovered.error,
+        errorCode: 'OUTCOME_UNKNOWN',
+        reusedOperation: true,
+      };
     result =
       recovered.data?.status === 'committed'
         ? (recovered.data.result as ServiceResult<T>)
         : await execute(pending.record.id);
   } else result = await execute(pending.record.id);
-  if (result.errorCode !== 'OUTCOME_UNKNOWN' && !abandoned()) {
+  // A settled response is authoritative even when the UI deadline elapsed.
+  // Compare the UUID in the same IndexedDB transaction so an older completion
+  // cannot remove a newer attempt acquired in another tab.
+  if (result.errorCode !== 'OUTCOME_UNKNOWN') {
     try {
       await registry<void>((store, done) => {
         const request = store.get(key);
         request.onsuccess = () => {
-          if (!abandoned() && (request.result as Pending | undefined)?.id === pending.record.id)
-            store.delete(key);
+          if ((request.result as Pending | undefined)?.id === pending.record.id) store.delete(key);
           done();
         };
       });
@@ -130,5 +163,5 @@ async function runOperation<T>(
       /* A storage cleanup error cannot undo the authoritative success. */
     }
   }
-  return result;
+  return pending.reused ? { ...result, reusedOperation: true } : result;
 }

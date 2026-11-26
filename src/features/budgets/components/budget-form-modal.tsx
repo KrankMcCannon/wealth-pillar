@@ -358,8 +358,8 @@ function BudgetFormModal({
       const result = await financialCommand.verify<
         Awaited<ReturnType<typeof deleteClosedPeriodBudgetAction>>['data']
       >('deleteClosedPeriodBudgetAction', [periodUserId, periodId, editId, locale]);
-      if (!result) return { status: 'uncertain' as const };
-      if (result.error) return { status: 'rejected' as const };
+      if (result.status !== 'committed') return { status: 'uncertain' as const };
+      if (result.result.error) return { status: 'rejected' as const };
       toast({
         title: t('toast.deletedTitle'),
         description: t('toast.deletedDescription'),
@@ -372,8 +372,8 @@ function BudgetFormModal({
     const result = await financialCommand.verify<
       Awaited<ReturnType<typeof deleteBudgetAction>>['data']
     >('deleteBudgetAction', [editId, locale, pathname.startsWith('/budgets/')]);
-    if (!result) return { status: 'uncertain' as const };
-    if (result.error) return { status: 'rejected' as const };
+    if (result.status !== 'committed') return { status: 'uncertain' as const };
+    if (result.result.error) return { status: 'rejected' as const };
     removeBudget(editId);
     toast({
       title: t('toast.deletedTitle'),

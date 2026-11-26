@@ -299,8 +299,8 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
   const verifyDelete = useCallback(async () => {
     if (!editId) return { status: 'uncertain' as const };
     const result = await financialCommand.verify<boolean>('deleteAccountAction', [editId, locale]);
-    if (!result) return { status: 'uncertain' as const };
-    if (result.error || !result.data) return { status: 'rejected' as const };
+    if (result.status !== 'committed') return { status: 'uncertain' as const };
+    if (result.result.error || !result.result.data) return { status: 'rejected' as const };
     removeAccount(editId);
     toast({
       title: t('toast.deletedTitle'),

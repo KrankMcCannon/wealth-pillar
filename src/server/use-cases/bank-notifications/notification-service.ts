@@ -1,5 +1,6 @@
 import { resolveDb } from '@/server/repositories/db-executor';
 import { financialTransaction } from '@/server/repositories/db-executor';
+import { db } from '@/server/db/drizzle';
 import { createHash, randomBytes } from 'node:crypto';
 import { and, eq, ne, or, desc, isNull, sql, getTableColumns } from 'drizzle-orm';
 import {
@@ -23,6 +24,7 @@ import { CategoriesRepository } from '@/server/repositories/categories.repositor
 import { SYSTEM_GROUP_ID } from '@/lib/constants';
 import {
   type BankNotification,
+  getVerifiedNotification,
   parseBankNotification,
   normalizeMerchant,
 } from '@/lib/bank-notifications/parser';
@@ -75,6 +77,29 @@ async function assertConnectionScope(
     )
     .for('update');
   if (!owner || !account) throw new NotificationError('connection_unavailable', 403);
+}
+
+/** Commits admission independently so a later ledger rollback cannot refund quota. */
+async function consumeConnectionQuota(token: string) {
+  await db.transaction(async (tx) => {
+    const [connection] = await tx
+      .select()
+      .from(bankConnections)
+      .where(and(eq(bankConnections.token_hash, hash(token)), isNull(bankConnections.revoked_at)))
+      .for('update');
+    if (!connection) throw new NotificationError('unauthorized', 401);
+    const now = new Date();
+    const inWindow = now.getTime() - connection.rate_window.getTime() < 60_000;
+    if (inWindow && connection.rate_count >= 60) throw new NotificationError('rate_limited', 429);
+    await tx
+      .update(bankConnections)
+      .set({
+        last_used_at: now,
+        rate_count: inWindow ? connection.rate_count + 1 : 1,
+        rate_window: inWindow ? connection.rate_window : now,
+      })
+      .where(eq(bankConnections.id, connection.id));
+  });
 }
 
 export async function createBankConnection(
@@ -141,7 +166,12 @@ export async function getBankNotificationEvents(
     .select({ pending: sql<number>`count(*)::int` })
     .from(bankNotificationEvents)
     .where(and(scope, eq(bankNotificationEvents.status, 'pending')));
-  const events = rows.slice(0, 25);
+  const events = rows.slice(0, 25).map((event) => ({
+    ...event,
+    // Re-evaluate legacy persisted JSON from its original text before exposing a
+    // one-click import amount to the browser.
+    parsed: event.payload ? getVerifiedNotification(event.payload) : null,
+  }));
   const last = events.at(-1);
   return {
     events,
@@ -190,8 +220,11 @@ async function commitEvent(
 ) {
   const parsed = manual
     ? { ...manual, amount: manual.amount.toFixed(2), reportedBalance: null }
-    : event.parsed;
-  if (!parsed || !(await availableCategory(tx, category, event.group_id)))
+    : event.payload
+      ? getVerifiedNotification(event.payload)
+      : null;
+  if (!parsed) throw new NotificationError('invalid_amount');
+  if (!(await availableCategory(tx, category, event.group_id)))
     throw new NotificationError('invalid_category');
   const [created] = await tx
     .insert(transactions)
@@ -227,6 +260,7 @@ function invalidate(event: { group_id: string; account_id: string; user_id: stri
 
 export async function ingestBankNotification(token: string, input: BankNotification) {
   if (!/^wpn_[A-Za-z0-9_-]{43}$/.test(token)) throw new NotificationError('unauthorized', 401);
+  await consumeConnectionQuota(token);
   const result = await financialTransaction(async (tx) => {
     const [connection] = await tx
       .select()
@@ -236,16 +270,6 @@ export async function ingestBankNotification(token: string, input: BankNotificat
     if (!connection) throw new NotificationError('unauthorized', 401);
     await assertConnectionScope(tx, connection);
     const now = new Date();
-    const inWindow = now.getTime() - connection.rate_window.getTime() < 60_000;
-    if (inWindow && connection.rate_count >= 60) throw new NotificationError('rate_limited', 429);
-    await tx
-      .update(bankConnections)
-      .set({
-        last_used_at: now,
-        rate_count: inWindow ? connection.rate_count + 1 : 1,
-        rate_window: inWindow ? connection.rate_window : now,
-      })
-      .where(eq(bankConnections.id, connection.id));
     const identity = input.eventId
       ? ['event', input.eventId]
       : [

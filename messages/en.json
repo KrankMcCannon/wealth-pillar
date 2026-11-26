@@ -151,6 +151,8 @@
         "sendErrorTitle": "Sending error",
         "successTitle": "Invitation sent",
         "successDescription": "An invitation has been sent to {email}",
+        "pendingTitle": "Invitation pending",
+        "pendingDescription": "An invitation is already pending for {email}",
         "errorTitle": "Error",
         "errorDescription": "An error occurred while sending the invitation"
       },
@@ -2269,6 +2271,7 @@
     "empty": "No notifications received yet.",
     "unrecognized": "Unrecognized format. Complete the details to import the movement or ignore the notification.",
     "import": "Confirm import",
+    "editImport": "Edit and import",
     "ignore": "Ignore",
     "statuses": {
       "pending": "Needs review",
@@ -2294,6 +2297,7 @@
       "clipboard": "Copy the token manually: the clipboard is unavailable.",
       "device_limit": "You can have up to 10 active devices. Revoke one before adding more.",
       "invalid_category": "Choose a category available to your group.",
+      "invalid_amount": "The original amount cannot be verified. Correct it before importing.",
       "connection_unavailable": "The account or user no longer belongs to the group. Create a new connection.",
       "duplicate_transaction": "This movement has already been imported. Refresh the list.",
       "unauthorized": "Sign in again to continue.",
@@ -2314,6 +2318,8 @@
   },
   "FormStatus": {
     "pending": "The request is still awaiting confirmation. Your entries are preserved and another submission is blocked until the outcome arrives.",
+    "recoveringTitle": "Checking operation",
+    "recovering": "Checking the previous attempt before sending again.",
     "timeout": "The response timed out. Your entries have been kept. Check whether the save completed before trying again to avoid duplicates.",
     "error": "The operation failed. Your entries have been kept. Please try again shortly.",
     "referenceUnavailable": "Accounts and categories could not be refreshed. Reload the data before adding new items.",
