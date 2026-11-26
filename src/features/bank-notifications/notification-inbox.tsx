@@ -7,6 +7,7 @@ import { useTranslations } from 'next-intl';
 import { useCurrency } from '@/providers/currency-provider';
 import { useCategories, useReferenceDataStore } from '@/stores/reference-data-store';
 import { Button } from '@/components/ui/button';
+import { getVerifiedNotification } from '@/lib/bank-notifications/parser';
 import { CategorySelect } from '@/components/form/category-select';
 import type { User } from '@/lib/types';
 import { getBankEventsAction, reviewBankNotificationAction } from './actions';
@@ -155,6 +156,8 @@ function NotificationRow({
   perform: (action: () => Promise<{ error: string | null }>) => Promise<void>;
 }) {
   const financialCommand = useFinancialCommand();
+  const verifiedParsed = event.payload ? getVerifiedNotification(event.payload) : null;
+  const safeEvent = { ...event, parsed: verifiedParsed };
 
   const { format: formatCurrency } = useCurrency();
   const t = useTranslations('BankNotifications');
@@ -183,17 +186,17 @@ function NotificationRow({
     <li className="min-w-0 space-y-2 py-3">
       <div className="flex min-w-0 justify-between gap-3">
         <p className="min-w-0 wrap-break-word font-medium">
-          {event.parsed?.description ?? event.payload?.title ?? t('unrecognized')}
+          {verifiedParsed?.description ?? event.payload?.title ?? t('unrecognized')}
         </p>
-        {event.parsed ? (
+        {verifiedParsed ? (
           <span className="shrink-0 tabular-nums">
-            {event.parsed.type === 'expense' ? '−' : '+'}
-            {formatCurrency(Number(event.parsed.amount))}
+            {verifiedParsed.type === 'expense' ? '−' : '+'}
+            {formatCurrency(Number(verifiedParsed.amount))}
           </span>
         ) : null}
       </div>
       <p className="text-xs text-muted-foreground">
-        {event.parsed?.date} · {t(`statuses.${event.status}`)}
+        {verifiedParsed?.date} · {t(`statuses.${event.status}`)}
       </p>
       {event.status === 'pending' ? (
         <>
@@ -202,10 +205,13 @@ function NotificationRow({
               {t.has(`reasons.${event.reason}`) ? t(`reasons.${event.reason}`) : t('unrecognized')}
             </p>
           ) : null}
-          {!event.parsed && event.payload?.body ? (
+          {event.payload?.title ? (
+            <p className="whitespace-pre-wrap wrap-break-word text-sm">{event.payload.title}</p>
+          ) : null}
+          {event.payload?.body ? (
             <p className="whitespace-pre-wrap wrap-break-word text-sm">{event.payload.body}</p>
           ) : null}
-          {event.parsed ? (
+          {verifiedParsed ? (
             <CategorySelect
               captionLabel={t('category')}
               value={category}
@@ -215,7 +221,7 @@ function NotificationRow({
             />
           ) : null}
           <div className="flex flex-wrap gap-2">
-            {event.parsed ? (
+            {verifiedParsed ? (
               <Button
                 type="button"
                 disabled={busy || !category}
@@ -224,9 +230,19 @@ function NotificationRow({
                 {t('import')}
               </Button>
             ) : null}
-            {!event.parsed ? (
+            {!verifiedParsed ? (
               <Button type="button" disabled={busy} onClick={() => setCompleting(true)}>
                 {t('complete')}
+              </Button>
+            ) : null}
+            {verifiedParsed ? (
+              <Button
+                type="button"
+                variant="outline"
+                disabled={busy}
+                onClick={() => setCompleting(true)}
+              >
+                {t('editImport')}
               </Button>
             ) : null}
             <Button
@@ -242,7 +258,7 @@ function NotificationRow({
       ) : null}
       {completing ? (
         <CompleteNotificationModal
-          event={event}
+          event={safeEvent}
           user={user}
           onClose={() => setCompleting(false)}
           onComplete={onComplete}

@@ -28,16 +28,25 @@ export function normalizeMerchant(value: string) {
 }
 
 function money(value: string): string | null {
-  const compact = value.replace(/[\s\u00a0]/g, '');
-  // Currency amounts are parsed by syntax, never with floating locale guesses.
-  if (!/^-?(?:\d+|\d{1,3}(?:[.,]\d{3})+)(?:[.,]\d{1,2})?$/.test(compact)) return null;
+  const compact = value.trim();
+  // Validate the original token before removing separators. Ambiguous grouping
+  // such as 1.234 and embedded whitespace must stay in manual review.
+  const simple = /^-?\d+(?:[.,]\d{1,2})?$/;
+  const grouped = /^-?\d{1,3}(?:([.,])\d{3})+([.,])(\d{1,2})$/;
+  const simpleMatch = simple.exec(compact);
+  const groupedMatch = grouped.exec(compact);
+  if (!simpleMatch && (!groupedMatch || groupedMatch[1] === groupedMatch[2])) return null;
   const decimal = /[.,]\d{1,2}$/.exec(compact);
   const whole = (decimal ? compact.slice(0, decimal.index) : compact).replace(/[.,]/g, '');
-  const cents =
-    Number(whole) * 100 +
-    (compact.startsWith('-') ? -1 : 1) * Number((decimal?.[0].slice(1) ?? '').padEnd(2, '0'));
+  const sign = compact.startsWith('-') ? -1 : 1;
+  const cents = sign * (Number(whole) * 100 + Number((decimal?.[0].slice(1) ?? '').padEnd(2, '0')));
   if (!Number.isSafeInteger(cents) || Math.abs(cents) > 999999999999) return null;
   return (cents / 100).toFixed(2);
+}
+
+/** Revalidates older pending rows from their original notification text. */
+export function getVerifiedNotification(input: BankNotification, now = new Date()) {
+  return parseBankNotification(input, now).parsed;
 }
 
 /** Each bank owns a parser; unknown formats stay in the review inbox. */

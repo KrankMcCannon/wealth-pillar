@@ -193,8 +193,8 @@ export default function AddInvestmentModal({
         onVerify: async () => {
           if (!editId) return { status: 'uncertain' as const };
           const result = await financialCommand.verify<boolean>('deleteInvestmentAction', [editId]);
-          if (!result) return { status: 'uncertain' as const };
-          if (result.error || !result.data) return { status: 'rejected' as const };
+          if (result.status !== 'committed') return { status: 'uncertain' as const };
+          if (result.result.error || !result.result.data) return { status: 'rejected' as const };
           router.refresh();
           return { status: 'confirmed' as const };
         },
